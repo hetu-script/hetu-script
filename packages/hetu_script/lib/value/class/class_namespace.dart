@@ -14,7 +14,7 @@ class HTClassNamespace extends HTNamespace {
   @override
   dynamic memberGet(String varName,
       {String? from, bool recursive = true, bool error = true}) {
-    final getter = '${Semantic.getter}$varName';
+    final getter = '${InternalIdentifier.getter}$varName';
     final externalStatic = '$id.$varName';
 
     if (declarations.containsKey(varName)) {
@@ -49,7 +49,7 @@ class HTClassNamespace extends HTNamespace {
   @override
   void memberSet(String varName, dynamic varValue,
       {String? from, bool recursive = true, bool error = true}) {
-    final setter = '${Semantic.setter}$varName';
+    final setter = '${InternalIdentifier.setter}$varName';
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {

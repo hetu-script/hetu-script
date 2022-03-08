@@ -10,7 +10,7 @@ import '../source/source.dart';
 import '../declaration/class/class_declaration.dart';
 import '../error/error.dart';
 import '../ast/ast.dart';
-import 'abstract_parser.dart';
+import 'token_reader.dart';
 import '../lexer/lexer.dart';
 
 /// Determines how to parse a piece of code
@@ -38,6 +38,10 @@ enum ParseStyle {
   /// expression & control statements.
   functionDefinition,
 }
+
+abstract class ParserConfig {}
+
+class ParserConfigImpl implements ParserConfig {}
 
 /// Walk through a token list and generates a abstract syntax tree.
 class HTParser extends TokenReader {
@@ -164,7 +168,7 @@ class HTParser extends TokenReader {
         try {
           late final AstSource importedSource;
           final currentDir =
-              result.fullName.startsWith(Semantic.anonymousScript)
+              result.fullName.startsWith(InternalIdentifier.anonymousScript)
                   ? sourceContext.root
                   : path.dirname(result.fullName);
           final importFullName = sourceContext.getAbsolutePath(
@@ -2717,40 +2721,6 @@ class HTParser extends TokenReader {
         length: curTok.offset - keyword.offset);
   }
 
-  // ConstDecl _parseConstDecl({String? classId, bool isTopLevel = false}) {
-  //   final keyword = match(HTLexicon.kConst);
-  //   final idTok = match(Semantic.identifier);
-  //   final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
-  //   TypeExpr? declType;
-  //   if (expect([HTLexicon.colon], consume: true)) {
-  //     declType = _parseTypeExpr();
-  //   }
-  //   match(HTLexicon.assign);
-  //   final constExpr = _parseExpr();
-  //   if (!constExpr.isConst) {
-  //     final err = HTError.notConstValue(
-  //         filename: _currrentFileName,
-  //         line: constExpr.line,
-  //         column: constExpr.column,
-  //         offset: constExpr.offset,
-  //         length: constExpr.length);
-  //     errors?.add(err);
-  //   }
-  //   final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
-  //   return ConstDecl(
-  //     id,
-  //     constExpr,
-  //     classId: classId,
-  //     declType: declType,
-  //     hasEndOfStmtMark: hasEndOfStmtMark,
-  //     source: _currentSource,
-  //     line: keyword.line,
-  //     column: keyword.column,
-  //     offset: keyword.offset,
-  //     length: constExpr.end - keyword.offset,
-  //   );
-  // }
-
   VarDecl _parseVarDecl(
       {String? classId,
       bool isField = false,
@@ -2910,24 +2880,24 @@ class HTParser extends TokenReader {
           id = advance();
         }
         internalName = (id == null)
-            ? Semantic.constructor
-            : '${Semantic.constructor}${HTLexicon.privatePrefix}$id';
+            ? InternalIdentifier.defaultConstructor
+            : '${InternalIdentifier.namedConstructorPrefix}$id';
         break;
       case FunctionCategory.literal:
         if (curTok.type == Semantic.identifier) {
           id = advance();
         }
         internalName = (id == null)
-            ? '${Semantic.anonymousFunction}${anonymousFunctionIndex++}'
+            ? '${InternalIdentifier.anonymousFunction}${anonymousFunctionIndex++}'
             : id.lexeme;
         break;
       case FunctionCategory.getter:
         id = match(Semantic.identifier);
-        internalName = '${Semantic.getter}$id';
+        internalName = '${InternalIdentifier.getter}$id';
         break;
       case FunctionCategory.setter:
         id = match(Semantic.identifier);
-        internalName = '${Semantic.setter}$id';
+        internalName = '${InternalIdentifier.setter}$id';
         break;
       default:
         id = match(Semantic.identifier);

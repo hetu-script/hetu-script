@@ -10,10 +10,9 @@ import '../binding/external_class.dart';
 import '../binding/external_function.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
-import '../grammar/lexicon.dart';
 import '../type/type.dart';
 import '../value/function/function.dart';
-import '../parser/abstract_parser.dart';
+import '../parser/parser.dart' show ParserConfig;
 import '../value/entity.dart';
 import '../bytecode/compiler.dart';
 import '../shared/stringify.dart';
@@ -25,6 +24,8 @@ import '../shared/math.dart';
 import '../shared/uid.dart';
 import '../shared/crc32b.dart';
 import '../analyzer/analyzer.dart';
+import '../localization/localization.dart';
+import '../localization/locales.dart';
 
 part 'binding/class_binding.dart';
 part 'binding/instance_binding.dart';
@@ -41,37 +42,38 @@ class InterpreterConfig
         CompilerConfig,
         ErrorHandlerConfig {
   @override
-  final bool checkTypeErrors;
+  bool checkTypeErrors;
 
   @override
-  final bool computeConstantExpressionValue;
+  bool computeConstantExpressionValue;
 
   @override
-  final bool compileWithLineInfo;
+  bool compileWithLineInfo;
 
   @override
-  final bool showHetuStackTrace;
+  bool showHetuStackTrace;
 
   @override
-  final bool showDartStackTrace;
+  bool showDartStackTrace;
 
   @override
-  final int stackTraceDisplayCountLimit;
+  int stackTraceDisplayCountLimit;
 
   @override
-  final ErrorHanldeApproach errorHanldeApproach;
+  ErrorHanldeApproach errorHanldeApproach;
 
-  final bool allowHotReload;
+  bool strictMode;
 
-  const InterpreterConfig(
-      {this.checkTypeErrors = false,
-      this.computeConstantExpressionValue = false,
-      this.compileWithLineInfo = true,
-      this.showHetuStackTrace = true,
-      this.showDartStackTrace = false,
-      this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
-      this.errorHanldeApproach = ErrorHanldeApproach.exception,
-      this.allowHotReload = true});
+  InterpreterConfig({
+    this.checkTypeErrors = false,
+    this.computeConstantExpressionValue = false,
+    this.compileWithLineInfo = true,
+    this.showHetuStackTrace = true,
+    this.showDartStackTrace = false,
+    this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
+    this.errorHanldeApproach = ErrorHanldeApproach.exception,
+    this.strictMode = true,
+  });
 }
 
 /// Base class for bytecode interpreter and static analyzer of Hetu.
@@ -81,18 +83,21 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   /// [HTResourceContext] manages imported sources.
   HTResourceContext<HTSource> get sourceContext;
 
-  bool strictMode = false;
-
   /// Initialize the interpreter,
   /// prepare it with preincluded modules,
   /// bind it with HTExternalFunction, HTExternalFunctionTypedef, HTExternalClass, etc.
   @mustCallSuper
   void init({
+    HTLocale? locale,
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
   }) {
     try {
+      if (locale != null) {
+        HTLocalization.locale = locale;
+      }
+
       // bind externals before any eval
       for (var key in preincludeFunctions.keys) {
         bindExternalFunction(key, preincludeFunctions[key]!);

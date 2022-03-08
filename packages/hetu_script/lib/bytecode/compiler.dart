@@ -1049,7 +1049,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       if (block.id != null) {
         bytesBuilder.add(_parseIdentifier(block.id!));
       } else {
-        bytesBuilder.add(_parseIdentifier(Semantic.anonymousBlock));
+        bytesBuilder.add(_parseIdentifier(InternalIdentifier.anonymousBlock));
       }
     }
     for (final stmt in block.statements) {
@@ -1215,20 +1215,21 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final iterInit = MemberExpr(
         collection, IdentifierExpr(HTLexicon.iterator, isLocal: false));
     final iterInitBytes = compileAst(iterInit, endOfExec: true);
-    final iterId = '${Semantic.iterator}${iterIndex++}';
+    final iterId = '__iter${iterIndex++}';
     final iterDecl = _assembleVarDeclStmt(
         iterId, stmt.iterator.line, stmt.iterator.column,
         initializer: iterInitBytes);
     bytesBuilder.add(iterDecl);
 
+    final iterMoveResult = '__iter${iterIndex++}MoveResult';
     final moveResultDeclBytes = _assembleVarDeclStmt(
-        Semantic.iteratorMoveResult, stmt.iterator.line, stmt.iterator.column);
+        iterMoveResult, stmt.iterator.line, stmt.iterator.column);
     bytesBuilder.add(moveResultDeclBytes);
 
     // update iter move result
     // calls iterator.moveNext()
     final moveIter = BinaryExpr(
-        IdentifierExpr(Semantic.iteratorMoveResult),
+        IdentifierExpr(iterMoveResult),
         HTLexicon.assign,
         CallExpr(MemberExpr(IdentifierExpr(iterId),
             IdentifierExpr(HTLexicon.moveNext, isLocal: false))));
@@ -1238,7 +1239,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     final conditionBuilder = BytesBuilder();
     // conditionBuilder.add(moveIterBytes);
     // assemble the condition expression, i.e., checks iterator.moveNext() result
-    final moveResult = IdentifierExpr(Semantic.iteratorMoveResult);
+    final moveResult = IdentifierExpr(iterMoveResult);
     final moveResultBytes = visitIdentifierExpr(moveResult);
     conditionBuilder.add(moveResultBytes);
     final condition = conditionBuilder.toBytes();
@@ -1737,7 +1738,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       final ctorDef = BinaryExpr(IdentifierExpr(valueId), HTLexicon.assign,
           IdentifierExpr(Semantic.name));
       final constructor = FuncDecl(
-          '${Semantic.constructor}${HTLexicon.privatePrefix}${HTLexicon.privatePrefix}',
+          '${InternalIdentifier.namedConstructorPrefix}${HTLexicon.privatePrefix}',
           [ctorParam],
           id: IdentifierExpr(HTLexicon.privatePrefix),
           classId: stmt.id.id,

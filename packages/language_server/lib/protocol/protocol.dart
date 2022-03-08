@@ -107,8 +107,8 @@ class Request {
     return id.hashCode;
   }
 
-  /// Return a request parsed from the given json, or `null` if the [data] is
-  /// not a valid json representation of a request. The [data] is expected to
+  /// Return a request parsed from the given json, or `null` if the [locale] is
+  /// not a valid json representation of a request. The [locale] is expected to
   /// have the following format:
   ///
   ///   {

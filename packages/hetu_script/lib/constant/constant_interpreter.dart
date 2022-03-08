@@ -1,10 +1,14 @@
 import '../ast/ast.dart';
 import '../grammar/lexicon.dart';
 import '../shared/stringify.dart';
+import '../analyzer/analysis_error.dart';
 
 /// A interpreter that computes the constant value before compilation.
 /// If the AstNode provided is non-constant value, return null.
 class HTConstantInterpreter implements AbstractAstVisitor<void> {
+  /// Errors of a single file
+  late List<HTAnalysisError> errors = [];
+
   void evalAstNode(AstNode node) => node.accept(this);
 
   @override
@@ -347,6 +351,15 @@ class HTConstantInterpreter implements AbstractAstVisitor<void> {
   @override
   void visitVarDecl(VarDecl node) {
     node.subAccept(this);
+    if (node.isConst && !node.initializer!.isConstValue) {
+      final err = HTAnalysisError.constValue(
+          filename: node.source!.fullName,
+          line: node.initializer!.line,
+          column: node.initializer!.column,
+          offset: node.initializer!.offset,
+          length: node.initializer!.length);
+      errors.add(err);
+    }
   }
 
   @override

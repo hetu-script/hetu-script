@@ -24,6 +24,7 @@ import '../binding/external_class.dart';
 import '../binding/external_function.dart';
 import '../constant/constant_interpreter.dart';
 import 'analyzer_impl.dart';
+import '../localization/locales.dart';
 
 abstract class AnalyzerConfig {
   factory AnalyzerConfig({bool computeConstantExpressionValue}) =
@@ -84,12 +85,14 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void init({
+    HTLocale? locale,
     List<HTSource> preincludes = const [],
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
   }) {
     super.init(
+      locale: locale,
       externalFunctions: externalFunctions,
       externalFunctionTypedef: externalFunctionTypedef,
       externalClasses: externalClasses,
@@ -146,12 +149,15 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
       if (config.computeConstantExpressionValue) {
         final constantInterpreter = HTConstantInterpreter();
         parseResult.accept(constantInterpreter);
+        sourceErrors.addAll(constantInterpreter.errors);
       }
 
       // the third scan, do static analysis
-      final analyzer = HTAnalyzerImpl();
-      parseResult.accept(analyzer);
-      sourceErrors.addAll(analyzer.errors);
+      if (config.checkTypeErrors) {
+        final analyzer = HTAnalyzerImpl();
+        parseResult.accept(analyzer);
+        sourceErrors.addAll(analyzer.errors);
+      }
 
       final sourceAnalysisResult = HTSourceAnalysisResult(
           parseResult: parseResult,

@@ -1,18 +1,19 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = Hetu()..strictMode = true;
-  hetu.init(externalFunctions: {
-    'Person.type': () {
-      return 'person type getter';
-    }
-  });
+  var hetu = Hetu(
+    config: InterpreterConfig(
+      checkTypeErrors: true,
+      computeConstantExpressionValue: true,
+      strictMode: true,
+    ),
+  );
+  hetu.init(
+    locale: HTLocaleSimplifiedChinese(),
+  );
   hetu.eval(r'''
-    class Person {
-      external static fun type
-    }
-
-    // final p = Person()
-    print(Person.type())
+    const i = 42
+    const j = 3 * i
+    print(j)
   ''');
 }

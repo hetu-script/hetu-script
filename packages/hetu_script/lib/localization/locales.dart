@@ -2,6 +2,8 @@ part 'locales/english.dart';
 part 'locales/simplified_chinese.dart';
 
 abstract class HTLocale {
+  String get percentageMark;
+
   String get errorBytecode;
   String get errorVersion;
   String get errorAssertionFailed;
@@ -27,10 +29,7 @@ abstract class HTLocale {
   String get errorInvalidLeftValue;
   String get errorNullableAssign;
   String get errorPrivateMember;
-  String get errorConstMustBeStatic;
   String get errorConstMustInit;
-  String get errorDuplicateLibStmt;
-  String get errorNotConstValue;
 
   // compile time errors
   String get errorDefined;
@@ -38,7 +37,6 @@ abstract class HTLocale {
   String get errorNotMember;
   String get errorNotClass;
   String get errorAbstracted;
-  String get errorInterfaceCtor;
   String get errorConstValue;
 
   // runtime errors

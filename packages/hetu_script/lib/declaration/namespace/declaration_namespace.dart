@@ -1,5 +1,5 @@
 import '../../error/error.dart';
-import '../../grammar/lexicon.dart';
+import '../../grammar/semantic.dart';
 import '../../source/source.dart';
 import '../../declaration/declaration.dart';
 import '../../value/entity.dart';
@@ -9,7 +9,7 @@ import '../../value/unresolved_import_statement.dart';
 /// will return declaration rather than actual values.
 class HTDeclarationNamespace extends HTDeclaration with HTEntity {
   @override
-  String toString() => '${HTLexicon.kNamespace} $id';
+  String toString() => '${Semantic.namespace} $id';
 
   late String _fullName;
 
@@ -42,7 +42,7 @@ class HTDeclarationNamespace extends HTDeclaration with HTEntity {
     _fullName = displayName;
     var curSpace = closure;
     while (curSpace != null) {
-      _fullName = curSpace.displayName + HTLexicon.memberGet + fullName;
+      _fullName = '${curSpace.displayName}.$fullName';
       curSpace = curSpace.closure;
     }
   }

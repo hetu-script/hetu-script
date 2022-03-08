@@ -50,7 +50,7 @@ class HTInstance with HTEntity, InterpreterRef {
     HTClass? curKlass = klass;
     // final extended = <HTValueType>[];
     HTInstanceNamespace? curNamespace = HTInstanceNamespace(
-        Semantic.instance, this,
+        InternalIdentifier.instance, this,
         classId: curKlass.id, closure: klass.namespace);
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
@@ -76,7 +76,8 @@ class HTInstance with HTEntity, InterpreterRef {
       // }
       curKlass = curKlass.superClass;
       if (curKlass != null) {
-        curNamespace.next = HTInstanceNamespace(Semantic.instance, this,
+        curNamespace.next = HTInstanceNamespace(
+            InternalIdentifier.instance, this,
             classId: curKlass.id, closure: curKlass.namespace);
       } else {
         curNamespace.next = null;
@@ -124,8 +125,10 @@ class HTInstance with HTEntity, InterpreterRef {
   bool contains(String varName) {
     for (final space in _namespaces.values) {
       if (space.declarations.containsKey(varName) ||
-          space.declarations.containsKey('${Semantic.getter}$varName') ||
-          space.declarations.containsKey('${Semantic.setter}$varName')) {
+          space.declarations
+              .containsKey('${InternalIdentifier.getter}$varName') ||
+          space.declarations
+              .containsKey('${InternalIdentifier.setter}$varName')) {
         return true;
       }
     }
@@ -139,7 +142,7 @@ class HTInstance with HTEntity, InterpreterRef {
   @override
   dynamic memberGet(String varName,
       {String? from, String? cast, bool error = true}) {
-    final getter = '${Semantic.getter}$varName';
+    final getter = '${InternalIdentifier.getter}$varName';
 
     if (cast == null) {
       for (final space in _namespaces.values) {
@@ -202,7 +205,7 @@ class HTInstance with HTEntity, InterpreterRef {
   @override
   void memberSet(String varName, dynamic varValue,
       {String? from, String? cast, bool error = true}) {
-    final setter = '${Semantic.setter}$varName';
+    final setter = '${InternalIdentifier.setter}$varName';
 
     if (cast == null) {
       for (final space in _namespaces.values) {

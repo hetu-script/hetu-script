@@ -38,6 +38,7 @@ import '../version.dart';
 import '../value/unresolved_import_statement.dart';
 import '../error/error_severity.dart';
 import '../binding/external_instance.dart';
+import '../localization/locales.dart';
 
 part 'binding/interpreter_binding.dart';
 
@@ -139,7 +140,7 @@ class Hetu extends HTAbstractInterpreter {
 
   /// inexpicit type conversion for zero or null values
   bool _isZero(dynamic condition) {
-    if (strictMode) {
+    if (config.strictMode) {
       return condition == 0;
     } else {
       return condition == 0 || condition == null;
@@ -148,7 +149,7 @@ class Hetu extends HTAbstractInterpreter {
 
   /// inexpicit type conversion for truthy values
   bool _truthy(dynamic condition) {
-    if (strictMode || condition is bool) {
+    if (config.strictMode || condition is bool) {
       return condition;
     } else if (condition == null ||
         condition == 0 ||
@@ -165,10 +166,9 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   /// A bytecode interpreter.
-  Hetu(
-      {HTResourceContext<HTSource>? sourceContext,
-      this.config = const InterpreterConfig()})
-      : _sourceContext = sourceContext ?? HTOverlayContext(),
+  Hetu({HTResourceContext<HTSource>? sourceContext, InterpreterConfig? config})
+      : config = config ?? InterpreterConfig(),
+        _sourceContext = sourceContext ?? HTOverlayContext(),
         globalNamespace = HTNamespace(id: Semantic.global) {
     _analyzer = HTAnalyzer(sourceContext: _sourceContext, config: config);
     _currentNamespace = globalNamespace;
@@ -176,17 +176,20 @@ class Hetu extends HTAbstractInterpreter {
 
   @override
   void init({
+    HTLocale? locale,
     List<HTSource> preincludes = const [],
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
   }) {
     _analyzer.init(
+      locale: locale,
       externalFunctions: externalFunctions,
       externalFunctionTypedef: externalFunctionTypedef,
       externalClasses: externalClasses,
     );
     super.init(
+      locale: locale,
       externalFunctions: externalFunctions,
       externalFunctionTypedef: externalFunctionTypedef,
       externalClasses: externalClasses,
@@ -396,7 +399,7 @@ class Hetu extends HTAbstractInterpreter {
               handleError(error);
             }
           } else {
-            print('WARNING: $error');
+            print('${error.severity}: $error');
           }
         }
       }
@@ -1108,7 +1111,7 @@ class Hetu extends HTAbstractInterpreter {
               _localValue = null;
             } else {
               throw HTError.nullObject(
-                  localSymbol ?? HTLexicon.kNull, Semantic.getter,
+                  localSymbol ?? HTLexicon.kNull, InternalIdentifier.getter,
                   filename: _currentFileName,
                   line: _currentLine,
                   column: _column);
@@ -1131,7 +1134,7 @@ class Hetu extends HTAbstractInterpreter {
               _localValue = null;
             } else {
               throw HTError.nullObject(
-                  localSymbol ?? HTLexicon.kNull, Semantic.subGetter,
+                  localSymbol ?? HTLexicon.kNull, InternalIdentifier.subGetter,
                   filename: _currentFileName,
                   line: _currentLine,
                   column: _column);
@@ -1163,7 +1166,7 @@ class Hetu extends HTAbstractInterpreter {
           final object = _getRegVal(HTRegIdx.postfixObject);
           if (object == null) {
             throw HTError.nullObject(
-                localSymbol ?? HTLexicon.kNull, Semantic.setter,
+                localSymbol ?? HTLexicon.kNull, InternalIdentifier.setter,
                 filename: _currentFileName,
                 line: _currentLine,
                 column: _column);
@@ -1179,7 +1182,7 @@ class Hetu extends HTAbstractInterpreter {
           final object = _getRegVal(HTRegIdx.postfixObject);
           if (object == null) {
             throw HTError.nullObject(
-                localSymbol ?? HTLexicon.kNull, Semantic.subSetter,
+                localSymbol ?? HTLexicon.kNull, InternalIdentifier.subSetter,
                 filename: _currentFileName,
                 line: _currentLine,
                 column: _column);
@@ -1517,14 +1520,14 @@ class Hetu extends HTAbstractInterpreter {
         final rightValueLength = _currentBytecodeModule.readUint16();
         if (leftTruthValue) {
           _currentBytecodeModule.skip(rightValueLength);
-          if (strictMode) {
+          if (config.strictMode) {
             _localValue = true;
           } else {
             _localValue = left;
           }
         } else {
           final right = execute();
-          if (strictMode) {
+          if (config.strictMode) {
             final rightTruthValue = _truthy(right);
             _localValue = rightTruthValue;
           } else {
@@ -1675,7 +1678,8 @@ class Hetu extends HTAbstractInterpreter {
         _localValue = null;
         return;
       } else {
-        throw HTError.nullObject(localSymbol ?? HTLexicon.kNull, Semantic.call,
+        throw HTError.nullObject(
+            localSymbol ?? HTLexicon.kNull, InternalIdentifier.call,
             filename: _currentFileName, line: _currentLine, column: _column);
       }
     }
@@ -1737,8 +1741,9 @@ class Hetu extends HTAbstractInterpreter {
         throw HTError.abstracted(
             filename: _currentFileName, line: _currentLine, column: _column);
       }
-      if (klass.contains(Semantic.constructor)) {
-        final constructor = klass.memberGet(Semantic.constructor) as HTFunction;
+      if (klass.contains(InternalIdentifier.defaultConstructor)) {
+        final constructor = klass
+            .memberGet(InternalIdentifier.defaultConstructor) as HTFunction;
         _localValue = constructor.call(
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
@@ -2135,12 +2140,12 @@ class Hetu extends HTAbstractInterpreter {
     execute(namespace: klass.namespace);
     // Add default constructor if non-exist.
     if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
-      final ctor = HTFunction(Semantic.constructor, _currentFileName,
-          _currentBytecodeModule.id, this,
+      final ctor = HTFunction(InternalIdentifier.defaultConstructor,
+          _currentFileName, _currentBytecodeModule.id, this,
           classId: klass.id,
           category: FunctionCategory.constructor,
           closure: klass.namespace);
-      klass.namespace.define(Semantic.constructor, ctor);
+      klass.namespace.define(InternalIdentifier.defaultConstructor, ctor);
     }
     if (_isModuleEntryScript || _function != null) {
       klass.resolve();

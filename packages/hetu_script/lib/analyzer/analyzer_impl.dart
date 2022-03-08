@@ -255,15 +255,6 @@ class HTAnalyzerImpl implements AbstractAstVisitor<void> {
   @override
   void visitVarDecl(VarDecl node) {
     node.subAccept(this);
-    if (node.isConst && !node.initializer!.isConstValue) {
-      final err = HTAnalysisError.constValue(
-          filename: node.source!.fullName,
-          line: node.initializer!.line,
-          column: node.initializer!.column,
-          offset: node.initializer!.offset,
-          length: node.initializer!.length);
-      errors.add(err);
-    }
   }
 
   @override

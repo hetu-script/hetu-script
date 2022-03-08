@@ -2,170 +2,164 @@ part of '../locales.dart';
 
 class HTLocaleEnglish implements HTLocale {
   @override
-  String get errorBytecode => 'Unrecognizable bytecode.';
+  final String percentageMark = '%';
+
   @override
-  String get errorVersion =>
+  final String errorBytecode = 'Unrecognizable bytecode.';
+  @override
+  final String errorVersion =
       'Incompatible version - bytecode: [{0}], interpreter: [{1}].';
   @override
-  String get errorAssertionFailed => "Assertion failed on '{0}'.";
+  final String errorAssertionFailed = "Assertion failed on '{0}'.";
   @override
-  String get errorUnkownSourceType => 'Unknown source type: [{0}].';
+  final String errorUnkownSourceType = 'Unknown source type: [{0}].';
   @override
-  String get errorImportListOnNonHetuSource =>
+  final String errorImportListOnNonHetuSource =
       'Cannot import list from a non hetu source.';
   @override
-  String get errorExportNonHetuSource => 'Cannot export a non hetu source.';
+  final String errorExportNonHetuSource = 'Cannot export a non hetu source.';
 
   // syntactic errors
   @override
-  String get errorUnexpected => 'Expected [{0}], met [{1}].';
+  final String errorUnexpected = 'Expected [{0}], met [{1}].';
   @override
-  String get errorDelete =>
+  final String errorDelete =
       'Can only delete a local variable or a struct member.';
   @override
-  String get errorExternal => 'External [{0}] is not allowed.';
+  final String errorExternal = 'External [{0}] is not allowed.';
   @override
-  String get errorNestedClass => 'Nested class within another nested class.';
+  final String errorNestedClass = 'Nested class within another nested class.';
   @override
-  String get errorConstInClass => 'Const value in class must be also static.';
+  final String errorConstInClass = 'Const value in class must be also static.';
   @override
-  String get errorOutsideReturn =>
+  final String errorOutsideReturn =
       'Unexpected return statement outside of a function.';
   @override
-  String get errorSetterArity =>
+  final String errorSetterArity =
       'Setter function must have exactly one parameter.';
   @override
-  String get errorEmptyTypeArgs => 'Empty type arguments.';
+  final String errorEmptyTypeArgs = 'Empty type arguments.';
   @override
-  String get errorEmptyImportList => 'Empty import list.';
+  final String errorEmptyImportList = 'Empty import list.';
   @override
-  String get errorExtendsSelf => 'Class try to extends itself.';
+  final String errorExtendsSelf = 'Class try to extends itself.';
   @override
-  String get errorMissingFuncBody => 'Missing function definition of [{0}].';
+  final String errorMissingFuncBody = 'Missing function definition of [{0}].';
   @override
-  String get errorExternalCtorWithReferCtor =>
+  final String errorExternalCtorWithReferCtor =
       'Unexpected refer constructor on external constructor.';
   @override
-  String get errorSourceProviderError =>
+  final String errorSourceProviderError =
       'Context error: could not load file: [{0}].';
   @override
-  String get errorNotAbsoluteError =>
+  final String errorNotAbsoluteError =
       'Adding source failed, not a absolute path: [{0}].';
   @override
-  String get errorInvalidLeftValue => 'Value cannot be assigned.';
+  final String errorInvalidLeftValue = 'Value cannot be assigned.';
   @override
-  String get errorNullableAssign => 'Cannot assign to a nullable value.';
+  final String errorNullableAssign = 'Cannot assign to a nullable value.';
   @override
-  String get errorPrivateMember => 'Could not acess private member [{0}].';
+  final String errorPrivateMember = 'Could not acess private member [{0}].';
   @override
-  String get errorConstMustBeStatic =>
-      'Constant class member [{0}] must also be declared as static.';
-  @override
-  String get errorConstMustInit =>
+  final String errorConstMustInit =
       'Constant declaration [{0}] must be initialized.';
-  @override
-  String get errorDuplicateLibStmt => 'Duplicate library statement.';
-  @override
-  String get errorNotConstValue => 'Constant declared with a non-const value.';
 
   // compile time errors
   @override
-  String get errorDefined => '[{0}] is already defined.';
+  final String errorDefined = '[{0}] is already defined.';
   @override
-  String get errorOutsideThis =>
+  final String errorOutsideThis =
       'Unexpected this expression outside of a function.';
   @override
-  String get errorNotMember => '[{0}] is not a class member of [{1}].';
+  final String errorNotMember = '[{0}] is not a class member of [{1}].';
   @override
-  String get errorNotClass => '[{0}] is not a class.';
+  final String errorNotClass = '[{0}] is not a class.';
   @override
-  String get errorAbstracted => 'Cannot create instance from abstract class.';
+  final String errorAbstracted = 'Cannot create instance from abstract class.';
   @override
-  String get errorInterfaceCtor => 'Cannot create contructor for interfaces.';
-  @override
-  String get errorConstValue =>
+  final String errorConstValue =
       'Initializer of const declaration is not constant value.';
 
   // runtime errors
   @override
-  String get errorUnsupported => 'Unsupported operation: [{0}].';
+  final String errorUnsupported = 'Unsupported operation: [{0}].';
   @override
-  String get errorUnknownOpCode => 'Unknown opcode [{0}].';
+  final String errorUnknownOpCode = 'Unknown opcode [{0}].';
   @override
-  String get errorNotInitialized => '[{0}] has not yet been initialized.';
+  final String errorNotInitialized = '[{0}] has not yet been initialized.';
   @override
-  String get errorUndefined => 'Undefined identifier [{0}].';
+  final String errorUndefined = 'Undefined identifier [{0}].';
   @override
-  String get errorUndefinedExternal => 'Undefined external identifier [{0}].';
+  final String errorUndefinedExternal = 'Undefined external identifier [{0}].';
   @override
-  String get errorUnknownTypeName => 'Unknown type name: [{0}].';
+  final String errorUnknownTypeName = 'Unknown type name: [{0}].';
   @override
-  String get errorUndefinedOperator => 'Undefined operator: [{0}].';
+  final String errorUndefinedOperator = 'Undefined operator: [{0}].';
   @override
-  String get errorNotCallable => '[{0}] is not callable.';
+  final String errorNotCallable = '[{0}] is not callable.';
   @override
-  String get errorUndefinedMember => '[{0}] isn\'t defined for the class.';
+  final String errorUndefinedMember = '[{0}] isn\'t defined for the class.';
   @override
-  String get errorUninitialized => 'Varialbe [{0}] is not initialized yet.';
+  final String errorUninitialized = 'Varialbe [{0}] is not initialized yet.';
   @override
-  String get errorCondition =>
+  final String errorCondition =
       'Condition expression must evaluate to type [bool]';
   @override
-  String get errorNullObject => 'Calling method [{1}] on null object [{0}].';
+  final String errorNullObject = 'Calling method [{1}] on null object [{0}].';
   @override
-  String get errorNullSubSetKey => 'Sub set key is null.';
+  final String errorNullSubSetKey = 'Sub set key is null.';
   @override
-  String get errorSubGetKey => 'Sub get key [{0}] is not of type [int]';
+  final String errorSubGetKey = 'Sub get key [{0}] is not of type [int]';
   @override
-  String get errorOutOfRange => 'Index [{0}] is out of range [{1}].';
+  final String errorOutOfRange = 'Index [{0}] is out of range [{1}].';
   @override
-  String get errorAssignType =>
+  final String errorAssignType =
       'Variable [{0}] with type [{2}] can\'t be assigned with type [{1}].';
   @override
-  String get errorImmutable => '[{0}] is immutable.';
+  final String errorImmutable = '[{0}] is immutable.';
   @override
-  String get errorNotType => '[{0}] is not a type.';
+  final String errorNotType = '[{0}] is not a type.';
   @override
-  String get errorArgType =>
+  final String errorArgType =
       'Argument [{0}] of type [{1}] doesn\'t match parameter type [{2}].';
   @override
-  String get errorArgInit =>
+  final String errorArgInit =
       'Only optional or named arguments can have initializer.';
   @override
-  String get errorReturnType =>
+  final String errorReturnType =
       '[{0}] can\'t be returned from function [{1}] with return type [{2}].';
   @override
-  String get errorStringInterpolation =>
+  final String errorStringInterpolation =
       'String interpolation has to be a single expression.';
   @override
-  String get errorArity =>
+  final String errorArity =
       'Number of arguments [{0}] doesn\'t match function [{1}]\'s parameter requirement [{2}].';
   @override
-  String get errorExternalVar => 'External variable is not allowed.';
+  final String errorExternalVar = 'External variable is not allowed.';
   @override
-  String get errorBytesSig => 'Unknown bytecode signature.';
+  final String errorBytesSig = 'Unknown bytecode signature.';
   @override
-  String get errorCircleInit =>
+  final String errorCircleInit =
       'Variable [{0}]\'s initializer depend on itself being initialized.';
   @override
-  String get errorNamedArg => 'Undefined named parameter: [{0}].';
+  final String errorNamedArg = 'Undefined named parameter: [{0}].';
   @override
-  String get errorIterable => '[{0}] is not Iterable.';
+  final String errorIterable = '[{0}] is not Iterable.';
   @override
-  String get errorUnkownValueType => 'Unkown OpCode value type: [{0}].';
+  final String errorUnkownValueType = 'Unkown OpCode value type: [{0}].';
   @override
-  String get errorTypeCast => 'Type [{0}] cannot be cast into type [{1}].';
+  final String errorTypeCast = 'Type [{0}] cannot be cast into type [{1}].';
   @override
-  String get errorCastee => 'Illegal cast target [{0}].';
+  final String errorCastee = 'Illegal cast target [{0}].';
   @override
-  String get errorNotSuper => '[{0}] is not a super class of [{1}].';
+  final String errorNotSuper = '[{0}] is not a super class of [{1}].';
   @override
-  String get errorStructMemberId =>
+  final String errorStructMemberId =
       'Struct member id should be symbol or string.';
   @override
-  String get errorUnresolvedNamedStruct =>
+  final String errorUnresolvedNamedStruct =
       'Cannot create struct object from unresolved prototype [{0}].';
   @override
-  String get errorBinding =>
+  final String errorBinding =
       'Binding is not allowed on non-literal function or non-struct object.';
 }

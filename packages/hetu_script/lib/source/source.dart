@@ -42,7 +42,7 @@ class HTSource {
     } else {
       final hash = crc32b(content);
       final nameBuilder = StringBuffer();
-      nameBuilder.write('${Semantic.anonymousScript}_$hash: ');
+      nameBuilder.write('${InternalIdentifier.anonymousScript}_$hash: ');
       var firstLine =
           content.trimLeft().replaceAll(RegExp(r'\s+'), ' ').trimRight();
       nameBuilder.write(firstLine.substring(

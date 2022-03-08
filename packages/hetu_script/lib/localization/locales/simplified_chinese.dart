@@ -2,164 +2,142 @@ part of '../locales.dart';
 
 class HTLocaleSimplifiedChinese implements HTLocale {
   @override
-  String get errorBytecode => '无法识别的字节码文件。';
+  final String percentageMark = '%';
+
   @override
-  String get errorVersion => '版本冲突！字节码版本：[{0}]，解释器版本：[{1}]。';
+  final String errorBytecode = '无法识别的字节码文件。';
   @override
-  String get errorAssertionFailed => "断言错误：'{0}'。";
+  final String errorVersion = '版本冲突！字节码版本：[{0}]，解释器版本：[{1}]。';
   @override
-  String get errorUnkownSourceType => '未知资源类型：[{0}]。';
+  final String errorAssertionFailed = "断言错误：'{0}'。";
   @override
-  String get errorImportListOnNonHetuSource => '无法在导入非河图代码文件时使用关键字列表。';
+  final String errorUnkownSourceType = '未知资源类型：[{0}]。';
   @override
-  String get errorExportNonHetuSource => '无法导出非河图代码文件。';
+  final String errorImportListOnNonHetuSource = '无法在导入非河图代码文件时使用关键字列表。';
+  @override
+  final String errorExportNonHetuSource = '无法导出非河图代码文件。';
 
   // syntactic errors
   @override
-  String get errorUnexpected => '意料之外的字符：[{1}]，[{0}]';
+  final String errorUnexpected = '意料之外的字符：[{1}]，[{0}]';
   @override
-  String get errorDelete => '只能对普通变量和类成员的标识符使用 delete 关键字。';
+  final String errorDelete = '只能对普通变量和类成员的标识符使用 delete 关键字。';
   @override
-  String get errorExternal => '对 [{0}] 的外部声明无效';
+  final String errorExternal = '对 [{0}] 的外部声明无效';
   @override
-  String get errorNestedClass => '当前版本不支持嵌套类声明。';
+  final String errorNestedClass = '当前版本不支持嵌套类声明。';
   @override
-  String get errorConstInClass => '类成员声明如果是 const，则一定也要是 static 的。';
+  final String errorConstInClass = '类成员声明如果是 const，则一定也要是 static 的。';
   @override
-  String get errorOutsideReturn => '不能在非函数定义的场合使用 return 语句。';
+  final String errorOutsideReturn = '不能在非函数定义的场合使用 return 语句。';
   @override
-  String get errorSetterArity => 'setter 函数只能有且只有一个参数。';
+  final String errorSetterArity = 'setter 函数只能有且只有一个参数。';
   @override
-  String get errorEmptyTypeArgs => '类型参数列表是空的。';
+  final String errorEmptyTypeArgs = '类型参数列表是空的。';
   @override
-  String get errorEmptyImportList => '导入关键字列表是空的。';
+  final String errorEmptyImportList = '导入关键字列表是空的。';
   @override
-  String get errorExtendsSelf => '类不能继承自己。';
+  final String errorExtendsSelf = '类不能继承自己。';
   @override
-  String get errorMissingFuncBody => '缺少函数定义：[{0}]。';
+  final String errorMissingFuncBody = '缺少函数定义：[{0}]。';
   @override
-  String get errorExternalCtorWithReferCtor => '外部构造函数不能重定向。';
+  final String errorExternalCtorWithReferCtor = '外部构造函数不能重定向。';
   @override
-  String get errorSourceProviderError =>
-      'Context error: could not load file: [{0}].';
+  final String errorSourceProviderError = '资源错误。无法载入文件：[{0}]。';
   @override
-  String get errorNotAbsoluteError =>
-      'Adding source failed, not a absolute path: [{0}].';
+  final String errorNotAbsoluteError = '添加资源错误，不是绝对路径：[{0}]。';
   @override
-  String get errorInvalidLeftValue => 'Value cannot be assigned.';
+  final String errorInvalidLeftValue = '对象无法被赋值。';
   @override
-  String get errorNullableAssign => 'Cannot assign to a nullable value.';
+  final String errorNullableAssign = '可空对象无法被赋值。';
   @override
-  String get errorPrivateMember => 'Could not acess private member [{0}].';
+  final String errorPrivateMember = '无法访问私有成员：[{0}]。';
   @override
-  String get errorConstMustBeStatic =>
-      'Constant class member [{0}] must also be declared as static.';
-  @override
-  String get errorConstMustInit =>
-      'Constant declaration [{0}] must be initialized.';
-  @override
-  String get errorDuplicateLibStmt => 'Duplicate library statement.';
-  @override
-  String get errorNotConstValue => 'Constant declared with a non-const value.';
+  final String errorConstMustInit = '常量声明 [{0}] 必须初始化。';
 
   // compile time errors
   @override
-  String get errorDefined => '[{0}] is already defined.';
+  final String errorDefined = '标识符 [{0}] 已经被定义过。';
   @override
-  String get errorOutsideThis =>
-      'Unexpected this expression outside of a function.';
+  final String errorOutsideThis = '只能在类的实例成员函数中使用 this 关键字。';
   @override
-  String get errorNotMember => '[{0}] is not a class member of [{1}].';
+  final String errorNotMember = '[{0}] 不是类 [{1}] 的成员。';
   @override
-  String get errorNotClass => '[{0}] is not a class.';
+  final String errorNotClass = '[{0}] 不是一个类。';
   @override
-  String get errorAbstracted => 'Cannot create instance from abstract class.';
+  final String errorAbstracted = '不能从 abstract class 创建实例。';
   @override
-  String get errorInterfaceCtor => 'Cannot create contructor for interfaces.';
-  @override
-  String get errorConstValue =>
-      'Initializer of const declaration is not constant value.';
+  final String errorConstValue = '常量表达式中包含可变量。';
 
   // runtime errors
   @override
-  String get errorUnsupported => 'Unsupported operation: [{0}].';
+  final String errorUnsupported = '不支持的操作：[{0}]。';
   @override
-  String get errorUnknownOpCode => 'Unknown opcode [{0}].';
+  final String errorUnknownOpCode = '未知的字节码操作符：[{0}]。';
   @override
-  String get errorNotInitialized => '[{0}] has not yet been initialized.';
+  final String errorNotInitialized = '声明 [{0}] 不能在赋值前使用。';
   @override
-  String get errorUndefined => 'Undefined identifier [{0}].';
+  final String errorUndefined = '未定义的标识符：[{0}]。';
   @override
-  String get errorUndefinedExternal => 'Undefined external identifier [{0}].';
+  final String errorUndefinedExternal = '未定义的外部标识符：[{0}]。';
   @override
-  String get errorUnknownTypeName => 'Unknown type name: [{0}].';
+  final String errorUnknownTypeName = '未定义的类型标识符：[{0}]。';
   @override
-  String get errorUndefinedOperator => 'Undefined operator: [{0}].';
+  final String errorUndefinedOperator = '未知的操作符：[{0}]。';
   @override
-  String get errorNotCallable => '[{0}] is not callable.';
+  final String errorNotCallable = '[{0}] 不可作为函数调用。';
   @override
-  String get errorUndefinedMember => '[{0}] isn\'t defined for the class.';
+  final String errorUndefinedMember = '[{0}] 没有在类中定义。';
   @override
-  String get errorUninitialized => 'Varialbe [{0}] is not initialized yet.';
+  final String errorUninitialized = '声明 [{0}] 尚未初始化。';
   @override
-  String get errorCondition =>
-      'Condition expression must evaluate to type [bool]';
+  final String errorCondition = '条件表达式必须是 [bool] 类型。';
   @override
-  String get errorNullObject => 'Calling method [{1}] on null object [{0}].';
+  final String errorNullObject = '试图在 null 对象 [{0}] 上调用成员函数 [{1}]。';
   @override
-  String get errorNullSubSetKey => 'Sub set key is null.';
+  final String errorNullSubSetKey = '下标操作的 key 是 null 对象。';
   @override
-  String get errorSubGetKey => 'Sub get key [{0}] is not of type [int]';
+  final String errorSubGetKey = '下标操作的 key [{0}] 必须是 [int] 类型。';
   @override
-  String get errorOutOfRange => 'Index [{0}] is out of range [{1}].';
+  final String errorOutOfRange = '下表操作的 key [{0}] 超出了范围：[0..{1}]。';
   @override
-  String get errorAssignType =>
-      'Variable [{0}] with type [{2}] can\'t be assigned with type [{1}].';
+  final String errorAssignType = '值类型 [{1}] 和声明 [{0}] 的类型 [{2}] 不匹配。';
   @override
-  String get errorImmutable => '[{0}] is immutable.';
+  final String errorImmutable = '[{0}] 的值不可改变。';
   @override
-  String get errorNotType => '[{0}] is not a type.';
+  final String errorNotType = '[{0}] 不是一个类型。';
   @override
-  String get errorArgType =>
-      'Argument [{0}] of type [{1}] doesn\'t match parameter type [{2}].';
+  final String errorArgType = '值类型 [{1}] 和参数 [{0}] 声明的类型 [{2}] 不匹配。';
   @override
-  String get errorArgInit =>
-      'Only optional or named arguments can have initializer.';
+  final String errorArgInit = '只有可选参数才可以提供默认值。';
   @override
-  String get errorReturnType =>
-      '[{0}] can\'t be returned from function [{1}] with return type [{2}].';
+  final String errorReturnType = '返回值类型 [{0}] 和函数 [{1}] 声明的返回值类型 [{2}] 不匹配。';
   @override
-  String get errorStringInterpolation =>
-      'String interpolation has to be a single expression.';
+  final String errorStringInterpolation = '字符串插值括号内只能是一个表达式。';
   @override
-  String get errorArity =>
-      'Number of arguments [{0}] doesn\'t match function [{1}]\'s parameter requirement [{2}].';
+  final String errorArity = '参数数量 [{0}] 和函数 [{1}] 声明的参数数量 [{2}].';
   @override
-  String get errorExternalVar => 'External variable is not allowed.';
+  final String errorExternalVar = '不允许声明外部变量。';
   @override
-  String get errorBytesSig => 'Unknown bytecode signature.';
+  final String errorBytesSig = '未知的字节码文件。';
   @override
-  String get errorCircleInit =>
-      'Variable [{0}]\'s initializer depend on itself being initialized.';
+  final String errorCircleInit = '声明 [{0}] 的初始化表达式存在循环依赖。';
   @override
-  String get errorNamedArg => 'Undefined named parameter: [{0}].';
+  final String errorNamedArg = '未定义的命名参数：[{0}]。';
   @override
-  String get errorIterable => '[{0}] is not Iterable.';
+  final String errorIterable = '[{0}] 不是 Iterable 类型。';
   @override
-  String get errorUnkownValueType => 'Unkown OpCode value type: [{0}].';
+  final String errorUnkownValueType = '未知的字节码数据类型操作符 [{0}]。';
   @override
-  String get errorTypeCast => 'Type [{0}] cannot be cast into type [{1}].';
+  final String errorTypeCast = '类型 [{0}] 无法被转换为类型 [{1}]。';
   @override
-  String get errorCastee => 'Illegal cast target [{0}].';
+  final String errorCastee = '非法的 cast 对象：[{0}]。';
   @override
-  String get errorNotSuper => '[{0}] is not a super class of [{1}].';
+  final String errorNotSuper = '[{0}] 不是 [{1}] 的超类。';
   @override
-  String get errorStructMemberId =>
-      'Struct member id should be symbol or string.';
+  final String errorStructMemberId = '对象的 key 只能是字符串或者标识符。';
   @override
-  String get errorUnresolvedNamedStruct =>
-      'Cannot create struct object from unresolved prototype [{0}].';
+  final String errorUnresolvedNamedStruct = '对象原型 [{0}] 尚未被解析。';
   @override
-  String get errorBinding =>
-      'Binding is not allowed on non-literal function or non-struct object.';
+  final String errorBinding = 'bind 操作只能用于函数字面量和对象字面量。';
 }

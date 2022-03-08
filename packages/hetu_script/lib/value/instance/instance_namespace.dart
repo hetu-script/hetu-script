@@ -25,7 +25,7 @@ class HTInstanceNamespace extends HTNamespace {
   @override
   dynamic memberGet(String varName,
       {String? from, bool recursive = true, bool error = true}) {
-    final getter = '${Semantic.getter}$varName';
+    final getter = '${InternalIdentifier.getter}$varName';
 
     HTInstanceNamespace? curNamespace = this;
     while (curNamespace != null) {
@@ -58,7 +58,7 @@ class HTInstanceNamespace extends HTNamespace {
   @override
   void memberSet(String varName, dynamic varValue,
       {String? from, bool recursive = true, bool error = true}) {
-    final setter = '${Semantic.getter}$varName';
+    final setter = '${InternalIdentifier.getter}$varName';
 
     HTInstanceNamespace? curNamespace = this;
     while (curNamespace != null) {

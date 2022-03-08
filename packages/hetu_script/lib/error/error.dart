@@ -30,10 +30,7 @@ enum ErrorCode {
   invalidLeftValue,
   nullableAssign,
   privateMember,
-  constMustBeStatic,
   constMustInit,
-  duplicateLibStmt,
-  notConstValue,
 
   defined,
   outsideThis,
@@ -654,26 +651,6 @@ class HTError {
             offset: offset,
             length: length);
 
-  /// Error: Const variable in a class must be static.
-  HTError.constMustBeStatic(String id,
-      {String? extra,
-      String? correction,
-      String? filename,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.constMustBeStatic, ErrorType.syntacticError,
-            message: HTLocalization.errorConstMustBeStatic,
-            interpolations: [id],
-            extra: extra,
-            correction: correction,
-            filename: filename,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
   /// Error: Const variable must be initialized.
   HTError.constMustInit(String id,
       {String? extra,
@@ -686,44 +663,6 @@ class HTError {
       : this(ErrorCode.constMustInit, ErrorType.syntacticError,
             message: HTLocalization.errorConstMustInit,
             interpolations: [id],
-            extra: extra,
-            correction: correction,
-            filename: filename,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  /// Error: Duplicate library statement.
-  HTError.duplicateLibStmt(
-      {String? extra,
-      String? correction,
-      String? filename,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.duplicateLibStmt, ErrorType.syntacticError,
-            message: HTLocalization.errorDuplicateLibStmt,
-            extra: extra,
-            correction: correction,
-            filename: filename,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  /// Error: Duplicate library statement.
-  HTError.notConstValue(
-      {String? extra,
-      String? correction,
-      String? filename,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.notConstValue, ErrorType.syntacticError,
-            message: HTLocalization.errorNotConstValue,
             extra: extra,
             correction: correction,
             filename: filename,
@@ -822,25 +761,6 @@ class HTError {
       int? length})
       : this(ErrorCode.abstracted, ErrorType.compileTimeError,
             message: HTLocalization.errorAbstracted,
-            extra: extra,
-            correction: correction,
-            filename: filename,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  /// Error: Cannot create contructor for interfaces.
-  HTError.interfaceCtor(
-      {String? extra,
-      String? correction,
-      String? filename,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.interfaceCtor, ErrorType.compileTimeError,
-            message: HTLocalization.errorInterfaceCtor,
             extra: extra,
             correction: correction,
             filename: filename,

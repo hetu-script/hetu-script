@@ -350,20 +350,22 @@ class HTFunction extends HTFunctionDeclaration
             if (name == HTLexicon.kSuper) {
               final superClass = klass!.superClass!;
               if (key == null) {
-                constructor = superClass.namespace
-                    .memberGet(Semantic.constructor, recursive: false);
+                constructor = superClass.namespace.memberGet(
+                    InternalIdentifier.defaultConstructor,
+                    recursive: false);
               } else {
                 constructor = superClass.namespace.memberGet(
-                    '${Semantic.constructor}${HTLexicon.privatePrefix}$key',
+                    '${InternalIdentifier.namedConstructorPrefix}$key',
                     recursive: false);
               }
             } else if (name == HTLexicon.kThis) {
               if (key == null) {
-                constructor = klass!.namespace
-                    .memberGet(Semantic.constructor, recursive: false);
+                constructor = klass!.namespace.memberGet(
+                    InternalIdentifier.defaultConstructor,
+                    recursive: false);
               } else {
                 constructor = klass!.namespace.memberGet(
-                    '${Semantic.constructor}${HTLexicon.privatePrefix}$key',
+                    '${InternalIdentifier.namedConstructorPrefix}$key',
                     recursive: false);
               }
             }
@@ -375,10 +377,11 @@ class HTFunction extends HTFunctionDeclaration
             if (name == HTLexicon.kThis) {
               final prototype = (instance as HTStruct);
               if (key == null) {
-                constructor = prototype.memberGet(Semantic.constructor);
+                constructor =
+                    prototype.memberGet(InternalIdentifier.defaultConstructor);
               } else {
                 constructor = prototype.memberGet(
-                    '${Semantic.constructor}${HTLexicon.privatePrefix}$key');
+                    '${InternalIdentifier.namedConstructorPrefix}$key');
               }
               constructor.instance = instance;
               constructor.namespace = namespace;

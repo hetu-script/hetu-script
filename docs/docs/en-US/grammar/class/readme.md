@@ -85,7 +85,7 @@ class Bird extends Animal {
 
 ## super
 
-在类的成员函数中可以使用 **super** 访问父类的成员
+Within a class's namespace, use **super** to access the super class's members.
 
 ```dart
 class Super3 {
@@ -101,7 +101,7 @@ class Extend3 extends Super3 {
 
 ## 类型转换
 
-使用 **as** 关键字可以将一个子类临时转换为任意一个父类，使用这种方式可以访问到多个继承关系之上的某个类的成员。
+Outside a class's namespace, use **as** to convert a sub class to any super class it extends from.
 
 ```dart
 class Super3 {

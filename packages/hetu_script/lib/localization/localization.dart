@@ -1,95 +1,82 @@
 import 'locales.dart';
 
 abstract class HTLocalization {
-  static HTLocale data = HTLocaleEnglish();
+  static HTLocale locale = HTLocaleEnglish();
 
-  void setLocale(String locale) {
-    switch (locale) {
-      case 'simplified_chinese':
-        data = HTLocaleSimplifiedChinese();
-        break;
-      case 'english':
-      default:
-        data = HTLocaleEnglish();
-    }
-  }
+  static String get percentageMark => locale.percentageMark;
 
-  static String get errorBytecode => data.errorBytecode;
-  static String get errorVersion => data.errorVersion;
-  static String get errorAssertionFailed => data.errorAssertionFailed;
-  static String get errorUnkownSourceType => data.errorUnkownSourceType;
+  static String get errorBytecode => locale.errorBytecode;
+  static String get errorVersion => locale.errorVersion;
+  static String get errorAssertionFailed => locale.errorAssertionFailed;
+  static String get errorUnkownSourceType => locale.errorUnkownSourceType;
   static String get errorImportListOnNonHetuSource =>
-      data.errorImportListOnNonHetuSource;
-  static String get errorExportNonHetuSource => data.errorExportNonHetuSource;
+      locale.errorImportListOnNonHetuSource;
+  static String get errorExportNonHetuSource => locale.errorExportNonHetuSource;
 
   // syntactic errors
-  static String get errorUnexpected => data.errorUnexpected;
-  static String get errorDelete => data.errorDelete;
-  static String get errorExternal => data.errorExternal;
-  static String get errorNestedClass => data.errorNestedClass;
-  static String get errorConstInClass => data.errorConstInClass;
-  static String get errorOutsideReturn => data.errorOutsideReturn;
-  static String get errorSetterArity => data.errorSetterArity;
-  static String get errorEmptyTypeArgs => data.errorEmptyTypeArgs;
-  static String get errorEmptyImportList => data.errorEmptyImportList;
-  static String get errorExtendsSelf => data.errorExtendsSelf;
-  static String get errorMissingFuncBody => data.errorMissingFuncBody;
+  static String get errorUnexpected => locale.errorUnexpected;
+  static String get errorDelete => locale.errorDelete;
+  static String get errorExternal => locale.errorExternal;
+  static String get errorNestedClass => locale.errorNestedClass;
+  static String get errorConstInClass => locale.errorConstInClass;
+  static String get errorOutsideReturn => locale.errorOutsideReturn;
+  static String get errorSetterArity => locale.errorSetterArity;
+  static String get errorEmptyTypeArgs => locale.errorEmptyTypeArgs;
+  static String get errorEmptyImportList => locale.errorEmptyImportList;
+  static String get errorExtendsSelf => locale.errorExtendsSelf;
+  static String get errorMissingFuncBody => locale.errorMissingFuncBody;
   static String get errorExternalCtorWithReferCtor =>
-      data.errorExternalCtorWithReferCtor;
-  static String get errorSourceProviderError => data.errorSourceProviderError;
-  static String get errorNotAbsoluteError => data.errorNotAbsoluteError;
-  static String get errorInvalidLeftValue => data.errorInvalidLeftValue;
-  static String get errorNullableAssign => data.errorNullableAssign;
-  static String get errorPrivateMember => data.errorPrivateMember;
-  static String get errorConstMustBeStatic => data.errorConstMustBeStatic;
-  static String get errorConstMustInit => data.errorConstMustInit;
-  static String get errorDuplicateLibStmt => data.errorDuplicateLibStmt;
-  static String get errorNotConstValue => data.errorNotConstValue;
+      locale.errorExternalCtorWithReferCtor;
+  static String get errorSourceProviderError => locale.errorSourceProviderError;
+  static String get errorNotAbsoluteError => locale.errorNotAbsoluteError;
+  static String get errorInvalidLeftValue => locale.errorInvalidLeftValue;
+  static String get errorNullableAssign => locale.errorNullableAssign;
+  static String get errorPrivateMember => locale.errorPrivateMember;
+  static String get errorConstMustInit => locale.errorConstMustInit;
 
   // compile time errors
-  static String get errorDefined => data.errorDefined;
-  static String get errorOutsideThis => data.errorOutsideThis;
-  static String get errorNotMember => data.errorNotMember;
-  static String get errorNotClass => data.errorNotClass;
-  static String get errorAbstracted => data.errorAbstracted;
-  static String get errorInterfaceCtor => data.errorInterfaceCtor;
-  static String get errorConstValue => data.errorConstValue;
+  static String get errorDefined => locale.errorDefined;
+  static String get errorOutsideThis => locale.errorOutsideThis;
+  static String get errorNotMember => locale.errorNotMember;
+  static String get errorNotClass => locale.errorNotClass;
+  static String get errorAbstracted => locale.errorAbstracted;
+  static String get errorConstValue => locale.errorConstValue;
 
   // runtime errors
-  static String get errorUnsupported => data.errorUnsupported;
-  static String get errorUnknownOpCode => data.errorUnknownOpCode;
-  static String get errorNotInitialized => data.errorNotInitialized;
-  static String get errorUndefined => data.errorUndefined;
-  static String get errorUndefinedExternal => data.errorUndefinedExternal;
-  static String get errorUnknownTypeName => data.errorUnknownTypeName;
-  static String get errorUndefinedOperator => data.errorUndefinedOperator;
-  static String get errorNotCallable => data.errorNotCallable;
-  static String get errorUndefinedMember => data.errorUndefinedMember;
-  static String get errorUninitialized => data.errorUninitialized;
-  static String get errorCondition => data.errorCondition;
-  static String get errorNullObject => data.errorNullObject;
-  static String get errorNullSubSetKey => data.errorNullSubSetKey;
-  static String get errorSubGetKey => data.errorSubGetKey;
-  static String get errorOutOfRange => data.errorOutOfRange;
-  static String get errorAssignType => data.errorAssignType;
-  static String get errorImmutable => data.errorImmutable;
-  static String get errorNotType => data.errorNotType;
-  static String get errorArgType => data.errorArgType;
-  static String get errorArgInit => data.errorArgInit;
-  static String get errorReturnType => data.errorReturnType;
-  static String get errorStringInterpolation => data.errorStringInterpolation;
-  static String get errorArity => data.errorArity;
-  static String get errorExternalVar => data.errorExternalVar;
-  static String get errorBytesSig => data.errorBytesSig;
-  static String get errorCircleInit => data.errorCircleInit;
-  static String get errorNamedArg => data.errorNamedArg;
-  static String get errorIterable => data.errorIterable;
-  static String get errorUnkownValueType => data.errorUnkownValueType;
-  static String get errorTypeCast => data.errorTypeCast;
-  static String get errorCastee => data.errorCastee;
-  static String get errorNotSuper => data.errorNotSuper;
-  static String get errorStructMemberId => data.errorStructMemberId;
+  static String get errorUnsupported => locale.errorUnsupported;
+  static String get errorUnknownOpCode => locale.errorUnknownOpCode;
+  static String get errorNotInitialized => locale.errorNotInitialized;
+  static String get errorUndefined => locale.errorUndefined;
+  static String get errorUndefinedExternal => locale.errorUndefinedExternal;
+  static String get errorUnknownTypeName => locale.errorUnknownTypeName;
+  static String get errorUndefinedOperator => locale.errorUndefinedOperator;
+  static String get errorNotCallable => locale.errorNotCallable;
+  static String get errorUndefinedMember => locale.errorUndefinedMember;
+  static String get errorUninitialized => locale.errorUninitialized;
+  static String get errorCondition => locale.errorCondition;
+  static String get errorNullObject => locale.errorNullObject;
+  static String get errorNullSubSetKey => locale.errorNullSubSetKey;
+  static String get errorSubGetKey => locale.errorSubGetKey;
+  static String get errorOutOfRange => locale.errorOutOfRange;
+  static String get errorAssignType => locale.errorAssignType;
+  static String get errorImmutable => locale.errorImmutable;
+  static String get errorNotType => locale.errorNotType;
+  static String get errorArgType => locale.errorArgType;
+  static String get errorArgInit => locale.errorArgInit;
+  static String get errorReturnType => locale.errorReturnType;
+  static String get errorStringInterpolation => locale.errorStringInterpolation;
+  static String get errorArity => locale.errorArity;
+  static String get errorExternalVar => locale.errorExternalVar;
+  static String get errorBytesSig => locale.errorBytesSig;
+  static String get errorCircleInit => locale.errorCircleInit;
+  static String get errorNamedArg => locale.errorNamedArg;
+  static String get errorIterable => locale.errorIterable;
+  static String get errorUnkownValueType => locale.errorUnkownValueType;
+  static String get errorTypeCast => locale.errorTypeCast;
+  static String get errorCastee => locale.errorCastee;
+  static String get errorNotSuper => locale.errorNotSuper;
+  static String get errorStructMemberId => locale.errorStructMemberId;
   static String get errorUnresolvedNamedStruct =>
-      data.errorUnresolvedNamedStruct;
-  static String get errorBinding => data.errorBinding;
+      locale.errorUnresolvedNamedStruct;
+  static String get errorBinding => locale.errorBinding;
 }

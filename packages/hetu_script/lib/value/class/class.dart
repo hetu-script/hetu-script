@@ -1,5 +1,4 @@
 import '../../binding/external_class.dart';
-import '../../grammar/lexicon.dart';
 import '../../grammar/semantic.dart';
 import '../../error/error.dart';
 import '../../source/source.dart';
@@ -118,11 +117,11 @@ class HTClass extends HTClassDeclaration with HTEntity, HetuRef {
 
   @override
   bool contains(String varName) {
-    final getter = '${Semantic.getter}$varName';
-    final setter = '${Semantic.setter}$varName';
+    final getter = '${InternalIdentifier.getter}$varName';
+    final setter = '${InternalIdentifier.setter}$varName';
     final constructor = varName != id
-        ? '${Semantic.constructor}${HTLexicon.privatePrefix}$varName'
-        : Semantic.constructor;
+        ? '${InternalIdentifier.namedConstructorPrefix}$varName'
+        : InternalIdentifier.defaultConstructor;
 
     return namespace.declarations.containsKey(varName) ||
         namespace.declarations.containsKey(getter) ||
@@ -133,9 +132,8 @@ class HTClass extends HTClassDeclaration with HTEntity, HetuRef {
   /// Get a value of a static member from this [HTClass].
   @override
   dynamic memberGet(String varName, {String? from, bool error = true}) {
-    final getter = '${Semantic.getter}$varName';
-    final constructor =
-        '${Semantic.constructor}${HTLexicon.privatePrefix}$varName';
+    final getter = '${InternalIdentifier.getter}$varName';
+    final constructor = '${InternalIdentifier.namedConstructorPrefix}$varName';
 
     // if (isExternal && !internal) {
     //   final value =
@@ -196,7 +194,7 @@ class HTClass extends HTClassDeclaration with HTEntity, HetuRef {
   /// Assign a value to a static member of this [HTClass].
   @override
   void memberSet(String varName, dynamic varValue, {String? from}) {
-    final setter = '${Semantic.setter}$varName';
+    final setter = '${InternalIdentifier.setter}$varName';
 
     if (isExternal) {
       externalClass!.memberSet('$id.$varName', varValue);

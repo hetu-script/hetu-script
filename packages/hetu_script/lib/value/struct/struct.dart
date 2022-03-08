@@ -49,7 +49,8 @@ class HTStruct with HTEntity {
 
   HTStruct(this.interpreter,
       {String? id, this.prototype, Map<String, dynamic>? fields, this.closure})
-      : id = id ?? '${Semantic.anonymousStruct}${structLiteralIndex++}',
+      : id = id ??
+            '${InternalIdentifier.anonymousStruct}${structLiteralIndex++}',
         _fields = fields ?? {} {
     namespace = HTNamespace(id: this.id, closure: closure);
     namespace.define(HTLexicon.kThis, HTVariable(HTLexicon.kThis, value: this));
@@ -139,15 +140,15 @@ class HTStruct with HTEntity {
     if (varName is! String) {
       varName = varName.toString();
     }
-    if (varName == Semantic.prototype) {
+    if (varName == InternalIdentifier.prototype) {
       return prototype;
     }
 
     dynamic value;
-    final getter = '${Semantic.getter}$varName';
+    final getter = '${InternalIdentifier.getter}$varName';
     final constructor = varName != id
-        ? '${Semantic.constructor}${HTLexicon.privatePrefix}$varName'
-        : Semantic.constructor;
+        ? '${InternalIdentifier.namedConstructorPrefix}$varName'
+        : InternalIdentifier.defaultConstructor;
 
     if (_fields.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
@@ -196,7 +197,7 @@ class HTStruct with HTEntity {
       varName = varName.toString();
     }
 
-    final setter = '${Semantic.setter}$varName';
+    final setter = '${InternalIdentifier.setter}$varName';
     if (_fields.containsKey(varName)) {
       if (varName.startsWith(HTLexicon.privatePrefix) &&
           from != null &&

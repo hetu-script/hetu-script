@@ -44,9 +44,9 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
       throw HTError.unresolvedNamedStruct(id!);
     }
     HTStruct structObj = _self!.clone();
-    if (structObj.containsKey(Semantic.constructor)) {
-      final constructor =
-          structObj.memberGet(Semantic.constructor) as HTFunction;
+    if (structObj.containsKey(InternalIdentifier.defaultConstructor)) {
+      final constructor = structObj
+          .memberGet(InternalIdentifier.defaultConstructor) as HTFunction;
       constructor.call(
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,

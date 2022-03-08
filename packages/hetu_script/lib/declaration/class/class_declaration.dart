@@ -11,7 +11,7 @@ import '../generic/generic_type_parameter.dart';
 
 class HTClassDeclaration extends HTDeclaration
     implements HTAbstractTypeDeclaration {
-  String get name => id ?? Semantic.anonymousClass;
+  String get name => id ?? InternalIdentifier.anonymousClass;
 
   @override
   String toString() => '${HTLexicon.kClass} $name';

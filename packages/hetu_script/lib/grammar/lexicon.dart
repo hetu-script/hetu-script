@@ -483,12 +483,8 @@ class HTLexicon {
   static const errorInvalidLeftValue = 'Value cannot be assigned.';
   static const errorNullableAssign = 'Cannot assign to a nullable value.';
   static const errorPrivateMember = 'Could not acess private member [{0}].';
-  static const errorConstMustBeStatic =
-      'Constant class member [{0}] must also be declared as static.';
   static const errorConstMustInit =
       'Constant declaration [{0}] must be initialized.';
-  static const errorDuplicateLibStmt = 'Duplicate library statement.';
-  static const errorNotConstValue = 'Constant declared with a non-const value.';
 
   // compile time errors
   static const errorDefined = '[{0}] is already defined.';
@@ -497,7 +493,6 @@ class HTLexicon {
   static const errorNotMember = '[{0}] is not a class member of [{1}].';
   static const errorNotClass = '[{0}] is not a class.';
   static const errorAbstracted = 'Cannot create instance from abstract class.';
-  static const errorInterfaceCtor = 'Cannot create contructor for interfaces.';
   static const errorConstValue =
       'Initializer of const declaration is not constant value.';
 

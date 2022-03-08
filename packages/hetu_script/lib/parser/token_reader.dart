@@ -5,10 +5,6 @@ import '../grammar/lexicon.dart';
 import '../grammar/semantic.dart';
 import '../lexer/token.dart';
 
-abstract class ParserConfig {}
-
-class ParserConfigImpl implements ParserConfig {}
-
 /// Abstract interface for handling a token list.
 abstract class TokenReader {
   /// The file current under processing, used in error message.

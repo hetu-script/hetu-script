@@ -7,6 +7,6 @@ class HTExternalType extends HTType {
   const HTExternalType(String id) : super(id);
   @override
   String toString() {
-    return '${Semantic.extern} ${HTLexicon.kType}${HTLexicon.colon} $id';
+    return '${Semantic.extern} ${HTLexicon.kType} $id';
   }
 }
