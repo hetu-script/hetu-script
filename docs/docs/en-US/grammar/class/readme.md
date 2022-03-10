@@ -85,7 +85,7 @@ class Bird extends Animal {
 
 ## super
 
-Within a class's namespace, use **super** to access the super class's members.
+Within a instance's namespace, use **super** to access the super class's members.
 
 ```dart
 class Super3 {
@@ -99,9 +99,13 @@ class Extend3 extends Super3 {
 }
 ```
 
-## 类型转换
+You cannot use super in static methods.
+
+## Type conversion
 
 Outside a class's namespace, use **as** to convert a sub class to any super class it extends from.
+
+You can then access that specific class's members.
 
 ```dart
 class Super3 {

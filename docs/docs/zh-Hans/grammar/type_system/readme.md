@@ -6,7 +6,50 @@
 
 类型本身在河图中也是一个一等公民，可以作为表达式的值传递。
 
-除了在类型声明的初始化值中获得类型值，以及在关键字 **is** 之后获得一个类型值。你不能在普通的表达式中使用类型值。
+除了 class 的名字之外，通常你不能在普通的表达式中使用类型值。你可以使用类型声明来将一个类型值绑定到一个变量，或者在关键字 **is/as** 之后获得一个类型值。
+
+河图中目前包括四种类型：
+
+### 内置类型
+
+这些类型通常都是关键字：
+
+#### any
+
+等同于 Dart 中的 dynamic，任何值都可以赋值给一个 any 类型。
+
+**void, never & unknown 这三个关键字代表了其他的一些内置类型，但他们需要在静态类型检查阶段发挥作用，因此在目前版本中尚未被完全支持。**
+
+### 标称类型（nominal type）
+
+class 关键字声明的类的名字，被称作标称类型：
+
+```typescript
+class Person {}
+```
+
+### 结构类型（structural type）
+
+结构类型是一种[鸭子类型](https://zh.wikipedia.org/wiki/%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B)的实现. 和 [struct](../struct/readme.md) 配合使用。
+
+它的语法类似于 struct 字面量，但在键名冒号后面跟着的一定是一个类型，而不是表达式。
+
+```javascript
+type structTypedef = {
+  name: str,
+  age: num,
+};
+```
+
+### 函数类型
+
+函数类型的写法类似函数声明，但它不能像函数声明一样省略某些部分。
+
+它一定要包含一个圆括号括起来的参数列表（但可以为空），以及一个单箭头后面的返回值类型。
+
+```javascript
+type funcTypedef = (str) -> num
+```
 
 ## 类型声明
 
@@ -23,7 +66,23 @@ type structTypedef = {
 }
 ```
 
-## typeof
+## 使用 is 在运行时动态检查类型
+
+使用 **is** 关键字可以在运行时动态检查某个值对应的类型。
+
+```javascript
+fun doSomething(value) {
+  if (value is str) {
+    print('A String!')
+  } else if (value is num) {
+    print('A Number!')
+  } else {
+    print('Unknown type!')
+  }
+}
+```
+
+## 使用 typeof 在运行时动态获取类型
 
 使用 **typeof** 关键字可以在运行时动态获取某个值对应的类型。
 

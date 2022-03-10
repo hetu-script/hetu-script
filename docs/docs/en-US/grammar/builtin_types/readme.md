@@ -39,7 +39,7 @@ Note it's different to Dart that you have to write a curly brackets even if you 
 
 ### Multiline
 
-After version 0.4.0, string literal in Hetu support multiline, and you can use the same syntax.
+After version 0.4.0, string literal in Hetu support multiline, the syntax is same to normal string literal.
 
 ```dart
 var p = 'PPP'
