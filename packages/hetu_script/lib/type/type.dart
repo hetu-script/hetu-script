@@ -120,8 +120,8 @@ abstract class HTType with HTEntity {
   bool isA(HTType? other) {
     if (other == null) {
       return true;
-    } else if (this == HTType.unknownType) {
-      if (other == HTType.any || other == HTType.unknownType) {
+    } else if (this == HTType.unknown) {
+      if (other == HTType.any || other == HTType.unknown) {
         return true;
       } else {
         return false;
