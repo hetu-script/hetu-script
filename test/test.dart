@@ -12,17 +12,16 @@ void main() {
     locale: HTLocaleSimplifiedChinese(),
   );
   hetu.eval(r'''
-    class R {
-      get meaning => 42
+    struct P {
+      var name = 'guy'
+      var age = 17 
     }
 
-    class P extends R {
-      get meaning {
-        return super.meaning * 2
-      }
-    }
+    final p1 = struct extends P {}
+    final p2 = {}
+    p2.$prototype = P
 
-    final p= P()
-    print(p.meaning)
+    print(p2.$prototype)
+    print(p2.age)
   ''');
 }

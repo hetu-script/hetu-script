@@ -2,8 +2,6 @@
 
 河图中的结构体对象等同于 Javascript 中的对象。是一种以原型继承为基础，可以更自由的访问和创建对象成员的面向对象模式。
 
-在任何时候，通过内部成员 '$prototype'，你都可以手动访问和修改一个结构体对象的原型对象。
-
 结构体对象的最大特点是，访问和修改不存在的成员，将会创造新成员。
 
 ```javascript
@@ -119,4 +117,24 @@ final t1 = Tile(5, 5)
 final t2 = Tile.fromPosition({left: 5, top: 5})
 
 print(t1, t2)
+```
+
+你可以在结构体字面量之前使用 struct 关键字（正如你也可以在一个函数字面量之前使用 fun 关键字）。
+
+这种写法可以更方便的直接指定一个结构体的原型。
+
+```dart
+struct P {
+  var name = 'guy'
+  var age = 17
+}
+
+final p1 = struct extends P {}
+```
+
+或者，你也可以通过内部成员 **$prototype** 动态的修改一个结构体的原型。。
+
+```dart
+final p2 = {}
+p2.$prototype = P
 ```

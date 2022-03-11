@@ -137,11 +137,12 @@ class _CodeEditorState extends State<CodeEditor> {
                       ),
                       ElevatedButton.icon(
                         onPressed: () {
-                          _result = '';
                           setState(() {
+                            _errors = '';
                             try {
-                              final result =
-                                  interpreter.eval(_codeController.text);
+                              final result = interpreter.eval(
+                                  _codeController.text,
+                                  type: HTResourceType.hetuScript);
                               _log(result.toString());
                             } catch (e) {
                               _error(e.toString());

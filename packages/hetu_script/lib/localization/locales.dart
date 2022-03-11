@@ -75,4 +75,5 @@ abstract class HTLocale {
   String get errorStructMemberId;
   String get errorUnresolvedNamedStruct;
   String get errorBinding;
+  String get errorNotStruct;
 }

@@ -140,4 +140,6 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   final String errorUnresolvedNamedStruct = '对象原型 [{0}] 尚未被解析。';
   @override
   final String errorBinding = 'bind 操作只能用于函数字面量和对象字面量。';
+  @override
+  final String errorNotStruct = '赋值类型错误：并非结构体。';
 }

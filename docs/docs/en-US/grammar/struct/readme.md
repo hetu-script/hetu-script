@@ -2,8 +2,6 @@
 
 Struct are a prototype base object similar to Javascript's object. It is a prototype based object system.
 
-You can change a struct's prototype by internal member '$prototype'.
-
 The most significant difference between struct and class, is that struct's member can be created and modified during runtime. And you won't get errors when accessing a non-exist struct member, you simply got a null value.
 
 ```javascript
@@ -122,4 +120,22 @@ final t1 = Tile(5, 5)
 final t2 = Tile.fromPosition({left: 5, top: 5})
 
 print(t1, t2)
+```
+
+You can also use struct keyword in a struct literal syntax (just like you can use fun keyword in a function literal), this way it is easier to specify the super struct it extends from.
+
+```dart
+struct P {
+  var name = 'guy'
+  var age = 17
+}
+
+final p1 = struct extends P {}
+```
+
+Or, you can dynamically access and modify a struct's prototype by internal member **$prototype**:
+
+```dart
+final p2 = {}
+p2.$prototype = P
 ```

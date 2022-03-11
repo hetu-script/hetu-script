@@ -79,4 +79,5 @@ abstract class HTLocalization {
   static String get errorUnresolvedNamedStruct =>
       locale.errorUnresolvedNamedStruct;
   static String get errorBinding => locale.errorBinding;
+  static String get errorNotStruct => locale.errorNotStruct;
 }

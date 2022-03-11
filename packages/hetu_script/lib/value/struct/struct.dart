@@ -196,6 +196,13 @@ class HTStruct with HTEntity {
     if (varName is! String) {
       varName = varName.toString();
     }
+    if (varName == InternalIdentifier.prototype) {
+      if (varValue is! HTStruct) {
+        throw HTError.notStruct();
+      }
+      prototype = varValue;
+      return true;
+    }
 
     final setter = '${InternalIdentifier.setter}$varName';
     if (_fields.containsKey(varName)) {

@@ -78,6 +78,7 @@ enum ErrorCode {
   structMemberId,
   unresolvedNamedStruct,
   binding,
+  notStruct,
 
   // Analysis errors
   constValue,
@@ -1546,6 +1547,17 @@ class HTError {
       {String? filename, int? line, int? column, int? offset, int? length})
       : this(ErrorCode.binding, ErrorType.runtimeError,
             message: HTLocalization.errorBinding,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Bind a non literal function is not allowed.
+  HTError.notStruct(
+      {String? filename, int? line, int? column, int? offset, int? length})
+      : this(ErrorCode.notStruct, ErrorType.runtimeError,
+            message: HTLocalization.errorNotStruct,
             filename: filename,
             line: line,
             column: column,

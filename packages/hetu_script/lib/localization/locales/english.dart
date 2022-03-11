@@ -162,4 +162,7 @@ class HTLocaleEnglish implements HTLocale {
   @override
   final String errorBinding =
       'Binding is not allowed on non-literal function or non-struct object.';
+  @override
+  final String errorNotStruct =
+      'Value is not a struct literal, which is needed.';
 }
