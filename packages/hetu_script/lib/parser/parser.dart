@@ -2218,21 +2218,10 @@ class HTParser extends TokenReader {
   ReturnStmt _parseReturnStmt() {
     var keyword = advance();
     AstNode? expr;
-    if (curTok.type == HTLexicon.kSuper) {
-      final err = HTError.unexpected(Semantic.expression, curTok.lexeme,
-          filename: _currrentFileName,
-          line: curTok.line,
-          column: curTok.column,
-          offset: curTok.offset,
-          length: curTok.length);
-      errors?.add(err);
-      advance();
-    } else {
-      if (curTok.type != HTLexicon.bracesRight &&
-          curTok.type != HTLexicon.semicolon &&
-          curTok.type != Semantic.endOfFile) {
-        expr = _parseExpr();
-      }
+    if (curTok.type != HTLexicon.bracesRight &&
+        curTok.type != HTLexicon.semicolon &&
+        curTok.type != Semantic.endOfFile) {
+      expr = _parseExpr();
     }
     final hasEndOfStmtMark = expect([HTLexicon.semicolon], consume: true);
     return ReturnStmt(keyword,

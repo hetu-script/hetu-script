@@ -12,8 +12,17 @@ void main() {
     locale: HTLocaleSimplifiedChinese(),
   );
   hetu.eval(r'''
-    const i = 42
-    const j = 3 * i
-    print(j)
+    class R {
+      get meaning => 42
+    }
+
+    class P extends R {
+      get meaning {
+        return super.meaning * 2
+      }
+    }
+
+    final p= P()
+    print(p.meaning)
   ''');
 }
