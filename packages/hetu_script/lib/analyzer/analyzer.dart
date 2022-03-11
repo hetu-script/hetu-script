@@ -121,7 +121,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     _curSource = source;
     final List<HTAnalysisError> errors = [];
     final Map<String, HTSourceAnalysisResult> sourceAnalysisResults = {};
-    final parser = HTParser(context: sourceContext);
+    final parser = HTParser(sourceContext: sourceContext);
     final compilation = parser.parseToModule(source);
 
     // Resolve namespaces

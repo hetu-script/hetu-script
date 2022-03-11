@@ -1750,9 +1750,9 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
       bytesBuilder.add(ctorBytes);
 
       final toStringDef = StringInterpolationExpr(
-          '${stmt.id.id}${HTLexicon.memberGet}${HTLexicon.bracesLeft}0${HTLexicon.bracesRight}',
-          HTLexicon.apostropheLeft,
-          HTLexicon.apostropheRight,
+          '${stmt.id.id}${HTLexicon.memberGet}${HTLexicon.functionBlockStart}0${HTLexicon.functionBlockEnd}',
+          HTLexicon.apostropheStringLeft,
+          HTLexicon.apostropheStringRight,
           [IdentifierExpr(valueId)]);
       final toStringFunc = FuncDecl(HTLexicon.tostring, [],
           id: IdentifierExpr(HTLexicon.tostring),
@@ -1770,8 +1770,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
             MemberExpr(stmt.id,
                 IdentifierExpr(HTLexicon.privatePrefix, isLocal: false)),
             positionalArgs: [
-              StringLiteralExpr(
-                  item.id, HTLexicon.apostropheLeft, HTLexicon.apostropheRight)
+              StringLiteralExpr(item.id, HTLexicon.apostropheStringLeft,
+                  HTLexicon.apostropheStringRight)
             ]);
         final itemDecl = VarDecl(item,
             classId: stmt.classId,

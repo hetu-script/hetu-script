@@ -3,25 +3,19 @@ abstract class AbstractLexicon {
   /// Regular expression used by lexer.
   String get tokenPattern;
 
-  String get tokenGroupSingleComment;
-  String get tokenGroupBlockComment;
-  String get tokenGroupIdentifier;
-  String get tokenGroupPunctuation;
-  String get tokenGroupNumber;
-  String get tokenGroupApostropheStringInterpolation;
-  String get tokenGroupQuotationStringInterpolation;
-  String get tokenGroupApostropheString;
-  String get tokenGroupQuotationString;
-  String get tokenGroupStringGraveAccent;
-  String get tokenGroupNewline;
+  int get tokenGroupSingleComment;
+  int get tokenGroupBlockComment;
+  int get tokenGroupIdentifier;
+  int get tokenGroupPunctuation;
+  int get tokenGroupNumber;
+  int get tokenGroupApostropheStringInterpolation;
+  int get tokenGroupQuotationStringInterpolation;
+  int get tokenGroupApostropheString;
+  int get tokenGroupQuotationString;
+  int get tokenGroupStringGraveAccent;
+  int get tokenGroupNewline;
 
-  String get singleLineCommentDocumentationPattern;
-  String get multiLineCommentDocumentationPattern;
-
-  String get libraryNamePattern;
-
-  String get libraryNameSingleMark;
-  String get libraryNameDoubleMark;
+  String get documentationCommentPattern;
 
   String get stringInterpolationPattern;
   String get stringInterpolationStart;
@@ -300,8 +294,8 @@ abstract class AbstractLexicon {
   String get bracketsRight;
 
   /// '<'
-  String get chevronsLeft;
+  String get typeParameterStart;
 
   /// '>'
-  String get chevronsRight;
+  String get typeParameterEnd;
 }

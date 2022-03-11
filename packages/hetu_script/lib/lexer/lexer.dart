@@ -3,14 +3,14 @@ import '../grammar/lexicon.dart';
 import 'token.dart';
 import '../shared/constants.dart' show CommentType;
 
-const Set<String> _unfinishedTokens = {
+const List<String> _unfinishedTokens = [
   HTLexicon.logicalNot,
   HTLexicon.multiply,
   HTLexicon.devide,
   HTLexicon.modulo,
   HTLexicon.add,
   HTLexicon.subtract,
-  HTLexicon.lesser, // chevronsLeft,
+  HTLexicon.lesser, // typeParameterStart,
   HTLexicon.lesserOrEqual,
   HTLexicon.greater,
   HTLexicon.greaterOrEqual,
@@ -26,14 +26,18 @@ const Set<String> _unfinishedTokens = {
   HTLexicon.assignDevide,
   HTLexicon.assignIfNull,
   HTLexicon.memberGet,
-  HTLexicon.parenthesesLeft,
-  HTLexicon.bracesLeft,
-  HTLexicon.bracketsLeft,
+  HTLexicon.groupExprStart,
+  HTLexicon.functionBlockStart,
+  HTLexicon.subGetStart,
+  HTLexicon.listStart,
+  HTLexicon.optionalPositionalParameterStart,
+  HTLexicon.externalFunctionTypeDefStart,
   HTLexicon.comma,
   HTLexicon.colon,
-  HTLexicon.singleArrow,
-  HTLexicon.doubleArrow,
-};
+  HTLexicon.functionReturnTypeIndicator,
+  HTLexicon.whenBranchIndicator,
+  HTLexicon.functionSingleLineBodyIndicator,
+];
 
 /// Scans a string content and generates a list of Tokens.
 class HTLexer {
@@ -52,18 +56,19 @@ class HTLexer {
 
     void handleEndOfLine([int? offset]) {
       if (toksOfLine.isNotEmpty) {
-        if (HTLexicon.defaultSemicolonStart.contains(toksOfLine.first.type)) {
+        if (HTLexicon.autoSemicolonInsertAtStart
+            .contains(toksOfLine.first.type)) {
           /// Add semicolon before a newline if the new line starting with '{, [, (, +, -' tokens
           /// and the last line does not ends with an unfinished token.
           if (tokens.isNotEmpty &&
               !_unfinishedTokens.contains(tokens.last.type)) {
-            tokens.add(Token(HTLexicon.semicolon, curLine, 1,
+            tokens.add(Token(HTLexicon.endOfStatementMark, curLine, 1,
                 toksOfLine.first.offset + toksOfLine.first.length, 0));
           }
           tokens.addAll(toksOfLine);
         } else if (toksOfLine.last.type == HTLexicon.kReturn) {
           tokens.addAll(toksOfLine);
-          tokens.add(Token(HTLexicon.semicolon, curLine, curColumn + 1,
+          tokens.add(Token(HTLexicon.endOfStatementMark, curLine, curColumn + 1,
               toksOfLine.last.offset + toksOfLine.last.length, 0));
         } else {
           tokens.addAll(toksOfLine);
@@ -146,8 +151,8 @@ class HTLexer {
         final literal = matchString.substring(1, matchString.length - 1);
         toksOfLine.add(TokenStringLiteral(
             literal,
-            HTLexicon.apostropheLeft,
-            HTLexicon.apostropheRight,
+            HTLexicon.apostropheStringLeft,
+            HTLexicon.apostropheStringRight,
             curLine,
             curColumn,
             curOffset + match.start,
@@ -156,8 +161,8 @@ class HTLexer {
         final literal = matchString.substring(1, matchString.length - 1);
         toksOfLine.add(TokenStringLiteral(
             literal,
-            HTLexicon.quotationLeft,
-            HTLexicon.quotationRight,
+            HTLexicon.quotationStringLeft,
+            HTLexicon.quotationStringRight,
             curLine,
             curColumn,
             curOffset + match.start,
@@ -171,10 +176,10 @@ class HTLexer {
           null) {
         final token = _hanldeStringInterpolation(
             matchString,
-            HTLexicon.apostropheLeft,
-            HTLexicon.apostropheRight,
+            HTLexicon.apostropheStringLeft,
+            HTLexicon.apostropheStringRight,
             curLine,
-            curColumn + HTLexicon.apostropheLeft.length,
+            curColumn + HTLexicon.apostropheStringLeft.length,
             curOffset + match.start);
         toksOfLine.add(token);
       } else if (match
@@ -182,10 +187,10 @@ class HTLexer {
           null) {
         final token = _hanldeStringInterpolation(
             matchString,
-            HTLexicon.quotationLeft,
-            HTLexicon.quotationRight,
+            HTLexicon.quotationStringLeft,
+            HTLexicon.quotationStringRight,
             curLine,
-            curColumn + HTLexicon.quotationLeft.length,
+            curColumn + HTLexicon.quotationStringLeft.length,
             curOffset + match.start);
         toksOfLine.add(token);
       } else if (match.group(HTLexicon.tokenGroupNewline) != null) {

@@ -1311,7 +1311,7 @@ class Hetu extends HTAbstractInterpreter {
         for (var i = 0; i < interpolationLength; ++i) {
           final value = execute();
           literal = literal.replaceAll(
-              '${HTLexicon.bracesLeft}$i${HTLexicon.bracesRight}',
+              '${HTLexicon.functionBlockStart}$i${HTLexicon.functionBlockEnd}',
               value.toString());
         }
         _localValue = literal;

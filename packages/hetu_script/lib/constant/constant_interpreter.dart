@@ -52,7 +52,7 @@ class HTConstantInterpreter implements AbstractAstVisitor<void> {
     var text = node.text;
     for (var i = 0; i < interpolations.length; ++i) {
       text = text.replaceAll(
-          '${HTLexicon.bracesLeft}$i${HTLexicon.bracesRight}',
+          '${HTLexicon.functionBlockStart}$i${HTLexicon.functionBlockEnd}',
           interpolations[i]);
     }
     node.value = text;

@@ -27,12 +27,6 @@ class HTLexicon {
 
   static const documentationCommentPattern = r'///';
 
-  static const libraryNamePattern = r"(library '((\\'|[^'])*)')|"
-      r'(library "((\\"|[^"])*)")';
-
-  static const libraryNameSingleMark = 2;
-  static const libraryNameDoubleMark = 5;
-
   static const stringInterpolationPattern = r'\${([^\${}]*)}';
   static const stringInterpolationStart = r'${';
   static const stringInterpolationEnd = r'}';
@@ -48,16 +42,16 @@ class HTLexicon {
 
   /// Add semicolon before a line starting with one of '{, (, [, ++, --'.
   /// This is to avoid ambiguity in parser.
-  static const Set<String> defaultSemicolonStart = {
-    bracesLeft,
-    parenthesesLeft,
-    bracketsLeft,
+  static const List<String> autoSemicolonInsertAtStart = [
+    functionBlockStart,
+    groupExprStart,
+    listStart,
     preIncrement,
     preDecrement,
-  };
+  ];
 
   /// Add semicolon after a line with 'return'
-  static const Set<String> defaultSemicolonEnd = {
+  static const Set<String> autoSemicolonInsertAtEnd = {
     kReturn,
   };
 
@@ -65,7 +59,6 @@ class HTLexicon {
   static const instanceof = 'instance of';
 
   static const boolean = 'bool';
-  static const number = 'num';
   static const integer = 'int';
   static const float = 'float';
   static const string = 'str';
@@ -74,26 +67,40 @@ class HTLexicon {
   static const iterator = 'iterator';
   static const moveNext = 'moveNext';
   static const current = 'current';
-  static const parse = 'parse';
   static const contains = 'contains';
   static const tostring = 'toString';
 
   static const scriptStackTrace = 'Hetu stack trace';
   static const externalStackTrace = 'Dart stack trace';
 
+  /// '...'
   static const variadicArgs = '...';
+
+  /// '_'
   static const privatePrefix = '_';
+
+  /// '_'
   static const omittedMark = '_';
 
   /// '$'
   static const internalPrefix = r'$';
-  static const percentageMark = r'%';
-  static const typesBracketLeft = '<';
-  static const typesBracketRight = '>';
-  static const singleArrow = '->';
-  static const doubleArrow = '=>';
+
+  /// '->'
+  static const functionReturnTypeIndicator = '->';
+
+  /// '->'
+  static const whenBranchIndicator = '->';
+
+  /// '=>'
+  static const functionSingleLineBodyIndicator = '=>';
+
+  /// '.'
   static const decimalPoint = '.';
+
+  /// indent space
   static const indentSpaces = '  ';
+
+  /// '...'
   static const spreadSyntax = '...';
 
   static const kNull = 'null';
@@ -108,24 +115,15 @@ class HTLexicon {
   static const kDelete = 'delete';
 
   static const Set<String> destructuringDeclarationMark = {
-    bracketsLeft,
-    bracesLeft,
+    listStart,
+    functionBlockStart,
   };
 
   /// Variable declaration keyword
   /// used in for statement's declaration part
-  static const Set<String> varDeclKeywords = {
+  static const Set<String> forDeclarationKeywords = {
     kVar,
     kFinal,
-  };
-
-  static const Set<String> primitiveTypes = {
-    kType,
-    kAny,
-    kVoid,
-    kUnknown,
-    kNever,
-    // FUNCTION,
   };
 
   static const kVoid = 'void';
@@ -155,7 +153,7 @@ class HTLexicon {
   static const kThis = 'this';
   static const kSuper = 'super';
 
-  static const Set<String> constructorCall = {kThis, kSuper};
+  static const Set<String> redirectingConstructorCallKeywords = {kThis, kSuper};
 
   static const kAbstract = 'abstract';
   static const kOverride = 'override';
@@ -196,7 +194,7 @@ class HTLexicon {
   static const kFinally = 'finally';
   static const kThrow = 'throw';
 
-  /// keywords
+  /// reserved keywords, cannot used as identifier names
   static const Set<String> keywords = {
     kNull,
     kTrue,
@@ -240,34 +238,34 @@ class HTLexicon {
     kWhen,
     kIs,
     kAs,
+    kThrow,
     // kTry,
     // kCatch,
     // kFinally,
-    kThrow,
   };
 
-  static const Set<String> contextualKeyword = {
-    kOf,
-    kVoid,
-    kType,
-    kImport,
-    kExport,
-    kAny,
-    kUnknown,
-    kNever,
-    kFrom,
-    kRequired,
-    kReadonly,
-  };
-
+  /// '?.'
   static const nullableMemberGet = '?.';
+
+  /// '.'
   static const memberGet = '.';
+
+  /// '?['
   static const nullableSubGet = '?[';
-  static const subGet = '[';
+
+  /// '?('
   static const nullableCall = '?(';
+
+  /// '('
   static const call = '(';
+
+  /// '?'
   static const nullable = '?';
+
+  /// '++'
   static const postIncrement = '++';
+
+  /// '--'
   static const postDecrement = '--';
 
   /// postfix operators
@@ -275,7 +273,7 @@ class HTLexicon {
     nullableMemberGet,
     memberGet,
     nullableSubGet,
-    subGet,
+    subGetStart,
     nullableCall,
     call,
     postIncrement,
@@ -412,135 +410,65 @@ class HTLexicon {
   static const colon = ':';
 
   /// ';'
-  static const semicolon = ';';
+  static const endOfStatementMark = ';';
 
   /// "'"
-  static const apostropheLeft = "'";
+  static const apostropheStringLeft = "'";
 
   /// "'"
-  static const apostropheRight = "'";
+  static const apostropheStringRight = "'";
 
   /// '"'
-  static const quotationLeft = '"';
+  static const quotationStringLeft = '"';
 
   /// '"'
-  static const quotationRight = '"';
+  static const quotationStringRight = '"';
 
   /// '('
-  static const parenthesesLeft = '(';
+  static const groupExprStart = '(';
 
   /// ')'
-  static const parenthesesRight = ')';
+  static const groupExprEnd = ')';
 
   /// '{'
-  static const bracesLeft = '{';
+  static const functionBlockStart = '{';
 
   /// '}'
-  static const bracesRight = '}';
+  static const functionBlockEnd = '}';
+
+  /// '{'
+  static const namespaceBlockStart = '{';
+
+  /// '}'
+  static const namespaceBlockEnd = '}';
 
   /// '['
-  static const bracketsLeft = '[';
+  static const subGetStart = '[';
 
   /// ']'
-  static const bracketsRight = ']';
+  static const subGetEnd = ']';
+
+  /// '['
+  static const listStart = '[';
+
+  /// ']'
+  static const listEnd = ']';
+
+  /// '['
+  static const optionalPositionalParameterStart = '[';
+
+  /// ']'
+  static const optionalPositionalParameterEnd = ']';
+
+  /// '['
+  static const externalFunctionTypeDefStart = '[';
+
+  /// ']'
+  static const externalFunctionTypeDefEnd = ']';
 
   /// '<'
-  static const chevronsLeft = '<';
+  static const typeParameterStart = '<';
 
   /// '>'
-  static const chevronsRight = '>';
-
-  static const errorBytecode = 'Unrecognizable bytecode.';
-  static const errorVersion =
-      'Incompatible version - bytecode: [{0}], interpreter: [{1}].';
-  static const errorAssertionFailed = "Assertion failed on '{0}'.";
-  static const errorUnkownSourceType = 'Unknown source type: [{0}].';
-  static const errorImportListOnNonHetuSource =
-      'Cannot import list from a non hetu source.';
-  static const errorExportNonHetuSource = 'Cannot export a non hetu source.';
-
-  // syntactic errors
-  static const errorUnexpected = 'Expected [{0}], met [{1}].';
-  static const errorDelete =
-      'Can only delete a local variable or a struct member.';
-  static const errorExternal = 'External [{0}] is not allowed.';
-  static const errorNestedClass = 'Nested class within another nested class.';
-  static const errorConstInClass = 'Const value in class must be also static.';
-  static const errorOutsideReturn =
-      'Unexpected return statement outside of a function.';
-  static const errorSetterArity =
-      'Setter function must have exactly one parameter.';
-  static const errorEmptyTypeArgs = 'Empty type arguments.';
-  static const errorEmptyImportList = 'Empty import list.';
-  static const errorExtendsSelf = 'Class try to extends itself.';
-  static const errorMissingFuncBody = 'Missing function definition of [{0}].';
-  static const errorExternalCtorWithReferCtor =
-      'Unexpected refer constructor on external constructor.';
-  static const errorSourceProviderError =
-      'Context error: could not load file: [{0}].';
-  static const errorNotAbsoluteError =
-      'Adding source failed, not a absolute path: [{0}].';
-  static const errorInvalidLeftValue = 'Value cannot be assigned.';
-  static const errorNullableAssign = 'Cannot assign to a nullable value.';
-  static const errorPrivateMember = 'Could not acess private member [{0}].';
-  static const errorConstMustInit =
-      'Constant declaration [{0}] must be initialized.';
-
-  // compile time errors
-  static const errorDefined = '[{0}] is already defined.';
-  static const errorOutsideThis =
-      'Unexpected this expression outside of a function.';
-  static const errorNotMember = '[{0}] is not a class member of [{1}].';
-  static const errorNotClass = '[{0}] is not a class.';
-  static const errorAbstracted = 'Cannot create instance from abstract class.';
-  static const errorConstValue =
-      'Initializer of const declaration is not constant value.';
-
-  // runtime errors
-  static const errorUnsupported = 'Unsupported operation: [{0}].';
-  static const errorUnknownOpCode = 'Unknown opcode [{0}].';
-  static const errorNotInitialized = '[{0}] has not yet been initialized.';
-  static const errorUndefined = 'Undefined identifier [{0}].';
-  static const errorUndefinedExternal = 'Undefined external identifier [{0}].';
-  static const errorUnknownTypeName = 'Unknown type name: [{0}].';
-  static const errorUndefinedOperator = 'Undefined operator: [{0}].';
-  static const errorNotCallable = '[{0}] is not callable.';
-  static const errorUndefinedMember = '[{0}] isn\'t defined for the class.';
-  static const errorUninitialized = 'Varialbe [{0}] is not initialized yet.';
-  static const errorCondition =
-      'Condition expression must evaluate to type [bool]';
-  static const errorNullObject = 'Calling method [{1}] on null object [{0}].';
-  static const errorNullSubSetKey = 'Sub set key is null.';
-  static const errorSubGetKey = 'Sub get key [{0}] is not of type [int]';
-  static const errorOutOfRange = 'Index [{0}] is out of range [{1}].';
-  static const errorAssignType =
-      'Variable [{0}] with type [{2}] can\'t be assigned with type [{1}].';
-  static const errorImmutable = '[{0}] is immutable.';
-  static const errorNotType = '[{0}] is not a type.';
-  static const errorArgType =
-      'Argument [{0}] of type [{1}] doesn\'t match parameter type [{2}].';
-  static const errorArgInit =
-      'Only optional or named arguments can have initializer.';
-  static const errorReturnType =
-      '[{0}] can\'t be returned from function [{1}] with return type [{2}].';
-  static const errorStringInterpolation =
-      'String interpolation has to be a single expression.';
-  static const errorArity =
-      'Number of arguments [{0}] doesn\'t match function [{1}]\'s parameter requirement [{2}].';
-  static const errorExternalVar = 'External variable is not allowed.';
-  static const errorBytesSig = 'Unknown bytecode signature.';
-  static const errorCircleInit =
-      'Variable [{0}]\'s initializer depend on itself being initialized.';
-  static const errorNamedArg = 'Undefined named parameter: [{0}].';
-  static const errorIterable = '[{0}] is not Iterable.';
-  static const errorUnkownValueType = 'Unkown OpCode value type: [{0}].';
-  static const errorTypeCast = 'Type [{0}] cannot be cast into type [{1}].';
-  static const errorCastee = 'Illegal cast target [{0}].';
-  static const errorNotSuper = '[{0}] is not a super class of [{1}].';
-  static const errorStructMemberId =
-      'Struct member id should be symbol or string.';
-  static const errorUnresolvedNamedStruct =
-      'Cannot create struct object from unresolved prototype [{0}].';
-  static const errorBinding =
-      'Binding is not allowed on non-literal function or non-struct object.';
+  static const typeParameterEnd = '>';
 }

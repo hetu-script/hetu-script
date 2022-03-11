@@ -53,14 +53,14 @@ abstract class TokenReader {
     late String closing;
     var distance = 0;
     var depth = 0;
-    if (current.type == HTLexicon.parenthesesLeft) {
-      closing = HTLexicon.parenthesesRight;
-    } else if (current.type == HTLexicon.bracketsLeft) {
-      closing = HTLexicon.bracketsRight;
-    } else if (current.type == HTLexicon.bracesLeft) {
-      closing = HTLexicon.bracesRight;
-    } else if (current.type == HTLexicon.chevronsLeft) {
-      closing = HTLexicon.chevronsRight;
+    if (current.type == HTLexicon.groupExprStart) {
+      closing = HTLexicon.groupExprEnd;
+    } else if (current.type == HTLexicon.listStart) {
+      closing = HTLexicon.listEnd;
+    } else if (current.type == HTLexicon.functionBlockStart) {
+      closing = HTLexicon.functionBlockEnd;
+    } else if (current.type == HTLexicon.typeParameterStart) {
+      closing = HTLexicon.typeParameterEnd;
     } else {
       return current;
     }
@@ -71,7 +71,7 @@ abstract class TokenReader {
     do {
       forward();
       ++distance;
-      if (current.type == HTLexicon.parenthesesLeft) {
+      if (current.type == HTLexicon.groupExprStart) {
         ++depth;
       } else if (depth > 0 && current.type == closing) {
         --depth;

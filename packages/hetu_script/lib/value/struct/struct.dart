@@ -62,9 +62,9 @@ class HTStruct with HTEntity {
   String toString() {
     if (_fields.isNotEmpty) {
       final content = util.stringifyStructMembers(this, from: this);
-      return '${HTLexicon.bracesLeft}\n$content${HTLexicon.bracesRight}';
+      return '${HTLexicon.functionBlockStart}\n$content${HTLexicon.functionBlockEnd}';
     } else {
-      return '${HTLexicon.bracesLeft}${HTLexicon.bracesRight}';
+      return '${HTLexicon.functionBlockStart}${HTLexicon.functionBlockEnd}';
     }
   }
 

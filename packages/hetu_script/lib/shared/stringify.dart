@@ -28,19 +28,20 @@ String stringify(dynamic object, {bool asStringLiteral = false}) {
     }
   } else if (object is HTStruct) {
     if (object.isEmpty) {
-      output.write('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
+      output.write(
+          '${HTLexicon.functionBlockStart}${HTLexicon.functionBlockEnd}');
     } else {
-      output.writeln(HTLexicon.bracesLeft);
+      output.writeln(HTLexicon.functionBlockStart);
       final structString = stringifyStructMembers(object);
       output.write(structString);
       output.write(_curIndent());
-      output.write(HTLexicon.bracesRight);
+      output.write(HTLexicon.functionBlockEnd);
     }
   } else if (object is Iterable) {
     final listString = stringifyList(object);
     output.write(listString);
   } else if (object is Map) {
-    output.write(HTLexicon.bracesLeft);
+    output.write(HTLexicon.functionBlockStart);
     final keys = object.keys.toList();
     for (var i = 0; i < keys.length; ++i) {
       final key = keys[i];
@@ -52,7 +53,7 @@ String stringify(dynamic object, {bool asStringLiteral = false}) {
         output.write('${HTLexicon.comma} ');
       }
     }
-    output.write(HTLexicon.bracesRight);
+    output.write(HTLexicon.functionBlockEnd);
   } else {
     output.write(object.toString());
   }
@@ -61,10 +62,10 @@ String stringify(dynamic object, {bool asStringLiteral = false}) {
 
 String stringifyList(Iterable list) {
   if (list.isEmpty) {
-    return '${HTLexicon.bracketsLeft}${HTLexicon.bracketsRight}';
+    return '${HTLexicon.listStart}${HTLexicon.listEnd}';
   }
   final output = StringBuffer();
-  output.writeln(HTLexicon.bracketsLeft);
+  output.writeln(HTLexicon.listStart);
   ++_curIndentCount;
   for (var i = 0; i < list.length; ++i) {
     final item = list.elementAt(i);
@@ -78,7 +79,7 @@ String stringifyList(Iterable list) {
   }
   --_curIndentCount;
   output.write(_curIndent());
-  output.write(HTLexicon.bracketsRight);
+  output.write(HTLexicon.listEnd);
   return output.toString();
 }
 
@@ -101,13 +102,14 @@ String stringifyStructMembers(HTStruct struct, {HTStruct? from}) {
     final valueBuffer = StringBuffer();
     if (value is HTStruct) {
       if (value.isEmpty) {
-        valueBuffer.write('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
+        valueBuffer.write(
+            '${HTLexicon.functionBlockStart}${HTLexicon.functionBlockEnd}');
       } else {
         final content = stringifyStructMembers(value, from: from);
-        valueBuffer.writeln(HTLexicon.bracesLeft);
+        valueBuffer.writeln(HTLexicon.functionBlockStart);
         valueBuffer.write(content);
         valueBuffer.write(_curIndent());
-        valueBuffer.write(HTLexicon.bracesRight);
+        valueBuffer.write(HTLexicon.functionBlockEnd);
       }
     } else {
       final valueString = stringify(value, asStringLiteral: true);

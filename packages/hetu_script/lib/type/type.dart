@@ -9,13 +9,13 @@ import 'function_type.dart';
 import '../declaration/generic/generic_type_parameter.dart';
 
 abstract class HTType with HTEntity {
-  static const type = _PrimitiveType(HTLexicon.kType);
-  static const any = _PrimitiveType(HTLexicon.kAny);
-  static const nullType = _PrimitiveType(HTLexicon.kNull);
-  static const voidType = _PrimitiveType(HTLexicon.kVoid);
-  static const unknown = _PrimitiveType(HTLexicon.kUnknown);
-  static const never = _PrimitiveType(HTLexicon.kNever);
-  static const function = _PrimitiveType(HTLexicon.kFunction);
+  static const type = _BuiltinType(HTLexicon.kType);
+  static const any = _BuiltinType(HTLexicon.kAny);
+  static const nullType = _BuiltinType(HTLexicon.kNull);
+  static const voidType = _BuiltinType(HTLexicon.kVoid);
+  static const unknown = _BuiltinType(HTLexicon.kUnknown);
+  static const never = _BuiltinType(HTLexicon.kNever);
+  static const function = _BuiltinType(HTLexicon.kFunction);
 
   static const Map<String, HTType> primitiveTypes = {
     HTLexicon.kType: type,
@@ -28,7 +28,7 @@ abstract class HTType with HTEntity {
   };
 
   static String parseBaseType(String typeString) {
-    final argsStart = typeString.indexOf(HTLexicon.typesBracketLeft);
+    final argsStart = typeString.indexOf(HTLexicon.typeParameterStart);
     if (argsStart != -1) {
       final id = typeString.substring(0, argsStart);
       return id;
@@ -101,14 +101,14 @@ abstract class HTType with HTEntity {
     var typeString = StringBuffer();
     typeString.write(id);
     if (typeArgs.isNotEmpty) {
-      typeString.write(HTLexicon.chevronsLeft);
+      typeString.write(HTLexicon.typeParameterStart);
       for (var i = 0; i < typeArgs.length; ++i) {
         typeString.write(typeArgs[i]);
         if ((typeArgs.length > 1) && (i != typeArgs.length - 1)) {
           typeString.write('${HTLexicon.comma} ');
         }
       }
-      typeString.write(HTLexicon.chevronsRight);
+      typeString.write(HTLexicon.typeParameterEnd);
     }
     if (isNullable) {
       typeString.write(HTLexicon.nullable);
@@ -156,6 +156,6 @@ abstract class HTType with HTEntity {
   bool isNotA(HTType? other) => !isA(other);
 }
 
-class _PrimitiveType extends HTType {
-  const _PrimitiveType(String id) : super(id);
+class _BuiltinType extends HTType {
+  const _BuiltinType(String id) : super(id);
 }

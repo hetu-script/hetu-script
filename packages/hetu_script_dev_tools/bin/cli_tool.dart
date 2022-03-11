@@ -269,7 +269,7 @@ void compile(List<String> args, String? outPath,
   final source = sourceContext.getResource(args.first);
   stdout.write('Compiling [${source.fullName}] ...');
 
-  final parser = HTParser(context: sourceContext);
+  final parser = HTParser(sourceContext: sourceContext);
   final module = parser.parseToModule(source);
   if (module.errors.isNotEmpty) {
     for (final err in module.errors) {

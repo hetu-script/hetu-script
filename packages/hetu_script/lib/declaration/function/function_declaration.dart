@@ -115,16 +115,16 @@ class HTFunctionDeclaration extends HTDeclaration
       result.write(' $id');
     }
     if (declType.typeArgs.isNotEmpty) {
-      result.write(HTLexicon.chevronsLeft);
+      result.write(HTLexicon.typeParameterStart);
       for (var i = 0; i < declType.typeArgs.length; ++i) {
         result.write(declType.typeArgs[i]);
         if (i < declType.typeArgs.length - 1) {
           result.write('${HTLexicon.comma} ');
         }
       }
-      result.write(HTLexicon.chevronsRight);
+      result.write(HTLexicon.typeParameterEnd);
     }
-    result.write(HTLexicon.parenthesesLeft);
+    result.write(HTLexicon.groupExprStart);
     var i = 0;
     var optionalStarted = false;
     var namedStarted = false;
@@ -134,10 +134,10 @@ class HTFunctionDeclaration extends HTDeclaration
       }
       if (param.isOptional && !optionalStarted) {
         optionalStarted = true;
-        result.write(HTLexicon.bracketsLeft);
+        result.write(HTLexicon.optionalPositionalParameterStart);
       } else if (param.isNamed && !namedStarted) {
         namedStarted = true;
-        result.write(HTLexicon.bracesLeft);
+        result.write(HTLexicon.functionBlockStart);
       }
       result.write(param.id);
       if (param.declType != null) {
@@ -149,12 +149,13 @@ class HTFunctionDeclaration extends HTDeclaration
       ++i;
     }
     if (optionalStarted) {
-      result.write(HTLexicon.bracketsRight);
+      result.write(HTLexicon.optionalPositionalParameterEnd);
     } else if (namedStarted) {
-      result.write(HTLexicon.bracesRight);
+      result.write(HTLexicon.functionBlockEnd);
     }
-    result.write('${HTLexicon.parenthesesRight} ${HTLexicon.singleArrow} ' +
-        returnType.toString());
+    result.write(
+        '${HTLexicon.groupExprEnd} ${HTLexicon.functionReturnTypeIndicator} ' +
+            returnType.toString());
     return result.toString();
   }
 

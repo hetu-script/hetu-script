@@ -19,9 +19,10 @@ class HTStructuralType extends HTType with HTEntity {
     var output = StringBuffer();
     output.write('${HTLexicon.kStruct} ');
     if (fieldTypes.isEmpty) {
-      output.write('${HTLexicon.bracesLeft}${HTLexicon.bracesRight}');
+      output.write(
+          '${HTLexicon.functionBlockStart}${HTLexicon.functionBlockEnd}');
     } else {
-      output.writeln(HTLexicon.bracesLeft);
+      output.writeln(HTLexicon.functionBlockStart);
       for (var i = 0; i < fieldTypes.length; ++i) {
         final key = fieldTypes.keys.elementAt(i);
         output.write('  $key${HTLexicon.colon}');
@@ -32,7 +33,7 @@ class HTStructuralType extends HTType with HTEntity {
         }
         output.writeln();
       }
-      output.write(HTLexicon.bracesRight);
+      output.write(HTLexicon.functionBlockEnd);
     }
     return output.toString();
   }
