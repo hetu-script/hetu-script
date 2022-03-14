@@ -56,7 +56,7 @@ class HTInstanceNamespace extends HTNamespace {
   /// If [recursive] is false, then it won't continue to
   /// try assigning variable from enclosed namespace.
   @override
-  void memberSet(String varName, dynamic varValue,
+  bool memberSet(String varName, dynamic varValue,
       {String? from, bool recursive = true, bool error = true}) {
     final setter = '${InternalIdentifier.getter}$varName';
 
@@ -66,17 +66,20 @@ class HTInstanceNamespace extends HTNamespace {
           curNamespace.declarations.containsKey(setter)) {
         instance.memberSet(varName, varValue,
             from: from, cast: curNamespace.classId);
-        return;
+        return true;
       } else {
         curNamespace = curNamespace.next;
       }
     }
 
     if (recursive && closure != null) {
-      closure!.memberSet(varName, varValue, from: from);
-      return;
+      return closure!.memberSet(varName, varValue, from: from);
     }
 
-    throw HTError.undefined(varName);
+    if (error) {
+      throw HTError.undefined(varName);
+    } else {
+      return false;
+    }
   }
 }

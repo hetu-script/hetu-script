@@ -47,7 +47,7 @@ class HTClassNamespace extends HTNamespace {
   }
 
   @override
-  void memberSet(String varName, dynamic varValue,
+  bool memberSet(String varName, dynamic varValue,
       {String? from, bool recursive = true, bool error = true}) {
     final setter = '${InternalIdentifier.setter}$varName';
     if (declarations.containsKey(varName)) {
@@ -56,7 +56,7 @@ class HTClassNamespace extends HTNamespace {
         throw HTError.privateMember(varName);
       }
       decl.value = varValue;
-      return;
+      return true;
     } else if (declarations.containsKey(setter)) {
       final decl = declarations[setter]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
@@ -64,16 +64,17 @@ class HTClassNamespace extends HTNamespace {
       }
       final setterFunc = decl as HTFunction;
       setterFunc.call(positionalArgs: [varValue]);
-      return;
+      return true;
     }
 
     if (recursive && closure != null) {
-      closure!.memberSet(varName, varValue, from: from);
-      return;
+      return closure!.memberSet(varName, varValue, from: from);
     }
 
     if (error) {
       throw HTError.undefined(varName);
+    } else {
+      return false;
     }
   }
 }

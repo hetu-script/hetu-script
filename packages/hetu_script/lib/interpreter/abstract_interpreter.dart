@@ -77,7 +77,7 @@ class InterpreterConfig
       this.showDartStackTrace = false,
       this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,
-      this.allowVariableShadowing = false,
+      this.allowVariableShadowing = true,
       this.allowImplicitVariableDeclaration = false,
       this.allowImplicitNullToZeroConversion = false,
       this.allowImplicitEmptyValueToFalseConversion = false});

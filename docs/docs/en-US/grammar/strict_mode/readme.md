@@ -19,6 +19,8 @@ var hetu = Hetu(
 
 If config.allowVariableShadowing == true, youcan define a variable with the same name of another variable in the same namespace without errors.
 
+This config is default to true.
+
 ```dart
 var a = 42
 var a = 'yay!' /// not an error, this is another variable

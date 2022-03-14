@@ -19,6 +19,8 @@ var hetu = Hetu(
 
 当 config.allowVariableShadowing == true 时，你可以在同一个函数的命名空间中声明一个相同名字的变量，来覆盖之前的声明。
 
+这个选项默认是打开的。
+
 ```dart
 var a = 42
 var a = 'yay!' /// not an error, this is another variable

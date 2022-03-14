@@ -1077,17 +1077,21 @@ class Hetu extends HTAbstractInterpreter {
         case HTOpCode.assign:
           final value = _getRegVal(HTRegIdx.assign);
           final id = localSymbol!;
-          if (_currentNamespace.contains(id)) {
-            _currentNamespace.memberSet(localSymbol!, value, recursive: true);
-          } else {
-            final decl = HTVariable(id,
-                interpreter: this,
-                fileName: _currentFileName,
-                moduleName: _currentBytecodeModule.id,
-                closure: _currentNamespace,
-                value: value,
-                isMutable: true);
-            _currentNamespace.define(id, decl);
+          final result = _currentNamespace.memberSet(id, value,
+              recursive: true, error: false);
+          if (!result) {
+            if (config.allowImplicitVariableDeclaration) {
+              final decl = HTVariable(id,
+                  interpreter: this,
+                  fileName: _currentFileName,
+                  moduleName: _currentBytecodeModule.id,
+                  closure: _currentNamespace,
+                  value: value,
+                  isMutable: true);
+              _currentNamespace.define(id, decl);
+            } else {
+              throw HTError.undefined(id);
+            }
           }
           _localValue = value;
           break;

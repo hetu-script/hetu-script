@@ -48,7 +48,18 @@ class HTDeclarationNamespace extends HTDeclaration with HTEntity {
   }
 
   @override
-  bool contains(String varName) => declarations.containsKey(varName);
+  bool contains(String varName, {bool recursive = true}) {
+    if (declarations.containsKey(varName)) {
+      return true;
+    }
+    if (importedDeclarations.containsKey(varName)) {
+      return true;
+    }
+    if (recursive && (closure != null)) {
+      return closure!.contains(varName, recursive: recursive);
+    }
+    return false;
+  }
 
   /// define a declaration in this namespace,
   /// the defined id could be different from
@@ -105,15 +116,15 @@ class HTDeclarationNamespace extends HTDeclaration with HTEntity {
   /// if not found and [recursive] is true, will continue search in super namespaces,
   /// then assign the value to that declaration.
   @override
-  void memberSet(String varName, dynamic varValue,
-      {String? from, bool recursive = false}) {
+  bool memberSet(String varName, dynamic varValue,
+      {String? from, bool recursive = false, bool error = true}) {
     if (declarations.containsKey(varName)) {
       final decl = declarations[varName]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
       decl.value = varValue;
-      return;
+      return true;
     }
     if (importedDeclarations.containsKey(varName)) {
       final decl = importedDeclarations[varName]!;
@@ -121,13 +132,17 @@ class HTDeclarationNamespace extends HTDeclaration with HTEntity {
         throw HTError.privateMember(varName);
       }
       decl.value = varValue;
-      return;
+      return true;
     }
     if (recursive && (closure != null)) {
-      closure!.memberSet(varName, varValue, from: from, recursive: recursive);
-      return;
+      return closure!
+          .memberSet(varName, varValue, from: from, recursive: recursive);
     }
-    throw HTError.undefined(varName);
+    if (error) {
+      throw HTError.undefined(varName);
+    } else {
+      return false;
+    }
   }
 
   void declareImport(UnresolvedImportStatement decl) {
