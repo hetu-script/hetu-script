@@ -1,4 +1,4 @@
-/// All lexicons used by hetu
+/// Lexicon used by Hetu,
 class HTLexicon {
   /// Regular expression used by lexer.
   static const tokenPattern =
@@ -28,7 +28,8 @@ class HTLexicon {
   static const documentationCommentPattern = r'///';
 
   static const stringInterpolationPattern = r'\${([^\${}]*)}';
-  static const stringInterpolationStart = r'${';
+  static const stringInterpolationMark = r'$';
+  static const stringInterpolationStart = r'{';
   static const stringInterpolationEnd = r'}';
 
   static const stringEscapes = <String, String>{
@@ -55,52 +56,56 @@ class HTLexicon {
     kReturn,
   };
 
-  static const main = 'main';
-  static const instanceof = 'instance of';
+  static const globalObjectId = 'object';
+  static const globalPrototypeId = 'prototype';
+  static const programEntryFunctionId = 'main';
+  static const instanceOfDescription = 'instance of';
 
-  static const boolean = 'bool';
-  static const integer = 'int';
-  static const float = 'float';
-  static const string = 'str';
+  static const typeVoid = 'void';
+  static const typeAny = 'any';
+  static const typeUnknown = 'unknown';
+  static const typeNever = 'never';
+  static const typeFunction = 'function';
+  static const typeBoolean = 'bool';
+  static const typeNumber = 'int';
+  static const typeFloat = 'float';
+  static const typeString = 'str';
 
-  static const values = 'values';
-  static const iterator = 'iterator';
-  static const moveNext = 'moveNext';
-  static const current = 'current';
-  static const contains = 'contains';
-  static const tostring = 'toString';
+  static const propertyCollectionValues = 'values';
+  static const propertyCollectionContains = 'contains';
+  static const propertyIterableIterator = 'iterator';
+  static const propertyIterableIteratorMoveNext = 'moveNext';
+  static const propertyIterableIteratorCurrent = 'current';
+  static const propertyToString = 'toString';
 
-  static const scriptStackTrace = 'Hetu stack trace';
-  static const externalStackTrace = 'Dart stack trace';
-
-  /// '...'
+  /// ...
   static const variadicArgs = '...';
 
-  /// '_'
+  /// _
   static const privatePrefix = '_';
 
-  /// '_'
+  /// _
   static const omittedMark = '_';
 
-  /// '$'
+  /// $
   static const internalPrefix = r'$';
 
-  /// '->'
+  /// ->
   static const functionReturnTypeIndicator = '->';
 
-  /// '->'
+  /// ->
   static const whenBranchIndicator = '->';
 
-  /// '=>'
+  /// =>
   static const functionSingleLineBodyIndicator = '=>';
 
-  /// '.'
+  /// .
   static const decimalPoint = '.';
 
   /// indent space
   static const indentSpaces = '  ';
 
-  /// '...'
+  /// ...
   static const spreadSyntax = '...';
 
   static const kNull = 'null';
@@ -116,7 +121,7 @@ class HTLexicon {
 
   static const Set<String> destructuringDeclarationMark = {
     listStart,
-    functionBlockStart,
+    structStart,
   };
 
   /// Variable declaration keyword
@@ -126,17 +131,8 @@ class HTLexicon {
     kFinal,
   };
 
-  static const kVoid = 'void';
-  static const kAny = 'any';
-  static const kUnknown = 'unknown';
-  static const kNever = 'never';
-  static const kFunction = 'function';
-
   static const kType = 'type';
-  static const object = 'object';
-  static const prototype = 'prototype';
-  static const library = 'library';
-  static const asterisk = '*';
+
   static const kImport = 'import';
   static const kExport = 'export';
   static const kFrom = 'from';
@@ -244,28 +240,28 @@ class HTLexicon {
     // kFinally,
   };
 
-  /// '?.'
+  /// ?.
   static const nullableMemberGet = '?.';
 
-  /// '.'
+  /// .
   static const memberGet = '.';
 
-  /// '?['
+  /// ?[
   static const nullableSubGet = '?[';
 
-  /// '?('
+  /// ?(
   static const nullableCall = '?(';
 
-  /// '('
+  /// (
   static const call = '(';
 
-  /// '?'
+  /// ?
   static const nullable = '?';
 
-  /// '++'
+  /// ++
   static const postIncrement = '++';
 
-  /// '--'
+  /// --
   static const postDecrement = '--';
 
   /// postfix operators
@@ -280,16 +276,16 @@ class HTLexicon {
     postDecrement,
   };
 
-  /// '!'
+  /// !
   static const logicalNot = '!';
 
-  /// '-'
+  /// -
   static const negative = '-';
 
-  /// '++'
+  /// ++
   static const preIncrement = '++';
 
-  /// '--'
+  /// --
   static const preDecrement = '--';
 
   /// prefix operators
@@ -301,16 +297,16 @@ class HTLexicon {
     kTypeof,
   };
 
-  /// '*'
+  /// *
   static const multiply = '*';
 
-  /// '/'
+  /// /
   static const devide = '/';
 
-  /// '~/'
+  /// ~/
   static const truncatingDevide = '~/';
 
-  /// '%'
+  /// %'
   static const modulo = '%';
 
   static const Set<String> multiplicatives = {
@@ -320,10 +316,10 @@ class HTLexicon {
     modulo,
   };
 
-  /// '+'
+  /// +
   static const add = '+';
 
-  /// '-'
+  /// -
   static const subtract = '-';
 
   /// +, -
@@ -332,29 +328,19 @@ class HTLexicon {
     subtract,
   };
 
-  /// '>'
+  /// >
   static const greater = '>';
 
-  /// '>='
+  /// >=
   static const greaterOrEqual = '>=';
 
-  /// '<'
+  /// <
   static const lesser = '<';
 
-  /// '<='
+  /// <=
   static const lesserOrEqual = '<=';
 
   /// \>, >=, <, <=
-  /// 'is!' is handled in parser, not included here.
-  static const Set<String> relationals = {
-    greater,
-    greaterOrEqual,
-    lesser,
-    lesserOrEqual,
-    kAs,
-    kIs
-  };
-
   static const Set<String> logicalRelationals = {
     greater,
     greaterOrEqual,
@@ -366,10 +352,10 @@ class HTLexicon {
 
   static const Set<String> setRelationals = {kIn};
 
-  /// '=='
+  /// ==
   static const equal = '==';
 
-  /// '!='
+  /// !=
   static const notEqual = '!=';
 
   /// ==, !=
@@ -378,18 +364,40 @@ class HTLexicon {
     notEqual,
   };
 
+  /// ??
   static const ifNull = '??';
-  static const logicalOr = '||';
-  static const logicalAnd = '&&';
-  static const condition = '?';
-  static const elseBranch = ':';
 
+  /// ||
+  static const logicalOr = '||';
+
+  /// &&
+  static const logicalAnd = '&&';
+
+  /// ?
+  static const ternaryConditionBranch = '?';
+
+  /// :
+  static const ternaryElseBranch = ':';
+
+  /// :
   static const assign = '=';
+
+  /// +=
   static const assignAdd = '+=';
+
+  /// -=
   static const assignSubtract = '-=';
+
+  /// *=
   static const assignMultiply = '*=';
+
+  /// /=
   static const assignDevide = '/=';
+
+  /// ~/=
   static const assignTruncatingDevide = '~/=';
+
+  /// ??=
   static const assignIfNull = '??=';
 
   /// assign operators
@@ -403,72 +411,78 @@ class HTLexicon {
     assignIfNull,
   };
 
-  /// ','
+  /// ,
   static const comma = ',';
 
-  /// ':'
+  /// :
   static const colon = ':';
 
-  /// ';'
+  /// ;
   static const endOfStatementMark = ';';
 
-  /// "'"
+  /// '
   static const apostropheStringLeft = "'";
 
-  /// "'"
+  /// '
   static const apostropheStringRight = "'";
 
-  /// '"'
+  /// "
   static const quotationStringLeft = '"';
 
-  /// '"'
+  /// "
   static const quotationStringRight = '"';
 
-  /// '('
+  /// (
   static const groupExprStart = '(';
 
-  /// ')'
+  /// )
   static const groupExprEnd = ')';
 
-  /// '{'
+  /// {
   static const functionBlockStart = '{';
 
-  /// '}'
+  /// }
   static const functionBlockEnd = '}';
 
-  /// '{'
+  /// {
   static const namespaceBlockStart = '{';
 
-  /// '}'
+  /// }
   static const namespaceBlockEnd = '}';
 
-  /// '['
+  /// {
+  static const structStart = '{';
+
+  /// }
+  static const structEnd = '}';
+
+  /// [
   static const subGetStart = '[';
 
-  /// ']'
+  /// ]
   static const subGetEnd = ']';
 
-  /// '['
+  /// [
   static const listStart = '[';
 
-  /// ']'
+  /// ]
   static const listEnd = ']';
 
-  /// '['
+  /// [
   static const optionalPositionalParameterStart = '[';
 
-  /// ']'
+  /// ]
   static const optionalPositionalParameterEnd = ']';
 
-  /// '['
+  /// [
   static const externalFunctionTypeDefStart = '[';
 
-  /// ']'
+  /// ]
   static const externalFunctionTypeDefEnd = ']';
 
-  /// '<'
+  /// <
   static const typeParameterStart = '<';
 
-  /// '>'
+  /// >
   static const typeParameterEnd = '>';
 }

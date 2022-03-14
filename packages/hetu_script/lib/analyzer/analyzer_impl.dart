@@ -128,22 +128,17 @@ class HTAnalyzerImpl implements AbstractAstVisitor<void> {
   }
 
   @override
+  void visitAssignExpr(AssignExpr node) {
+    node.subAccept(this);
+  }
+
+  @override
   void visitMemberExpr(MemberExpr node) {
     node.subAccept(this);
   }
 
   @override
-  void visitMemberAssignExpr(MemberAssignExpr node) {
-    node.subAccept(this);
-  }
-
-  @override
   void visitSubExpr(SubExpr node) {
-    node.subAccept(this);
-  }
-
-  @override
-  void visitSubAssignExpr(SubAssignExpr node) {
     node.subAccept(this);
   }
 

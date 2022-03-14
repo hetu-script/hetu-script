@@ -139,22 +139,17 @@ class HTTypeChecker implements AbstractAstVisitor<HTType> {
   }
 
   @override
+  HTType visitAssignExpr(AssignExpr node) {
+    return HTType.nullType;
+  }
+
+  @override
   HTType visitMemberExpr(MemberExpr node) {
     return HTType.nullType;
   }
 
   @override
-  HTType visitMemberAssignExpr(MemberAssignExpr node) {
-    return HTType.nullType;
-  }
-
-  @override
   HTType visitSubExpr(SubExpr node) {
-    return HTType.nullType;
-  }
-
-  @override
-  HTType visitSubAssignExpr(SubAssignExpr node) {
     return HTType.nullType;
   }
 

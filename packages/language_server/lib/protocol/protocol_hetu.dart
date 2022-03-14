@@ -95,7 +95,7 @@ String? getReturnTypeString(HTDeclaration decl) {
     if (decl.declType != null) {
       return decl.declType.toString();
     } else {
-      return HTLexicon.kAny;
+      return HTLexicon.typeAny;
     }
   } else if (decl is HTTypeAliasDeclaration) {
     return decl.declType.toString();

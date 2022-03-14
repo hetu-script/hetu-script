@@ -16,7 +16,7 @@ class _HTNull with HTEntity {
 
 /// A interface for store and access symbols from a collection.
 abstract class HTEntity {
-  static const type = HTUnresolvedType(HTLexicon.object);
+  static const type = HTUnresolvedType(HTLexicon.globalObjectId);
 
   /// An constant null object.
   static const nullValue = _HTNull();

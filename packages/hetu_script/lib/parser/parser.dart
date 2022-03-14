@@ -12,8 +12,6 @@ import '../ast/ast.dart';
 import 'token_reader.dart';
 import '../lexer/lexer.dart';
 import '../grammar/lexicon.dart';
-// import '../grammar/abstract_lexicon.dart';
-// import '../grammar/default_lexicon.dart';
 
 /// Determines how to parse a piece of code
 enum ParseStyle {
@@ -1221,187 +1219,12 @@ class HTParser extends TokenReader {
     if (HTLexicon.assignments.contains(curTok.type)) {
       final op = advance();
       final right = _parseExpr();
-      if (op.type == HTLexicon.assign) {
-        if (left is MemberExpr) {
-          if (left.isNullable) {
-            final err = HTError.nullableAssign(
-                filename: _currrentFileName,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: left.length);
-            errors?.add(err);
-          }
-          expr = MemberAssignExpr(left.object, left.key, right,
-              source: _currentSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset);
-        } else if (left is SubExpr) {
-          if (left.isNullable) {
-            final err = HTError.nullableAssign(
-                filename: _currrentFileName,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: left.length);
-            errors?.add(err);
-          }
-          expr = SubAssignExpr(left.object, left.key, right,
-              source: _currentSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset);
-        } else {
-          if (left is! IdentifierExpr) {
-            final err = HTError.invalidLeftValue(
-                filename: _currrentFileName,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: left.length);
-            errors?.add(err);
-          }
-          expr = BinaryExpr(left, op.lexeme, right,
-              source: _currentSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset);
-        }
-      }
-      // TODO: 这里的写法有错误，不应该在Parser阶段修改代码本身的结构
-      // 应该将这些转换放到编译时进行
-      else if (op.type == HTLexicon.assignIfNull) {
-        if (left is MemberExpr) {
-          if (left.isNullable) {
-            final err = HTError.nullableAssign(
-                filename: _currrentFileName,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: left.length);
-            errors?.add(err);
-          }
-          expr = IfStmt(
-            BinaryExpr(
-              left,
-              HTLexicon.equal,
-              NullExpr(),
-            ),
-            MemberAssignExpr(
-              left.object,
-              left.key,
-              right,
-              source: _currentSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset,
-            ),
-          );
-        } else if (left is SubExpr) {
-          if (left.isNullable) {
-            final err = HTError.nullableAssign(
-                filename: _currrentFileName,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: left.length);
-            errors?.add(err);
-          }
-          expr = IfStmt(
-            BinaryExpr(
-              left,
-              HTLexicon.equal,
-              NullExpr(),
-            ),
-            SubAssignExpr(
-              left.object,
-              left.key,
-              right,
-              source: _currentSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset,
-            ),
-          );
-        } else {
-          expr = IfStmt(
-            BinaryExpr(
-              left,
-              HTLexicon.equal,
-              NullExpr(),
-            ),
-            BinaryExpr(
-              left,
-              HTLexicon.assign,
-              right,
-              source: _currentSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset,
-            ),
-          );
-        }
-      } else {
-        if (left is MemberExpr) {
-          if (left.isNullable) {
-            final err = HTError.nullableAssign(
-                filename: _currrentFileName,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: left.length);
-            errors?.add(err);
-          }
-          expr = MemberAssignExpr(
-              left.object,
-              left.key,
-              BinaryExpr(
-                  left, op.lexeme.substring(0, op.lexeme.length - 1), right),
-              source: _currentSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset);
-        } else if (left is SubExpr) {
-          if (left.isNullable) {
-            final err = HTError.nullableAssign(
-                filename: _currrentFileName,
-                line: left.line,
-                column: left.column,
-                offset: left.offset,
-                length: left.length);
-            errors?.add(err);
-          }
-          expr = SubAssignExpr(
-              left.object,
-              left.key,
-              BinaryExpr(
-                  left, op.lexeme.substring(0, op.lexeme.length - 1), right),
-              source: _currentSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset);
-        } else {
-          expr = BinaryExpr(
-              left,
-              HTLexicon.assign,
-              BinaryExpr(
-                  left, op.lexeme.substring(0, op.lexeme.length - 1), right),
-              source: _currentSource,
-              line: left.line,
-              column: left.column,
-              offset: left.offset,
-              length: curTok.offset - left.offset);
-        }
-      }
+      expr = AssignExpr(left, op.lexeme, right,
+          source: _currentSource,
+          line: left.line,
+          column: left.column,
+          offset: left.offset,
+          length: curTok.offset - left.offset);
     } else {
       expr = left;
     }
@@ -1415,10 +1238,10 @@ class HTParser extends TokenReader {
   /// Ternery operator: e1 ? e2 : e3, precedence 3, associativity right
   AstNode _parserTernaryExpr() {
     var condition = _parseIfNullExpr();
-    if (expect([HTLexicon.condition], consume: true)) {
+    if (expect([HTLexicon.ternaryConditionBranch], consume: true)) {
       _leftValueLegality = false;
       final thenBranch = _parserTernaryExpr();
-      match(HTLexicon.colon);
+      match(HTLexicon.ternaryElseBranch);
       final elseBranch = _parserTernaryExpr();
       condition = TernaryExpr(condition, thenBranch, elseBranch,
           source: _currentSource,
@@ -3272,8 +3095,6 @@ class HTParser extends TokenReader {
       }
       prototypeId =
           IdentifierExpr.fromToken(prototypeIdTok, source: _currentSource);
-    } else if (id.id != HTLexicon.prototype) {
-      prototypeId = IdentifierExpr(HTLexicon.prototype);
     }
     final savedStructId = _currentStructId;
     _currentStructId = id.id;
@@ -3318,9 +3139,8 @@ class HTParser extends TokenReader {
         final idTok = match(Semantic.identifier);
         prototypeId = IdentifierExpr.fromToken(idTok, source: _currentSource);
       }
-    } else {
-      prototypeId = IdentifierExpr(HTLexicon.prototype);
     }
+    prototypeId ??= IdentifierExpr(HTLexicon.globalPrototypeId);
     final structBlockStartTok = match(HTLexicon.functionBlockStart);
     final fields = <StructObjField>[];
     while (curTok.type != HTLexicon.functionBlockEnd &&

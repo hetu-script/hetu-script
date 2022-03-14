@@ -136,22 +136,17 @@ abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
   }
 
   @override
+  T? visitAssignExpr(AssignExpr node) {
+    node.subAccept(this);
+  }
+
+  @override
   T? visitMemberExpr(MemberExpr node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitMemberAssignExpr(MemberAssignExpr node) {
-    node.subAccept(this);
-  }
-
-  @override
   T? visitSubExpr(SubExpr node) {
-    node.subAccept(this);
-  }
-
-  @override
-  T? visitSubAssignExpr(SubAssignExpr node) {
     node.subAccept(this);
   }
 

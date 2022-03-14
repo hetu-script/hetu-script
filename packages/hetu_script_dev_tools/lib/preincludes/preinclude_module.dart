@@ -1,4 +1,4 @@
-/// The pre-compiled binary code of [D:/_dev/hetu-script/lib/console/console.ht].
+/// The pre-compiled binary code of [G:/_dev/hetu-script/lib/console/console.ht].
 /// This file has been automatically generated, please do not edit manually.
 final consoleModule = [
   8,
@@ -17,7 +17,7 @@ final consoleModule = [
   0,
   0,
   42,
-  68,
+  71,
   58,
   47,
   95,
@@ -210,7 +210,6 @@ final consoleModule = [
   0,
   0,
   0,
-  21,
   44,
   0,
   5,
@@ -244,7 +243,6 @@ final consoleModule = [
   0,
   0,
   0,
-  21,
   44,
   0,
   6,
@@ -278,7 +276,6 @@ final consoleModule = [
   0,
   0,
   0,
-  21,
   44,
   0,
   8,
@@ -300,7 +297,6 @@ final consoleModule = [
   0,
   0,
   0,
-  21,
   44,
   0,
   9,
@@ -334,7 +330,6 @@ final consoleModule = [
   0,
   0,
   0,
-  21,
   44,
   0,
   11,
@@ -356,7 +351,6 @@ final consoleModule = [
   0,
   0,
   0,
-  21,
   23,
   25
 ];

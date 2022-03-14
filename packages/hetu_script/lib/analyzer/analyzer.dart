@@ -24,7 +24,7 @@ import '../binding/external_class.dart';
 import '../binding/external_function.dart';
 import '../constant/constant_interpreter.dart';
 import 'analyzer_impl.dart';
-import '../localization/locales.dart';
+import '../locale/locale.dart';
 
 abstract class AnalyzerConfig {
   factory AnalyzerConfig({bool computeConstantExpressionValue}) =
@@ -85,6 +85,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void init({
+    bool useDefaultModuleAndBinding = true,
     HTLocale? locale,
     List<HTSource> preincludes = const [],
     Map<String, Function> externalFunctions = const {},
@@ -92,6 +93,7 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
     List<HTExternalClass> externalClasses = const [],
   }) {
     super.init(
+      useDefaultModuleAndBinding: useDefaultModuleAndBinding,
       locale: locale,
       externalFunctions: externalFunctions,
       externalFunctionTypedef: externalFunctionTypedef,
@@ -318,25 +320,19 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
   }
 
   @override
+  void visitAssignExpr(AssignExpr node) {
+    node.subAccept(this);
+    node.analysisNamespace = _currentNamespace;
+  }
+
+  @override
   void visitMemberExpr(MemberExpr node) {
     node.subAccept(this);
     node.analysisNamespace = _currentNamespace;
   }
 
   @override
-  void visitMemberAssignExpr(MemberAssignExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
   void visitSubExpr(SubExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitSubAssignExpr(SubAssignExpr node) {
     node.subAccept(this);
     node.analysisNamespace = _currentNamespace;
   }

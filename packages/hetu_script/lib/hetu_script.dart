@@ -27,4 +27,4 @@ export 'resource/overlay/overlay_manager.dart';
 export 'error/error.dart';
 export 'error/error_handler.dart';
 export 'error/error_severity.dart';
-export 'localization/locales.dart';
+export 'locale/locale.dart';

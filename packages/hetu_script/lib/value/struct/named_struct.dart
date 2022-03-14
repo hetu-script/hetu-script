@@ -18,6 +18,11 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
 
   final int? staticDefinitionIp;
 
+  bool _isResolved = false;
+
+  @override
+  bool get isResolved => _isResolved;
+
   HTNamedStruct({
     required String id,
     required Hetu interpreter,
@@ -67,9 +72,9 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
       if (prototypeId != null) {
         static.prototype = closure!
             .memberGet(prototypeId!, from: closure!.fullName, recursive: true);
-      } else if (id != HTLexicon.prototype) {
-        static.prototype = closure!.memberGet(HTLexicon.prototype,
-            from: closure!.fullName, recursive: true);
+      } else if (id != HTLexicon.globalPrototypeId) {
+        static.prototype =
+            interpreter.globalNamespace.memberGet(HTLexicon.globalPrototypeId);
       }
     }
     HTStruct self = interpreter.execute(
@@ -80,6 +85,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
     self.prototype = static;
     self.declaration = this;
     _self = self;
+    _isResolved = true;
   }
 
   @override

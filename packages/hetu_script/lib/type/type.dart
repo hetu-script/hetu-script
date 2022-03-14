@@ -10,21 +10,21 @@ import '../declaration/generic/generic_type_parameter.dart';
 
 abstract class HTType with HTEntity {
   static const type = _BuiltinType(HTLexicon.kType);
-  static const any = _BuiltinType(HTLexicon.kAny);
   static const nullType = _BuiltinType(HTLexicon.kNull);
-  static const voidType = _BuiltinType(HTLexicon.kVoid);
-  static const unknown = _BuiltinType(HTLexicon.kUnknown);
-  static const never = _BuiltinType(HTLexicon.kNever);
-  static const function = _BuiltinType(HTLexicon.kFunction);
+  static const any = _BuiltinType(HTLexicon.typeAny);
+  static const voidType = _BuiltinType(HTLexicon.typeVoid);
+  static const unknown = _BuiltinType(HTLexicon.typeUnknown);
+  static const never = _BuiltinType(HTLexicon.typeNever);
+  static const function = _BuiltinType(HTLexicon.typeFunction);
 
   static const Map<String, HTType> primitiveTypes = {
     HTLexicon.kType: type,
-    HTLexicon.kAny: any,
+    HTLexicon.typeAny: any,
     HTLexicon.kNull: nullType,
-    HTLexicon.kVoid: voidType,
-    HTLexicon.kUnknown: unknown,
-    HTLexicon.kNever: never,
-    HTLexicon.kFunction: function,
+    HTLexicon.typeVoid: voidType,
+    HTLexicon.typeUnknown: unknown,
+    HTLexicon.typeNever: never,
+    HTLexicon.typeFunction: function,
   };
 
   static String parseBaseType(String typeString) {

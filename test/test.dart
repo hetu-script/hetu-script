@@ -12,16 +12,12 @@ void main() {
     locale: HTLocaleSimplifiedChinese(),
   );
   hetu.eval(r'''
-    struct P {
-      var name = 'guy'
-      var age = 17 
-    }
-
-    final p1 = struct extends P {}
-    final p2 = {}
-    p2.$prototype = P
-
-    print(p2.$prototype)
-    print(p2.age)
+        enum Race {
+          caucasian,
+          mongolian,
+          african,
+        }
+        var race = Race.african
+        print(race.toString())
   ''');
 }

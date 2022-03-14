@@ -229,8 +229,10 @@ class HTLexer {
       // }
       final tokens = lex(innerString ?? '',
           line: line,
-          column:
-              column + match.start + HTLexicon.stringInterpolationStart.length,
+          column: column +
+              match.start +
+              HTLexicon.stringInterpolationMark.length +
+              HTLexicon.stringInterpolationStart.length,
           start: start + quotationLeft.length + match.start);
       if (tokens.isNotEmpty) {
         interpolations.add(tokens);
@@ -239,7 +241,10 @@ class HTLexer {
           TokenEmpty(
               line,
               // move beyond '${'
-              column + match.start + HTLexicon.stringInterpolationStart.length,
+              column +
+                  match.start +
+                  HTLexicon.stringInterpolationMark.length +
+                  HTLexicon.stringInterpolationStart.length,
               start +
                   quotationLeft.length +
                   match.start +

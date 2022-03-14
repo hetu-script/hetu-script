@@ -24,8 +24,7 @@ import '../shared/math.dart';
 import '../shared/uid.dart';
 import '../shared/crc32b.dart';
 import '../analyzer/analyzer.dart';
-import '../localization/localization.dart';
-import '../localization/locales.dart';
+import '../locale/locale.dart';
 
 part 'binding/class_binding.dart';
 part 'binding/instance_binding.dart';
@@ -88,6 +87,7 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   /// bind it with HTExternalFunction, HTExternalFunctionTypedef, HTExternalClass, etc.
   @mustCallSuper
   void init({
+    bool useDefaultModuleAndBinding = true,
     HTLocale? locale,
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
@@ -95,29 +95,31 @@ abstract class HTAbstractInterpreter<T> implements HTErrorHandler {
   }) {
     try {
       if (locale != null) {
-        HTLocalization.locale = locale;
+        HTLocale.current = locale;
       }
 
-      // bind externals before any eval
-      for (var key in preincludeFunctions.keys) {
-        bindExternalFunction(key, preincludeFunctions[key]!);
+      if (useDefaultModuleAndBinding) {
+        // bind externals before any eval
+        for (var key in preincludeFunctions.keys) {
+          bindExternalFunction(key, preincludeFunctions[key]!);
+        }
+        bindExternalClass(HTNumberClassBinding());
+        bindExternalClass(HTIntClassBinding());
+        bindExternalClass(HTBigIntClassBinding());
+        bindExternalClass(HTFloatClassBinding());
+        bindExternalClass(HTBooleanClassBinding());
+        bindExternalClass(HTStringClassBinding());
+        bindExternalClass(HTIteratorClassBinding());
+        bindExternalClass(HTIterableClassBinding());
+        bindExternalClass(HTListClassBinding());
+        bindExternalClass(HTSetClassBinding());
+        bindExternalClass(HTMapClassBinding());
+        bindExternalClass(HTMathClassBinding());
+        bindExternalClass(HTHashClassBinding());
+        bindExternalClass(HTSystemClassBinding());
+        bindExternalClass(HTFutureClassBinding());
+        // bindExternalClass(HTConsoleClass());
       }
-      bindExternalClass(HTNumberClassBinding());
-      bindExternalClass(HTIntClassBinding());
-      bindExternalClass(HTBigIntClassBinding());
-      bindExternalClass(HTFloatClassBinding());
-      bindExternalClass(HTBooleanClassBinding());
-      bindExternalClass(HTStringClassBinding());
-      bindExternalClass(HTIteratorClassBinding());
-      bindExternalClass(HTIterableClassBinding());
-      bindExternalClass(HTListClassBinding());
-      bindExternalClass(HTSetClassBinding());
-      bindExternalClass(HTMapClassBinding());
-      bindExternalClass(HTMathClassBinding());
-      bindExternalClass(HTHashClassBinding());
-      bindExternalClass(HTSystemClassBinding());
-      bindExternalClass(HTFutureClassBinding());
-      // bindExternalClass(HTConsoleClass());
 
       for (final key in externalFunctions.keys) {
         bindExternalFunction(key, externalFunctions[key]!);

@@ -121,7 +121,8 @@ String stringifyStructMembers(HTStruct struct, {HTStruct? from}) {
     }
     output.writeln();
   }
-  if (struct.prototype != null && struct.prototype!.id != HTLexicon.prototype) {
+  if (struct.prototype != null &&
+      struct.prototype!.id != HTLexicon.globalPrototypeId) {
     final inherits = stringifyStructMembers(struct.prototype!, from: struct);
     output.write(inherits);
   }

@@ -89,7 +89,7 @@ class HTInstance with HTEntity, InterpreterRef {
 
   String getTypeString() {
     // TODO: type args
-    return '${HTLexicon.instanceof} $classId';
+    return '${HTLexicon.instanceOfDescription} $classId';
   }
 
   @override

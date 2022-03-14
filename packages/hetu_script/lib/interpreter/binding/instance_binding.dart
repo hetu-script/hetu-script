@@ -10,7 +10,7 @@ extension NumBinding on num {
             List<HTType> typeArgs = const []}) {
           final fractionDigits = positionalArgs.first;
           return (this * 100).toStringAsFixed(fractionDigits).toString() +
-              HTLocalization.percentageMark;
+              HTLocale.current.percentageMark;
         };
       case 'compareTo':
         return (HTEntity entity,

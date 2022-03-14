@@ -1,8 +1,13 @@
-part of '../locales.dart';
+part of '../locale.dart';
 
 class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String percentageMark = '%';
+
+  @override
+  final String scriptStackTrace = 'Hetu 函数调用栈';
+  @override
+  final String externalStackTrace = 'Dart 函数调用栈';
 
   @override
   final String errorBytecode = '无法识别的字节码文件。';

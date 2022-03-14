@@ -27,13 +27,13 @@ is compiled into:
 ```dart
 class Country {
   final _name;
-  Country._(name) {
+  construct _(name) {
     _name = name;
   }
-  fun toString = 'Country.${_name}'
-  static final kHungary = ENUM._('kHungary')
-  static final kJapan = ENUM._('kJapan')
-  static final kIndia = ENUM._('kIndia')
+  fun toString => 'Country.${_name}'
+  static final kHungary = Country._('kHungary')
+  static final kJapan = Country._('kJapan')
+  static final kIndia = Country._('kIndia')
   static final values = [kHungary, kJapan, kIndia]
 }
 ```
@@ -83,6 +83,28 @@ And if you want to write function definition, remember to make the left bracket 
 ## Recursive import
 
 For **ResourceType.hetuModule**, recursive import (i.e. A import from B in the meantime, B import from A) is allowed. However, for **ResourceType.hetuScript**, recursive import would cause stack overflow errors. **You have to manually avoid recursive import in '\*.hts' files.**
+
+## for...in Loop
+
+Loop statement **for...in** in Hetu is basically a syntax sugar using iterator. That is to say, a code like:
+
+```dart
+for (var i in range(5)) {
+  print(i)
+}
+```
+
+will be compiled into:
+
+```dart
+final __iter0 = range(5).iterator
+while (__iter0.moveNext()) {
+  var i = __iter0.current
+  print(i)
+}
+```
+
+It's not nessesarily a Dart iterator. It's possible to define a object in Hetu that has a **iterator** as its member, while this iterator object has a **moveNext()** method, for this to work.
 
 ## Closure
 

@@ -40,7 +40,7 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
   @override
   String toString() {
     var output = StringBuffer();
-    output.write('${HTLexicon.kFunction} ');
+    output.write('${HTLexicon.typeFunction} ');
     if (genericTypeParameters.isNotEmpty) {
       output.write(HTLexicon.typeParameterStart);
       for (var i = 0; i < genericTypeParameters.length; ++i) {

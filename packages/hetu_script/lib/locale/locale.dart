@@ -2,7 +2,12 @@ part 'locales/english.dart';
 part 'locales/simplified_chinese.dart';
 
 abstract class HTLocale {
+  static HTLocale current = HTLocaleEnglish();
+
   String get percentageMark;
+
+  String get scriptStackTrace;
+  String get externalStackTrace;
 
   String get errorBytecode;
   String get errorVersion;

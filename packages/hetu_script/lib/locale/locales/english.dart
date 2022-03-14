@@ -1,8 +1,13 @@
-part of '../locales.dart';
+part of '../locale.dart';
 
 class HTLocaleEnglish implements HTLocale {
   @override
   final String percentageMark = '%';
+
+  @override
+  final String scriptStackTrace = 'Hetu stack trace';
+  @override
+  final String externalStackTrace = 'Dart stack trace';
 
   @override
   final String errorBytecode = 'Unrecognizable bytecode.';

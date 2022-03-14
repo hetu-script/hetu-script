@@ -112,6 +112,8 @@ ${
         var kek = null
         if (kek == null || true) {
           'is null'
+        } else {
+          'eroor'
         }
       ''');
       expect(

@@ -38,7 +38,7 @@ import '../version.dart';
 import '../value/unresolved_import_statement.dart';
 import '../error/error_severity.dart';
 import '../binding/external_instance.dart';
-import '../localization/locales.dart';
+import '../locale/locale.dart';
 
 part 'binding/interpreter_binding.dart';
 
@@ -176,8 +176,8 @@ class Hetu extends HTAbstractInterpreter {
 
   @override
   void init({
+    bool useDefaultModuleAndBinding = true,
     HTLocale? locale,
-    List<HTSource> preincludes = const [],
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
@@ -194,14 +194,13 @@ class Hetu extends HTAbstractInterpreter {
       externalFunctionTypedef: externalFunctionTypedef,
       externalClasses: externalClasses,
     );
-    bindExternalClass(HTHetuClassBinding());
-    // load precompiled core module.
-    final coreModule = Uint8List.fromList(hetuCoreModule);
-    loadBytecode(
-        bytes: coreModule, moduleName: 'hetu_main', globallyImport: true);
-    invoke('setInterpreter', positionalArgs: [this]);
-    for (final file in preincludes) {
-      evalSource(file, globallyImport: true);
+    if (useDefaultModuleAndBinding) {
+      bindExternalClass(HTHetuClassBinding());
+      // load precompiled core module.
+      final coreModule = Uint8List.fromList(hetuCoreModule);
+      loadBytecode(
+          bytes: coreModule, moduleName: 'hetu_main', globallyImport: true);
+      invoke('setInterpreter', positionalArgs: [this]);
     }
   }
 
@@ -243,11 +242,11 @@ class Hetu extends HTAbstractInterpreter {
     }
 
     if (stackTraceList.isNotEmpty && errorConfig.showHetuStackTrace) {
-      sb.writeln('${HTLexicon.scriptStackTrace}${HTLexicon.colon}');
+      sb.writeln('${HTLocale.current.scriptStackTrace}${HTLexicon.colon}');
       handleStackTrace(stackTraceList, withLineNumber: true);
     }
     if (externalStackTrace != null && errorConfig.showDartStackTrace) {
-      sb.writeln('${HTLexicon.externalStackTrace}${HTLexicon.colon}');
+      sb.writeln('${HTLocale.current.externalStackTrace}${HTLexicon.colon}');
       final externalStackTraceList =
           externalStackTrace.toString().trim().split('\n').reversed.toList();
       handleStackTrace(externalStackTraceList);
@@ -330,6 +329,7 @@ class Hetu extends HTAbstractInterpreter {
       List<HTType> typeArgs = const [],
       bool errorHandled = false}) {
     try {
+      stackTraceList.clear();
       if (moduleName != null) {
         _currentBytecodeModule = _cachedModules[moduleName]!;
         _currentNamespace = _currentBytecodeModule.namespaces.values.last;
@@ -418,48 +418,22 @@ class Hetu extends HTAbstractInterpreter {
     return _cachedModules[moduleName];
   }
 
-  dynamic toStructValue(dynamic value) {
-    if (value is Iterable) {
-      final list = [];
-      for (final item in value) {
-        final result = toStructValue(item);
-        list.add(result);
-      }
-      return list;
-    } else if (value is Map) {
-      final prototype =
-          _currentNamespace.memberGet(HTLexicon.prototype, recursive: true);
-      final struct =
-          HTStruct(this, prototype: prototype, closure: currentNamespace);
-      for (final key in value.keys) {
-        final fieldKey = key.toString();
-        final fieldValue = toStructValue(value[key]);
-        struct.define(fieldKey, fieldValue);
-      }
-      return struct;
-    } else if (value is HTStruct) {
-      return value.clone();
-    } else {
-      return value;
-    }
-  }
-
   /// Encapsulate any value to a Hetu object, for members accessing and type check.
   HTEntity encapsulate(dynamic object) {
     if (object is HTEntity) {
       return object;
-    } else if ((object == null) || (object is NullThrownError)) {
+    } else if (object == null) {
       return HTEntity.nullValue;
     }
     late String typeString;
     if (object is bool) {
-      typeString = HTLexicon.boolean;
+      typeString = HTLexicon.typeBoolean;
     } else if (object is int) {
-      typeString = HTLexicon.integer;
+      typeString = HTLexicon.typeNumber;
     } else if (object is double) {
-      typeString = HTLexicon.float;
+      typeString = HTLexicon.typeFloat;
     } else if (object is String) {
-      typeString = HTLexicon.string;
+      typeString = HTLexicon.typeString;
     } else if (object is List) {
       typeString = 'List';
       // var valueType = HTType.ANY;
@@ -524,9 +498,35 @@ class Hetu extends HTAbstractInterpreter {
     return HTExternalInstance(object, this, typeString);
   }
 
+  dynamic toStructValue(dynamic value) {
+    if (value is Iterable) {
+      final list = [];
+      for (final item in value) {
+        final result = toStructValue(item);
+        list.add(result);
+      }
+      return list;
+    } else if (value is Map) {
+      final prototype = _currentNamespace.memberGet(HTLexicon.globalPrototypeId,
+          recursive: true);
+      final struct =
+          HTStruct(this, prototype: prototype, closure: currentNamespace);
+      for (final key in value.keys) {
+        final fieldKey = key.toString();
+        final fieldValue = toStructValue(value[key]);
+        struct.define(fieldKey, fieldValue);
+      }
+      return struct;
+    } else if (value is HTStruct) {
+      return value.clone();
+    } else {
+      return value;
+    }
+  }
+
   HTStruct createStructfromJson(Map<dynamic, dynamic> jsonData) {
     final prototype =
-        _currentNamespace.memberGet(HTLexicon.prototype, recursive: true);
+        globalNamespace.memberGet(HTLexicon.globalPrototypeId, recursive: true);
     final struct =
         HTStruct(this, prototype: prototype, closure: currentNamespace);
     for (final key in jsonData.keys) {
@@ -663,6 +663,7 @@ class Hetu extends HTAbstractInterpreter {
       if (_isModuleEntryScript) {
         return _stackFrames.last.first;
       }
+      stackTraceList.clear();
     } catch (error) {
       if (errorHandled) {
         rethrow;
@@ -1164,12 +1165,19 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.memberSet:
           final object = _getRegVal(HTRegIdx.postfixObject);
+          final isNullable = _currentBytecodeModule.readBool();
+          final valueBytesLength = _currentBytecodeModule.readUint16();
           if (object == null) {
-            throw HTError.nullObject(
-                localSymbol ?? HTLexicon.kNull, InternalIdentifier.setter,
-                filename: _currentFileName,
-                line: _currentLine,
-                column: _column);
+            if (isNullable) {
+              _currentBytecodeModule.skip(valueBytesLength);
+              _localValue = null;
+            } else {
+              throw HTError.nullObject(
+                  localSymbol ?? HTLexicon.kNull, InternalIdentifier.setter,
+                  filename: _currentFileName,
+                  line: _currentLine,
+                  column: _column);
+            }
           } else {
             final key = _getRegVal(HTRegIdx.postfixKey);
             final value = execute();
@@ -1180,12 +1188,19 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.subSet:
           final object = _getRegVal(HTRegIdx.postfixObject);
+          final isNullable = _currentBytecodeModule.readBool();
+          final keyAndValueBytesLength = _currentBytecodeModule.readUint16();
           if (object == null) {
-            throw HTError.nullObject(
-                localSymbol ?? HTLexicon.kNull, InternalIdentifier.subSetter,
-                filename: _currentFileName,
-                line: _currentLine,
-                column: _column);
+            if (isNullable) {
+              _currentBytecodeModule.skip(keyAndValueBytesLength);
+              _localValue = null;
+            } else {
+              throw HTError.nullObject(
+                  localSymbol ?? HTLexicon.kNull, InternalIdentifier.subSetter,
+                  filename: _currentFileName,
+                  line: _currentLine,
+                  column: _column);
+            }
           } else {
             final key = execute();
             final value = execute();
@@ -1870,6 +1885,7 @@ class Hetu extends HTAbstractInterpreter {
     }
     late final HTVariable decl;
     final hasInitializer = _currentBytecodeModule.readBool();
+    dynamic initValue;
     if (hasInitializer) {
       if (lateInitialize) {
         final definitionLine = _currentBytecodeModule.readUint16();
@@ -1891,7 +1907,7 @@ class Hetu extends HTAbstractInterpreter {
             definitionLine: definitionLine,
             definitionColumn: definitionColumn);
       } else {
-        final initValue = execute();
+        initValue = execute();
         decl = HTVariable(id,
             interpreter: this,
             fileName: _currentFileName,
@@ -1920,7 +1936,7 @@ class Hetu extends HTAbstractInterpreter {
     if (!isField) {
       _currentNamespace.define(id, decl, override: true);
     }
-    _clearLocals();
+    _localValue = initValue;
   }
 
   void _handleDestructuringDecl() {
@@ -2121,7 +2137,7 @@ class Hetu extends HTAbstractInterpreter {
     if (hasSuperClass) {
       superType = _handleTypeExpr();
     } else {
-      if (!isExternal && (id != HTLexicon.object)) {
+      if (!isExternal && (id != HTLexicon.globalObjectId)) {
         superType = HTEntity.type;
       }
     }
@@ -2167,6 +2183,8 @@ class Hetu extends HTAbstractInterpreter {
     final hasPrototypeId = _currentBytecodeModule.readBool();
     if (hasPrototypeId) {
       prototypeId = _currentBytecodeModule.readShortString();
+    } else if (id != HTLexicon.globalPrototypeId) {
+      prototypeId = HTLexicon.globalPrototypeId;
     }
     final lateInitialize = _currentBytecodeModule.readBool();
     final staticFieldsLength = _currentBytecodeModule.readUint16();

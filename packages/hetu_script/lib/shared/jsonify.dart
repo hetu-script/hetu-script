@@ -44,7 +44,8 @@ Map<String, dynamic> jsonifyStruct(HTStruct struct) {
     }
   }
   // print prototype members, ignore the root object members
-  if (struct.prototype != null && struct.prototype!.id != HTLexicon.prototype) {
+  if (struct.prototype != null &&
+      struct.prototype!.id != HTLexicon.globalPrototypeId) {
     final inherits = jsonifyStruct(struct.prototype!);
     output.addAll(inherits);
   }

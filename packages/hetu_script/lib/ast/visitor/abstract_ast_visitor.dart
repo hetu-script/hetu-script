@@ -58,13 +58,11 @@ abstract class AbstractAstVisitor<T> {
 
   T? visitTernaryExpr(TernaryExpr node) {}
 
+  T? visitAssignExpr(AssignExpr node) {}
+
   T? visitMemberExpr(MemberExpr node) {}
 
-  T? visitMemberAssignExpr(MemberAssignExpr node) {}
-
   T? visitSubExpr(SubExpr node) {}
-
-  T? visitSubAssignExpr(SubAssignExpr node) {}
 
   T? visitCallExpr(CallExpr node) {}
 

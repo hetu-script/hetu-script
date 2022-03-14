@@ -1,7 +1,7 @@
 import '../error/error.dart';
 import '../error/error_severity.dart';
 import 'diagnostic.dart';
-import '../localization/localization.dart';
+import '../locale/locale.dart';
 
 class HTAnalysisError implements HTError {
   @override
@@ -82,7 +82,7 @@ class HTAnalysisError implements HTError {
       required int offset,
       required int length})
       : this(ErrorCode.constValue, ErrorType.staticWarning,
-            message: HTLocalization.errorConstValue,
+            message: HTLocale.current.errorConstValue,
             extra: extra,
             correction: correction,
             filename: filename,

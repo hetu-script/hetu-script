@@ -139,7 +139,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
     for (var i = 0; i < interpolation.length; ++i) {
       output = output.replaceAll(
           '${HTLexicon.functionBlockStart}$i${HTLexicon.functionBlockEnd}',
-          '${HTLexicon.stringInterpolationStart}${interpolation[i]}${HTLexicon.stringInterpolationEnd}');
+          '${HTLexicon.stringInterpolationMark}${HTLexicon.stringInterpolationStart}${interpolation[i]}${HTLexicon.stringInterpolationEnd}');
     }
     return "'$output'";
   }
@@ -206,7 +206,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
     final condition = formatAst(expr.condition);
     final thenBranch = formatAst(expr.thenBranch);
     final elseBranch = formatAst(expr.elseBranch);
-    return '$condition ${HTLexicon.condition} $thenBranch ${HTLexicon.elseBranch} $elseBranch';
+    return '$condition ${HTLexicon.ternaryConditionBranch} $thenBranch ${HTLexicon.ternaryElseBranch} $elseBranch';
   }
 
   @override
@@ -331,19 +331,26 @@ class HTFormatter implements AbstractAstVisitor<String> {
   }
 
   @override
+  String visitAssignExpr(AssignExpr expr) {
+    final leftString = formatAst(expr.left);
+    final rightString = formatAst(expr.right);
+    return '$leftString ${expr.op} $rightString';
+  }
+
+  @override
   String visitMemberExpr(MemberExpr expr) {
     final collectionString = formatAst(expr.object);
     final keyString = formatAst(expr.key);
     return '$collectionString${HTLexicon.memberGet}$keyString';
   }
 
-  @override
-  String visitMemberAssignExpr(MemberAssignExpr expr) {
-    final collectionString = formatAst(expr.object);
-    final keyString = visitIdentifierExpr(expr.key);
-    final valueString = formatAst(expr.assignValue);
-    return '$collectionString${HTLexicon.memberGet}$keyString ${HTLexicon.assign} $valueString';
-  }
+  // @override
+  // String visitMemberAssignExpr(MemberAssignExpr expr) {
+  //   final collectionString = formatAst(expr.object);
+  //   final keyString = visitIdentifierExpr(expr.key);
+  //   final valueString = formatAst(expr.assignValue);
+  //   return '$collectionString${HTLexicon.memberGet}$keyString ${HTLexicon.assign} $valueString';
+  // }
 
   @override
   String visitSubExpr(SubExpr expr) {
@@ -352,13 +359,13 @@ class HTFormatter implements AbstractAstVisitor<String> {
     return '$collectionString${HTLexicon.subGetStart}$keyString${HTLexicon.subGetEnd}';
   }
 
-  @override
-  String visitSubAssignExpr(SubAssignExpr expr) {
-    final collectionString = formatAst(expr.array);
-    final keyString = formatAst(expr.key);
-    final valueString = formatAst(expr.assignValue);
-    return '$collectionString${HTLexicon.subGetStart}$keyString${HTLexicon.subGetEnd} ${HTLexicon.assign} $valueString';
-  }
+  // @override
+  // String visitSubAssignExpr(SubAssignExpr expr) {
+  //   final collectionString = formatAst(expr.array);
+  //   final keyString = formatAst(expr.key);
+  //   final valueString = formatAst(expr.assignValue);
+  //   return '$collectionString${HTLexicon.subGetStart}$keyString${HTLexicon.subGetEnd} ${HTLexicon.assign} $valueString';
+  // }
 
   @override
   String visitAssertStmt(AssertStmt stmt) {

@@ -29,13 +29,13 @@ enum Country {
 ```dart
 class Country {
   final _name;
-  Country._(name) {
+  construct _(name) {
     _name = name;
   }
-  fun toString = 'Country.${_name}'
-  static final kHungary = ENUM._('kHungary')
-  static final kJapan = ENUM._('kJapan')
-  static final kIndia = ENUM._('kIndia')
+  fun toString => 'Country.${_name}'
+  static final kHungary = Country._('kHungary')
+  static final kJapan = Country._('kJapan')
+  static final kIndia = Country._('kIndia')
   static final values = [kHungary, kJapan, kIndia]
 }
 ```
@@ -91,6 +91,30 @@ function getObject() {
 循环导入的意思是，对于代码文件 A 和 B，在 A 中包含了 'import B'的声明，同时在 B 中包含了 'import A'的声明。
 
 如果一个代码文件是 **ResourceType.hetuModule** 类型，解释器会自动处理循环引入问题。但如果代码文件的类型是 **ResourceType.hetuScript**，循环引用会造成 stack overflow 错误，因此你需要自行小心处理这个问题。
+
+## for...in 循环
+
+河图中的 for...in 循环是一种利用 iterator 实现的语法糖。
+
+如下代码：
+
+```dart
+for (var i in range(5)) {
+  print(i)
+}
+```
+
+实际上将会被编译成类似下面的形式：
+
+```dart
+final __iter0 = range(5).iterator
+while (__iter0.moveNext()) {
+  var i = __iter0.current
+  print(i)
+}
+```
+
+iterator 相关接口使用了 Dart 中的 api，但因为本身在脚本中实现，因此并不一定需要这是一个 Dart 的列表 iterator，你可以自行在脚本中定义一个包含成员 **iterator** 的对象，然后这个 **iterator** 本身又包含一个叫做 **moveNext()** 的方法，那么就可以支持这种循环的语法。
 
 ## 闭包
 

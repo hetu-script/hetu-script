@@ -873,6 +873,36 @@ class TernaryExpr extends AstNode {
             length: length);
 }
 
+class AssignExpr extends AstNode {
+  @override
+  dynamic accept(AbstractAstVisitor visitor) => visitor.visitAssignExpr(this);
+
+  @override
+  void subAccept(AbstractAstVisitor visitor) {
+    left.accept(visitor);
+    right.accept(visitor);
+  }
+
+  final AstNode left;
+
+  final String op;
+
+  final AstNode right;
+
+  AssignExpr(this.left, this.op, this.right,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(Semantic.assignExpr,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
 class MemberExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitMemberExpr(this);
@@ -904,38 +934,6 @@ class MemberExpr extends AstNode {
             length: length);
 }
 
-class MemberAssignExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitMemberAssignExpr(this);
-
-  @override
-  void subAccept(AbstractAstVisitor visitor) {
-    object.accept(visitor);
-    key.accept(visitor);
-    assignValue.accept(visitor);
-  }
-
-  final AstNode object;
-
-  final IdentifierExpr key;
-
-  final AstNode assignValue;
-
-  MemberAssignExpr(this.object, this.key, this.assignValue,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.memberSetExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
 class SubExpr extends AstNode {
   @override
   dynamic accept(AbstractAstVisitor visitor) => visitor.visitSubExpr(this);
@@ -960,38 +958,6 @@ class SubExpr extends AstNode {
       int offset = 0,
       int length = 0})
       : super(Semantic.subGetExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-}
-
-class SubAssignExpr extends AstNode {
-  @override
-  dynamic accept(AbstractAstVisitor visitor) =>
-      visitor.visitSubAssignExpr(this);
-
-  @override
-  void subAccept(AbstractAstVisitor visitor) {
-    array.accept(visitor);
-    key.accept(visitor);
-    assignValue.accept(visitor);
-  }
-
-  final AstNode array;
-
-  final AstNode key;
-
-  final AstNode assignValue;
-
-  SubAssignExpr(this.array, this.key, this.assignValue,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.subSetExpr,
             source: source,
             line: line,
             column: column,

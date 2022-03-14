@@ -1,19 +1,22 @@
 part of hetu_script_flutter;
 
 extension HTFlutterExtension on Hetu {
-  Future<void> initFlutter(
-      {List<HTSource> preincludeModules = const [],
-      List<HTExternalClass> externalClasses = const [],
-      Map<String, Function> externalFunctions = const {},
-      Map<String, HTExternalFunctionTypedef> externalFunctionTypedef =
-          const {}}) async {
+  Future<void> initFlutter({
+    bool useDefaultModuleAndBinding = true,
+    HTLocale? locale,
+    Map<String, Function> externalFunctions = const {},
+    Map<String, Function Function(HTFunction)> externalFunctionTypedef =
+        const {},
+    List<HTExternalClass> externalClasses = const [],
+  }) async {
     if (sourceContext is HTAssetResourceContext) {
       await (sourceContext as HTAssetResourceContext).init();
     }
     init(
-        preincludes: preincludeModules,
-        externalClasses: externalClasses,
+        useDefaultModuleAndBinding: useDefaultModuleAndBinding,
+        locale: locale,
         externalFunctions: externalFunctions,
-        externalFunctionTypedef: externalFunctionTypedef);
+        externalFunctionTypedef: externalFunctionTypedef,
+        externalClasses: externalClasses);
   }
 }
