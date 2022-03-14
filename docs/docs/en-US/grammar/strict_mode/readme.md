@@ -1,14 +1,40 @@
 # Strict mode
 
-You can set the strict mode flag on Hetu. Its default value is false.
+You can set some flag on Hetu's config, to change some behavior regarding strict mode.
 
 ```dart
-final hetu = Hetu()..strictMode = true;
+var hetu = Hetu(
+  config: InterpreterConfig(
+    checkTypeErrors: true,
+    computeConstantExpressionValue: true,
+    allowVariableShadowing: true,
+    allowImplicitVariableDeclaration: true,
+    allowImplicitNullToZeroConversion: true,
+    allowImplicitEmptyValueToFalseConversion: true,
+  ),
+);
+```
+
+## Variable shadowing
+
+If config.allowVariableShadowing == true, youcan define a variable with the same name of another variable in the same namespace without errors.
+
+```dart
+var a = 42
+var a = 'yay!' /// not an error, this is another variable
+```
+
+## Implicit variable declaration
+
+If config.allowImplicitVariableDeclaration == true, a new variable will be created when assigning to a non-exist id.
+
+```javascript
+a = 42; // a is created!.
 ```
 
 ## Zero value
 
-In non-strict mode, variable with null value can be treated as 0.
+If config.allowImplicitVariableDeclaration == true, variable with null value can be treated as 0.
 
 ```javascript
 final obj = {}
@@ -17,7 +43,7 @@ final obj = {}
 
 ## Truth value
 
-In non-strict mode, some expressions will be inexplicitly converted to boolean:
+If config.allowImplicitVariableDeclaration == true, some expressions will be inexplicitly converted to boolean:
 
 1, if (expr)
 
@@ -36,19 +62,21 @@ The conversion rules is:
 ```dart
 /// inexpicit type conversion for truthy values
 bool _truthy(dynamic condition) {
-  if (strictMode || condition is bool) {
-    return condition;
-  } else if (condition == null ||
-      condition == 0 ||
-      condition == '' ||
-      condition == '0' ||
-      condition == 'false' ||
-      (condition is Iterable && condition.isEmpty) ||
-      (condition is Map && condition.isEmpty) ||
-      (condition is HTStruct && condition.fields.isEmpty)) {
-    return false;
+  if (config.allowImplicitEmptyValueToFalseConversion) {
+    if (condition == null ||
+        condition == 0 ||
+        condition == '' ||
+        condition == '0' ||
+        condition == 'false' ||
+        (condition is Iterable && condition.isEmpty) ||
+        (condition is Map && condition.isEmpty) ||
+        (condition is HTStruct && condition.isEmpty)) {
+      return false;
+    } else {
+      return true;
+    }
   } else {
-    return true;
+    return condition;
   }
 }
 ```

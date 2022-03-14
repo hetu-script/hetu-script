@@ -61,18 +61,26 @@ class InterpreterConfig
   @override
   ErrorHanldeApproach errorHanldeApproach;
 
-  bool strictMode;
+  bool allowVariableShadowing;
 
-  InterpreterConfig({
-    this.checkTypeErrors = false,
-    this.computeConstantExpressionValue = false,
-    this.compileWithLineInfo = true,
-    this.showHetuStackTrace = true,
-    this.showDartStackTrace = false,
-    this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
-    this.errorHanldeApproach = ErrorHanldeApproach.exception,
-    this.strictMode = true,
-  });
+  bool allowImplicitVariableDeclaration;
+
+  bool allowImplicitNullToZeroConversion;
+
+  bool allowImplicitEmptyValueToFalseConversion;
+
+  InterpreterConfig(
+      {this.checkTypeErrors = false,
+      this.computeConstantExpressionValue = false,
+      this.compileWithLineInfo = true,
+      this.showHetuStackTrace = true,
+      this.showDartStackTrace = false,
+      this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
+      this.errorHanldeApproach = ErrorHanldeApproach.exception,
+      this.allowVariableShadowing = false,
+      this.allowImplicitVariableDeclaration = false,
+      this.allowImplicitNullToZeroConversion = false,
+      this.allowImplicitEmptyValueToFalseConversion = false});
 }
 
 /// Base class for bytecode interpreter and static analyzer of Hetu.

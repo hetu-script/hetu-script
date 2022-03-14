@@ -40,15 +40,6 @@ print(a)
 a = 'dragon' // Error: [a] is immutable.
 ```
 
-## 变量名覆盖
-
-你可以在同一个函数的命名空间中声明一个相同名字的变量，来覆盖之前的声明。
-
-```dart
-var a = 42
-var a = 'yay!' /// not an error, this is another variable
-```
-
 ## 删除
 
 你可以通过 delete 关键字来删除一个变量声明。

@@ -5,19 +5,18 @@ void main() {
     config: InterpreterConfig(
       checkTypeErrors: true,
       computeConstantExpressionValue: true,
-      strictMode: true,
+      allowVariableShadowing: true,
+      allowImplicitVariableDeclaration: true,
+      allowImplicitNullToZeroConversion: true,
+      allowImplicitEmptyValueToFalseConversion: true,
     ),
   );
   hetu.init(
     locale: HTLocaleSimplifiedChinese(),
   );
   hetu.eval(r'''
-        enum Race {
-          caucasian,
-          mongolian,
-          african,
-        }
-        var race = Race.african
-        print(race.toString())
+        a = 42
+        a = "hi"
+        print(a)
   ''');
 }

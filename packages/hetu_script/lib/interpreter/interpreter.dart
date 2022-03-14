@@ -140,7 +140,7 @@ class Hetu extends HTAbstractInterpreter {
 
   /// inexpicit type conversion for zero or null values
   bool _isZero(dynamic condition) {
-    if (config.strictMode) {
+    if (config.allowImplicitNullToZeroConversion) {
       return condition == 0;
     } else {
       return condition == 0 || condition == null;
@@ -149,19 +149,21 @@ class Hetu extends HTAbstractInterpreter {
 
   /// inexpicit type conversion for truthy values
   bool _truthy(dynamic condition) {
-    if (config.strictMode || condition is bool) {
-      return condition;
-    } else if (condition == null ||
-        condition == 0 ||
-        condition == '' ||
-        condition == '0' ||
-        condition == 'false' ||
-        (condition is Iterable && condition.isEmpty) ||
-        (condition is Map && condition.isEmpty) ||
-        (condition is HTStruct && condition.isEmpty)) {
-      return false;
+    if (config.allowImplicitEmptyValueToFalseConversion) {
+      if (condition == null ||
+          condition == 0 ||
+          condition == '' ||
+          condition == '0' ||
+          condition == 'false' ||
+          (condition is Iterable && condition.isEmpty) ||
+          (condition is Map && condition.isEmpty) ||
+          (condition is HTStruct && condition.isEmpty)) {
+        return false;
+      } else {
+        return true;
+      }
     } else {
-      return true;
+      return condition;
     }
   }
 
@@ -1074,7 +1076,19 @@ class Hetu extends HTAbstractInterpreter {
           break;
         case HTOpCode.assign:
           final value = _getRegVal(HTRegIdx.assign);
-          _currentNamespace.memberSet(localSymbol!, value, recursive: true);
+          final id = localSymbol!;
+          if (_currentNamespace.contains(id)) {
+            _currentNamespace.memberSet(localSymbol!, value, recursive: true);
+          } else {
+            final decl = HTVariable(id,
+                interpreter: this,
+                fileName: _currentFileName,
+                moduleName: _currentBytecodeModule.id,
+                closure: _currentNamespace,
+                value: value,
+                isMutable: true);
+            _currentNamespace.define(id, decl);
+          }
           _localValue = value;
           break;
         case HTOpCode.ifNull:
@@ -1535,19 +1549,10 @@ class Hetu extends HTAbstractInterpreter {
         final rightValueLength = _currentBytecodeModule.readUint16();
         if (leftTruthValue) {
           _currentBytecodeModule.skip(rightValueLength);
-          if (config.strictMode) {
-            _localValue = true;
-          } else {
-            _localValue = left;
-          }
+          _localValue = leftTruthValue;
         } else {
           final right = execute();
-          if (config.strictMode) {
-            final rightTruthValue = _truthy(right);
-            _localValue = rightTruthValue;
-          } else {
-            _localValue = right;
-          }
+          _localValue = _truthy(right);
         }
         break;
       case HTOpCode.logicalAnd:
@@ -1934,7 +1939,8 @@ class Hetu extends HTAbstractInterpreter {
           lateFinalize: lateFinalize);
     }
     if (!isField) {
-      _currentNamespace.define(id, decl, override: true);
+      _currentNamespace.define(id, decl,
+          override: config.allowVariableShadowing);
     }
     _localValue = initValue;
   }
@@ -1984,7 +1990,8 @@ class Hetu extends HTAbstractInterpreter {
           declType: ids[id],
           value: initValue,
           isMutable: isMutable);
-      _currentNamespace.define(id, decl, override: true);
+      _currentNamespace.define(id, decl,
+          override: config.allowVariableShadowing);
     }
     _clearLocals();
   }

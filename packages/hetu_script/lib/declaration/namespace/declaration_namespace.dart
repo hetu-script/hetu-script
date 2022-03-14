@@ -47,6 +47,9 @@ class HTDeclarationNamespace extends HTDeclaration with HTEntity {
     }
   }
 
+  @override
+  bool contains(String varName) => declarations.containsKey(varName);
+
   /// define a declaration in this namespace,
   /// the defined id could be different from
   /// declaration's id
