@@ -71,6 +71,18 @@ var a // a is null
 final value = a?.collection[0].value() // value is null and we won't get errors
 ```
 
+## new
+
+new is a explicit way to call a constructor. Its difference from normal function call is that you can omit the brackets if there's none arguments.
+
+```dart
+struct P {
+  var name = 'Jimmy'
+}
+final p = new P
+print(p)
+```
+
 ## Operator precedence
 
 Operators in Hetu is a subset of Dart:

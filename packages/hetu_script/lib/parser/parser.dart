@@ -1523,7 +1523,7 @@ class HTParser extends TokenReader {
               offset: expr.offset,
               length: curTok.offset - expr.offset);
           break;
-        case HTLexicon.nullableCall:
+        case HTLexicon.nullableFunctionCall:
           _leftValueLegality = false;
           var positionalArgs = <AstNode>[];
           var namedArgs = <String, AstNode>{};
@@ -1538,7 +1538,7 @@ class HTParser extends TokenReader {
               offset: expr.offset,
               length: curTok.offset - expr.offset);
           break;
-        case HTLexicon.call:
+        case HTLexicon.functionCallArgumentStart:
           var isNullable = false;
           if ((expr is MemberExpr && expr.isNullable) ||
               (expr is SubExpr && expr.isNullable) ||
@@ -1576,7 +1576,7 @@ class HTParser extends TokenReader {
     return expr;
   }
 
-  /// Expression without operators
+  /// Expression without associativity
   AstNode _parsePrimaryExpr() {
     switch (curTok.type) {
       case HTLexicon.kNull:
@@ -1691,6 +1691,25 @@ class HTParser extends TokenReader {
             offset: keyword.offset,
             length: keyword.length,
             isKeyword: true);
+      case HTLexicon.kNew:
+        final keyword = advance();
+        _leftValueLegality = false;
+        final idTok = match(Semantic.identifier);
+        final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
+        var positionalArgs = <AstNode>[];
+        var namedArgs = <String, AstNode>{};
+        if (expect([HTLexicon.functionCallArgumentStart], consume: true)) {
+          _handleCallArguments(positionalArgs, namedArgs);
+        }
+        return CallExpr(id,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            hasNewOperator: true,
+            source: _currentSource,
+            line: keyword.line,
+            column: keyword.column,
+            offset: keyword.offset,
+            length: curTok.offset - keyword.offset);
       case HTLexicon.kIf:
         _leftValueLegality = false;
         return _parseIf(isExpression: true);
@@ -2020,7 +2039,7 @@ class HTParser extends TokenReader {
         positionalArgs.add(positionalArg);
       }
     }
-    match(HTLexicon.groupExprEnd);
+    match(HTLexicon.functionCallArgumentEnd);
   }
 
   AstNode _parseExprStmt() {
@@ -3001,7 +3020,8 @@ class HTParser extends TokenReader {
     final id = match(Semantic.identifier);
     final genericParameters = _getGenericParams();
     TypeExpr? superClassType;
-    if (expect([HTLexicon.kExtends], consume: true)) {
+    if (curTok.lexeme == HTLexicon.kExtends) {
+      advance();
       if (curTok.lexeme == id.lexeme) {
         final err = HTError.extendsSelf(
             filename: _currrentFileName,

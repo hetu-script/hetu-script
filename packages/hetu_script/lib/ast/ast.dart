@@ -988,10 +988,13 @@ class CallExpr extends AstNode {
 
   final bool isNullable;
 
+  final bool hasNewOperator;
+
   CallExpr(this.callee,
       {this.positionalArgs = const [],
       this.namedArgs = const {},
       this.isNullable = false,
+      this.hasNewOperator = false,
       HTSource? source,
       int line = 0,
       int column = 0,

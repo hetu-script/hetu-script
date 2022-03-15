@@ -90,6 +90,8 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorUndefinedOperator = '未知的操作符：[{0}]。';
   @override
+  final String errorNotNewable = '[{0}] 不可作为构造函数调用。';
+  @override
   final String errorNotCallable = '[{0}] 不可作为函数调用。';
   @override
   final String errorUndefinedMember = '[{0}] 没有在类中定义。';

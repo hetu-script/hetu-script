@@ -52,6 +52,7 @@ abstract class HTLocale {
   String get errorUndefinedExternal;
   String get errorUnknownTypeName;
   String get errorUndefinedOperator;
+  String get errorNotNewable;
   String get errorNotCallable;
   String get errorUndefinedMember;
   String get errorUninitialized;

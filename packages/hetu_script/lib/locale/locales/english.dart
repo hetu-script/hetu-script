@@ -101,6 +101,8 @@ class HTLocaleEnglish implements HTLocale {
   @override
   final String errorUndefinedOperator = 'Undefined operator: [{0}].';
   @override
+  final String errorNotNewable = 'Can not use new operator on [{0}].';
+  @override
   final String errorNotCallable = '[{0}] is not callable.';
   @override
   final String errorUndefinedMember = '[{0}] isn\'t defined for the class.';

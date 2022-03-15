@@ -162,6 +162,7 @@ class HTLexicon {
   static const kReadonly = 'readonly';
 
   static const kConstruct = 'construct';
+  static const kNew = 'new';
   static const kFactory = 'factory';
   static const kGet = 'get';
   static const kSet = 'set';
@@ -213,9 +214,8 @@ class HTLexicon {
     kOverride,
     kExternal,
     kStatic,
-    kExtends,
-    kImplements,
     kWith,
+    kNew,
     kConstruct,
     kFactory,
     kGet,
@@ -250,10 +250,13 @@ class HTLexicon {
   static const nullableSubGet = '?[';
 
   /// ?(
-  static const nullableCall = '?(';
+  static const nullableFunctionCall = '?(';
 
   /// (
-  static const call = '(';
+  static const functionCallArgumentStart = '(';
+
+  /// )
+  static const functionCallArgumentEnd = ')';
 
   /// ?
   static const nullable = '?';
@@ -270,8 +273,8 @@ class HTLexicon {
     memberGet,
     nullableSubGet,
     subGetStart,
-    nullableCall,
-    call,
+    nullableFunctionCall,
+    functionCallArgumentStart,
     postIncrement,
     postDecrement,
   };
@@ -445,10 +448,10 @@ class HTLexicon {
   static const functionBlockEnd = '}';
 
   /// {
-  static const namespaceBlockStart = '{';
+  static const declarationBlockStart = '{';
 
   /// }
-  static const namespaceBlockEnd = '}';
+  static const declarationBlockEnd = '}';
 
   /// {
   static const structStart = '{';
@@ -473,6 +476,12 @@ class HTLexicon {
 
   /// ]
   static const optionalPositionalParameterEnd = ']';
+
+  /// {
+  static const namedParameterStart = '{';
+
+  /// }
+  static const namedParameterEnd = '}';
 
   /// [
   static const externalFunctionTypeDefStart = '[';

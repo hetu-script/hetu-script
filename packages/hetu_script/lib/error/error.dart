@@ -50,6 +50,7 @@ enum ErrorCode {
   undefinedExternal,
   unknownTypeName,
   undefinedOperator,
+  notNewable,
   notCallable,
   undefinedMember,
   uninitialized,
@@ -977,6 +978,26 @@ class HTError {
       int? length})
       : this(ErrorCode.defined, ErrorType.runtimeError,
             message: HTLocale.current.errorDefined,
+            interpolations: [id],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Can not use new on this.
+  HTError.notNewable(String id,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.notNewable, ErrorType.runtimeError,
+            message: HTLocale.current.errorNotNewable,
             interpolations: [id],
             extra: extra,
             correction: correction,

@@ -1033,6 +1033,7 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     bytesBuilder.addByte(HTRegIdx.postfixObject);
     bytesBuilder.addByte(HTOpCode.call);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
+    bytesBuilder.addByte(expr.hasNewOperator ? 1 : 0);
     final argBytes = _parseCallArguments(expr.positionalArgs, expr.namedArgs);
     bytesBuilder.add(_uint16(argBytes.length));
     bytesBuilder.add(argBytes);

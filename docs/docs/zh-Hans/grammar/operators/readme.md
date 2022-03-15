@@ -71,6 +71,18 @@ var a // a is null
 final value = a?.collection[0].value() // value is null and we won't get errors
 ```
 
+## new 操作符
+
+new 操作符是一种显示调用构造函数的方法。和普通构造函数的区别在于 new 操作符支持无参数列表（连括号也不用写）方式构造新对象。
+
+```dart
+struct P {
+  var name = 'Jimmy'
+}
+final p = new P
+print(p)
+```
+
 ## 操作符优先级
 
 河图中的操作符优先级是 Dart 的操作符优先级表的一个子集。
