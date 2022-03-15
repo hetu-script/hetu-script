@@ -111,7 +111,7 @@ abstract class HTType with HTEntity {
       typeString.write(HTLexicon.typeParameterEnd);
     }
     if (isNullable) {
-      typeString.write(HTLexicon.nullable);
+      typeString.write(HTLexicon.nullableTypePostfix);
     }
     return typeString.toString();
   }

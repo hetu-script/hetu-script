@@ -3,46 +3,10 @@ import '../grammar/lexicon.dart';
 import 'token.dart';
 import '../shared/constants.dart' show CommentType;
 
-const List<String> _unfinishedTokens = [
-  HTLexicon.logicalNot,
-  HTLexicon.multiply,
-  HTLexicon.devide,
-  HTLexicon.modulo,
-  HTLexicon.add,
-  HTLexicon.subtract,
-  HTLexicon.lesser, // typeParameterStart,
-  HTLexicon.lesserOrEqual,
-  HTLexicon.greater,
-  HTLexicon.greaterOrEqual,
-  HTLexicon.equal,
-  HTLexicon.notEqual,
-  HTLexicon.ifNull,
-  HTLexicon.logicalAnd,
-  HTLexicon.logicalOr,
-  HTLexicon.assign,
-  HTLexicon.assignAdd,
-  HTLexicon.assignSubtract,
-  HTLexicon.assignMultiply,
-  HTLexicon.assignDevide,
-  HTLexicon.assignIfNull,
-  HTLexicon.memberGet,
-  HTLexicon.groupExprStart,
-  HTLexicon.functionBlockStart,
-  HTLexicon.subGetStart,
-  HTLexicon.listStart,
-  HTLexicon.optionalPositionalParameterStart,
-  HTLexicon.externalFunctionTypeDefStart,
-  HTLexicon.comma,
-  HTLexicon.colon,
-  HTLexicon.functionReturnTypeIndicator,
-  HTLexicon.whenBranchIndicator,
-  HTLexicon.functionSingleLineBodyIndicator,
-];
-
 /// Scans a string content and generates a list of Tokens.
 class HTLexer {
   List<Token> lex(String content,
-      {int line = 1, int column = 0, int start = 0}) {
+      {int line = 1, int column = 1, int start = 0}) {
     var curLine = line;
     var curColumn = column;
     final tokens = <Token>[];
@@ -51,7 +15,6 @@ class HTLexer {
       unicode: true,
     );
     var curOffset = start;
-    final matches = pattern.allMatches(content);
     final toksOfLine = <Token>[];
 
     void handleEndOfLine([int? offset]) {
@@ -61,7 +24,7 @@ class HTLexer {
           /// Add semicolon before a newline if the new line starting with '{, [, (, +, -' tokens
           /// and the last line does not ends with an unfinished token.
           if (tokens.isNotEmpty &&
-              !_unfinishedTokens.contains(tokens.last.type)) {
+              !HTLexicon.unfinishedTokens.contains(tokens.last.type)) {
             tokens.add(Token(HTLexicon.endOfStatementMark, curLine, 1,
                 toksOfLine.first.offset + toksOfLine.first.length, 0));
           }
@@ -86,9 +49,10 @@ class HTLexer {
       toksOfLine.clear();
     }
 
+    final matches = pattern.allMatches(content);
     for (final match in matches) {
       final matchString = match.group(0)!;
-      curColumn = column + match.start + 1;
+      curColumn = column + match.start;
       if (match.group(HTLexicon.tokenGroupSingleComment) != null) {
         if (toksOfLine.isEmpty) {
           toksOfLine.add(TokenComment(matchString, curLine, curColumn,

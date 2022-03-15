@@ -141,7 +141,7 @@ class HTFunctionDeclaration extends HTDeclaration
       }
       result.write(param.id);
       if (param.declType != null) {
-        result.write('${HTLexicon.colon} ${param.declType}');
+        result.write('${HTLexicon.typeIndicator} ${param.declType}');
       }
       if (i < paramDecls.length - 1) {
         result.write('${HTLexicon.comma} ');

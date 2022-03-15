@@ -25,7 +25,7 @@ class HTStructuralType extends HTType with HTEntity {
       output.writeln(HTLexicon.functionBlockStart);
       for (var i = 0; i < fieldTypes.length; ++i) {
         final key = fieldTypes.keys.elementAt(i);
-        output.write('  $key${HTLexicon.colon}');
+        output.write('  $key${HTLexicon.typeIndicator}');
         final fieldTypeString = fieldTypes[key].toString();
         output.write(' $fieldTypeString');
         if (i < fieldTypes.length - 1) {

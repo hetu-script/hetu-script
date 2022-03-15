@@ -244,11 +244,11 @@ class Hetu extends HTAbstractInterpreter {
     }
 
     if (stackTraceList.isNotEmpty && errorConfig.showHetuStackTrace) {
-      sb.writeln('${HTLocale.current.scriptStackTrace}${HTLexicon.colon}');
+      sb.writeln(HTLocale.current.scriptStackTrace);
       handleStackTrace(stackTraceList, withLineNumber: true);
     }
     if (externalStackTrace != null && errorConfig.showDartStackTrace) {
-      sb.writeln('${HTLocale.current.externalStackTrace}${HTLexicon.colon}');
+      sb.writeln(HTLocale.current.externalStackTrace);
       final externalStackTraceList =
           externalStackTrace.toString().trim().split('\n').reversed.toList();
       handleStackTrace(externalStackTraceList);

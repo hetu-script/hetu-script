@@ -3,8 +3,8 @@ class HTLexicon {
   /// Regular expression used by lexer.
   static const tokenPattern =
       r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(2 & 3)
-      r'(([_\$\p{L}]+[_\$\p{L}0-9]*)|([_]+))|' // unicode identifier group(4)
-      r'(\.\.\.|~/=|\?\?=|\?\?|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|\?\.|\?\[|\?\(|~/|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(7)
+      r'(\.\.\.|~/=|\?\?=|\?\?|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|\?\.|\?\[|\?\(|~/|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(4)
+      r'(([_\$\p{L}]+[_\$\p{L}0-9]*)|([_]+))|' // unicode identifier group(5)
       r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(8)
       r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(10)
       r'("(\\"|[^"])*(\$\{[^\$\{\}]*\})+(\\"|[^"])*")|' // interpolation string with double quotation mark group(14)
@@ -15,8 +15,8 @@ class HTLexicon {
 
   static const tokenGroupSingleComment = 2;
   static const tokenGroupBlockComment = 3;
-  static const tokenGroupIdentifier = 4;
-  static const tokenGroupPunctuation = 7;
+  static const tokenGroupPunctuation = 4;
+  static const tokenGroupIdentifier = 5;
   static const tokenGroupNumber = 8;
   static const tokenGroupApostropheStringInterpolation = 10;
   static const tokenGroupQuotationStringInterpolation = 14;
@@ -56,10 +56,49 @@ class HTLexicon {
     kReturn,
   };
 
+  static const List<String> unfinishedTokens = [
+    logicalNot,
+    multiply,
+    devide,
+    modulo,
+    add,
+    subtract,
+    lesser,
+    lesserOrEqual,
+    greater,
+    greaterOrEqual,
+    equal,
+    notEqual,
+    ifNull,
+    logicalAnd,
+    logicalOr,
+    assign,
+    assignAdd,
+    assignSubtract,
+    assignMultiply,
+    assignDevide,
+    assignIfNull,
+    memberGet,
+    groupExprStart,
+    functionBlockStart,
+    subGetStart,
+    listStart,
+    optionalPositionalParameterStart,
+    externalFunctionTypeDefStart,
+    comma,
+    constructorInitializationListIndicator,
+    namedArgumentValueIndicator,
+    typeIndicator,
+    structValueIndicator,
+    functionReturnTypeIndicator,
+    whenBranchIndicator,
+    functionSingleLineBodyIndicator,
+    typeParameterStart,
+  ];
+
   static const globalObjectId = 'object';
   static const globalPrototypeId = 'prototype';
   static const programEntryFunctionId = 'main';
-  static const instanceOfDescription = 'instance of';
 
   static const typeVoid = 'void';
   static const typeAny = 'any';
@@ -101,9 +140,6 @@ class HTLexicon {
 
   /// .
   static const decimalPoint = '.';
-
-  /// indent space
-  static const indentSpaces = '  ';
 
   /// ...
   static const spreadSyntax = '...';
@@ -250,7 +286,7 @@ class HTLexicon {
   static const nullableSubGet = '?[';
 
   /// ?(
-  static const nullableFunctionCall = '?(';
+  static const nullableFunctionCallArgumentStart = '?(';
 
   /// (
   static const functionCallArgumentStart = '(';
@@ -259,7 +295,7 @@ class HTLexicon {
   static const functionCallArgumentEnd = ')';
 
   /// ?
-  static const nullable = '?';
+  static const nullableTypePostfix = '?';
 
   /// ++
   static const postIncrement = '++';
@@ -273,7 +309,7 @@ class HTLexicon {
     memberGet,
     nullableSubGet,
     subGetStart,
-    nullableFunctionCall,
+    nullableFunctionCallArgumentStart,
     functionCallArgumentStart,
     postIncrement,
     postDecrement,
@@ -377,10 +413,10 @@ class HTLexicon {
   static const logicalAnd = '&&';
 
   /// ?
-  static const ternaryConditionBranch = '?';
+  static const ternaryThen = '?';
 
   /// :
-  static const ternaryElseBranch = ':';
+  static const ternaryElse = ':';
 
   /// :
   static const assign = '=';
@@ -418,7 +454,16 @@ class HTLexicon {
   static const comma = ',';
 
   /// :
-  static const colon = ':';
+  static const constructorInitializationListIndicator = ':';
+
+  /// :
+  static const namedArgumentValueIndicator = ':';
+
+  /// :
+  static const typeIndicator = ':';
+
+  /// :
+  static const structValueIndicator = ':';
 
   /// ;
   static const endOfStatementMark = ';';

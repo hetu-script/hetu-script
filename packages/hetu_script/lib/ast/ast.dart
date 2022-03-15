@@ -1257,8 +1257,12 @@ class DoStmt extends AstNode {
   @override
   bool get isExpression => false;
 
+  @override
+  final bool hasEndOfStmtMark;
+
   DoStmt(this.loop, this.condition,
-      {HTSource? source,
+      {this.hasEndOfStmtMark = false,
+      HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,

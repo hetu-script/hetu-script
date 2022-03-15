@@ -13,7 +13,7 @@ import '../../value/namespace/namespace.dart';
 import '../entity.dart';
 import 'instance_namespace.dart';
 import '../../interpreter/abstract_interpreter.dart';
-import '../../grammar/lexicon.dart';
+import '../../grammar/semantic.dart';
 
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
@@ -89,7 +89,7 @@ class HTInstance with HTEntity, InterpreterRef {
 
   String getTypeString() {
     // TODO: type args
-    return '${HTLexicon.instanceOfDescription} $classId';
+    return '${InternalIdentifier.instanceOfDescription} $classId';
   }
 
   @override

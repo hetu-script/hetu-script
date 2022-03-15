@@ -32,6 +32,8 @@ abstract class InternalIdentifier {
   static const anonymousStruct = r'$anonymous_struct';
   static const anonymousFunction = r'$anonymous_function';
   static const anonymousBlock = r'$anonymous_block';
+
+  static const instanceOfDescription = 'instance of';
 }
 
 abstract class Semantic {

@@ -1238,10 +1238,10 @@ class HTParser extends TokenReader {
   /// Ternery operator: e1 ? e2 : e3, precedence 3, associativity right
   AstNode _parserTernaryExpr() {
     var condition = _parseIfNullExpr();
-    if (expect([HTLexicon.ternaryConditionBranch], consume: true)) {
+    if (expect([HTLexicon.ternaryThen], consume: true)) {
       _leftValueLegality = false;
       final thenBranch = _parserTernaryExpr();
-      match(HTLexicon.ternaryElseBranch);
+      match(HTLexicon.ternaryElse);
       final elseBranch = _parserTernaryExpr();
       condition = TernaryExpr(condition, thenBranch, elseBranch,
           source: _currentSource,
@@ -1523,7 +1523,7 @@ class HTParser extends TokenReader {
               offset: expr.offset,
               length: curTok.offset - expr.offset);
           break;
-        case HTLexicon.nullableFunctionCall:
+        case HTLexicon.nullableFunctionCallArgumentStart:
           _leftValueLegality = false;
           var positionalArgs = <AstNode>[];
           var namedArgs = <String, AstNode>{};
@@ -1858,7 +1858,7 @@ class HTParser extends TokenReader {
           final paramId = match(Semantic.identifier);
           paramSymbol =
               IdentifierExpr.fromToken(paramId, source: _currentSource);
-          match(HTLexicon.colon);
+          match(HTLexicon.typeIndicator);
         }
         paramType = _parseTypeExpr();
         final param = ParamTypeExpr(paramType,
@@ -1911,7 +1911,7 @@ class HTParser extends TokenReader {
         } else {
           idTok = match(Semantic.identifier);
         }
-        match(HTLexicon.colon);
+        match(HTLexicon.typeIndicator);
         final typeExpr = _parseTypeExpr();
         fieldTypes.add(FieldTypeExpr(idTok.literal, typeExpr));
         expect([HTLexicon.comma], consume: true);
@@ -1950,7 +1950,7 @@ class HTParser extends TokenReader {
         }
         match(HTLexicon.typeParameterEnd);
       }
-      final isNullable = expect([HTLexicon.nullable], consume: true);
+      final isNullable = expect([HTLexicon.nullableTypePostfix], consume: true);
       return TypeExpr(
         id: id,
         arguments: typeArgs,
@@ -2007,11 +2007,13 @@ class HTParser extends TokenReader {
     while ((curTok.type != HTLexicon.groupExprEnd) &&
         (curTok.type != Semantic.endOfFile)) {
       if ((!isNamed &&
-              expect([Semantic.identifier, HTLexicon.colon], consume: false)) ||
+              expect(
+                  [Semantic.identifier, HTLexicon.namedArgumentValueIndicator],
+                  consume: false)) ||
           isNamed) {
         isNamed = true;
         final name = match(Semantic.identifier).lexeme;
-        match(HTLexicon.colon);
+        match(HTLexicon.namedArgumentValueIndicator);
         final namedArg = _parseExpr();
         if (curTok.type != HTLexicon.groupExprEnd) {
           match(HTLexicon.comma);
@@ -2168,7 +2170,10 @@ class HTParser extends TokenReader {
       condition = _parseExpr();
       match(HTLexicon.groupExprEnd);
     }
+    final hasEndOfStmtMark =
+        expect([HTLexicon.endOfStatementMark], consume: true);
     return DoStmt(loop, condition,
+        hasEndOfStmtMark: hasEndOfStmtMark,
         source: _currentSource,
         line: keyword.line,
         column: keyword.column,
@@ -2602,7 +2607,7 @@ class HTParser extends TokenReader {
       internalName = '$classId.${idTok.lexeme}';
     }
     TypeExpr? declType;
-    if (expect([HTLexicon.colon], consume: true)) {
+    if (expect([HTLexicon.typeIndicator], consume: true)) {
       declType = _parseTypeExpr();
     }
     AstNode? initializer;
@@ -2661,7 +2666,7 @@ class HTParser extends TokenReader {
       final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
       TypeExpr? declType;
-      if (expect([HTLexicon.colon], consume: true)) {
+      if (expect([HTLexicon.typeIndicator], consume: true)) {
         declType = _parseTypeExpr();
       }
       if (curTok.type != endMark) {
@@ -2795,7 +2800,7 @@ class HTParser extends TokenReader {
         final paramSymbol =
             IdentifierExpr.fromToken(paramId, source: _currentSource);
         TypeExpr? paramDeclType;
-        if (expect([HTLexicon.colon], consume: true)) {
+        if (expect([HTLexicon.typeIndicator], consume: true)) {
           paramDeclType = _parseTypeExpr();
         }
         AstNode? initializer;
@@ -2874,11 +2879,12 @@ class HTParser extends TokenReader {
       returnType = _parseTypeExpr();
     }
     // referring to another constructor
-    else if (expect([HTLexicon.colon], consume: true)) {
+    else if (expect([HTLexicon.constructorInitializationListIndicator],
+        consume: true)) {
       if (category != FunctionCategory.constructor) {
         final lastTok = peek(-1);
-        final err = HTError.unexpected(
-            HTLexicon.functionBlockStart, HTLexicon.colon,
+        final err = HTError.unexpected(HTLexicon.functionBlockStart,
+            HTLexicon.constructorInitializationListIndicator,
             filename: _currrentFileName,
             line: curTok.line,
             column: curTok.column,
@@ -3180,7 +3186,7 @@ class HTParser extends TokenReader {
               ),
               fieldValue: id);
         } else {
-          match(HTLexicon.colon);
+          match(HTLexicon.structValueIndicator);
           final value = _parseExpr();
           field = StructObjField(
               key: IdentifierExpr.fromToken(
