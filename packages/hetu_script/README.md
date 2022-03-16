@@ -42,7 +42,7 @@ To eval a string literal of Hetu code in Dart.
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = Hetu();
+  final hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
     var ht = {
@@ -62,7 +62,7 @@ To pass a Map to script, modify it in script and get it back:
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = Hetu();
+  final hetu = Hetu();
   hetu.init(externalFunctions: {
     'hello': () => {'greetings': 'greetings from Dart!'},
   });

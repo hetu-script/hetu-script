@@ -146,16 +146,16 @@ void main() {
         'not null!',
       );
     });
-    test('null assign', () {
-      final result = hetu.eval(r'''
-        var meaning
-        eval("meaning = 'hello from a deeper dream!'")
-        meaning
-      ''');
-      expect(
-        result,
-        'hello from a deeper dream!',
-      );
-    });
+    // test('internal eval', () {
+    //   final result = hetu.eval(r'''
+    //     var meaning
+    //     eval("meaning = 'hello from a deeper dream!'")
+    //     meaning
+    //   ''');
+    //   expect(
+    //     result,
+    //     'hello from a deeper dream!',
+    //   );
+    // });
   });
 }

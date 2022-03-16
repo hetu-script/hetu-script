@@ -4,7 +4,6 @@ import 'package:path/path.dart' as path;
 import 'package:args/args.dart';
 
 import 'package:hetu_script/hetu_script.dart';
-import 'package:hetu_script/parser.dart';
 import 'package:hetu_script/analyzer.dart';
 
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
@@ -190,7 +189,7 @@ void run(List<String> args, {bool enterRepl = false}) {
     final file = File(args.first);
     final bytes = file.readAsBytesSync();
     if (args.length == 1) {
-      result = hetu.loadBytecode(
+      result = hetu.interpreter.loadBytecode(
           bytes: bytes, moduleName: args.first, globallyImport: true);
     } else {
       final scriptInvocationArgs = <String>[];
@@ -199,7 +198,7 @@ void run(List<String> args, {bool enterRepl = false}) {
           scriptInvocationArgs.add(args[i]);
         }
       }
-      result = hetu.loadBytecode(
+      result = hetu.interpreter.loadBytecode(
           bytes: bytes,
           moduleName: args.first,
           globallyImport: true,
@@ -241,22 +240,20 @@ void format(List<String> args, String outPath) {
 
 void analyze(List<String> args) {
   final analyzer = HTAnalyzer(sourceContext: sourceContext);
-  analyzer.init();
-  final result = analyzer.evalFile(args.first);
-  if (result != null) {
-    if (result.errors.isNotEmpty) {
-      for (final error in result.errors) {
-        if (error.severity >= ErrorSeverity.error) {
-          print('Error: $error');
-        } else {
-          print('Warning: $error');
-        }
+  final parser = HTParser(sourceContext: sourceContext);
+  final source = sourceContext.getResource(args.first);
+  final compilation = parser.parseToModule(source);
+  final result = analyzer.analyzeCompilation(compilation);
+  if (result.errors.isNotEmpty) {
+    for (final error in result.errors) {
+      if (error.severity >= ErrorSeverity.error) {
+        print('Error: $error');
+      } else {
+        print('Warning: $error');
       }
-    } else {
-      print('Analyzer found 0 problem.');
     }
   } else {
-    print('Unkown error occurred during analysis.');
+    print('Analyzer found 0 problem.');
   }
 }
 

@@ -8,7 +8,7 @@ int hetuAdd(DartFunction func) {
 }
 
 void main() {
-  var hetu = Hetu();
+  final hetu = Hetu();
 
   hetu.init(externalFunctions: {
     'hetuAdd': (HTEntity entity,
@@ -37,7 +37,7 @@ void main() {
         })
       }''');
 
-  var result = hetu.invoke('main');
+  var result = hetu.interpreter.invoke('main');
 
   print(result);
 }

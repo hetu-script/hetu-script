@@ -9,7 +9,7 @@ void main() {
   hetu.init();
   final binaryFile = File('example/script/module.out');
   final bytes = binaryFile.readAsBytesSync();
-  hetu.loadBytecode(bytes: bytes, moduleName: 'calculate');
+  hetu.interpreter.loadBytecode(bytes: bytes, moduleName: 'calculate');
 
   hetu.evalFile('import_binary_module.hts');
 }

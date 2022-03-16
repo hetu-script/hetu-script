@@ -262,6 +262,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
     mainBytesBuilder.addByte(kHetuVersion.major);
     mainBytesBuilder.addByte(kHetuVersion.minor);
     mainBytesBuilder.add(_uint16(kHetuVersion.patch));
+    // entry file name
+    mainBytesBuilder.add(_utf8String(compilation.entryResourceName));
     // index: ResourceType
     mainBytesBuilder.addByte(compilation.entryResourceType.index);
     final sourceBytesBuilder = BytesBuilder();

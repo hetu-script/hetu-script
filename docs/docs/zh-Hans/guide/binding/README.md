@@ -101,7 +101,7 @@ typedef HTExternalFunction = dynamic Function(
 import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
-  var hetu = Hetu();
+  final hetu = Hetu();
   await hetu.init(externalFunctions: {
     'hello': (HTEntity entity,
         {List<dynamic> positionalArgs = const [],
@@ -296,7 +296,7 @@ class PersonClassBinding extends HTExternalClass {
 }
 
 void main() {
-  var hetu = Hetu();
+  final hetu = Hetu();
   hetu.init(externalClasses: [PersonClassBinding()]);
   hetu.eval('''
       external class Person {

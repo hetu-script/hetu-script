@@ -149,6 +149,8 @@ class AstCompilation extends AstNode {
 
   final Map<String, AstSource> sources;
 
+  final String entryResourceName;
+
   final HTResourceType entryResourceType;
 
   final List<HTError> errors;
@@ -159,6 +161,7 @@ class AstCompilation extends AstNode {
   AstCompilation(
       {required this.values,
       required this.sources,
+      required this.entryResourceName,
       required this.entryResourceType,
       required this.errors,
       HTSource? source,

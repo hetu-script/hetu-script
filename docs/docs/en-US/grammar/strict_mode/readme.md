@@ -3,7 +3,7 @@
 You can set some flag on Hetu's config, to change some behavior regarding strict mode.
 
 ```dart
-var hetu = Hetu(
+final hetu = Hetu(
   config: InterpreterConfig(
     checkTypeErrors: true,
     computeConstantExpressionValue: true,

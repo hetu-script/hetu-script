@@ -3,7 +3,7 @@
 可以通过修改 Hetu 解释器对象上的 config 属性来指定以某些非严格模式进行解释。
 
 ```dart
-var hetu = Hetu(
+final hetu = Hetu(
   config: InterpreterConfig(
     checkTypeErrors: true,
     computeConstantExpressionValue: true,

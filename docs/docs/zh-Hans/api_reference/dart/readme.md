@@ -35,7 +35,6 @@ dynamic eval(String content,
     String? moduleName,
     bool globallyImport = false,
     ResourceType type = ResourceType.hetuLiteralCode,
-    bool isStrictMode = false,
     String? invokeFunc,
     List<dynamic> positionalArgs = const ****,
     Map<String, dynamic> namedArgs = const {},
@@ -48,7 +47,6 @@ dynamic eval(String content,
 - **moduleName**: 模块名。整个代码文件编译后的字节码整体称作一个模块。
 - **globallyImport**: 是否将这个模块的内容直接导入到全局命名空间。这样做可以让其他模块以后无需导入即可使用这个代码文件的内容。
 - **type**: [**代码文件类型**](../../guide/package/README.md#资源类型)。决定了解释器的行为模式
-- **isStrictMode**: 严格模式。在严格模式下，对于流程控制和逻辑和、或等场合，不会进行布尔值的隐式转换。
 - **invokeFunc**: 在解析完毕后，直接执行这个代码文件中的一个函数。函数的参数用 **positionalArgs** 和 **namedArgs** 传递。效果等同于在 **eval()** 执行过后，再手动调用 **invoke()**。
 
 ### compile(), loadBytecode()

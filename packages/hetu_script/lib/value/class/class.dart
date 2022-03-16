@@ -14,7 +14,7 @@ import '../../declaration/generic/generic_type_parameter.dart';
 import 'class_namespace.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
-class HTClass extends HTClassDeclaration with HTEntity, HetuRef {
+class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   var _instanceIndex = 0;
   int get instanceIndex => _instanceIndex++;
 
@@ -41,7 +41,7 @@ class HTClass extends HTClassDeclaration with HTEntity, HetuRef {
   final HTClassNamespace namespace;
 
   /// Create a default [HTClass] instance.
-  HTClass(Hetu interpreter,
+  HTClass(HTInterpreter interpreter,
       {String? id,
       String? classId,
       HTNamespace? closure,

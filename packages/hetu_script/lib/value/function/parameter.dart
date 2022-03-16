@@ -24,7 +24,7 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
 
   /// Create a standard [HTParameter].
   HTParameter(String id,
-      {Hetu? interpreter,
+      {HTInterpreter? interpreter,
       String? fileName,
       String? moduleName,
       HTNamespace? closure,

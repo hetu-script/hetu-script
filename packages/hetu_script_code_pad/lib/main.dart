@@ -16,9 +16,7 @@ void main() async {
         thumbColor: MaterialStateProperty.all(Colors.grey),
       )),
       home: Scaffold(
-        body: CodeEditor(
-          interpreter: hetu,
-        ),
+        body: CodeEditor(interpreter: hetu),
       ),
     ),
   );

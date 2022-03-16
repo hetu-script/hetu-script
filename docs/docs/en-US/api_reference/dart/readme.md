@@ -35,7 +35,6 @@ dynamic eval(String content,
     String? moduleName,
     bool globallyImport = false,
     ResourceType type = ResourceType.hetuLiteralCode,
-    bool isStrictMode = false,
     String? invokeFunc,
     List<dynamic> positionalArgs = const ****,
     Map<String, dynamic> namedArgs = const {},
@@ -48,7 +47,6 @@ dynamic eval(String content,
 - **moduleName**: The name of the compiled bytecode module.
 - **globallyImport**: Whether you want the content of this source is visible to **global** namespace. It's a quicker way to let other modules to use without import statement.
 - **type**: How the interpreter evaluate this source. For more information, check [**source type**](../../guide/package/readme.md#resource-type).
-- **isStrictMode**: If strict mode is true, the condition expression used by if/while/do/ternery must be a boolean value. Otherwise there will be inexplicit type conversion.
 - **invokeFunc**: Invoke a function immediately after evaluation. The function's name and parameter can be of any form. The arguments of this function call are provided by **positionalArgs** and **namedArgs**. You can also use the separate method **invoke** to do the same thing.
 
 ### compile(), loadBytecode()

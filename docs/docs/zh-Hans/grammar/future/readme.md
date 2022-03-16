@@ -16,7 +16,7 @@ Future<void> fetch() {
 }
 
 void main() {
-  var hetu = Hetu();
+  final hetu = Hetu();
   hetu.init(externalFunctions: {'fetch': fetch});
   hetu.eval(r'''
       external fun fetch

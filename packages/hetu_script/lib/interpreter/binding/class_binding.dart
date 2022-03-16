@@ -1,4 +1,4 @@
-part of '../abstract_interpreter.dart';
+part of '../interpreter.dart';
 
 class HTHetuClass extends HTExternalClass {
   HTHetuClass() : super('Hetu');

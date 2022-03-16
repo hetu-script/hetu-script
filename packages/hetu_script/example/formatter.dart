@@ -1,6 +1,5 @@
 import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script/analyzer.dart';
-import 'package:hetu_script/parser.dart';
 
 void main() {
   final source = HTSource(r'''

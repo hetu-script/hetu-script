@@ -1,6 +1,6 @@
 import '../../declaration/declaration.dart';
 import '../../binding/external_class.dart';
-import '../../interpreter/abstract_interpreter.dart';
+import '../../interpreter/interpreter.dart';
 import '../entity.dart';
 import '../../value/namespace/namespace.dart';
 import '../../source/source.dart';
@@ -12,7 +12,7 @@ class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
 
   HTExternalEnum(
     String id,
-    HTAbstractInterpreter interpreter, {
+    HTInterpreter interpreter, {
     String? classId,
     HTNamespace? closure,
     HTSource? source,

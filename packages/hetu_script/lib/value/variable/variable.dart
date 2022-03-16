@@ -7,7 +7,7 @@ import '../../type/type.dart';
 import '../../declaration/variable/variable_declaration.dart';
 
 /// Variable is a binding between an symbol and a value
-class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
+class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
   final HTNamespace? _closure;
 
   @override
@@ -29,7 +29,7 @@ class HTVariable extends HTVariableDeclaration with HetuRef, GotoInfo {
   /// have to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be acessed within a script.
   HTVariable(String id,
-      {Hetu? interpreter,
+      {HTInterpreter? interpreter,
       String? fileName,
       String? moduleName,
       String? classId,

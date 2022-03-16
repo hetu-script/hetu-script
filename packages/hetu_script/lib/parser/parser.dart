@@ -219,6 +219,7 @@ class HTParser extends TokenReader {
     final compilation = AstCompilation(
         values: values,
         sources: sources,
+        entryResourceName: entry.fullName,
         entryResourceType: entry.type,
         errors: parserErrors);
     return compilation;

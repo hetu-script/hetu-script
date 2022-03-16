@@ -1,4 +1,4 @@
-part of '../abstract_interpreter.dart';
+part of '../interpreter.dart';
 
 extension NumBinding on num {
   dynamic htFetch(String varName) {

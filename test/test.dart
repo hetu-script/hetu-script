@@ -1,7 +1,7 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = Hetu(
+  final hetu = Hetu(
     config: InterpreterConfig(
       checkTypeErrors: true,
       computeConstantExpressionValue: true,

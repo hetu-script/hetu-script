@@ -21,7 +21,7 @@ import '../../interpreter/interpreter.dart';
 class HTStruct with HTEntity {
   static var structLiteralIndex = 0;
 
-  final Hetu interpreter;
+  final HTInterpreter interpreter;
 
   final String? id;
 

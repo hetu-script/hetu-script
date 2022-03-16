@@ -49,7 +49,7 @@ class CountryEnumBinding extends HTExternalClass {
 }
 
 void main() {
-  var hetu = Hetu();
+  final hetu = Hetu();
 
   hetu.init(externalClasses: [CountryEnumBinding()]);
 

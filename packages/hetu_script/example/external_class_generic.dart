@@ -72,7 +72,7 @@ class GenericClassBinding extends HTExternalClass {
 }
 
 void main() {
-  var hetu = Hetu();
+  final hetu = Hetu();
   hetu.init(externalClasses: [GenericClassBinding()]);
   hetu.eval('''
       external class Generic {

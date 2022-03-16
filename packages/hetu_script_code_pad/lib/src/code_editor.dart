@@ -26,7 +26,7 @@ class CodeEditor extends StatefulWidget {
 }
 
 class _CodeEditorState extends State<CodeEditor> {
-  Hetu get interpreter => widget.interpreter;
+  Hetu get hetu => widget.interpreter;
 
   final _toolbarHeight = 60.0;
   final _outputPanelHeight = 300.0;
@@ -75,7 +75,7 @@ class _CodeEditorState extends State<CodeEditor> {
   @override
   void initState() {
     super.initState();
-    interpreter.bindExternalFunction('print', (HTEntity entity,
+    hetu.interpreter.bindExternalFunction('print', (HTEntity entity,
         {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},
         List<HTType> typeArgs = const []}) {
@@ -140,8 +140,7 @@ class _CodeEditorState extends State<CodeEditor> {
                           setState(() {
                             _errors = '';
                             try {
-                              final result = interpreter.eval(
-                                  _codeController.text,
+                              final result = hetu.eval(_codeController.text,
                                   type: HTResourceType.hetuScript);
                               _log(result.toString());
                             } catch (e) {

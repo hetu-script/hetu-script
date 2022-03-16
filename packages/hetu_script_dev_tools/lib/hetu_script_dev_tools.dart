@@ -10,7 +10,7 @@ import 'preincludes/preinclude_module.dart';
 export 'context/file_system_context.dart';
 export 'logger/logger.dart';
 
-extension HTExtension on Hetu {
+extension HTExtension on HTInterpreter {
   void loadExtensions(Iterable<String> extensions) {
     if (extensions.contains('console')) {
       bindExternalClass(HTConsoleClass());

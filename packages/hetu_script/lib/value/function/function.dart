@@ -39,7 +39,7 @@ class RedirectingConstructor {
 
 /// Bytecode implementation of [TypedFunctionDeclaration].
 class HTFunction extends HTFunctionDeclaration
-    with HTEntity, HetuRef, GotoInfo {
+    with HTEntity, InterpreterRef, GotoInfo {
   HTClass? klass;
 
   @override
@@ -56,8 +56,8 @@ class HTFunction extends HTFunctionDeclaration
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTFunction(
-      String internalName, String fileName, String moduleName, Hetu interpreter,
+  HTFunction(String internalName, String fileName, String moduleName,
+      HTInterpreter interpreter,
       {String? id,
       String? classId,
       HTNamespace? closure,

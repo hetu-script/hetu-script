@@ -1,6 +1,8 @@
 import 'dart:typed_data';
+import 'dart:math' as math;
 
 import 'package:path/path.dart' as path;
+import 'package:characters/characters.dart';
 
 import '../binding/external_function.dart';
 import '../value/namespace/namespace.dart';
@@ -31,20 +33,76 @@ import '../error/error_handler.dart';
 import '../analyzer/analyzer.dart';
 import '../shared/constants.dart';
 import '../bytecode/bytecode_module.dart';
-import 'abstract_interpreter.dart';
 import '../bytecode/compiler.dart';
-import 'preincludes/preinclude_module.dart';
 import '../version.dart';
 import '../value/unresolved_import_statement.dart';
-import '../error/error_severity.dart';
 import '../binding/external_instance.dart';
 import '../locale/locale.dart';
+import '../parser/parser.dart' show ParserConfig;
+import '../shared/gaussian_noise.dart';
+import '../shared/perlin_noise.dart';
+import '../shared/math.dart';
+import '../shared/uid.dart';
+import '../shared/crc32b.dart';
+import '../shared/stringify.dart';
+import '../shared/jsonify.dart';
 
+part 'binding/instance_binding.dart';
+part 'binding/class_binding.dart';
 part 'binding/interpreter_binding.dart';
 
 /// Mixin for classes that want to hold a ref of a bytecode interpreter
-mixin HetuRef {
-  late final Hetu interpreter;
+mixin InterpreterRef {
+  late final HTInterpreter interpreter;
+}
+
+class InterpreterConfig
+    implements
+        ParserConfig,
+        AnalyzerConfig,
+        CompilerConfig,
+        ErrorHandlerConfig {
+  @override
+  bool checkTypeErrors;
+
+  @override
+  bool computeConstantExpressionValue;
+
+  @override
+  bool compileWithLineInfo;
+
+  @override
+  bool showHetuStackTrace;
+
+  @override
+  bool showDartStackTrace;
+
+  @override
+  int stackTraceDisplayCountLimit;
+
+  @override
+  ErrorHanldeApproach errorHanldeApproach;
+
+  bool allowVariableShadowing;
+
+  bool allowImplicitVariableDeclaration;
+
+  bool allowImplicitNullToZeroConversion;
+
+  bool allowImplicitEmptyValueToFalseConversion;
+
+  InterpreterConfig(
+      {this.checkTypeErrors = false,
+      this.computeConstantExpressionValue = false,
+      this.compileWithLineInfo = true,
+      this.showHetuStackTrace = true,
+      this.showDartStackTrace = false,
+      this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
+      this.errorHanldeApproach = ErrorHanldeApproach.exception,
+      this.allowVariableShadowing = true,
+      this.allowImplicitVariableDeclaration = false,
+      this.allowImplicitNullToZeroConversion = false,
+      this.allowImplicitEmptyValueToFalseConversion = false});
 }
 
 class _LoopInfo {
@@ -56,25 +114,15 @@ class _LoopInfo {
 }
 
 /// A bytecode implementation of Hetu Script interpreter
-class Hetu extends HTAbstractInterpreter {
+class HTInterpreter {
   final stackTraceList = <String>[];
 
   final _cachedModules = <String, HTBytecodeModule>{};
 
-  late final HTAnalyzer _analyzer;
-
   InterpreterConfig config;
 
-  HTResourceContext<HTSource> _sourceContext;
+  HTResourceContext<HTSource> sourceContext;
 
-  @override
-  HTResourceContext<HTSource> get sourceContext => _sourceContext;
-
-  set sourceContext(HTResourceContext<HTSource> context) {
-    _analyzer.sourceContext = _sourceContext = context;
-  }
-
-  @override
   ErrorHandlerConfig get errorConfig => config;
 
   var _currentLine = 0;
@@ -168,46 +216,15 @@ class Hetu extends HTAbstractInterpreter {
   }
 
   /// A bytecode interpreter.
-  Hetu({HTResourceContext<HTSource>? sourceContext, InterpreterConfig? config})
+  HTInterpreter(
+      {InterpreterConfig? config, HTResourceContext<HTSource>? sourceContext})
       : config = config ?? InterpreterConfig(),
-        _sourceContext = sourceContext ?? HTOverlayContext(),
+        sourceContext = sourceContext ?? HTOverlayContext(),
         globalNamespace = HTNamespace(id: Semantic.global) {
-    _analyzer = HTAnalyzer(sourceContext: _sourceContext, config: config);
     _currentNamespace = globalNamespace;
   }
 
-  @override
-  void init({
-    bool useDefaultModuleAndBinding = true,
-    HTLocale? locale,
-    Map<String, Function> externalFunctions = const {},
-    Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
-    List<HTExternalClass> externalClasses = const [],
-  }) {
-    _analyzer.init(
-      locale: locale,
-      externalFunctions: externalFunctions,
-      externalFunctionTypedef: externalFunctionTypedef,
-      externalClasses: externalClasses,
-    );
-    super.init(
-      locale: locale,
-      externalFunctions: externalFunctions,
-      externalFunctionTypedef: externalFunctionTypedef,
-      externalClasses: externalClasses,
-    );
-    if (useDefaultModuleAndBinding) {
-      bindExternalClass(HTHetuClassBinding());
-      // load precompiled core module.
-      final coreModule = Uint8List.fromList(hetuCoreModule);
-      loadBytecode(
-          bytes: coreModule, moduleName: 'hetu_main', globallyImport: true);
-      invoke('setInterpreter', positionalArgs: [this]);
-    }
-  }
-
   /// Catch errors throwed by other code, and wrap them with detailed informations.
-  @override
   void handleError(Object error, {Object? externalStackTrace}) {
     final sb = StringBuffer();
 
@@ -261,16 +278,16 @@ class Hetu extends HTAbstractInterpreter {
         error.type,
         message: error.message,
         extra: stackTraceString,
-        filename: error.filename ?? _currentFileName,
-        line: error.line ?? _currentLine,
-        column: error.column ?? _column,
+        filename: error.filename ?? currentFileName,
+        line: error.line ?? currentLine,
+        column: error.column ?? currentColumn,
       );
       throw wrappedError;
     } else {
       final hetuError = HTError.extern(
         error.toString(),
         extra: stackTraceString,
-        filename: _currentFileName,
+        filename: currentFileName,
         line: currentLine,
         column: currentColumn,
       );
@@ -278,52 +295,7 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
-  /// Evaluate a string content.
-  /// During this process, all declarations will
-  /// be defined to current [HTNamespace].
-  /// If [invokeFunc] is provided, will immediately
-  /// call the function after evaluation completed.
-  @override
-  dynamic evalSource(HTSource source,
-      {String? moduleName,
-      bool globallyImport = false,
-      String? invokeFunc,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) {
-    if (source.content.isEmpty) {
-      return null;
-    }
-    _currentFileName = source.fullName;
-    try {
-      final bytes = compileSource(
-        source,
-        moduleName: moduleName,
-        config: config,
-        errorHandled: true,
-      );
-      final result = loadBytecode(
-          bytes: bytes,
-          moduleName: moduleName ?? source.fullName,
-          globallyImport: globallyImport,
-          invokeFunc: invokeFunc,
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs,
-          errorHandled: true);
-      return result;
-    } catch (error, stackTrace) {
-      if (errorHandled) {
-        rethrow;
-      } else {
-        handleError(error, externalStackTrace: stackTrace);
-      }
-    }
-  }
-
   /// Call a function within current [HTNamespace].
-  @override
   dynamic invoke(String funcName,
       {String? moduleName,
       List<dynamic> positionalArgs = const [],
@@ -354,65 +326,80 @@ class Hetu extends HTAbstractInterpreter {
     }
   }
 
+  final externClasses = <String, HTExternalClass>{};
+  final externTypeReflection = <HTExternalTypeReflection>[];
+  final externFuncs = <String, Function>{};
+  final externFuncTypeUnwrappers = <String, HTExternalFunctionTypedef>{};
+
+  /// Wether the interpreter has a certain external class binding.
+  bool containsExternalClass(String id) => externClasses.containsKey(id);
+
+  /// Register a external class into scrfipt.
+  /// For acessing static members and constructors of this class,
+  /// there must also be a declaraction in script
+  void bindExternalClass(HTExternalClass externalClass,
+      {bool override = false}) {
+    if (externClasses.containsKey(externalClass.valueType) && !override) {
+      throw HTError.definedRuntime(externalClass.valueType.toString());
+    }
+    externClasses[externalClass.id] = externalClass;
+  }
+
+  /// Fetch a external class instance
+  HTExternalClass fetchExternalClass(String id) {
+    if (!externClasses.containsKey(id)) {
+      throw HTError.undefinedExternal(id);
+    }
+    return externClasses[id]!;
+  }
+
+  /// Bind a external class name to a abstract class name for interpreter get dart class name by reflection
+  void bindExternalReflection(HTExternalTypeReflection reflection) {
+    externTypeReflection.add(reflection);
+  }
+
+  /// Register a external function into scrfipt
+  /// there must be a declaraction also in script for using this
+  void bindExternalFunction(String id, Function function,
+      {bool override = false}) {
+    if (externFuncs.containsKey(id) && !override) {
+      throw HTError.definedRuntime(id);
+    }
+    externFuncs[id] = function;
+  }
+
+  /// Fetch a external function
+  Function fetchExternalFunction(String id) {
+    if (!externFuncs.containsKey(id)) {
+      throw HTError.undefinedExternal(id);
+    }
+    return externFuncs[id]!;
+  }
+
+  /// Register a external function typedef into scrfipt
+  void bindExternalFunctionType(String id, HTExternalFunctionTypedef function,
+      {bool override = false}) {
+    if (externFuncTypeUnwrappers.containsKey(id) && !override) {
+      throw HTError.definedRuntime(id);
+    }
+    externFuncTypeUnwrappers[id] = function;
+  }
+
+  /// Using unwrapper to turn a script function into a external function
+  Function unwrapExternalFunctionType(HTFunction func) {
+    if (!externFuncTypeUnwrappers.containsKey(func.externalTypeId)) {
+      throw HTError.undefinedExternal(func.externalTypeId!);
+    }
+    final unwrapFunc = externFuncTypeUnwrappers[func.externalTypeId]!;
+    return unwrapFunc(func);
+  }
+
   bool switchModule(String id) {
     if (_cachedModules.containsKey(id)) {
       newStackFrame(moduleName: id);
       return true;
     } else {
       return false;
-    }
-  }
-
-  Uint8List? compile(String content,
-      {String? filename,
-      String? moduleName,
-      CompilerConfig? config,
-      bool isModuleEntryScript = false}) {
-    final source = HTSource(content,
-        fullName: filename,
-        type: isModuleEntryScript
-            ? HTResourceType.hetuScript
-            : HTResourceType.hetuModule);
-    final result = compileSource(source, moduleName: moduleName);
-    return result;
-  }
-
-  /// Compile a script content into bytecode for later use.
-  Uint8List? compileFile(String key,
-      {String? moduleName, CompilerConfig? config}) {
-    final source = _sourceContext.getResource(key);
-    final bytes = compileSource(source, moduleName: moduleName, config: config);
-    return bytes;
-  }
-
-  /// Compile a [HTSource] into bytecode for later use.
-  Uint8List compileSource(HTSource source,
-      {String? moduleName, CompilerConfig? config, bool errorHandled = false}) {
-    try {
-      final compileConfig = config ?? this.config;
-      final compiler = HTCompiler(config: compileConfig);
-      final result = _analyzer.evalSource(source);
-      if (result.errors.isNotEmpty) {
-        for (final error in result.errors) {
-          if (error.severity >= ErrorSeverity.error) {
-            if (errorHandled) {
-              throw error;
-            } else {
-              handleError(error);
-            }
-          } else {
-            print('${error.severity}: $error');
-          }
-        }
-      }
-      return compiler.compile(result.compilation);
-    } catch (error) {
-      if (errorHandled) {
-        rethrow;
-      } else {
-        handleError(error);
-        return Uint8List.fromList([]);
-      }
     }
   }
 
@@ -583,7 +570,6 @@ class Hetu extends HTAbstractInterpreter {
       {required Uint8List bytes,
       required String moduleName,
       bool globallyImport = false,
-      bool isStrictMode = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -615,6 +601,7 @@ class Hetu extends HTAbstractInterpreter {
         throw HTError.version('$major.$minor.$patch', '$kHetuVersion',
             filename: _currentFileName, line: _currentLine, column: _column);
       }
+      _currentFileName = _currentBytecodeModule.readLongString();
       final sourceType =
           HTResourceType.values.elementAt(_currentBytecodeModule.read());
       _isModuleEntryScript = sourceType == HTResourceType.hetuScript ||

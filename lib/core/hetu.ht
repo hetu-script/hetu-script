@@ -1,13 +1,13 @@
-external class Hetu {
+external class HTInterpreter {
 
   fun createStructfromJson(data)
 
   fun eval(code: str) -> any
 }
 
-late _hetu: Hetu
+late _hetu: HTInterpreter
 
-fun setInterpreter(interpreter: Hetu) {
+fun setInterpreter(interpreter: HTInterpreter) {
   _hetu = interpreter
 }
 

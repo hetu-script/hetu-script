@@ -11,7 +11,7 @@ import '../function/function.dart';
 
 /// Unlike class and function, the declaration of a struct is a value
 /// and struct object does not extends from this.
-class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
+class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
   final String? prototypeId;
 
   HTStruct? _self;
@@ -25,7 +25,7 @@ class HTNamedStruct extends HTDeclaration with HetuRef, GotoInfo {
 
   HTNamedStruct({
     required String id,
-    required Hetu interpreter,
+    required HTInterpreter interpreter,
     required String fileName,
     required String moduleName,
     HTNamespace? closure,

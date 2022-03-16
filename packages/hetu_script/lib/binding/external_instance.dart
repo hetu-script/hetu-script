@@ -1,4 +1,3 @@
-import '../interpreter/abstract_interpreter.dart';
 import '../value/entity.dart';
 import '../type/type.dart';
 import '../type/nominal_type.dart';
@@ -28,7 +27,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
 
   /// Create a external class object.
   HTExternalInstance(
-      this.externalObject, HTAbstractInterpreter interpreter, this.typeString) {
+      this.externalObject, HTInterpreter interpreter, this.typeString) {
     this.interpreter = interpreter;
     final id = HTType.parseBaseType(typeString);
     if (interpreter.containsExternalClass(id)) {
@@ -37,8 +36,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
       externalClass = null;
     }
 
-    final def = (interpreter as Hetu)
-        .currentNamespace
+    final def = interpreter.currentNamespace
         .memberGet(id, recursive: true, error: false);
     if (def is HTClassDeclaration) {
       klass = def;

@@ -8,7 +8,6 @@ import '../utils/pair.dart';
 
 import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script/analyzer.dart';
-import 'package:hetu_script/lexer.dart';
 
 import '../protocol/protocol_generated.dart';
 import '../protocol/protocol_special.dart';

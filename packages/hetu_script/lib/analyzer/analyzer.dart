@@ -2,14 +2,13 @@ import '../source/source.dart';
 import '../resource/resource.dart';
 import '../resource/resource_context.dart';
 import '../resource/overlay/overlay_context.dart';
-import '../type/type.dart';
+// import '../type/type.dart';
 // import '../declaration/generic/generic_type_parameter.dart';
 import '../declaration/namespace/declaration_namespace.dart';
-import '../interpreter/abstract_interpreter.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
-import '../parser/parser.dart';
+// import '../parser/parser.dart';
 // import '../declaration/declaration.dart';
 // import '../declaration/class/class_declaration.dart';
 // import '../declaration/function/function_declaration.dart';
@@ -20,11 +19,11 @@ import 'analysis_error.dart';
 // import 'type_checker.dart';
 import '../grammar/semantic.dart';
 // import '../ast/visitor/recursive_ast_visitor.dart';
-import '../binding/external_class.dart';
-import '../binding/external_function.dart';
+// import '../binding/external_class.dart';
+// import '../binding/external_function.dart';
 import '../constant/constant_interpreter.dart';
 import 'analyzer_impl.dart';
-import '../locale/locale.dart';
+// import '../locale/locale.dart';
 
 abstract class AnalyzerConfig {
   factory AnalyzerConfig({bool computeConstantExpressionValue}) =
@@ -48,13 +47,11 @@ class AnalyzerConfigImpl implements AnalyzerConfig {
 
 /// A ast visitor that create declarative-only namespaces on all astnode,
 /// for analysis purpose, the true analyzer is a underlying
-class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
-    implements AbstractAstVisitor<void> {
+class HTAnalyzer implements AbstractAstVisitor<void> {
   final errorProcessors = <ErrorProcessor>[];
 
   AnalyzerConfig config;
 
-  @override
   ErrorHandlerConfig? get errorConfig => null;
 
   final HTDeclarationNamespace globalNamespace;
@@ -70,65 +67,29 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   // late HTTypeChecker _curTypeChecker;
 
-  @override
   HTResourceContext<HTSource> sourceContext;
 
   final analyzedDeclarations = <String, HTDeclarationNamespace>{};
 
   HTAnalyzer(
-      {HTResourceContext<HTSource>? sourceContext, AnalyzerConfig? config})
+      {AnalyzerConfig? config, HTResourceContext<HTSource>? sourceContext})
       : config = config ?? AnalyzerConfig(),
-        globalNamespace = HTDeclarationNamespace(id: Semantic.global),
-        sourceContext = sourceContext ?? HTOverlayContext() {
+        sourceContext = sourceContext ?? HTOverlayContext(),
+        globalNamespace = HTDeclarationNamespace(id: Semantic.global) {
     _currentNamespace = globalNamespace;
   }
 
-  @override
-  void init({
-    bool useDefaultModuleAndBinding = true,
-    HTLocale? locale,
-    List<HTSource> preincludes = const [],
-    Map<String, Function> externalFunctions = const {},
-    Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
-    List<HTExternalClass> externalClasses = const [],
+  HTModuleAnalysisResult analyzeCompilation(
+    AstCompilation compilation, {
+    String? moduleName,
+    bool globallyImport = false,
   }) {
-    super.init(
-      useDefaultModuleAndBinding: useDefaultModuleAndBinding,
-      locale: locale,
-      externalFunctions: externalFunctions,
-      externalFunctionTypedef: externalFunctionTypedef,
-      externalClasses: externalClasses,
-    );
-    for (final file in preincludes) {
-      evalSource(file, globallyImport: true);
-    }
-  }
-
-  /// Analyzer should never throw,
-  /// instead it will store all errors as a list in analysis result.
-  @override
-  void handleError(Object error, {Object? externalStackTrace}) {}
-
-  @override
-  HTModuleAnalysisResult evalSource(HTSource source,
-      {String? moduleName,
-      bool globallyImport = false,
-      bool isStrictMode = false,
-      String? invokeFunc, // ignored in analyzer
-      List<dynamic> positionalArgs = const [], // ignored in analyzer
-      Map<String, dynamic> namedArgs = const {}, // ignored in analyzer
-      List<HTType> typeArgs = const [], // ignored in analyzer
-      bool errorHandled = false // ignored in analyzer
-      }) {
-    _curSource = source;
     final List<HTAnalysisError> errors = [];
     final Map<String, HTSourceAnalysisResult> sourceAnalysisResults = {};
-    final parser = HTParser(sourceContext: sourceContext);
-    final compilation = parser.parseToModule(source);
 
     // Resolve namespaces
     for (final parseResult in compilation.sources.values) {
-      if (source.type == HTResourceType.hetuLiteralCode) {
+      if (compilation.entryResourceType == HTResourceType.hetuLiteralCode) {
         _currentNamespace = globalNamespace;
       } else {
         _currentNamespace = HTDeclarationNamespace(
@@ -455,9 +416,9 @@ class HTAnalyzer extends HTAbstractInterpreter<HTModuleAnalysisResult>
 
   @override
   void visitTypeAliasDecl(TypeAliasDecl node) {
-    node.declaration = HTVariableDeclaration(node.id.id,
-        classId: node.classId, closure: _currentNamespace, source: _curSource);
-    _currentNamespace.define(node.id.id, node.declaration!);
+    // node.declaration = HTVariableDeclaration(node.id.id,
+    //     classId: node.classId, closure: _currentNamespace, source: _curSource);
+    // _currentNamespace.define(node.id.id, node.declaration!);
     node.subAccept(this);
   }
 

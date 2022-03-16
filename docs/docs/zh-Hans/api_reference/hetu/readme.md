@@ -26,7 +26,7 @@ external fun range(startOrStop: num, [stop: num, step: num]) -> Iterable
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  var hetu = Hetu();
+  final hetu = Hetu();
   hetu.init();
   final result = hetu.eval(r'''
       var meaning
