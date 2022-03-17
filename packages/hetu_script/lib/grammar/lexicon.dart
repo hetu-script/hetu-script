@@ -336,6 +336,12 @@ class HTLexicon {
     kTypeof,
   };
 
+  /// prefix operators that modify the value
+  static const Set<String> unaryPrefixsOnLeftValue = {
+    preIncrement,
+    preDecrement,
+  };
+
   /// *
   static const multiply = '*';
 

@@ -13,7 +13,6 @@ import '../ast/ast.dart';
 // import '../declaration/class/class_declaration.dart';
 // import '../declaration/function/function_declaration.dart';
 // import '../declaration/function/parameter_declaration.dart';
-import '../declaration/variable/variable_declaration.dart';
 import 'analysis_result.dart';
 import 'analysis_error.dart';
 // import 'type_checker.dart';

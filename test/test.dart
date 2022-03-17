@@ -15,10 +15,6 @@ void main() {
     locale: HTLocaleSimplifiedChinese(),
   );
   hetu.eval(r'''
-        struct P {
-          var name = 'Jimmy'
-        }
-        final p = new P
-        print(p)
+  print(typeof 42)
   ''');
 }
