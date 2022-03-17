@@ -15,6 +15,6 @@ void main() {
     locale: HTLocaleSimplifiedChinese(),
   );
   hetu.eval(r'''
-  print(typeof 42)
+  print(typeof 42.0)
   ''');
 }

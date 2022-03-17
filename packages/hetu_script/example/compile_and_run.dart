@@ -3,18 +3,15 @@ import 'package:hetu_script/hetu_script.dart';
 void main() {
   final hetu = Hetu();
   hetu.init();
-
-  final appName = 'myApp1';
-
-  final source = HTSource(r'''
+  final moduleName = 'myModule';
+  final bytes = hetu.compile(r'''
     fun main {
       print('hello', 'world!')
     }
-    ''');
-
-  final bytes = hetu.compileSource(source,
-      moduleName: appName, config: CompilerConfig(compileWithLineInfo: false));
+    ''',
+      moduleName: moduleName,
+      config: CompilerConfig(compileWithLineInfo: false));
 
   hetu.interpreter
-      .loadBytecode(bytes: bytes, moduleName: appName, invokeFunc: 'main');
+      .loadBytecode(bytes: bytes, moduleName: moduleName, invokeFunc: 'main');
 }

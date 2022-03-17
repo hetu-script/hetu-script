@@ -16,6 +16,7 @@ import '../locale/locale.dart';
 import '../binding/external_function.dart';
 import '../binding/external_class.dart';
 
+/// A wrapper class for sourceContext, analyzer, compiler and interpreter to work together.
 class Hetu {
   InterpreterConfig config;
 
@@ -51,57 +52,54 @@ class Hetu {
     List<HTExternalClass> externalClasses = const [],
   }) {
     if (_isInitted) return;
-    try {
-      if (locale != null) {
-        HTLocale.current = locale;
-      }
-
-      if (useDefaultModuleAndBinding) {
-        // bind externals before any eval
-        for (var key in preincludeFunctions.keys) {
-          interpreter.bindExternalFunction(key, preincludeFunctions[key]!);
-        }
-        interpreter.bindExternalClass(HTNumberClassBinding());
-        interpreter.bindExternalClass(HTIntClassBinding());
-        interpreter.bindExternalClass(HTBigIntClassBinding());
-        interpreter.bindExternalClass(HTFloatClassBinding());
-        interpreter.bindExternalClass(HTBooleanClassBinding());
-        interpreter.bindExternalClass(HTStringClassBinding());
-        interpreter.bindExternalClass(HTIteratorClassBinding());
-        interpreter.bindExternalClass(HTIterableClassBinding());
-        interpreter.bindExternalClass(HTListClassBinding());
-        interpreter.bindExternalClass(HTSetClassBinding());
-        interpreter.bindExternalClass(HTMapClassBinding());
-        interpreter.bindExternalClass(HTMathClassBinding());
-        interpreter.bindExternalClass(HTHashClassBinding());
-        interpreter.bindExternalClass(HTSystemClassBinding());
-        interpreter.bindExternalClass(HTFutureClassBinding());
-        // bindExternalClass(HTConsoleClass());
-        interpreter.bindExternalClass(HTHetuClassBinding());
-        // load precompiled core module.
-        final coreModule = Uint8List.fromList(hetuCoreModule);
-        interpreter.loadBytecode(
-            bytes: coreModule, moduleName: 'core', globallyImport: true);
-        interpreter.invoke('setInterpreter', positionalArgs: [interpreter]);
-      }
-
-      for (final key in externalFunctions.keys) {
-        interpreter.bindExternalFunction(key, externalFunctions[key]!);
-      }
-      for (final key in externalFunctionTypedef.keys) {
-        interpreter.bindExternalFunctionType(
-            key, externalFunctionTypedef[key]!);
-      }
-      for (final value in externalClasses) {
-        interpreter.bindExternalClass(value);
-      }
-      _isInitted = true;
-    } catch (error, stackTrace) {
-      interpreter.handleError(error, externalStackTrace: stackTrace);
+    if (locale != null) {
+      HTLocale.current = locale;
     }
+
+    if (useDefaultModuleAndBinding) {
+      // bind externals before any eval
+      for (var key in preincludeFunctions.keys) {
+        interpreter.bindExternalFunction(key, preincludeFunctions[key]!);
+      }
+      interpreter.bindExternalClass(HTNumberClassBinding());
+      interpreter.bindExternalClass(HTIntClassBinding());
+      interpreter.bindExternalClass(HTBigIntClassBinding());
+      interpreter.bindExternalClass(HTFloatClassBinding());
+      interpreter.bindExternalClass(HTBooleanClassBinding());
+      interpreter.bindExternalClass(HTStringClassBinding());
+      interpreter.bindExternalClass(HTIteratorClassBinding());
+      interpreter.bindExternalClass(HTIterableClassBinding());
+      interpreter.bindExternalClass(HTListClassBinding());
+      interpreter.bindExternalClass(HTSetClassBinding());
+      interpreter.bindExternalClass(HTMapClassBinding());
+      interpreter.bindExternalClass(HTMathClassBinding());
+      interpreter.bindExternalClass(HTHashClassBinding());
+      interpreter.bindExternalClass(HTSystemClassBinding());
+      interpreter.bindExternalClass(HTFutureClassBinding());
+      // bindExternalClass(HTConsoleClass());
+      interpreter.bindExternalClass(HTHetuClassBinding());
+      // load precompiled core module.
+      final coreModule = Uint8List.fromList(hetuCoreModule);
+      interpreter.loadBytecode(
+          bytes: coreModule, moduleName: 'core', globallyImport: true);
+      interpreter.invoke('setInterpreter', positionalArgs: [interpreter]);
+    }
+
+    for (final key in externalFunctions.keys) {
+      interpreter.bindExternalFunction(key, externalFunctions[key]!);
+    }
+    for (final key in externalFunctionTypedef.keys) {
+      interpreter.bindExternalFunctionType(key, externalFunctionTypedef[key]!);
+    }
+    for (final value in externalClasses) {
+      interpreter.bindExternalClass(value);
+    }
+    _isInitted = true;
   }
 
-  /// Evaluate a literal string code
+  /// Evaluate a string content.
+  /// If [invokeFunc] is provided, will immediately
+  /// call the function after evaluation completed.
   dynamic eval(String content,
       {String? fileName,
       String? moduleName,
@@ -110,94 +108,67 @@ class Hetu {
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) {
+      List<HTType> typeArgs = const []}) {
     final source = HTSource(content, fullName: fileName, type: type);
-    final result = evalSource(source,
+    final result = _evalSource(source,
         moduleName: moduleName,
         globallyImport: globallyImport,
         invokeFunc: invokeFunc,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
-        typeArgs: typeArgs,
-        errorHandled: errorHandled);
+        typeArgs: typeArgs);
     return result;
-  }
-
-  /// Evaluate a string content.
-  /// During this process, all declarations will
-  /// be defined to current [HTNamespace].
-  /// If [invokeFunc] is provided, will immediately
-  /// call the function after evaluation completed.
-  dynamic evalSource(HTSource source,
-      {String? moduleName,
-      bool globallyImport = false,
-      String? invokeFunc,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) {
-    if (source.content.isEmpty) {
-      return null;
-    }
-    try {
-      final bytes = compileSource(
-        source,
-        moduleName: moduleName,
-        config: config,
-        errorHandled: true,
-      );
-      final result = interpreter.loadBytecode(
-          bytes: bytes,
-          moduleName: moduleName ?? source.fullName,
-          globallyImport: globallyImport,
-          invokeFunc: invokeFunc,
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs,
-          errorHandled: true);
-      return result;
-    } catch (error, stackTrace) {
-      if (errorHandled) {
-        rethrow;
-      } else {
-        interpreter.handleError(error, externalStackTrace: stackTrace);
-      }
-    }
   }
 
   /// Evaluate a file, [key] is a possibly relative path,
   /// file content will be searched by [sourceContext].
+  /// If [invokeFunc] is provided, will immediately
+  /// call the function after evaluation completed.
   dynamic evalFile(String key,
       {String? moduleName,
       bool globallyImport = false,
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) {
-    try {
-      final source = sourceContext.getResource(key);
-      final result = evalSource(source,
-          moduleName: moduleName,
-          globallyImport: globallyImport,
-          invokeFunc: invokeFunc,
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs,
-          errorHandled: true);
-      return result;
-    } catch (error, stackTrace) {
-      if (errorHandled) {
-        rethrow;
-      } else {
-        interpreter.handleError(error, externalStackTrace: stackTrace);
-        return null;
-      }
-    }
+      List<HTType> typeArgs = const []}) {
+    final source = sourceContext.getResource(key);
+    final result = _evalSource(source,
+        moduleName: moduleName,
+        globallyImport: globallyImport,
+        invokeFunc: invokeFunc,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs);
+    return result;
   }
 
-  Uint8List? compile(String content,
+  dynamic _evalSource(HTSource source,
+      {String? moduleName,
+      bool globallyImport = false,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    if (source.content.isEmpty) {
+      return null;
+    }
+    final bytes = _compileSource(
+      source,
+      moduleName: moduleName,
+      config: config,
+    );
+    final result = interpreter.loadBytecode(
+        bytes: bytes,
+        moduleName: moduleName ?? source.fullName,
+        globallyImport: globallyImport,
+        invokeFunc: invokeFunc,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs);
+    return result;
+  }
+
+  Uint8List compile(String content,
       {String? filename,
       String? moduleName,
       CompilerConfig? config,
@@ -207,20 +178,21 @@ class Hetu {
         type: isModuleEntryScript
             ? HTResourceType.hetuScript
             : HTResourceType.hetuModule);
-    final result = compileSource(source, moduleName: moduleName);
+    final result = _compileSource(source, moduleName: moduleName);
     return result;
   }
 
   /// Compile a script content into bytecode for later use.
-  Uint8List? compileFile(String key,
+  Uint8List compileFile(String key,
       {String? moduleName, CompilerConfig? config}) {
     final source = sourceContext.getResource(key);
-    final bytes = compileSource(source, moduleName: moduleName, config: config);
+    final bytes =
+        _compileSource(source, moduleName: moduleName, config: config);
     return bytes;
   }
 
   /// Compile a [HTSource] into bytecode for later use.
-  Uint8List compileSource(HTSource source,
+  Uint8List _compileSource(HTSource source,
       {String? moduleName, CompilerConfig? config, bool errorHandled = false}) {
     try {
       final parser = HTParser(sourceContext: sourceContext);
@@ -248,5 +220,24 @@ class Hetu {
         return Uint8List.fromList([]);
       }
     }
+  }
+
+  dynamic run(
+      {required Uint8List bytes,
+      required String moduleName,
+      bool globallyImport = false,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const [],
+      bool errorHandled = false}) {
+    interpreter.loadBytecode(
+        bytes: bytes,
+        moduleName: moduleName,
+        globallyImport: globallyImport,
+        invokeFunc: invokeFunc,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs);
   }
 }
