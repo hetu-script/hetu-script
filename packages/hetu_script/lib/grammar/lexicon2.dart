@@ -444,37 +444,6 @@ abstract class HTLexicon {
 
   String get typeParameterEnd;
 
-  /// Token that are not identifers and with multiple characters.
-  List<String> get multipleCharacterPuncuations => [
-        hexNumberPrefix,
-        variadicArgs,
-        spreadSyntax,
-        functionReturnTypeIndicator,
-        whenBranchIndicator,
-        functionSingleLineBodyIndicator,
-        nullableMemberGet,
-        nullableSubGet,
-        nullableFunctionArgumentCall,
-        postIncrement,
-        postDecrement,
-        preIncrement,
-        preDecrement,
-        truncatingDevide,
-        greaterOrEqual,
-        lesserOrEqual,
-        equal,
-        notEqual,
-        ifNull,
-        logicalOr,
-        logicalAnd,
-        assignAdd,
-        assignSubtract,
-        assignMultiply,
-        assignDevide,
-        assignTruncatingDevide,
-        assignIfNull,
-      ];
-
   /// Token that are not identifers and with just one character.
   List<String> get singleCharacterPuncuations => [
         decimalPoint,
@@ -524,5 +493,36 @@ abstract class HTLexicon {
         externalFunctionTypeDefEnd,
         typeParameterStart,
         typeParameterEnd,
+      ];
+
+  /// Token that are not identifers and with double characters.
+  List<String> get doubleCharacterPuncuations => [
+        hexNumberPrefix,
+        variadicArgs,
+        spreadSyntax,
+        functionReturnTypeIndicator,
+        whenBranchIndicator,
+        functionSingleLineBodyIndicator,
+        nullableMemberGet,
+        nullableSubGet,
+        nullableFunctionArgumentCall,
+        postIncrement,
+        postDecrement,
+        preIncrement,
+        preDecrement,
+        truncatingDevide,
+        greaterOrEqual,
+        lesserOrEqual,
+        equal,
+        notEqual,
+        ifNull,
+        logicalOr,
+        logicalAnd,
+        assignAdd,
+        assignSubtract,
+        assignMultiply,
+        assignDevide,
+        assignTruncatingDevide,
+        assignIfNull,
       ];
 }

@@ -1,4 +1,6 @@
 // import '../error/error.dart';
+import 'package:hetu_script/grammar/semantic.dart';
+
 import 'token.dart';
 import '../grammar/lexicon2.dart';
 import '../grammar/lexicon_impl.dart';
@@ -63,37 +65,97 @@ class HTLexer {
       currentLineOfTokens.clear();
     }
 
-    void moveNext(String char) {
+    void moveNext(String char, {bool handleNewLine = true}) {
       column += char.length;
       pos += char.length;
-      if (char == kNewLine) {
-        ++line;
-        handleEndOfLine(pos);
+      if (handleNewLine) {
+        if (char == kNewLine) {
+          ++line;
+          handleEndOfLine(pos);
+        }
       }
     }
 
-    String getWord() {
-      final buffer = StringBuffer();
-      do {
-        final current = iter.current;
-        if (current.isNotBlank) {
-          buffer.write(current);
-          moveNext(current);
-        } else {
-          return buffer.toString();
-        }
-      } while (iter.moveNext());
-      return buffer.toString();
+    final buffer = StringBuffer();
+
+    void addToken() {
+      if (buffer.isNotEmpty) {
+        final lexeme = buffer.toString();
+        currentLineOfTokens
+            .add(Token(lexeme, line, column, pos, buffer.length));
+        buffer.clear();
+      }
     }
 
     while (iter.moveNext()) {
       final current = iter.current;
+      final currentString = iter.current + iter.stringAfter;
       if (current.isNotBlank) {
-        final word = getWord();
-        tokens.add(Token(word, line, column, pos, word.length));
-      } else {
-        moveNext(current);
+        if (currentString.startsWith(lexicon.singleLineCommentStart)) {
+          do {
+            final current2 = iter.current;
+            if (current2 == kNewLine) {
+              break;
+            } else {
+              buffer.write(current2);
+            }
+            moveNext(current2);
+          } while (iter.moveNext());
+          addToken();
+        } else if (currentString.startsWith(lexicon.multiLineCommentStart)) {
+          do {
+            final current2 = iter.current;
+            final currentString2 = current2 + iter.stringAfter;
+            if (currentString2.startsWith(lexicon.multiLineCommentEnd)) {
+              for (var i = 0; i < lexicon.multiLineCommentEnd.length; ++i) {
+                iter.moveNext();
+              }
+              buffer.write(lexicon.multiLineCommentEnd);
+              moveNext(lexicon.multiLineCommentEnd);
+              break;
+            } else {
+              buffer.write(current2);
+              moveNext(current2, handleNewLine: false);
+            }
+          } while (iter.moveNext());
+          addToken();
+        } else {
+          do {
+            final current2 = iter.current;
+            final lastChar = iter.charactersBefore.isNotEmpty
+                ? iter.charactersBefore.last
+                : '';
+            if (current2.isBlank) {
+              addToken();
+            } else if (lexicon.singleCharacterPuncuations.contains(current2)) {
+              final concact = lastChar + current2;
+              if (lexicon.doubleCharacterPuncuations.contains(concact)) {
+                buffer.write(current2);
+                addToken();
+              } else {
+                addToken();
+                buffer.write(current2);
+              }
+            } else {
+              if (lexicon.singleCharacterPuncuations.contains(lastChar)) {
+                addToken();
+              }
+              buffer.write(current2);
+            }
+            moveNext(current2);
+          } while (iter.moveNext());
+          addToken();
+        }
       }
+      moveNext(current);
+    }
+
+    if (currentLineOfTokens.isNotEmpty) {
+      handleEndOfLine(currentLineOfTokens.last.end);
+    }
+
+    if (tokens.isEmpty) {
+      tokens.add(TokenEmptyLine(line, column, pos));
     }
 
     return tokens;
