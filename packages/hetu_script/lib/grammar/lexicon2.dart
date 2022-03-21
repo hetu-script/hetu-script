@@ -13,6 +13,11 @@ class HTLexiconConfigImpl implements HTLexiconConfig {
 
 /// Lexicon used by Hetu,
 abstract class HTLexicon {
+  String get identifierStartPattern;
+  String get identifierPattern;
+  String get numberStartPattern;
+  String get numberPattern;
+
   String get singleLineCommentStart;
   String get multiLineCommentStart;
   String get multiLineCommentEnd;

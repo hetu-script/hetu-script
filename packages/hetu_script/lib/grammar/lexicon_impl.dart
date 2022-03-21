@@ -3,6 +3,18 @@ import 'lexicon2.dart';
 /// Lexicon used by Hetu,
 class HTDefaultLexicon extends HTLexicon {
   @override
+  String get identifierStartPattern => r'[_\$\p{L}]';
+
+  @override
+  String get identifierPattern => r'[_\$\p{L}0-9]';
+
+  @override
+  String get numberStartPattern => r'[\.\d]';
+
+  @override
+  String get numberPattern => r'[\.\d]';
+
+  @override
   String get singleLineCommentStart => r'//';
 
   @override
