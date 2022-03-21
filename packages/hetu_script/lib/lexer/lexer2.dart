@@ -1,10 +1,9 @@
-// import '../error/error.dart';
-import 'package:hetu_script/grammar/semantic.dart';
+import 'package:characters/characters.dart';
 
 import 'token.dart';
 import '../grammar/lexicon2.dart';
 import '../grammar/lexicon_impl.dart';
-import 'package:characters/characters.dart';
+import '../shared/constants.dart' show CommentType;
 
 extension on String {
   /// Whether this string is empty or contains only white space characters.
@@ -12,19 +11,23 @@ extension on String {
   bool get isNotBlank => !isBlank;
 }
 
-const kNewLine = '\n';
+const _kNewLine = '\n';
+
+final _kIdentifierStartPattern = RegExp(r'[_\$\p{L}]', unicode: true);
+final _kIdentifierCharacterPattern = RegExp(r'[_\$\p{L}0-9]', unicode: true);
 
 class HTLexer {
   final HTLexicon lexicon;
 
   HTLexer({HTLexicon? lexicon}) : lexicon = lexicon ?? HTDefaultLexicon();
 
-  List<Token> lex(String content, {int line = 1, int column = 1, int pos = 0}) {
+  List<Token> lex(String content,
+      {int line = 1, int column = 1, int offset = 0}) {
     final tokens = <Token>[];
     final iter = content.characters.iterator;
     final currentLineOfTokens = <Token>[];
 
-    void handleEndOfLine([int? offset]) {
+    void handleEndOfLine([int? lineLength]) {
       if (currentLineOfTokens.isNotEmpty) {
         if (lexicon.autoSemicolonInsertAtStart
             .contains(currentLineOfTokens.first.type)) {
@@ -53,101 +56,185 @@ class HTLexer {
           tokens.addAll(currentLineOfTokens);
         }
       } else {
-        tokens.add(TokenEmptyLine(line, column, pos));
+        tokens.add(TokenEmptyLine(line, column, offset));
       }
       ++line;
       // empty line counts as a character
-      if (offset == null) {
-        pos += 1;
+      if (lineLength == null) {
+        offset += 1;
       } else {
-        pos = offset + 1;
+        offset = lineLength + 1;
       }
       currentLineOfTokens.clear();
     }
 
-    void moveNext(String char, {bool handleNewLine = true}) {
+    void handleLineInfo(String char, {bool handleNewLine = true}) {
       column += char.length;
-      pos += char.length;
+      offset += char.length;
       if (handleNewLine) {
-        if (char == kNewLine) {
+        if (char == _kNewLine) {
           ++line;
-          handleEndOfLine(pos);
+          handleEndOfLine(offset);
         }
       }
     }
 
     final buffer = StringBuffer();
 
-    void addToken() {
-      if (buffer.isNotEmpty) {
-        final lexeme = buffer.toString();
-        currentLineOfTokens
-            .add(Token(lexeme, line, column, pos, buffer.length));
-        buffer.clear();
-      }
-    }
-
     while (iter.moveNext()) {
-      final current = iter.current;
-      final currentString = iter.current + iter.stringAfter;
+      var current = iter.current;
+      var currentString = iter.current + iter.stringAfter;
       if (current.isNotBlank) {
+        // single line comment
         if (currentString.startsWith(lexicon.singleLineCommentStart)) {
           do {
-            final current2 = iter.current;
-            if (current2 == kNewLine) {
+            current = iter.current;
+            if (current == _kNewLine) {
               break;
             } else {
-              buffer.write(current2);
+              buffer.write(current);
             }
-            moveNext(current2);
           } while (iter.moveNext());
-          addToken();
-        } else if (currentString.startsWith(lexicon.multiLineCommentStart)) {
+          final lexeme = buffer.toString();
+          handleLineInfo(lexeme);
+          final token = TokenComment(
+              lexeme, line, column, offset, buffer.length,
+              commentType:
+                  currentString.startsWith(lexicon.documentationCommentStart)
+                      ? CommentType.documentation
+                      : CommentType.singleLine,
+              isTrailing: currentLineOfTokens.isNotEmpty ? true : false);
+          currentLineOfTokens.add(token);
+          buffer.clear();
+        }
+        // multiline line comment
+        else if (currentString.startsWith(lexicon.multiLineCommentStart)) {
           do {
-            final current2 = iter.current;
-            final currentString2 = current2 + iter.stringAfter;
-            if (currentString2.startsWith(lexicon.multiLineCommentEnd)) {
+            current = iter.current;
+            currentString = current + iter.stringAfter;
+            if (currentString.startsWith(lexicon.multiLineCommentEnd)) {
               for (var i = 0; i < lexicon.multiLineCommentEnd.length; ++i) {
                 iter.moveNext();
               }
               buffer.write(lexicon.multiLineCommentEnd);
-              moveNext(lexicon.multiLineCommentEnd);
+              handleLineInfo(lexicon.multiLineCommentEnd);
               break;
             } else {
-              buffer.write(current2);
-              moveNext(current2, handleNewLine: false);
+              buffer.write(current);
+              handleLineInfo(current, handleNewLine: false);
             }
           } while (iter.moveNext());
-          addToken();
+          final lexeme = buffer.toString();
+          final token = TokenComment(
+              lexeme, line, column, offset, buffer.length,
+              commentType: CommentType.multiLine,
+              isTrailing: currentLineOfTokens.isNotEmpty ? true : false);
+          currentLineOfTokens.add(token);
+          buffer.clear();
         } else {
-          do {
-            final current2 = iter.current;
-            final lastChar = iter.charactersBefore.isNotEmpty
-                ? iter.charactersBefore.last
-                : '';
-            if (current2.isBlank) {
-              addToken();
-            } else if (lexicon.singleCharacterPuncuations.contains(current2)) {
-              final concact = lastChar + current2;
-              if (lexicon.doubleCharacterPuncuations.contains(concact)) {
-                buffer.write(current2);
-                addToken();
-              } else {
-                addToken();
-                buffer.write(current2);
-              }
-            } else {
-              if (lexicon.singleCharacterPuncuations.contains(lastChar)) {
-                addToken();
-              }
-              buffer.write(current2);
+          final nextChar = iter.charactersAfter.isNotEmpty
+              ? iter.charactersBefore.first
+              : '';
+          final concact = current + nextChar;
+          // multiple character punctucation token
+          if (lexicon.punctuations.contains(concact)) {
+            for (var i = 0; i < concact.length; ++i) {
+              iter.moveNext();
             }
-            moveNext(current2);
-          } while (iter.moveNext());
-          addToken();
+            handleLineInfo(concact);
+            final token = Token(concact, line, column, offset, buffer.length);
+            currentLineOfTokens.add(token);
+            buffer.clear();
+          }
+          // punctuation token
+          else if (lexicon.punctuations.contains(current)) {
+            // string literal
+            if (current == lexicon.stringStart1) {
+              buffer.write(current);
+              while (iter.moveNext()) {
+                current = iter.current;
+                buffer.write(current);
+                if (current == lexicon.stringEnd1) {
+                  break;
+                }
+              }
+              final lexeme = buffer.toString();
+              handleLineInfo(lexeme);
+              final token = TokenStringLiteral(lexeme, lexicon.stringStart1,
+                  lexicon.stringEnd1, line, column, offset, buffer.length);
+              currentLineOfTokens.add(token);
+              buffer.clear();
+            } else if (current == lexicon.stringStart2) {
+              buffer.write(current);
+              while (iter.moveNext()) {
+                current = iter.current;
+                buffer.write(current);
+                if (current == lexicon.stringEnd2) {
+                  break;
+                }
+              }
+              final lexeme = buffer.toString();
+              handleLineInfo(lexeme);
+              final token = TokenStringLiteral(lexeme, lexicon.stringStart2,
+                  lexicon.stringEnd2, line, column, offset, buffer.length);
+              currentLineOfTokens.add(token);
+              buffer.clear();
+            }
+            // marked identifier
+            else if (current == lexicon.identifierStart) {
+              buffer.write(current);
+              while (iter.moveNext()) {
+                current = iter.current;
+                buffer.write(current);
+                if (current == lexicon.identifierEnd) {
+                  break;
+                }
+              }
+              final lexeme = buffer.toString();
+              handleLineInfo(lexeme);
+              final token = TokenIdentifier(
+                  lexeme, line, column, offset, buffer.length,
+                  isMarked: true);
+              currentLineOfTokens.add(token);
+              buffer.clear();
+            }
+            // normal punctuation
+            else {
+              buffer.write(concact);
+              handleLineInfo(concact);
+              final token = Token(current, line, column, offset, buffer.length);
+              currentLineOfTokens.add(token);
+              buffer.clear();
+            }
+          }
+          // normal identifier token
+          else if (_kIdentifierStartPattern.hasMatch(current)) {
+            buffer.write(current);
+            while (iter.charactersAfter.isNotEmpty) {
+              final nextChar = iter.charactersAfter.first;
+              if (_kIdentifierCharacterPattern.hasMatch(nextChar)) {
+                buffer.write(nextChar);
+                iter.moveNext();
+              } else {
+                break;
+              }
+            }
+            final lexeme = buffer.toString();
+            handleLineInfo(lexeme);
+            Token token;
+            if (lexicon.keywords.contains(lexeme)) {
+              token = Token(lexeme, line, column, offset, buffer.length,
+                  isKeyword: true);
+            } else {
+              token =
+                  TokenIdentifier(lexeme, line, column, offset, buffer.length);
+            }
+            currentLineOfTokens.add(token);
+            buffer.clear();
+          }
         }
       }
-      moveNext(current);
+      handleLineInfo(current);
     }
 
     if (currentLineOfTokens.isNotEmpty) {
@@ -155,7 +242,7 @@ class HTLexer {
     }
 
     if (tokens.isEmpty) {
-      tokens.add(TokenEmptyLine(line, column, pos));
+      tokens.add(TokenEmptyLine(line, column, offset));
     }
 
     return tokens;

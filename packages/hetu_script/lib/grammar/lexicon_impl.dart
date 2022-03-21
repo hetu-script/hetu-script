@@ -15,13 +15,7 @@ class HTDefaultLexicon extends HTLexicon {
   String get documentationCommentStart => r'///';
 
   @override
-  String get stringInterpolationPattern => r'\${([^\${}]*)}';
-
-  @override
-  String get stringInterpolationMark => r'$';
-
-  @override
-  String get stringInterpolationStart => r'{';
+  String get stringInterpolationStart => r'${';
 
   @override
   String get stringInterpolationEnd => r'}';
@@ -44,6 +38,14 @@ class HTDefaultLexicon extends HTLexicon {
 
   @override
   String get programEntryFunctionId => 'main';
+
+  /// _
+  @override
+  String get privatePrefix => '_';
+
+  /// $
+  @override
+  String get internalPrefix => r'$';
 
   @override
   String get typeVoid => 'void';
@@ -282,15 +284,7 @@ class HTDefaultLexicon extends HTLexicon {
 
   /// _
   @override
-  String get privatePrefix => '_';
-
-  /// _
-  @override
   String get omittedMark => '_';
-
-  /// $
-  @override
-  String get internalPrefix => r'$';
 
   /// ->
   @override
@@ -363,16 +357,6 @@ class HTDefaultLexicon extends HTLexicon {
   /// --
   @override
   String get preDecrement => '--';
-
-  /// prefix operators
-  @override
-  Set<String> get unaryPrefixs => {
-        logicalNot,
-        negative,
-        preIncrement,
-        preDecrement,
-        kTypeof,
-      };
 
   /// *
   @override
@@ -503,19 +487,27 @@ class HTDefaultLexicon extends HTLexicon {
 
   /// '
   @override
-  String get apostropheStringLeft => "'";
+  String get stringStart1 => "'";
 
   /// '
   @override
-  String get apostropheStringRight => "'";
+  String get stringEnd1 => "'";
 
   /// "
   @override
-  String get quotationStringLeft => '"';
+  String get stringStart2 => '"';
 
   /// "
   @override
-  String get quotationStringRight => '"';
+  String get stringEnd2 => '"';
+
+  /// "
+  @override
+  String get identifierStart => '`';
+
+  /// "
+  @override
+  String get identifierEnd => '`';
 
   /// (
   @override

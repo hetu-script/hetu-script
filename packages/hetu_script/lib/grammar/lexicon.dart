@@ -475,16 +475,22 @@ class HTLexicon {
   static const endOfStatementMark = ';';
 
   /// '
-  static const apostropheStringLeft = "'";
+  static const stringStart1 = "'";
 
   /// '
-  static const apostropheStringRight = "'";
+  static const stringEnd1 = "'";
 
   /// "
-  static const quotationStringLeft = '"';
+  static const stringStart2 = '"';
 
   /// "
-  static const quotationStringRight = '"';
+  static const stringEnd2 = '"';
+
+  /// `
+  static const identifierStart = '`';
+
+  /// `
+  static const identifierEnd = '`';
 
   /// (
   static const groupExprStart = '(';

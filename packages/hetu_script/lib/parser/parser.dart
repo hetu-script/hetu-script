@@ -1619,8 +1619,7 @@ class HTParser extends TokenReader {
       case Semantic.stringLiteral:
         final token = advance() as TokenStringLiteral;
         _leftValueLegality = false;
-        return StringLiteralExpr(
-            token.literal, token.quotationLeft, token.quotationRight,
+        return StringLiteralExpr(token.literal, token.startMark, token.endMark,
             source: _currentSource,
             line: token.line,
             column: token.column,
@@ -1666,7 +1665,7 @@ class HTParser extends TokenReader {
                 '${HTLexicon.functionBlockStart}${i++}${HTLexicon.functionBlockEnd}');
         _leftValueLegality = false;
         return StringInterpolationExpr(
-            text, token.quotationLeft, token.quotationRight, interpolations,
+            text, token.startMark, token.endMark, interpolations,
             source: _currentSource,
             line: token.line,
             column: token.column,
@@ -1680,8 +1679,7 @@ class HTParser extends TokenReader {
             line: keyword.line,
             column: keyword.column,
             offset: keyword.offset,
-            length: keyword.length,
-            isKeyword: true);
+            length: keyword.length);
       case HTLexicon.kSuper:
         final keyword = advance();
         _leftValueLegality = false;
@@ -1690,13 +1688,13 @@ class HTParser extends TokenReader {
             line: keyword.line,
             column: keyword.column,
             offset: keyword.offset,
-            length: keyword.length,
-            isKeyword: true);
+            length: keyword.length);
       case HTLexicon.kNew:
         final keyword = advance();
         _leftValueLegality = false;
-        final idTok = match(Semantic.identifier);
-        final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
+        final idTok = match(Semantic.identifier) as TokenIdentifier;
+        final id = IdentifierExpr.fromToken(idTok,
+            isMarked: idTok.isMarked, source: _currentSource);
         var positionalArgs = <AstNode>[];
         var namedArgs = <String, AstNode>{};
         if (expect([HTLexicon.functionCallArgumentStart], consume: true)) {
@@ -1781,12 +1779,12 @@ class HTParser extends TokenReader {
         _leftValueLegality = false;
         return _parseFunction(category: FunctionCategory.literal);
       case Semantic.identifier:
-        final id = advance();
+        final id = advance() as TokenIdentifier;
         final isLocal = curTok.type != HTLexicon.assign;
         // TODO: type arguments
         _leftValueLegality = true;
         return IdentifierExpr.fromToken(id,
-            isLocal: isLocal, source: _currentSource);
+            isMarked: id.isMarked, isLocal: isLocal, source: _currentSource);
       default:
         final err = HTError.unexpected(Semantic.expression, curTok.lexeme,
             filename: _currrentFileName,

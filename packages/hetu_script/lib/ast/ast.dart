@@ -375,32 +375,28 @@ class IdentifierExpr extends AstNode {
 
   final String id;
 
-  final bool isKeyword;
+  final bool isMarked;
 
   final bool isLocal;
 
-  final bool isSymbol;
-
   IdentifierExpr(this.id,
-      {this.isSymbol = true,
-      this.isKeyword = false,
+      {this.isMarked = false,
       this.isLocal = true,
       HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(Semantic.symbolExpr,
+      : super(Semantic.identifierExpr,
             source: source,
             line: line,
             column: column,
             offset: offset,
             length: length);
 
-  IdentifierExpr.fromToken(Token idTok, {bool isLocal = true, HTSource? source})
+  IdentifierExpr.fromToken(Token idTok,
+      {bool isMarked = false, bool isLocal = true, HTSource? source})
       : this(idTok.lexeme,
-            isSymbol: idTok.type == Semantic.identifier,
-            isKeyword: idTok.isKeyword,
             isLocal: isLocal,
             source: source,
             line: idTok.line,

@@ -1774,8 +1774,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
 
       final toStringDef = StringInterpolationExpr(
           '${stmt.id.id}${HTLexicon.memberGet}${HTLexicon.stringInterpolationStart}0${HTLexicon.stringInterpolationEnd}',
-          HTLexicon.apostropheStringLeft,
-          HTLexicon.apostropheStringRight,
+          HTLexicon.stringStart1,
+          HTLexicon.stringEnd1,
           [IdentifierExpr(valueId)]);
       final toStringFunc = FuncDecl(HTLexicon.propertyToString, [],
           id: IdentifierExpr(HTLexicon.propertyToString),
@@ -1793,8 +1793,8 @@ class HTCompiler implements AbstractAstVisitor<Uint8List> {
             MemberExpr(stmt.id,
                 IdentifierExpr(HTLexicon.privatePrefix, isLocal: false)),
             positionalArgs: [
-              StringLiteralExpr(item.id, HTLexicon.apostropheStringLeft,
-                  HTLexicon.apostropheStringRight)
+              StringLiteralExpr(
+                  item.id, HTLexicon.stringStart1, HTLexicon.stringEnd1)
             ]);
         final itemDecl = VarDecl(item,
             classId: stmt.classId,

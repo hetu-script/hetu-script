@@ -2,13 +2,8 @@ import 'package:hetu_script/lexer/lexer2.dart';
 
 void main() {
   final source = r'''
-/// single line comment
-/*
-  multi line comment
-*/
-fun main {
-  print('hello, world!')
-}
+// 程序入口
+var list = ['jimmy', "tommy", `larry`]
 ''';
   final lexer = HTLexer();
   final tokens = lexer.lex(source);

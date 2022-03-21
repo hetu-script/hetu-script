@@ -187,7 +187,11 @@ class HTFormatter implements AbstractAstVisitor<String> {
 
   @override
   String visitIdentifierExpr(IdentifierExpr expr) {
-    return expr.id;
+    if (expr.isMarked) {
+      return '${HTLexicon.identifierStart}${expr.id}${HTLexicon.identifierEnd}';
+    } else {
+      return expr.id;
+    }
   }
 
   @override
@@ -631,7 +635,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
         output.write(' ${HTLexicon.functionBlockEnd} ${HTLexicon.kFrom} ');
       }
       output.write(
-          '${HTLexicon.apostropheStringLeft}${stmt.fromPath}${HTLexicon.apostropheStringRight}');
+          '${HTLexicon.stringStart1}${stmt.fromPath}${HTLexicon.stringEnd1}');
       if (stmt.alias != null) {
         output.write(' ${HTLexicon.kAs} ${stmt.alias}');
       }
@@ -646,7 +650,7 @@ class HTFormatter implements AbstractAstVisitor<String> {
           output.write(' ${HTLexicon.functionBlockEnd} ${HTLexicon.kFrom} ');
         }
         output.write(
-            '${HTLexicon.apostropheStringLeft}${stmt.fromPath}${HTLexicon.apostropheStringRight}');
+            '${HTLexicon.stringStart1}${stmt.fromPath}${HTLexicon.stringEnd1}');
       }
     }
     if (stmt.hasEndOfStmtMark) {

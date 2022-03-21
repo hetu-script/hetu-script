@@ -18,8 +18,6 @@ abstract class HTLexicon {
   String get multiLineCommentEnd;
   String get documentationCommentStart;
 
-  String get stringInterpolationPattern;
-  String get stringInterpolationMark;
   String get stringInterpolationStart;
   String get stringInterpolationEnd;
 
@@ -83,6 +81,9 @@ abstract class HTLexicon {
   String get globalObjectId;
   String get globalPrototypeId;
   String get programEntryFunctionId;
+
+  String get privatePrefix;
+  String get internalPrefix;
 
   String get typeVoid;
   String get typeAny;
@@ -239,11 +240,7 @@ abstract class HTLexicon {
 
   String get spreadSyntax;
 
-  String get privatePrefix;
-
   String get omittedMark;
-
-  String get internalPrefix;
 
   String get functionReturnTypeIndicator;
 
@@ -400,13 +397,17 @@ abstract class HTLexicon {
 
   String get endOfStatementMark;
 
-  String get apostropheStringLeft;
+  String get stringStart1;
 
-  String get apostropheStringRight;
+  String get stringEnd1;
 
-  String get quotationStringLeft;
+  String get stringStart2;
 
-  String get quotationStringRight;
+  String get stringEnd2;
+
+  String get identifierStart;
+
+  String get identifierEnd;
 
   String get groupExprStart;
 
@@ -445,36 +446,66 @@ abstract class HTLexicon {
   String get typeParameterEnd;
 
   /// Token that are not identifers and with just one character.
-  List<String> get singleCharacterPuncuations => [
+  List<String> get punctuations => [
         decimalPoint,
+        hexNumberPrefix,
+        variadicArgs,
+        spreadSyntax,
+        omittedMark,
+        functionReturnTypeIndicator,
+        whenBranchIndicator,
+        functionSingleLineBodyIndicator,
+        nullableMemberGet,
         memberGet,
+        nullableSubGet,
         subGetStart,
         subGetEnd,
+        nullableFunctionArgumentCall,
         functionCallArgumentStart,
         functionCallArgumentEnd,
         nullableTypePostfix,
+        postIncrement,
+        postDecrement,
         logicalNot,
         negative,
+        preIncrement,
+        preDecrement,
         multiply,
         devide,
+        truncatingDevide,
         modulo,
         add,
         subtract,
         greater,
+        greaterOrEqual,
         lesser,
+        lesserOrEqual,
+        equal,
+        notEqual,
+        ifNull,
+        logicalOr,
+        logicalAnd,
         ternaryThen,
         ternaryElse,
         assign,
+        assignAdd,
+        assignSubtract,
+        assignMultiply,
+        assignDevide,
+        assignTruncatingDevide,
+        assignIfNull,
         comma,
         constructorInitializationListIndicator,
         namedArgumentValueIndicator,
         typeIndicator,
         structValueIndicator,
         endOfStatementMark,
-        apostropheStringLeft,
-        apostropheStringRight,
-        quotationStringLeft,
-        quotationStringRight,
+        stringStart1,
+        stringEnd1,
+        stringStart2,
+        stringEnd2,
+        identifierStart,
+        identifierEnd,
         groupExprStart,
         groupExprEnd,
         functionBlockStart,
@@ -493,36 +524,5 @@ abstract class HTLexicon {
         externalFunctionTypeDefEnd,
         typeParameterStart,
         typeParameterEnd,
-      ];
-
-  /// Token that are not identifers and with double characters.
-  List<String> get doubleCharacterPuncuations => [
-        hexNumberPrefix,
-        variadicArgs,
-        spreadSyntax,
-        functionReturnTypeIndicator,
-        whenBranchIndicator,
-        functionSingleLineBodyIndicator,
-        nullableMemberGet,
-        nullableSubGet,
-        nullableFunctionArgumentCall,
-        postIncrement,
-        postDecrement,
-        preIncrement,
-        preDecrement,
-        truncatingDevide,
-        greaterOrEqual,
-        lesserOrEqual,
-        equal,
-        notEqual,
-        ifNull,
-        logicalOr,
-        logicalAnd,
-        assignAdd,
-        assignSubtract,
-        assignMultiply,
-        assignDevide,
-        assignTruncatingDevide,
-        assignIfNull,
       ];
 }

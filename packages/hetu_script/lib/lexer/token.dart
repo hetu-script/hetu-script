@@ -24,7 +24,7 @@ class Token {
   String toString() => lexeme;
 
   const Token(this.lexeme, this.line, this.column, this.offset, this.length,
-      [this.isKeyword = false]);
+      {this.isKeyword = false});
 }
 
 class TokenEmpty extends Token {
@@ -47,8 +47,12 @@ class TokenIdentifier extends Token {
   @override
   String get type => Semantic.identifier;
 
+  /// whether this identifier is marked by grave accent marks.
+  final bool isMarked;
+
   const TokenIdentifier(
-      String lexeme, int line, int column, int offset, int length)
+      String lexeme, int line, int column, int offset, int length,
+      {this.isMarked = false})
       : super(lexeme, line, column, offset, length);
 }
 
@@ -95,12 +99,12 @@ class TokenStringLiteral extends Token {
   @override
   final String literal;
 
-  final String quotationLeft;
+  final String startMark;
 
-  final String quotationRight;
+  final String endMark;
 
-  const TokenStringLiteral(this.literal, this.quotationLeft,
-      this.quotationRight, int line, int column, int offset, int length)
+  const TokenStringLiteral(this.literal, this.startMark, this.endMark, int line,
+      int column, int offset, int length)
       : super(literal, line, column, offset, length);
 }
 
@@ -112,15 +116,14 @@ class TokenStringInterpolation extends TokenStringLiteral {
 
   const TokenStringInterpolation(
       String literal,
-      String quotationLeft,
-      String quotationRight,
+      String startMark,
+      String endMark,
       this.interpolations,
       int line,
       int column,
       int offset,
       int length)
-      : super(literal, quotationLeft, quotationRight, line, column, offset,
-            length);
+      : super(literal, startMark, endMark, line, column, offset, length);
 }
 
 class TokenComment extends Token {

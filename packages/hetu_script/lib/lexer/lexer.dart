@@ -85,7 +85,8 @@ class HTLexer {
               curColumn, curOffset + match.start, curOffset + match.end));
         } else if (HTLexicon.keywords.contains(matchString)) {
           toksOfLine.add(Token(matchString, curLine, curColumn,
-              curOffset + match.start, curOffset + match.end, true));
+              curOffset + match.start, curOffset + match.end,
+              isKeyword: true));
         } else {
           toksOfLine.add(TokenIdentifier(matchString, curLine, curColumn,
               curOffset + match.start, curOffset + match.end));
@@ -115,8 +116,8 @@ class HTLexer {
         final literal = matchString.substring(1, matchString.length - 1);
         toksOfLine.add(TokenStringLiteral(
             literal,
-            HTLexicon.apostropheStringLeft,
-            HTLexicon.apostropheStringRight,
+            HTLexicon.stringStart1,
+            HTLexicon.stringEnd1,
             curLine,
             curColumn,
             curOffset + match.start,
@@ -125,8 +126,8 @@ class HTLexer {
         final literal = matchString.substring(1, matchString.length - 1);
         toksOfLine.add(TokenStringLiteral(
             literal,
-            HTLexicon.quotationStringLeft,
-            HTLexicon.quotationStringRight,
+            HTLexicon.stringStart2,
+            HTLexicon.stringEnd2,
             curLine,
             curColumn,
             curOffset + match.start,
@@ -140,10 +141,10 @@ class HTLexer {
           null) {
         final token = _hanldeStringInterpolation(
             matchString,
-            HTLexicon.apostropheStringLeft,
-            HTLexicon.apostropheStringRight,
+            HTLexicon.stringStart1,
+            HTLexicon.stringEnd1,
             curLine,
-            curColumn + HTLexicon.apostropheStringLeft.length,
+            curColumn + HTLexicon.stringStart1.length,
             curOffset + match.start);
         toksOfLine.add(token);
       } else if (match
@@ -151,10 +152,10 @@ class HTLexer {
           null) {
         final token = _hanldeStringInterpolation(
             matchString,
-            HTLexicon.quotationStringLeft,
-            HTLexicon.quotationStringRight,
+            HTLexicon.stringStart2,
+            HTLexicon.stringEnd2,
             curLine,
-            curColumn + HTLexicon.quotationStringLeft.length,
+            curColumn + HTLexicon.stringStart2.length,
             curOffset + match.start);
         toksOfLine.add(token);
       } else if (match.group(HTLexicon.tokenGroupNewline) != null) {

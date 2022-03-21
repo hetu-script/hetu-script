@@ -99,7 +99,7 @@ abstract class Semantic {
   static const structuralTypeExpr = 'structural_type_expression';
   static const genericTypeParamExpr = 'generic_type_parameter_expression';
   static const blockExpr = 'block_expression';
-  static const symbolExpr = 'symbol_expression';
+  static const identifierExpr = 'identifier_expression';
   static const unaryExpr = 'unary_expression';
   static const assignExpr = 'assign_expression';
   static const binaryExpr = 'binary_expression';
