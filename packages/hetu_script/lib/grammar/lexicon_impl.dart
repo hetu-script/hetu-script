@@ -15,6 +15,12 @@ class HTDefaultLexicon extends HTLexicon {
   String get numberPattern => r'[\.\d]';
 
   @override
+  String get hexNumberPattern => r'[0-9a-fA-F]';
+
+  @override
+  String get hexNumberStart => r'0x';
+
+  @override
   String get singleLineCommentStart => r'//';
 
   @override
@@ -281,10 +287,6 @@ class HTDefaultLexicon extends HTLexicon {
   /// .
   @override
   String get decimalPoint => '.';
-
-  /// 0x
-  @override
-  String get hexNumberPrefix => '0x';
 
   /// ...
   @override

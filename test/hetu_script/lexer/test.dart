@@ -1,4 +1,4 @@
-import 'package:hetu_script/lexer/lexer2.dart';
+import 'package:hetu_script/lexer/lexer.dart';
 
 void main() {
   final source = r'''

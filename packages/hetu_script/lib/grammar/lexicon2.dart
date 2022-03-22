@@ -17,6 +17,9 @@ abstract class HTLexicon {
   String get identifierPattern;
   String get numberStartPattern;
   String get numberPattern;
+  String get hexNumberPattern;
+
+  String get hexNumberStart;
 
   String get singleLineCommentStart;
   String get multiLineCommentStart;
@@ -239,8 +242,6 @@ abstract class HTLexicon {
 
   String get decimalPoint;
 
-  String get hexNumberPrefix;
-
   String get variadicArgs;
 
   String get spreadSyntax;
@@ -453,7 +454,6 @@ abstract class HTLexicon {
   /// Token that are not identifers and with just one character.
   List<String> get punctuations => [
         decimalPoint,
-        hexNumberPrefix,
         variadicArgs,
         spreadSyntax,
         omittedMark,

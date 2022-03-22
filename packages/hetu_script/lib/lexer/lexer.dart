@@ -1,223 +1,395 @@
-import '../grammar/lexicon.dart';
-// import '../error/error.dart';
+import 'package:characters/characters.dart';
+
 import 'token.dart';
+import '../grammar/lexicon2.dart';
+import '../grammar/lexicon_impl.dart';
 import '../shared/constants.dart' show CommentType;
 
-/// Scans a string content and generates a list of Tokens.
-class HTLexer {
-  List<Token> lex(String content,
-      {int line = 1, int column = 1, int start = 0}) {
-    var curLine = line;
-    var curColumn = column;
-    final tokens = <Token>[];
-    final pattern = RegExp(
-      HTLexicon.tokenPattern,
-      unicode: true,
-    );
-    var curOffset = start;
-    final toksOfLine = <Token>[];
+extension on String {
+  /// Whether this string is empty or contains only white space characters.
+  bool get isBlank => isEmpty || trim() == '';
+  bool get isNotBlank => !isBlank;
+}
 
-    void handleEndOfLine([int? offset]) {
-      if (toksOfLine.isNotEmpty) {
-        if (HTLexicon.autoSemicolonInsertAtStart
-            .contains(toksOfLine.first.type)) {
+const _kNewLine = '\n';
+
+class HTLexer {
+  final HTLexicon lexicon;
+
+  late final RegExp _identifierStartRegExp;
+  late final RegExp _identifierRegExp;
+  late final RegExp _numberStartRegExp;
+  late final RegExp _numberRegExp;
+  late final RegExp _hexNumberRegExp;
+
+  HTLexer({HTLexicon? lexicon}) : lexicon = lexicon ?? HTDefaultLexicon() {
+    _identifierStartRegExp =
+        RegExp(this.lexicon.identifierStartPattern, unicode: true);
+    _identifierRegExp = RegExp(this.lexicon.identifierPattern, unicode: true);
+    _numberStartRegExp = RegExp(this.lexicon.numberStartPattern);
+    _numberRegExp = RegExp(this.lexicon.numberPattern);
+    _hexNumberRegExp = RegExp(this.lexicon.hexNumberPattern);
+  }
+
+  List<Token> lex(String content,
+      {int line = 1, int column = 1, int offset = 0}) {
+    final tokens = <Token>[];
+    final iter = content.characters.iterator;
+    final currentLineOfTokens = <Token>[];
+
+    void handleEndOfLine([int? lineLength]) {
+      if (currentLineOfTokens.isNotEmpty) {
+        if (lexicon.autoSemicolonInsertAtStart
+            .contains(currentLineOfTokens.first.type)) {
           /// Add semicolon before a newline if the new line starting with '{, [, (, +, -' tokens
           /// and the last line does not ends with an unfinished token.
           if (tokens.isNotEmpty &&
-              !HTLexicon.unfinishedTokens.contains(tokens.last.type)) {
-            tokens.add(Token(HTLexicon.endOfStatementMark, curLine, 1,
-                toksOfLine.first.offset + toksOfLine.first.length, 0));
+              !lexicon.unfinishedTokens.contains(tokens.last.type)) {
+            tokens.add(Token(
+                lexicon.endOfStatementMark,
+                line,
+                1,
+                currentLineOfTokens.first.offset +
+                    currentLineOfTokens.first.length,
+                0));
           }
-          tokens.addAll(toksOfLine);
-        } else if (toksOfLine.last.type == HTLexicon.kReturn) {
-          tokens.addAll(toksOfLine);
-          tokens.add(Token(HTLexicon.endOfStatementMark, curLine, curColumn + 1,
-              toksOfLine.last.offset + toksOfLine.last.length, 0));
+          tokens.addAll(currentLineOfTokens);
+        } else if (currentLineOfTokens.last.type == lexicon.kReturn) {
+          tokens.addAll(currentLineOfTokens);
+          tokens.add(Token(
+              lexicon.endOfStatementMark,
+              line,
+              column + 1,
+              currentLineOfTokens.last.offset + currentLineOfTokens.last.length,
+              0));
         } else {
-          tokens.addAll(toksOfLine);
+          tokens.addAll(currentLineOfTokens);
         }
       } else {
-        tokens.add(TokenEmptyLine(curLine, curColumn, start));
+        tokens.add(TokenEmptyLine(line, column, offset));
       }
-      ++curLine;
+      ++line;
       // empty line counts as a character
-      if (offset != null) {
-        curOffset = offset + 1;
+      if (lineLength == null) {
+        offset += 1;
       } else {
-        curOffset += 1;
+        offset = lineLength + 1;
       }
-      toksOfLine.clear();
+      currentLineOfTokens.clear();
     }
 
-    final matches = pattern.allMatches(content);
-    for (final match in matches) {
-      final matchString = match.group(0)!;
-      curColumn = column + match.start;
-      if (match.group(HTLexicon.tokenGroupSingleComment) != null) {
-        if (toksOfLine.isEmpty) {
-          toksOfLine.add(TokenComment(matchString, curLine, curColumn,
-              curOffset + match.start, curOffset + match.end,
+    void handleLineInfo(String char, {bool handleNewLine = true}) {
+      column += char.length;
+      offset += char.length;
+      if (handleNewLine) {
+        if (char == _kNewLine) {
+          ++line;
+          handleEndOfLine(offset);
+        }
+      }
+    }
+
+    final buffer = StringBuffer();
+    String current;
+
+    String handleStringInterpolation() {
+      buffer.write(lexicon.stringInterpolationStart);
+      for (var i = 0; i < lexicon.stringInterpolationStart.length - 1; ++i) {
+        iter.moveNext();
+      }
+      // get the inner string within the interpolation marker.
+      final buffer2 = StringBuffer();
+      while (iter.moveNext()) {
+        current = iter.current;
+        buffer.write(current);
+        handleLineInfo(current);
+        if (current == lexicon.stringInterpolationEnd) {
+          break;
+        } else {
+          buffer2.write(current);
+        }
+      }
+      return buffer2.toString();
+    }
+
+    while (iter.moveNext()) {
+      current = iter.current;
+      var currentString = iter.current + iter.stringAfter;
+      if (current.isNotBlank) {
+        // single line comment
+        if (currentString.startsWith(lexicon.singleLineCommentStart)) {
+          do {
+            current = iter.current;
+            if (current == _kNewLine) {
+              break;
+            } else {
+              buffer.write(current);
+            }
+          } while (iter.moveNext());
+          final lexeme = buffer.toString();
+          handleLineInfo(lexeme);
+          final token = TokenComment(
+              lexeme, line, column, offset, buffer.length,
               commentType:
-                  matchString.startsWith(HTLexicon.documentationCommentPattern)
+                  currentString.startsWith(lexicon.documentationCommentStart)
                       ? CommentType.documentation
-                      : CommentType.singleLine));
-        } else {
-          toksOfLine.add(TokenComment(matchString, curLine, curColumn,
-              curOffset + match.start, curOffset + match.end,
-              commentType: CommentType.singleLine, isTrailing: true));
+                      : CommentType.singleLine,
+              isTrailing: currentLineOfTokens.isNotEmpty ? true : false);
+          currentLineOfTokens.add(token);
+          buffer.clear();
         }
-      } else if (match.group(HTLexicon.tokenGroupBlockComment) != null) {
-        if (toksOfLine.isEmpty) {
-          toksOfLine.add(TokenComment(matchString, curLine, curColumn,
-              curOffset + match.start, curOffset + match.end,
-              commentType: CommentType.multiLine));
+        // multiline line comment
+        else if (currentString.startsWith(lexicon.multiLineCommentStart)) {
+          do {
+            current = iter.current;
+            currentString = current + iter.stringAfter;
+            if (currentString.startsWith(lexicon.multiLineCommentEnd)) {
+              for (var i = 0; i < lexicon.multiLineCommentEnd.length; ++i) {
+                iter.moveNext();
+              }
+              buffer.write(lexicon.multiLineCommentEnd);
+              handleLineInfo(lexicon.multiLineCommentEnd);
+              break;
+            } else {
+              buffer.write(current);
+              handleLineInfo(current, handleNewLine: false);
+            }
+          } while (iter.moveNext());
+          final lexeme = buffer.toString();
+          final token = TokenComment(
+              lexeme, line, column, offset, buffer.length,
+              commentType: CommentType.multiLine,
+              isTrailing: currentLineOfTokens.isNotEmpty ? true : false);
+          currentLineOfTokens.add(token);
+          buffer.clear();
         } else {
-          toksOfLine.add(TokenComment(matchString, curLine, curColumn,
-              curOffset + match.start, curOffset + match.end,
-              commentType: CommentType.multiLine, isTrailing: true));
+          final nextChar =
+              iter.charactersAfter.isNotEmpty ? iter.charactersAfter.first : '';
+          final concact = current + nextChar;
+          // multiple character punctucation token
+          if (lexicon.punctuations.contains(concact)) {
+            for (var i = 0; i < concact.length; ++i) {
+              iter.moveNext();
+            }
+            handleLineInfo(concact);
+            final token = Token(concact, line, column, offset, buffer.length);
+            currentLineOfTokens.add(token);
+            buffer.clear();
+          }
+          // punctuation token
+          else if (lexicon.punctuations.contains(current)) {
+            // string literal
+            if (current == lexicon.stringStart1) {
+              buffer.write(current);
+              List<List<Token>> interpolations = [];
+              while (iter.moveNext()) {
+                current = iter.current;
+                final nextChar = iter.charactersAfter.isNotEmpty
+                    ? iter.charactersAfter.first
+                    : '';
+                final concact = current + nextChar;
+                if (concact == lexicon.stringInterpolationStart &&
+                    iter.charactersAfter
+                        .contains(lexicon.stringInterpolationEnd)) {
+                  final inner = handleStringInterpolation();
+                  final innerTokens =
+                      lex(inner, line: line, column: column, offset: offset);
+                  interpolations.add(innerTokens);
+                } else {
+                  buffer.write(current);
+                  if (current == lexicon.stringEnd1) {
+                    break;
+                  }
+                }
+              }
+              final lexeme = buffer.toString();
+              buffer.clear();
+              handleLineInfo(lexeme);
+              Token token;
+              if (interpolations.isEmpty) {
+                token = TokenStringLiteral(lexeme, lexicon.stringStart1,
+                    lexicon.stringEnd1, line, column, offset, lexeme.length);
+              } else {
+                token = TokenStringInterpolation(
+                    lexeme,
+                    lexicon.stringStart1,
+                    lexicon.stringEnd1,
+                    interpolations,
+                    line,
+                    column,
+                    offset,
+                    lexeme.length);
+              }
+              currentLineOfTokens.add(token);
+            } else if (current == lexicon.stringStart2) {
+              buffer.write(current);
+              List<List<Token>> interpolations = [];
+              while (iter.moveNext()) {
+                current = iter.current;
+                final nextChar = iter.charactersAfter.isNotEmpty
+                    ? iter.charactersAfter.first
+                    : '';
+                final concact = current + nextChar;
+                if (concact == lexicon.stringInterpolationStart &&
+                    iter.charactersAfter
+                        .contains(lexicon.stringInterpolationEnd)) {
+                  final inner = handleStringInterpolation();
+                  final innerTokens =
+                      lex(inner, line: line, column: column, offset: offset);
+                  interpolations.add(innerTokens);
+                } else {
+                  buffer.write(current);
+                  if (current == lexicon.stringEnd2) {
+                    break;
+                  }
+                }
+              }
+              final lexeme = buffer.toString();
+              buffer.clear();
+              handleLineInfo(lexeme);
+              Token token;
+              if (interpolations.isEmpty) {
+                token = TokenStringLiteral(lexeme, lexicon.stringStart2,
+                    lexicon.stringEnd2, line, column, offset, lexeme.length);
+              } else {
+                token = TokenStringInterpolation(
+                    lexeme,
+                    lexicon.stringStart2,
+                    lexicon.stringEnd2,
+                    interpolations,
+                    line,
+                    column,
+                    offset,
+                    lexeme.length);
+              }
+              currentLineOfTokens.add(token);
+            }
+            // marked identifier
+            else if (current == lexicon.identifierStart) {
+              buffer.write(current);
+              while (iter.moveNext()) {
+                current = iter.current;
+                buffer.write(current);
+                if (current == lexicon.identifierEnd) {
+                  break;
+                }
+              }
+              final lexeme = buffer.toString();
+              handleLineInfo(lexeme);
+              final token = TokenIdentifier(
+                  lexeme, line, column, offset, buffer.length,
+                  isMarked: true);
+              currentLineOfTokens.add(token);
+              buffer.clear();
+            }
+            // normal punctuation
+            else {
+              buffer.write(concact);
+              handleLineInfo(concact);
+              final token = Token(current, line, column, offset, buffer.length);
+              currentLineOfTokens.add(token);
+              buffer.clear();
+            }
+          }
+          // keyword & normal identifier token
+          else if (_identifierStartRegExp.hasMatch(current)) {
+            buffer.write(current);
+            while (iter.charactersAfter.isNotEmpty) {
+              final nextChar = iter.charactersAfter.first;
+              if (_identifierRegExp.hasMatch(nextChar)) {
+                buffer.write(nextChar);
+                iter.moveNext();
+              } else {
+                break;
+              }
+            }
+            final lexeme = buffer.toString();
+            handleLineInfo(lexeme);
+            Token token;
+            if (lexicon.keywords.contains(lexeme)) {
+              token = Token(lexeme, line, column, offset, buffer.length,
+                  isKeyword: true);
+            } else if (lexeme == lexicon.kTrue) {
+              token = TokenBooleanLiteral(
+                  lexeme, true, line, column, offset, lexeme.length);
+            } else if (lexeme == lexicon.kFalse) {
+              token = TokenBooleanLiteral(
+                  lexeme, false, line, column, offset, lexeme.length);
+            } else {
+              token =
+                  TokenIdentifier(lexeme, line, column, offset, buffer.length);
+            }
+            currentLineOfTokens.add(token);
+            buffer.clear();
+          } else if (_numberStartRegExp.hasMatch(current)) {
+            if (!currentString.startsWith(lexicon.hexNumberStart)) {
+              buffer.write(current);
+              bool hasDecimalPoint = current == lexicon.decimalPoint;
+              while (iter.charactersAfter.isNotEmpty) {
+                final nextChar = iter.charactersAfter.first;
+                if (_numberRegExp.hasMatch(nextChar)) {
+                  if (nextChar == lexicon.decimalPoint) {
+                    if (!hasDecimalPoint) {
+                      hasDecimalPoint = true;
+                    } else {
+                      break;
+                    }
+                  }
+                  buffer.write(nextChar);
+                  iter.moveNext();
+                } else {
+                  break;
+                }
+              }
+              final lexeme = buffer.toString();
+              handleLineInfo(lexeme);
+              Token token;
+              if (hasDecimalPoint) {
+                final n = double.parse(lexeme);
+                token = TokenFloatLiteral(
+                    lexeme, n, line, column, offset, buffer.length);
+              } else {
+                final n = int.parse(lexeme);
+                token = TokenIntLiteral(
+                    lexeme, n, line, column, offset, buffer.length);
+              }
+              currentLineOfTokens.add(token);
+            } else {
+              buffer.write(lexicon.hexNumberStart);
+              for (var i = 0; i < lexicon.hexNumberStart.length - 1; ++i) {
+                iter.moveNext();
+              }
+              while (iter.charactersAfter.isNotEmpty) {
+                final nextChar = iter.charactersAfter.first;
+                if (_hexNumberRegExp.hasMatch(nextChar)) {
+                  buffer.write(nextChar);
+                  iter.moveNext();
+                } else {
+                  break;
+                }
+              }
+              final lexeme = buffer.toString();
+              handleLineInfo(lexeme);
+              final n = int.parse(lexeme);
+              final token = TokenIntLiteral(
+                  lexeme, n, line, column, offset, buffer.length);
+              currentLineOfTokens.add(token);
+            }
+            buffer.clear();
+          }
         }
-      } else if (match.group(HTLexicon.tokenGroupIdentifier) != null) {
-        if (matchString == HTLexicon.kTrue) {
-          toksOfLine.add(TokenBooleanLiteral(matchString, true, curLine,
-              curColumn, curOffset + match.start, curOffset + match.end));
-        } else if (matchString == HTLexicon.kFalse) {
-          toksOfLine.add(TokenBooleanLiteral(matchString, false, curLine,
-              curColumn, curOffset + match.start, curOffset + match.end));
-        } else if (HTLexicon.keywords.contains(matchString)) {
-          toksOfLine.add(Token(matchString, curLine, curColumn,
-              curOffset + match.start, curOffset + match.end,
-              isKeyword: true));
-        } else {
-          toksOfLine.add(TokenIdentifier(matchString, curLine, curColumn,
-              curOffset + match.start, curOffset + match.end));
-        }
-      } else if (match.group(HTLexicon.tokenGroupPunctuation) != null) {
-        toksOfLine.add(Token(matchString, curLine, curColumn,
-            curOffset + match.start, curOffset + match.end));
-      } else if (match.group(HTLexicon.tokenGroupNumber) != null) {
-        if (matchString.contains(HTLexicon.decimalPoint)) {
-          toksOfLine.add(TokenFloatLiteral(
-              matchString,
-              double.parse(matchString),
-              curLine,
-              curColumn,
-              curOffset + match.start,
-              curOffset + match.end));
-        } else {
-          toksOfLine.add(TokenIntLiteral(
-              matchString,
-              int.parse(matchString),
-              curLine,
-              curColumn,
-              curOffset + match.start,
-              curOffset + match.end));
-        }
-      } else if (match.group(HTLexicon.tokenGroupApostropheString) != null) {
-        final literal = matchString.substring(1, matchString.length - 1);
-        toksOfLine.add(TokenStringLiteral(
-            literal,
-            HTLexicon.stringStart1,
-            HTLexicon.stringEnd1,
-            curLine,
-            curColumn,
-            curOffset + match.start,
-            curOffset + match.end));
-      } else if (match.group(HTLexicon.tokenGroupQuotationString) != null) {
-        final literal = matchString.substring(1, matchString.length - 1);
-        toksOfLine.add(TokenStringLiteral(
-            literal,
-            HTLexicon.stringStart2,
-            HTLexicon.stringEnd2,
-            curLine,
-            curColumn,
-            curOffset + match.start,
-            curOffset + match.end));
-      } else if (match.group(HTLexicon.tokenGroupStringGraveAccent) != null) {
-        final literal = matchString.substring(1, matchString.length - 1);
-        toksOfLine.add(TokenIdentifier(literal, curLine, curColumn,
-            curOffset + match.start, curOffset + match.end));
-      } else if (match
-              .group(HTLexicon.tokenGroupApostropheStringInterpolation) !=
-          null) {
-        final token = _hanldeStringInterpolation(
-            matchString,
-            HTLexicon.stringStart1,
-            HTLexicon.stringEnd1,
-            curLine,
-            curColumn + HTLexicon.stringStart1.length,
-            curOffset + match.start);
-        toksOfLine.add(token);
-      } else if (match
-              .group(HTLexicon.tokenGroupQuotationStringInterpolation) !=
-          null) {
-        final token = _hanldeStringInterpolation(
-            matchString,
-            HTLexicon.stringStart2,
-            HTLexicon.stringEnd2,
-            curLine,
-            curColumn + HTLexicon.stringStart2.length,
-            curOffset + match.start);
-        toksOfLine.add(token);
-      } else if (match.group(HTLexicon.tokenGroupNewline) != null) {
-        handleEndOfLine(match.end);
       }
+      handleLineInfo(current);
     }
 
-    if (toksOfLine.isNotEmpty) {
-      handleEndOfLine(toksOfLine.last.end);
+    if (currentLineOfTokens.isNotEmpty) {
+      handleEndOfLine(currentLineOfTokens.last.end);
     }
 
     if (tokens.isEmpty) {
-      tokens.add(TokenEmptyLine(curLine, curColumn, start));
+      tokens.add(TokenEmptyLine(line, column, offset));
     }
+
     return tokens;
-  }
-
-  // String _escapeString(String literal) {
-  //   HTLexicon.stringReplaces.forEach((key, value) {
-  //     literal = literal.replaceAll(key, value);
-  //   });
-  //   return literal;
-  // }
-
-  Token _hanldeStringInterpolation(String matchString, String quotationLeft,
-      String quotationRight, int line, int column, int start) {
-    final interpolations = <List<Token>>[];
-    final literal = matchString.substring(1, matchString.length - 1);
-    final pattern = RegExp(HTLexicon.stringInterpolationPattern);
-    final matches = pattern.allMatches(literal);
-    for (final match in matches) {
-      final innerString = match.group(1);
-      // do not throw here, handle in analyzer instead
-      // if (matchString == null) {
-      //   throw HTError.emptyString();
-      // }
-      final tokens = lex(innerString ?? '',
-          line: line,
-          column: column +
-              match.start +
-              HTLexicon.stringInterpolationMark.length +
-              HTLexicon.stringInterpolationStart.length,
-          start: start + quotationLeft.length + match.start);
-      if (tokens.isNotEmpty) {
-        interpolations.add(tokens);
-      } else {
-        interpolations.add([
-          TokenEmpty(
-              line,
-              // move beyond '${'
-              column +
-                  match.start +
-                  HTLexicon.stringInterpolationMark.length +
-                  HTLexicon.stringInterpolationStart.length,
-              start +
-                  quotationLeft.length +
-                  match.start +
-                  HTLexicon.stringInterpolationEnd.length)
-        ]);
-      }
-    }
-    return TokenStringInterpolation(literal, quotationLeft, quotationRight,
-        interpolations, line, column, start, matchString.length);
   }
 }
