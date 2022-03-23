@@ -39,13 +39,16 @@ class HTDefaultLexicon extends HTLexicon {
   String get stringInterpolationEnd => r'}';
 
   @override
-  Map<String, String> get stringEscapes => <String, String>{
-        r'\\': '\\',
-        r"\'": '\'',
-        r'\"': '"',
-        r'\`': '`',
-        r'\n': '\n',
-        r'\t': '\t',
+  String get escapeCharacterStart => r'\';
+
+  @override
+  Map<String, String> get escapeCharacters => <String, String>{
+        r'\': '\\',
+        r"'": "'",
+        r'"': '"',
+        r'`': '`',
+        r'n': '\n',
+        r't': '\t',
       };
 
   @override

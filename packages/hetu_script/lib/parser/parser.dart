@@ -119,10 +119,12 @@ class HTParser extends TokenReader {
         parseStyle = ParseStyle.script;
       }
     }
-
     while (curTok.type != Semantic.endOfFile) {
       final stmt = _parseStmt(sourceType: parseStyle);
       if (stmt != null) {
+        if (stmt is EmptyLine && parseStyle == ParseStyle.expression) {
+          continue;
+        }
         nodes.add(stmt);
       }
     }
@@ -1629,7 +1631,7 @@ class HTParser extends TokenReader {
         final token = advance() as TokenStringInterpolation;
         final interpolations = <AstNode>[];
         for (final tokens in token.interpolations) {
-          final exprParser = HTParser(sourceContext: sourceContext);
+          final exprParser = HTParser();
           final nodes = exprParser.parseToken(tokens,
               source: _currentSource, style: ParseStyle.expression);
           errors?.addAll(exprParser.errors!);

@@ -4,6 +4,6 @@ void main() {
   final hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-  print('hello, \' world!')
+    print('hello, world!')
       ''');
 }

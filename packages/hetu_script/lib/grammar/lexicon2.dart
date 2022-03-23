@@ -19,17 +19,32 @@ abstract class HTLexicon {
   String get numberPattern;
   String get hexNumberPattern;
 
+  /// a character sequence that marked the start of literal hex number.
   String get hexNumberStart;
 
+  /// a character sequence that marked the start of single line comment.
   String get singleLineCommentStart;
+
+  /// a character sequence that marked the start of multiline line comment.
   String get multiLineCommentStart;
+
+  /// a character sequence that marked the end of multiline line comment.
   String get multiLineCommentEnd;
+
+  /// a character sequence that marked the start of documentation comment.
   String get documentationCommentStart;
 
+  /// a character sequence that marked the start of interpolation in strings.
   String get stringInterpolationStart;
+
+  /// a single character that marked the end of interpolation in strings.
   String get stringInterpolationEnd;
 
-  Map<String, String> get stringEscapes;
+  /// a single character that marked the start of escape in strings.
+  String get escapeCharacterStart;
+
+  /// escaped characters mapping.
+  Map<String, String> get escapeCharacters;
 
   /// Add semicolon before a line starting with one of '{, (, [, ++, --'.
   /// This is to avoid ambiguity in parser.
@@ -194,8 +209,6 @@ abstract class HTLexicon {
   /// reserved keywords, cannot used as identifier names
   Set<String> get keywords => {
         kNull,
-        kTrue,
-        kFalse,
         kVar,
         kFinal,
         kLate,
@@ -451,12 +464,11 @@ abstract class HTLexicon {
 
   String get typeParameterEnd;
 
-  /// Token that are not identifers and with just one character.
+  /// Token that are not identifers.
   List<String> get punctuations => [
         decimalPoint,
         variadicArgs,
         spreadSyntax,
-        omittedMark,
         functionReturnTypeIndicator,
         whenBranchIndicator,
         functionSingleLineBodyIndicator,

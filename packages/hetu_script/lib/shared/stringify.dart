@@ -20,12 +20,12 @@ String stringify(dynamic object,
   final output = StringBuffer();
   if (object is String) {
     if (asStringLiteral) {
-      if (object.contains("'")) {
-        final objString = object.replaceAll(r"'", r"\'");
-        return "'$objString'";
-      } else {
-        return "'$object'";
-      }
+      // if (object.contains("'")) {
+      //   final objString = object.replaceAll(r"'", r"\'");
+      //   return "'$objString'";
+      // } else {
+      return "'$object'";
+      // }
     } else {
       return object;
     }

@@ -12,6 +12,7 @@ extension on String {
 }
 
 const _kNewLine = '\n';
+const _kWindowsNewLine = '\r\n';
 
 class HTLexer {
   final HTLexicon lexicon;
@@ -82,8 +83,9 @@ class HTLexer {
       column += char.length;
       offset += char.length;
       if (handleNewLine) {
-        if (char == _kNewLine) {
+        if (char == _kNewLine || char == _kWindowsNewLine) {
           ++line;
+          column = 1;
           handleEndOfLine(offset);
         }
       }
@@ -102,7 +104,7 @@ class HTLexer {
       while (iter.moveNext()) {
         current = iter.current;
         buffer.write(current);
-        handleLineInfo(current);
+        handleLineInfo(current, handleNewLine: false);
         if (current == lexicon.stringInterpolationEnd) {
           break;
         } else {
@@ -120,7 +122,7 @@ class HTLexer {
         if (currentString.startsWith(lexicon.singleLineCommentStart)) {
           do {
             current = iter.current;
-            if (current == _kNewLine) {
+            if (current == _kNewLine || current == _kWindowsNewLine) {
               break;
             } else {
               buffer.write(current);
@@ -144,7 +146,7 @@ class HTLexer {
             current = iter.current;
             currentString = current + iter.stringAfter;
             if (currentString.startsWith(lexicon.multiLineCommentEnd)) {
-              for (var i = 0; i < lexicon.multiLineCommentEnd.length; ++i) {
+              for (var i = 0; i < lexicon.multiLineCommentEnd.length - 1; ++i) {
                 iter.moveNext();
               }
               buffer.write(lexicon.multiLineCommentEnd);
@@ -163,16 +165,30 @@ class HTLexer {
           currentLineOfTokens.add(token);
           buffer.clear();
         } else {
-          final nextChar =
+          final charNext =
               iter.charactersAfter.isNotEmpty ? iter.charactersAfter.first : '';
-          final concact = current + nextChar;
-          // multiple character punctucation token
-          if (lexicon.punctuations.contains(concact)) {
-            for (var i = 0; i < concact.length; ++i) {
+          final char3rd = iter.charactersAfter.length > 1
+              ? iter.charactersAfter.elementAt(1)
+              : '';
+          final concact2 = current + charNext;
+          final concact3 = current + charNext + char3rd;
+          // 3 characters punctucation token
+          if (lexicon.punctuations.contains(concact3)) {
+            for (var i = 0; i < concact3.length - 1; ++i) {
               iter.moveNext();
             }
-            handleLineInfo(concact);
-            final token = Token(concact, line, column, offset, buffer.length);
+            handleLineInfo(concact3);
+            final token = Token(concact3, line, column, offset, buffer.length);
+            currentLineOfTokens.add(token);
+            buffer.clear();
+          }
+          // 2 characters punctucation token
+          else if (lexicon.punctuations.contains(concact2)) {
+            for (var i = 0; i < concact2.length - 1; ++i) {
+              iter.moveNext();
+            }
+            handleLineInfo(concact2);
+            final token = Token(concact2, line, column, offset, buffer.length);
             currentLineOfTokens.add(token);
             buffer.clear();
           }
@@ -180,14 +196,15 @@ class HTLexer {
           else if (lexicon.punctuations.contains(current)) {
             // string literal
             if (current == lexicon.stringStart1) {
+              bool escappingCharacter = false;
               buffer.write(current);
               List<List<Token>> interpolations = [];
               while (iter.moveNext()) {
                 current = iter.current;
-                final nextChar = iter.charactersAfter.isNotEmpty
+                final charNext = iter.charactersAfter.isNotEmpty
                     ? iter.charactersAfter.first
                     : '';
-                final concact = current + nextChar;
+                final concact = current + charNext;
                 if (concact == lexicon.stringInterpolationStart &&
                     iter.charactersAfter
                         .contains(lexicon.stringInterpolationEnd)) {
@@ -197,12 +214,20 @@ class HTLexer {
                   interpolations.add(innerTokens);
                 } else {
                   buffer.write(current);
-                  if (current == lexicon.stringEnd1) {
+                  if (current == lexicon.escapeCharacterStart &&
+                      escappingCharacter == false) {
+                    escappingCharacter = true;
+                  } else if (escappingCharacter) {
+                    escappingCharacter = false;
+                  } else if (current == lexicon.stringEnd1 &&
+                      !escappingCharacter) {
+                    escappingCharacter = false;
                     break;
                   }
                 }
               }
-              final lexeme = buffer.toString();
+              final literal = buffer.toString();
+              final lexeme = literal.substring(1, literal.length - 1);
               buffer.clear();
               handleLineInfo(lexeme);
               Token token;
@@ -222,14 +247,15 @@ class HTLexer {
               }
               currentLineOfTokens.add(token);
             } else if (current == lexicon.stringStart2) {
+              bool escappingCharacter = false;
               buffer.write(current);
               List<List<Token>> interpolations = [];
               while (iter.moveNext()) {
                 current = iter.current;
-                final nextChar = iter.charactersAfter.isNotEmpty
+                final charNext = iter.charactersAfter.isNotEmpty
                     ? iter.charactersAfter.first
                     : '';
-                final concact = current + nextChar;
+                final concact = current + charNext;
                 if (concact == lexicon.stringInterpolationStart &&
                     iter.charactersAfter
                         .contains(lexicon.stringInterpolationEnd)) {
@@ -239,12 +265,20 @@ class HTLexer {
                   interpolations.add(innerTokens);
                 } else {
                   buffer.write(current);
-                  if (current == lexicon.stringEnd2) {
+                  if (current == lexicon.escapeCharacterStart &&
+                      escappingCharacter == false) {
+                    escappingCharacter = true;
+                  } else if (escappingCharacter) {
+                    escappingCharacter = false;
+                  } else if (current == lexicon.stringEnd2 &&
+                      !escappingCharacter) {
+                    escappingCharacter = false;
                     break;
                   }
                 }
               }
-              final lexeme = buffer.toString();
+              final literal = buffer.toString();
+              final lexeme = literal.substring(1, literal.length - 1);
               buffer.clear();
               handleLineInfo(lexeme);
               Token token;
@@ -284,8 +318,8 @@ class HTLexer {
             }
             // normal punctuation
             else {
-              buffer.write(concact);
-              handleLineInfo(concact);
+              buffer.write(current);
+              handleLineInfo(current);
               final token = Token(current, line, column, offset, buffer.length);
               currentLineOfTokens.add(token);
               buffer.clear();
@@ -295,9 +329,9 @@ class HTLexer {
           else if (_identifierStartRegExp.hasMatch(current)) {
             buffer.write(current);
             while (iter.charactersAfter.isNotEmpty) {
-              final nextChar = iter.charactersAfter.first;
-              if (_identifierRegExp.hasMatch(nextChar)) {
-                buffer.write(nextChar);
+              final charNext = iter.charactersAfter.first;
+              if (_identifierRegExp.hasMatch(charNext)) {
+                buffer.write(charNext);
                 iter.moveNext();
               } else {
                 break;
@@ -326,16 +360,16 @@ class HTLexer {
               buffer.write(current);
               bool hasDecimalPoint = current == lexicon.decimalPoint;
               while (iter.charactersAfter.isNotEmpty) {
-                final nextChar = iter.charactersAfter.first;
-                if (_numberRegExp.hasMatch(nextChar)) {
-                  if (nextChar == lexicon.decimalPoint) {
+                final charNext = iter.charactersAfter.first;
+                if (_numberRegExp.hasMatch(charNext)) {
+                  if (charNext == lexicon.decimalPoint) {
                     if (!hasDecimalPoint) {
                       hasDecimalPoint = true;
                     } else {
                       break;
                     }
                   }
-                  buffer.write(nextChar);
+                  buffer.write(charNext);
                   iter.moveNext();
                 } else {
                   break;
@@ -360,9 +394,9 @@ class HTLexer {
                 iter.moveNext();
               }
               while (iter.charactersAfter.isNotEmpty) {
-                final nextChar = iter.charactersAfter.first;
-                if (_hexNumberRegExp.hasMatch(nextChar)) {
-                  buffer.write(nextChar);
+                final charNext = iter.charactersAfter.first;
+                if (_hexNumberRegExp.hasMatch(charNext)) {
+                  buffer.write(charNext);
                   iter.moveNext();
                 } else {
                   break;
@@ -378,8 +412,9 @@ class HTLexer {
             buffer.clear();
           }
         }
+      } else {
+        handleLineInfo(current);
       }
-      handleLineInfo(current);
     }
 
     if (currentLineOfTokens.isNotEmpty) {
