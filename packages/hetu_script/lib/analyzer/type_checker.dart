@@ -6,52 +6,52 @@ import '../ast/ast.dart';
 // import '../shared/stringify.dart';
 import '../type/type.dart';
 
-/// A interpreter that compute [HTType] out of [AstNode]
-class HTTypeChecker implements AbstractAstVisitor<HTType> {
-  HTType evalAstNode(AstNode node) => node.accept(this);
+/// A interpreter that compute [HTType] out of [ASTNode]
+class HTTypeChecker implements AbstractASTVisitor<HTType> {
+  HTType evalAstNode(ASTNode node) => node.accept(this);
 
   @override
-  HTType visitCompilation(AstCompilation node) {
+  HTType visitCompilation(ASTCompilation node) {
     throw 'Don\'t use this on AstCompilation.';
   }
 
   @override
-  HTType visitCompilationUnit(AstSource node) {
+  HTType visitCompilationUnit(ASTSource node) {
     throw 'Don\'t use this on AstSource.';
   }
 
   @override
-  HTType visitEmptyExpr(EmptyLine node) {
+  HTType visitEmptyExpr(ASTEmptyLine node) {
     throw 'Not a value';
   }
 
   @override
-  HTType visitNullExpr(NullExpr node) {
+  HTType visitNullExpr(ASTLiteralNull node) {
     return HTType.nullType;
   }
 
   @override
-  HTType visitBooleanExpr(BooleanLiteralExpr node) {
+  HTType visitBooleanExpr(ASTLiteralBoolean node) {
     return HTUnresolvedType('bool');
   }
 
   @override
-  HTType visitIntLiteralExpr(IntegerLiteralExpr node) {
+  HTType visitIntLiteralExpr(ASTLiteralInteger node) {
     return HTUnresolvedType('int');
   }
 
   @override
-  HTType visitFloatLiteralExpr(FloatLiteralExpr node) {
+  HTType visitFloatLiteralExpr(ASTLiteralFloat node) {
     return HTUnresolvedType('float');
   }
 
   @override
-  HTType visitStringLiteralExpr(StringLiteralExpr node) {
+  HTType visitStringLiteralExpr(ASTLiteralString node) {
     return HTUnresolvedType('str');
   }
 
   @override
-  HTType visitStringInterpolationExpr(StringInterpolationExpr node) {
+  HTType visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {
     return HTUnresolvedType('str');
   }
 

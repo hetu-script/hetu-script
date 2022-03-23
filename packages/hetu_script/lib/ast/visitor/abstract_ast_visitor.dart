@@ -7,24 +7,24 @@ part of '../ast.dart';
 /// There are other helper classes that implement this interface:
 /// * RecursiveAstVisitor which will visit every sub node in a structure,
 /// * GeneralizingAstVisitor which will visit a node AND its every sub node.
-abstract class AbstractAstVisitor<T> {
-  T? visitCompilation(AstCompilation node) {}
+abstract class AbstractASTVisitor<T> {
+  T? visitCompilation(ASTCompilation node) {}
 
-  T? visitCompilationUnit(AstSource node) {}
+  T? visitCompilationUnit(ASTSource node) {}
 
-  T? visitEmptyExpr(EmptyLine node) {}
+  T? visitEmptyExpr(ASTEmptyLine node) {}
 
-  T? visitNullExpr(NullExpr node) {}
+  T? visitNullExpr(ASTLiteralNull node) {}
 
-  T? visitBooleanExpr(BooleanLiteralExpr node) {}
+  T? visitBooleanExpr(ASTLiteralBoolean node) {}
 
-  T? visitIntLiteralExpr(IntegerLiteralExpr node) {}
+  T? visitIntLiteralExpr(ASTLiteralInteger node) {}
 
-  T? visitFloatLiteralExpr(FloatLiteralExpr node) {}
+  T? visitFloatLiteralExpr(ASTLiteralFloat node) {}
 
-  T? visitStringLiteralExpr(StringLiteralExpr node) {}
+  T? visitStringLiteralExpr(ASTLiteralString node) {}
 
-  T? visitStringInterpolationExpr(StringInterpolationExpr node) {}
+  T? visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {}
 
   T? visitIdentifierExpr(IdentifierExpr node) {}
 

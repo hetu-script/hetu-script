@@ -1,4 +1,4 @@
-import '../../grammar/semantic.dart';
+import '../grammar/constant.dart';
 import 'type.dart';
 
 class HTLiteralType extends HTType {

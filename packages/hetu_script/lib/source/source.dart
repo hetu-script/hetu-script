@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:path/path.dart' as path;
 
 // import '../grammar/lexicon.dart';
-import '../grammar/semantic.dart';
+import '../grammar/constant.dart';
 import '../shared/crc32b.dart';
 import 'line_info.dart';
 import '../resource/resource.dart';

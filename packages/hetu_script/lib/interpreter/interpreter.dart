@@ -23,7 +23,7 @@ import '../type/function_type.dart';
 import '../type/nominal_type.dart';
 import '../type/structural_type.dart';
 import '../grammar/lexicon.dart';
-import '../grammar/semantic.dart';
+import '../grammar/constant.dart';
 import '../source/source.dart';
 import '../resource/resource.dart';
 import '../resource/resource_context.dart';
@@ -653,11 +653,11 @@ class HTInterpreter {
         return _stackFrames.last.first;
       }
       stackTraceList.clear();
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;
       } else {
-        handleError(error);
+        handleError(error, externalStackTrace: stackTrace);
       }
     }
   }

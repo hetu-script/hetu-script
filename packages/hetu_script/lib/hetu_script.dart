@@ -19,7 +19,7 @@ export 'bytecode/compiler.dart';
 export 'interpreter/interpreter.dart';
 export 'hetu/hetu.dart';
 export 'grammar/lexicon.dart';
-export 'grammar/semantic.dart';
+export 'grammar/constant.dart';
 export 'source/line_info.dart';
 export 'source/source.dart';
 export 'source/source_range.dart';

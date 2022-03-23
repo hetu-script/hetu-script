@@ -1,5 +1,5 @@
 import '../../binding/external_class.dart';
-import '../../grammar/semantic.dart';
+import '../../grammar/constant.dart';
 import '../../error/error.dart';
 import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';

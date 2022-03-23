@@ -5,42 +5,42 @@ import '../analyzer/analysis_error.dart';
 
 /// A interpreter that computes the constant value before compilation.
 /// If the AstNode provided is non-constant value, return null.
-class HTConstantInterpreter implements AbstractAstVisitor<void> {
+class HTConstantInterpreter implements AbstractASTVisitor<void> {
   /// Errors of a single file
   late List<HTAnalysisError> errors = [];
 
-  void evalAstNode(AstNode node) => node.accept(this);
+  void evalAstNode(ASTNode node) => node.accept(this);
 
   @override
-  void visitCompilation(AstCompilation node) {
+  void visitCompilation(ASTCompilation node) {
     node.subAccept(this);
   }
 
   @override
-  void visitCompilationUnit(AstSource node) {
+  void visitCompilationUnit(ASTSource node) {
     node.subAccept(this);
   }
 
   @override
-  void visitEmptyExpr(EmptyLine node) {}
+  void visitEmptyExpr(ASTEmptyLine node) {}
 
   @override
-  void visitNullExpr(NullExpr node) {}
+  void visitNullExpr(ASTLiteralNull node) {}
 
   @override
-  void visitBooleanExpr(BooleanLiteralExpr node) {}
+  void visitBooleanExpr(ASTLiteralBoolean node) {}
 
   @override
-  void visitIntLiteralExpr(IntegerLiteralExpr node) {}
+  void visitIntLiteralExpr(ASTLiteralInteger node) {}
 
   @override
-  void visitFloatLiteralExpr(FloatLiteralExpr node) {}
+  void visitFloatLiteralExpr(ASTLiteralFloat node) {}
 
   @override
-  void visitStringLiteralExpr(StringLiteralExpr node) {}
+  void visitStringLiteralExpr(ASTLiteralString node) {}
 
   @override
-  void visitStringInterpolationExpr(StringInterpolationExpr node) {
+  void visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {
     final interpolations = <String>[];
     for (final expr in node.interpolations) {
       expr.accept(this);
@@ -128,8 +128,8 @@ class HTConstantInterpreter implements AbstractAstVisitor<void> {
     if (node.op == HTLexicon.logicalNot && node.object.isConstValue) {
       node.value = !node.object.value;
     } else if (node.op == HTLexicon.negative &&
-        node.object is IntegerLiteralExpr) {
-      node.value = -(node.object as IntegerLiteralExpr).value;
+        node.object is ASTLiteralInteger) {
+      node.value = -(node.object as ASTLiteralInteger).value;
     }
   }
 

@@ -1,4 +1,4 @@
-import '../grammar/semantic.dart';
+import '../grammar/constant.dart';
 import '../grammar/lexicon.dart';
 import 'type.dart';
 

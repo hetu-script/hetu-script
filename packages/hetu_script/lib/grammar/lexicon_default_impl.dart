@@ -1,6 +1,6 @@
 import 'lexicon2.dart';
 
-/// Lexicon used by Hetu,
+/// Default lexicon implementation used by Hetu.
 class HTDefaultLexicon extends HTLexicon {
   @override
   String get identifierStartPattern => r'[_\$\p{L}]';

@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
 
-import '../../grammar/semantic.dart';
+import '../../grammar/constant.dart';
 import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
 import '../../type/function_type.dart';

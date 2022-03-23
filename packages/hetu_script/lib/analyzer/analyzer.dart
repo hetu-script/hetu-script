@@ -16,7 +16,7 @@ import '../ast/ast.dart';
 import 'analysis_result.dart';
 import 'analysis_error.dart';
 // import 'type_checker.dart';
-import '../grammar/semantic.dart';
+import '../grammar/constant.dart';
 // import '../ast/visitor/recursive_ast_visitor.dart';
 // import '../binding/external_class.dart';
 // import '../binding/external_function.dart';
@@ -46,7 +46,7 @@ class AnalyzerConfigImpl implements AnalyzerConfig {
 
 /// A ast visitor that create declarative-only namespaces on all astnode,
 /// for analysis purpose, the true analyzer is a underlying
-class HTAnalyzer implements AbstractAstVisitor<void> {
+class HTAnalyzer implements AbstractASTVisitor<void> {
   final errorProcessors = <ErrorProcessor>[];
 
   AnalyzerConfig config;
@@ -79,7 +79,7 @@ class HTAnalyzer implements AbstractAstVisitor<void> {
   }
 
   HTModuleAnalysisResult analyzeCompilation(
-    AstCompilation compilation, {
+    ASTCompilation compilation, {
     String? moduleName,
     bool globallyImport = false,
   }) {
@@ -146,40 +146,40 @@ class HTAnalyzer implements AbstractAstVisitor<void> {
     );
   }
 
-  void analyzeAst(AstNode node) => node.accept(this);
+  void analyzeAST(ASTNode node) => node.accept(this);
 
   @override
-  void visitCompilation(AstCompilation node) {
+  void visitCompilation(ASTCompilation node) {
     throw 'Use evalSource instead of this method.';
   }
 
   @override
-  void visitCompilationUnit(AstSource node) {
+  void visitCompilationUnit(ASTSource node) {
     throw 'Use evalSource instead of this method.';
   }
 
   @override
-  void visitEmptyExpr(EmptyLine node) {}
+  void visitEmptyExpr(ASTEmptyLine node) {}
 
   @override
-  void visitNullExpr(NullExpr node) {}
+  void visitNullExpr(ASTLiteralNull node) {}
 
   @override
-  void visitBooleanExpr(BooleanLiteralExpr node) {}
+  void visitBooleanExpr(ASTLiteralBoolean node) {}
 
   @override
-  void visitIntLiteralExpr(IntegerLiteralExpr node) {}
+  void visitIntLiteralExpr(ASTLiteralInteger node) {}
 
   @override
-  void visitFloatLiteralExpr(FloatLiteralExpr node) {}
+  void visitFloatLiteralExpr(ASTLiteralFloat node) {}
 
   @override
-  void visitStringLiteralExpr(StringLiteralExpr node) {
+  void visitStringLiteralExpr(ASTLiteralString node) {
     node.analysisNamespace = _currentNamespace;
   }
 
   @override
-  void visitStringInterpolationExpr(StringInterpolationExpr node) {
+  void visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {
     node.subAccept(this);
     node.analysisNamespace = _currentNamespace;
   }

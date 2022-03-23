@@ -1,16 +1,3 @@
-abstract class HTLexiconConfig {
-  bool get isLexiconCaseSensitive;
-
-  factory HTLexiconConfig({bool isLexiconCaseSensitive}) = HTLexiconConfigImpl;
-}
-
-class HTLexiconConfigImpl implements HTLexiconConfig {
-  @override
-  final bool isLexiconCaseSensitive;
-
-  HTLexiconConfigImpl({this.isLexiconCaseSensitive = true});
-}
-
 /// Lexicon used by Hetu,
 abstract class HTLexicon {
   String get identifierStartPattern;

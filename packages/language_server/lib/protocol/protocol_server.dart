@@ -67,7 +67,7 @@ Location? newLocation_fromDeclaration(HTDeclaration? decl) {
 // }
 
 /// Create a Location based on an [engine.AstNode].
-Location newLocation_fromNode(AstNode node) {
+Location newLocation_fromNode(ASTNode node) {
   var range = SourceRange(node.offset, node.length);
   return _locationForArgs(node.source!, range);
 }

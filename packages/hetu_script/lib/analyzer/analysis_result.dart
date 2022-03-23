@@ -6,7 +6,7 @@ import 'analyzer.dart';
 import 'analysis_error.dart';
 
 class HTSourceAnalysisResult {
-  final AstSource parseResult;
+  final ASTSource parseResult;
 
   HTSource get source => parseResult.source!;
 
@@ -33,7 +33,7 @@ class HTModuleAnalysisResult {
 
   final List<HTAnalysisError> errors;
 
-  final AstCompilation compilation;
+  final ASTCompilation compilation;
 
   HTModuleAnalysisResult({
     required this.sourceAnalysisResults,

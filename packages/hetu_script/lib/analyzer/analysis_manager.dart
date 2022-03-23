@@ -34,7 +34,7 @@ class HTAnalysisManager {
     };
   }
 
-  AstSource? getParseResult(String fullName) {
+  ASTSource? getParseResult(String fullName) {
     // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     return _cachedSourceAnalysisResults[fullName]!.parseResult;
   }

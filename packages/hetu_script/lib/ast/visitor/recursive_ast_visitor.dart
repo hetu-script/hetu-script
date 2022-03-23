@@ -9,49 +9,49 @@ import '../ast.dart';
 /// Subclasses that override a visit method must either invoke the overridden
 /// visit method or must explicitly ask the visited node to visit its children.
 /// Otherwise the children of the visited node might not be visited.
-abstract class RecursiveAstVisitor<T> implements AbstractAstVisitor<T> {
+abstract class RecursiveASTVisitor<T> implements AbstractASTVisitor<T> {
   @override
-  T? visitCompilation(AstCompilation node) {
+  T? visitCompilation(ASTCompilation node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitCompilationUnit(AstSource node) {
+  T? visitCompilationUnit(ASTSource node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitEmptyExpr(EmptyLine node) {
+  T? visitEmptyExpr(ASTEmptyLine node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitNullExpr(NullExpr node) {
+  T? visitNullExpr(ASTLiteralNull node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitBooleanExpr(BooleanLiteralExpr node) {
+  T? visitBooleanExpr(ASTLiteralBoolean node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitIntLiteralExpr(IntegerLiteralExpr node) {
+  T? visitIntLiteralExpr(ASTLiteralInteger node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitFloatLiteralExpr(FloatLiteralExpr node) {
+  T? visitFloatLiteralExpr(ASTLiteralFloat node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitStringLiteralExpr(StringLiteralExpr node) {
+  T? visitStringLiteralExpr(ASTLiteralString node) {
     node.subAccept(this);
   }
 
   @override
-  T? visitStringInterpolationExpr(StringInterpolationExpr node) {
+  T? visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {
     node.subAccept(this);
   }
 

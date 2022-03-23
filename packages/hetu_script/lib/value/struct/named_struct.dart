@@ -4,7 +4,7 @@ import '../../value/namespace/namespace.dart';
 import 'struct.dart';
 import '../../error/error.dart';
 import '../../grammar/lexicon.dart';
-import '../../grammar/semantic.dart';
+import '../../grammar/constant.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
 import '../function/function.dart';

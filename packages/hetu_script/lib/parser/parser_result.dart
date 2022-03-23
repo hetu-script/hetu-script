@@ -1,7 +1,7 @@
 import '../resource/resource.dart';
 import '../source/source.dart';
 import '../source/line_info.dart';
-import '../ast/ast.dart' show AstNode, ImportExportDecl;
+import '../ast/ast.dart' show ASTNode, ImportExportDecl;
 import '../error/error.dart';
 
 /// Parse result of a single file
@@ -16,7 +16,7 @@ class HTSourceParseResult {
 
   final List<ImportExportDecl> imports;
 
-  final List<AstNode> nodes;
+  final List<ASTNode> nodes;
 
   final List<HTError>? errors;
 

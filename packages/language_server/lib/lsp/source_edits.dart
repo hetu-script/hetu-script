@@ -8,6 +8,7 @@ import '../utils/pair.dart';
 
 import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script/analyzer.dart';
+import 'package:hetu_script/grammar.dart' show Token;
 
 import '../protocol/protocol_generated.dart';
 import '../protocol/protocol_special.dart';
@@ -141,19 +142,21 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
     return failure(rangeEnd);
   }
 
+  final lexer = HTLexer();
+
   // It shouldn't be the case that we can't parse the code but if it happens
   // fall back to a full replacement rather than fail.
-  // final parsedFormatted = _parse(formatted, result.unit.featureSet);
-  // final parsedUnformatted = _parse(unformatted, result.unit.featureSet);
+  final parsedFormatted = lexer.lex(unformatted);
+  final parsedUnformatted = lexer.lex(formatted);
   // if (parsedFormatted == null || parsedUnformatted == null) {
   //   return success(_generateFullEdit(lineInfo, unformatted, formatted));
   // }
 
-  // final unformattedTokens = _iterateAllTokens(parsedUnformatted).iterator;
-  // final formattedTokens = _iterateAllTokens(parsedFormatted).iterator;
+  final unformattedTokens = _iterateAllTokens(parsedUnformatted).iterator;
+  final formattedTokens = _iterateAllTokens(parsedFormatted).iterator;
 
-  final unformattedTokens = HTLexer().lex(unformatted).iterator;
-  final formattedTokens = HTLexer().lex(formatted).iterator;
+  // final unformattedTokens = lexer.lex(unformatted).iterator;
+  // final formattedTokens = lexer.lex(formatted).iterator;
 
   var unformattedOffset = 0;
   var formattedOffset = 0;
@@ -271,17 +274,17 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
 }
 
 /// Iterates over a token stream returning all tokens including comments.
-// Iterable<Token> _iterateAllTokens(Token token) sync* {
-//   while (token.type != TokenType.EOF) {
-//     var commentToken = token.precedingComments;
-//     while (commentToken != null) {
-//       yield commentToken;
-//       commentToken = commentToken.next;
-//     }
-//     yield token;
-//     token = token.next;
-//   }
-// }
+Iterable<Token> _iterateAllTokens(Token token) sync* {
+  while (token.type != Semantic.endOfFile) {
+    // var commentToken = token.precedingComments;
+    // while (commentToken != null) {
+    //   yield commentToken;
+    //   commentToken = commentToken.next;
+    // }
+    yield token;
+    token = token.next;
+  }
+}
 
 /// Helper class that bundles up all information required when converting server
 /// SourceEdits into LSP-compatible WorkspaceEdits.

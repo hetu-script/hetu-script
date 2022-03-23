@@ -3,44 +3,44 @@ import 'analysis_error.dart';
 import 'type_checker.dart';
 
 /// A Ast interpreter for static analysis.
-class HTAnalyzerImpl implements AbstractAstVisitor<void> {
+class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   final typeChecker = HTTypeChecker();
 
   /// Errors of a single file
   late List<HTAnalysisError> errors = [];
 
-  void analyzeAst(AstNode node) => node.accept(this);
+  void analyzeAST(ASTNode node) => node.accept(this);
 
   @override
-  void visitCompilation(AstCompilation node) {
+  void visitCompilation(ASTCompilation node) {
     node.subAccept(this);
   }
 
   @override
-  void visitCompilationUnit(AstSource node) {
+  void visitCompilationUnit(ASTSource node) {
     node.subAccept(this);
   }
 
   @override
-  void visitEmptyExpr(EmptyLine node) {}
+  void visitEmptyExpr(ASTEmptyLine node) {}
 
   @override
-  void visitNullExpr(NullExpr node) {}
+  void visitNullExpr(ASTLiteralNull node) {}
 
   @override
-  void visitBooleanExpr(BooleanLiteralExpr node) {}
+  void visitBooleanExpr(ASTLiteralBoolean node) {}
 
   @override
-  void visitIntLiteralExpr(IntegerLiteralExpr node) {}
+  void visitIntLiteralExpr(ASTLiteralInteger node) {}
 
   @override
-  void visitFloatLiteralExpr(FloatLiteralExpr node) {}
+  void visitFloatLiteralExpr(ASTLiteralFloat node) {}
 
   @override
-  void visitStringLiteralExpr(StringLiteralExpr node) {}
+  void visitStringLiteralExpr(ASTLiteralString node) {}
 
   @override
-  void visitStringInterpolationExpr(StringInterpolationExpr node) {
+  void visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {
     node.subAccept(this);
   }
 

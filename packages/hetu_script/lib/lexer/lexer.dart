@@ -1,9 +1,9 @@
 import 'package:characters/characters.dart';
 
-import 'token.dart';
+import '../grammar/token.dart';
 import '../grammar/lexicon2.dart';
-import '../grammar/lexicon_impl.dart';
-import '../shared/constants.dart' show CommentType;
+import '../grammar/lexicon_default_impl.dart';
+import '../comment/comment.dart' show CommentType;
 
 extension on String {
   /// Whether this string is empty or contains only white space characters.
@@ -32,51 +32,70 @@ class HTLexer {
     _hexNumberRegExp = RegExp(this.lexicon.hexNumberPattern);
   }
 
-  List<Token> lex(String content,
-      {int line = 1, int column = 1, int offset = 0}) {
-    final tokens = <Token>[];
+  Token lex(String content, {int line = 1, int column = 1, int offset = 0}) {
     final iter = content.characters.iterator;
-    final currentLineOfTokens = <Token>[];
+    Token? firstToken;
+    Token? lastToken;
+    Token? firstTokenOfCurrentLine;
+    Token? lastTokenOfCurrentLine;
 
-    void handleEndOfLine([int? lineLength]) {
-      if (currentLineOfTokens.isNotEmpty) {
+    void addToken(Token token) {
+      firstToken ??= token;
+      firstTokenOfCurrentLine ??= token;
+      lastTokenOfCurrentLine?.next = token;
+      token.previous = lastTokenOfCurrentLine;
+      lastTokenOfCurrentLine = token;
+    }
+
+    void handleEndOfLine([int? lineEnd]) {
+      if (firstTokenOfCurrentLine != null) {
         if (lexicon.autoSemicolonInsertAtStart
-            .contains(currentLineOfTokens.first.type)) {
+            .contains(firstTokenOfCurrentLine!.type)) {
           /// Add semicolon before a newline if the new line starting with '{, [, (, +, -' tokens
           /// and the last line does not ends with an unfinished token.
-          if (tokens.isNotEmpty &&
-              !lexicon.unfinishedTokens.contains(tokens.last.type)) {
-            tokens.add(Token(
-                lexicon.endOfStatementMark,
-                line,
-                1,
-                currentLineOfTokens.first.offset +
-                    currentLineOfTokens.first.length,
-                0));
+          if (lastToken != null) {
+            if (!lexicon.unfinishedTokens.contains(lastToken!.type)) {
+              final token = Token(
+                  lexeme: lexicon.endOfStatementMark,
+                  line: line,
+                  column: 1,
+                  offset: firstTokenOfCurrentLine!.offset +
+                      firstTokenOfCurrentLine!.length);
+
+              token.next = firstTokenOfCurrentLine;
+              firstTokenOfCurrentLine!.previous = token;
+              firstTokenOfCurrentLine = token;
+            }
           }
-          tokens.addAll(currentLineOfTokens);
-        } else if (currentLineOfTokens.last.type == lexicon.kReturn) {
-          tokens.addAll(currentLineOfTokens);
-          tokens.add(Token(
-              lexicon.endOfStatementMark,
-              line,
-              column + 1,
-              currentLineOfTokens.last.offset + currentLineOfTokens.last.length,
-              0));
-        } else {
-          tokens.addAll(currentLineOfTokens);
+        } else if (lastTokenOfCurrentLine != null &&
+            lastTokenOfCurrentLine!.type == lexicon.kReturn) {
+          final token = Token(
+              lexeme: lexicon.endOfStatementMark,
+              line: line,
+              column: 1,
+              offset: lastTokenOfCurrentLine!.offset +
+                  lastTokenOfCurrentLine!.length);
+          addToken(token);
         }
       } else {
-        tokens.add(TokenEmptyLine(line, column, offset));
+        firstTokenOfCurrentLine = lastTokenOfCurrentLine =
+            TokenEmptyLine(line: line, column: column, offset: offset);
       }
+      assert(firstTokenOfCurrentLine != null);
+      if (lastToken != null) {
+        lastToken!.next = firstTokenOfCurrentLine;
+        firstTokenOfCurrentLine!.previous = lastTokenOfCurrentLine;
+      }
+      lastToken = lastTokenOfCurrentLine;
+      firstTokenOfCurrentLine = null;
+      lastTokenOfCurrentLine = null;
       ++line;
       // empty line counts as a character
-      if (lineLength == null) {
+      if (lineEnd == null) {
         offset += 1;
       } else {
-        offset = lineLength + 1;
+        offset = lineEnd + 1;
       }
-      currentLineOfTokens.clear();
     }
 
     void handleLineInfo(String char, {bool handleNewLine = true}) {
@@ -131,13 +150,16 @@ class HTLexer {
           final lexeme = buffer.toString();
           handleLineInfo(lexeme);
           final token = TokenComment(
-              lexeme, line, column, offset, buffer.length,
+              lexeme: lexeme,
+              line: line,
+              column: column,
+              offset: offset,
               commentType:
                   currentString.startsWith(lexicon.documentationCommentStart)
                       ? CommentType.documentation
                       : CommentType.singleLine,
-              isTrailing: currentLineOfTokens.isNotEmpty ? true : false);
-          currentLineOfTokens.add(token);
+              isTrailing: lastTokenOfCurrentLine != null ? true : false);
+          addToken(token);
           buffer.clear();
         }
         // multiline line comment
@@ -159,10 +181,13 @@ class HTLexer {
           } while (iter.moveNext());
           final lexeme = buffer.toString();
           final token = TokenComment(
-              lexeme, line, column, offset, buffer.length,
+              lexeme: lexeme,
+              line: line,
+              column: column,
+              offset: offset,
               commentType: CommentType.multiLine,
-              isTrailing: currentLineOfTokens.isNotEmpty ? true : false);
-          currentLineOfTokens.add(token);
+              isTrailing: lastTokenOfCurrentLine != null ? true : false);
+          addToken(token);
           buffer.clear();
         } else {
           final charNext =
@@ -178,8 +203,9 @@ class HTLexer {
               iter.moveNext();
             }
             handleLineInfo(concact3);
-            final token = Token(concact3, line, column, offset, buffer.length);
-            currentLineOfTokens.add(token);
+            final token = Token(
+                lexeme: concact3, line: line, column: column, offset: offset);
+            addToken(token);
             buffer.clear();
           }
           // 2 characters punctucation token
@@ -188,8 +214,9 @@ class HTLexer {
               iter.moveNext();
             }
             handleLineInfo(concact2);
-            final token = Token(concact2, line, column, offset, buffer.length);
-            currentLineOfTokens.add(token);
+            final token = Token(
+                lexeme: concact2, line: line, column: column, offset: offset);
+            addToken(token);
             buffer.clear();
           }
           // punctuation token
@@ -198,7 +225,7 @@ class HTLexer {
             if (current == lexicon.stringStart1) {
               bool escappingCharacter = false;
               buffer.write(current);
-              List<List<Token>> interpolations = [];
+              List<Token> interpolations = [];
               while (iter.moveNext()) {
                 current = iter.current;
                 final charNext = iter.charactersAfter.isNotEmpty
@@ -209,9 +236,9 @@ class HTLexer {
                     iter.charactersAfter
                         .contains(lexicon.stringInterpolationEnd)) {
                   final inner = handleStringInterpolation();
-                  final innerTokens =
+                  final token =
                       lex(inner, line: line, column: column, offset: offset);
-                  interpolations.add(innerTokens);
+                  interpolations.add(token);
                 } else {
                   buffer.write(current);
                   if (current == lexicon.escapeCharacterStart &&
@@ -232,24 +259,28 @@ class HTLexer {
               handleLineInfo(lexeme);
               Token token;
               if (interpolations.isEmpty) {
-                token = TokenStringLiteral(lexeme, lexicon.stringStart1,
-                    lexicon.stringEnd1, line, column, offset, lexeme.length);
+                token = TokenStringLiteral(
+                    lexeme: lexeme,
+                    line: line,
+                    column: column,
+                    offset: offset,
+                    startMark: lexicon.stringStart1,
+                    endMark: lexicon.stringEnd1);
               } else {
                 token = TokenStringInterpolation(
-                    lexeme,
-                    lexicon.stringStart1,
-                    lexicon.stringEnd1,
-                    interpolations,
-                    line,
-                    column,
-                    offset,
-                    lexeme.length);
+                    lexeme: lexeme,
+                    line: line,
+                    column: column,
+                    offset: offset,
+                    startMark: lexicon.stringStart1,
+                    endMark: lexicon.stringEnd1,
+                    interpolations: interpolations);
               }
-              currentLineOfTokens.add(token);
+              addToken(token);
             } else if (current == lexicon.stringStart2) {
               bool escappingCharacter = false;
               buffer.write(current);
-              List<List<Token>> interpolations = [];
+              List<Token> interpolations = [];
               while (iter.moveNext()) {
                 current = iter.current;
                 final charNext = iter.charactersAfter.isNotEmpty
@@ -260,9 +291,9 @@ class HTLexer {
                     iter.charactersAfter
                         .contains(lexicon.stringInterpolationEnd)) {
                   final inner = handleStringInterpolation();
-                  final innerTokens =
+                  final token =
                       lex(inner, line: line, column: column, offset: offset);
-                  interpolations.add(innerTokens);
+                  interpolations.add(token);
                 } else {
                   buffer.write(current);
                   if (current == lexicon.escapeCharacterStart &&
@@ -283,20 +314,24 @@ class HTLexer {
               handleLineInfo(lexeme);
               Token token;
               if (interpolations.isEmpty) {
-                token = TokenStringLiteral(lexeme, lexicon.stringStart2,
-                    lexicon.stringEnd2, line, column, offset, lexeme.length);
+                token = TokenStringLiteral(
+                    lexeme: lexeme,
+                    line: line,
+                    column: column,
+                    offset: offset,
+                    startMark: lexicon.stringStart2,
+                    endMark: lexicon.stringEnd2);
               } else {
                 token = TokenStringInterpolation(
-                    lexeme,
-                    lexicon.stringStart2,
-                    lexicon.stringEnd2,
-                    interpolations,
-                    line,
-                    column,
-                    offset,
-                    lexeme.length);
+                    lexeme: lexeme,
+                    line: line,
+                    column: column,
+                    offset: offset,
+                    startMark: lexicon.stringStart2,
+                    endMark: lexicon.stringEnd2,
+                    interpolations: interpolations);
               }
-              currentLineOfTokens.add(token);
+              addToken(token);
             }
             // marked identifier
             else if (current == lexicon.identifierStart) {
@@ -311,17 +346,21 @@ class HTLexer {
               final lexeme = buffer.toString();
               handleLineInfo(lexeme);
               final token = TokenIdentifier(
-                  lexeme, line, column, offset, buffer.length,
+                  lexeme: lexeme,
+                  line: line,
+                  column: column,
+                  offset: offset,
                   isMarked: true);
-              currentLineOfTokens.add(token);
+              addToken(token);
               buffer.clear();
             }
             // normal punctuation
             else {
               buffer.write(current);
               handleLineInfo(current);
-              final token = Token(current, line, column, offset, buffer.length);
-              currentLineOfTokens.add(token);
+              final token = Token(
+                  lexeme: current, line: line, column: column, offset: offset);
+              addToken(token);
               buffer.clear();
             }
           }
@@ -341,19 +380,31 @@ class HTLexer {
             handleLineInfo(lexeme);
             Token token;
             if (lexicon.keywords.contains(lexeme)) {
-              token = Token(lexeme, line, column, offset, buffer.length,
+              token = Token(
+                  lexeme: lexeme,
+                  line: line,
+                  column: column,
+                  offset: offset,
                   isKeyword: true);
             } else if (lexeme == lexicon.kTrue) {
               token = TokenBooleanLiteral(
-                  lexeme, true, line, column, offset, lexeme.length);
+                  lexeme: lexeme,
+                  line: line,
+                  column: column,
+                  offset: offset,
+                  literal: true);
             } else if (lexeme == lexicon.kFalse) {
               token = TokenBooleanLiteral(
-                  lexeme, false, line, column, offset, lexeme.length);
+                  lexeme: lexeme,
+                  line: line,
+                  column: column,
+                  offset: offset,
+                  literal: false);
             } else {
-              token =
-                  TokenIdentifier(lexeme, line, column, offset, buffer.length);
+              token = TokenIdentifier(
+                  lexeme: lexeme, line: line, column: column, offset: offset);
             }
-            currentLineOfTokens.add(token);
+            addToken(token);
             buffer.clear();
           } else if (_numberStartRegExp.hasMatch(current)) {
             if (!currentString.startsWith(lexicon.hexNumberStart)) {
@@ -381,13 +432,21 @@ class HTLexer {
               if (hasDecimalPoint) {
                 final n = double.parse(lexeme);
                 token = TokenFloatLiteral(
-                    lexeme, n, line, column, offset, buffer.length);
+                    lexeme: lexeme,
+                    line: line,
+                    column: column,
+                    offset: offset,
+                    literal: n);
               } else {
                 final n = int.parse(lexeme);
                 token = TokenIntLiteral(
-                    lexeme, n, line, column, offset, buffer.length);
+                    lexeme: lexeme,
+                    line: line,
+                    column: column,
+                    offset: offset,
+                    literal: n);
               }
-              currentLineOfTokens.add(token);
+              addToken(token);
             } else {
               buffer.write(lexicon.hexNumberStart);
               for (var i = 0; i < lexicon.hexNumberStart.length - 1; ++i) {
@@ -406,8 +465,12 @@ class HTLexer {
               handleLineInfo(lexeme);
               final n = int.parse(lexeme);
               final token = TokenIntLiteral(
-                  lexeme, n, line, column, offset, buffer.length);
-              currentLineOfTokens.add(token);
+                  lexeme: lexeme,
+                  line: line,
+                  column: column,
+                  offset: offset,
+                  literal: n);
+              addToken(token);
             }
             buffer.clear();
           }
@@ -417,14 +480,12 @@ class HTLexer {
       }
     }
 
-    if (currentLineOfTokens.isNotEmpty) {
-      handleEndOfLine(currentLineOfTokens.last.end);
+    if (lastTokenOfCurrentLine != null) {
+      handleEndOfLine(lastTokenOfCurrentLine!.end);
     }
 
-    if (tokens.isEmpty) {
-      tokens.add(TokenEmptyLine(line, column, offset));
-    }
+    firstToken ??= TokenEmptyLine(line: line, column: column, offset: offset);
 
-    return tokens;
+    return firstToken!;
   }
 }

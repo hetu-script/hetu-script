@@ -3,7 +3,7 @@ import 'dart:collection';
 import 'package:quiver/core.dart';
 
 import '../../error/error.dart';
-import '../../grammar/semantic.dart';
+import '../../grammar/constant.dart';
 import '../../type/type.dart';
 import '../../type/nominal_type.dart';
 import '../function/function.dart';

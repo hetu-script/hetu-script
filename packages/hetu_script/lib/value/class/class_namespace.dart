@@ -1,5 +1,5 @@
 import '../../error/error.dart';
-import '../../grammar/semantic.dart';
+import '../../grammar/constant.dart';
 import '../../source/source.dart';
 import '../function/function.dart';
 import '../namespace/namespace.dart';

@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 import '../../grammar/lexicon.dart';
 import '../../type/type.dart';
 import '../../source/source.dart';
-import '../../grammar/semantic.dart';
+import '../../grammar/constant.dart';
 import '../namespace/declaration_namespace.dart';
 import '../declaration.dart';
 import '../type/abstract_type_declaration.dart';

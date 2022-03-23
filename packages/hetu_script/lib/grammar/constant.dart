@@ -76,14 +76,17 @@ abstract class Semantic {
   static const structDefinition = 'struct_definition';
   static const ctorCallExpr = 'constructor_call_expression';
 
-  static const nullLiteral = 'null_literal';
-  static const booleanLiteral = 'boolean_literal';
-  static const integerLiteral = 'integer_literal';
-  static const floatLiteral = 'float_literal';
-  static const stringLiteral = 'string_literal';
-  static const stringInterpolation = 'string_interpolation';
-  static const functionLiteral = 'function_literal_expression';
-  static const listLiteral = 'list_expression';
+  static const literalNull = 'literal_null';
+  static const literalBoolean = 'literal_boolean';
+  static const literalInteger = 'literal_integer';
+  static const literalFloat = 'literal_float';
+  static const literalString = 'literal_string';
+  static const literalStringInterpolation = 'literal_string_interpolation';
+  static const literalList = 'literal_list';
+  static const literalFunction = 'literal_function';
+  static const literalStruct = 'literal_struct';
+  static const literalStructField = 'literal_struct_field';
+
   static const spreadExpr = 'spread_expression';
   static const rangeExpr = 'range_expression';
   static const groupExpr = 'group_expression';
@@ -126,8 +129,6 @@ abstract class Semantic {
       'redirecting_constructor_call_expression';
   static const functionDeclaration = 'function_declaration';
   static const structDeclaration = 'struct_declaration';
-  static const structLiteral = 'struct_literal';
-  static const structLiteralField = 'struct_literal_field';
 
   static const libraryStmt = 'library_statement';
   static const importStmt = 'import_statement';

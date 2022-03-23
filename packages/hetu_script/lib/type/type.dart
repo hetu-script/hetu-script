@@ -50,28 +50,28 @@ abstract class HTType with HTEntity {
 
   const HTType(this.id, {this.typeArgs = const [], this.isNullable = false});
 
-  factory HTType.fromAst(TypeExpr? ast) {
+  factory HTType.fromAST(TypeExpr? ast) {
     if (ast != null) {
       if (ast is FuncTypeExpr) {
         return HTFunctionType(
             genericTypeParameters: ast.genericTypeParameters
                 .map((param) => HTGenericTypeParameter(param.id.id,
-                    superType: HTType.fromAst(param.superType)))
+                    superType: HTType.fromAST(param.superType)))
                 .toList(),
             parameterTypes: ast.paramTypes
-                .map((param) => HTParameterType(HTType.fromAst(param.declType),
+                .map((param) => HTParameterType(HTType.fromAST(param.declType),
                     isOptional: param.isOptional,
                     isVariadic: param.isVariadic,
                     id: param.id?.id))
                 .toList(),
-            returnType: HTType.fromAst(ast.returnType));
+            returnType: HTType.fromAST(ast.returnType));
       } else {
         if (HTType.primitiveTypes.containsKey(ast.id)) {
           return HTType.primitiveTypes[ast.id]!;
         } else {
           return HTUnresolvedType(ast.id!.id,
               typeArgs:
-                  ast.arguments.map((expr) => HTType.fromAst(expr)).toList(),
+                  ast.arguments.map((expr) => HTType.fromAST(expr)).toList(),
               isNullable: ast.isNullable);
         }
       }

@@ -1,7 +1,7 @@
 import 'package:hetu_script/value/function/function.dart';
 
 import '../../error/error.dart';
-import '../../grammar/semantic.dart';
+import '../../grammar/constant.dart';
 import '../../value/namespace/namespace.dart';
 import 'instance.dart';
 

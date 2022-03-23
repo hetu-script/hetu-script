@@ -11,7 +11,7 @@ import '../protocol/protocol_common.dart';
 class OccurrencesCollector {
   final Map<Element, Occurrences> elementOccurrences = <Element, Occurrences>{};
 
-  OccurrencesCollector(List<AstNode> nodes) {
+  OccurrencesCollector(List<ASTNode> nodes) {
     final visitor = _OccurrencesComputerVisitor();
     for (final node in nodes) {
       node.accept(visitor);
@@ -43,7 +43,7 @@ class OccurrencesCollector {
   }
 }
 
-class _OccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
+class _OccurrencesComputerVisitor extends RecursiveASTVisitor<void> {
   final Map<HTDeclaration, List<int>> declOffsets =
       <HTDeclaration, List<int>>{};
 

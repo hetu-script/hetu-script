@@ -3,8 +3,8 @@ import 'package:path/path.dart' as path;
 import '../resource/resource.dart';
 import '../resource/resource_context.dart';
 import '../resource/overlay/overlay_context.dart';
-import '../lexer/token.dart';
-import '../grammar/semantic.dart';
+import '../grammar/token.dart';
+import '../grammar/constant.dart';
 import '../source/source.dart';
 import '../declaration/class/class_declaration.dart';
 import '../error/error.dart';
@@ -12,6 +12,7 @@ import '../ast/ast.dart';
 import 'token_reader.dart';
 import '../lexer/lexer.dart';
 import '../grammar/lexicon.dart';
+import '../comment/comment.dart';
 
 /// Determines how to parse a piece of code
 enum ParseStyle {
@@ -46,6 +47,8 @@ class ParserConfigImpl implements ParserConfig {}
 /// Walk through a token list and generates a abstract syntax tree.
 class HTParser extends TokenReader {
   static var anonymousFunctionIndex = 0;
+
+  late final HTLexer _lexer;
 
   // All import decl in this list must have non-null [fromPath]
   late List<ImportExportDecl> _currentModuleImports;
@@ -87,16 +90,18 @@ class HTParser extends TokenReader {
   HTParser(
       {HTResourceContext<HTSource>?
           sourceContext}) //, AbstractLexicon? lexicon})
-      : sourceContext = sourceContext ?? HTOverlayContext();
+      : sourceContext = sourceContext ?? HTOverlayContext() {
+    _lexer = HTLexer();
+  }
   // lexicon = lexicon ?? HTDefaultLexicon();
 
   /// Will use [style] when possible, then [source.sourceType]
-  List<AstNode> parseToken(List<Token> tokens,
+  List<ASTNode> parseToken(Token token,
       {HTSource? source, ParseStyle? style, ParserConfig? config}) {
     // create new list of errors here, old error list is still usable
     errors = <HTError>[];
-    final nodes = <AstNode>[];
-    setTokens(tokens);
+    final nodes = <ASTNode>[];
+    setTokens(token);
     _currentSource = source;
     _currrentFileName = source?.fullName;
     late ParseStyle parseStyle;
@@ -122,14 +127,14 @@ class HTParser extends TokenReader {
     while (curTok.type != Semantic.endOfFile) {
       final stmt = _parseStmt(sourceType: parseStyle);
       if (stmt != null) {
-        if (stmt is EmptyLine && parseStyle == ParseStyle.expression) {
+        if (stmt is ASTEmptyLine && parseStyle == ParseStyle.expression) {
           continue;
         }
         nodes.add(stmt);
       }
     }
     if (nodes.isEmpty) {
-      final empty = EmptyLine(
+      final empty = ASTEmptyLine(
           source: _currentSource,
           line: curTok.line,
           column: curTok.column,
@@ -142,14 +147,14 @@ class HTParser extends TokenReader {
     return nodes;
   }
 
-  AstSource parseSource(HTSource source) {
+  ASTSource parseSource(HTSource source) {
     _currrentFileName = source.fullName;
     _currentClass = null;
     _currentFunctionCategory = null;
     _currentModuleImports = <ImportExportDecl>[];
-    final tokens = HTLexer().lex(source.content);
+    final tokens = _lexer.lex(source.content);
     final nodes = parseToken(tokens, source: source);
-    final result = AstSource(
+    final result = ASTSource(
         nodes: nodes,
         source: source,
         imports: _currentModuleImports,
@@ -159,13 +164,13 @@ class HTParser extends TokenReader {
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  AstCompilation parseToModule(HTSource entry) {
+  ASTCompilation parseToModule(HTSource entry) {
     final result = parseSource(entry);
     final parserErrors = result.errors!;
-    final values = <String, AstSource>{};
-    final sources = <String, AstSource>{};
+    final values = <String, ASTSource>{};
+    final sources = <String, ASTSource>{};
     final Set _cachedParsingTargets = <String>{};
-    void handleImport(AstSource result) {
+    void handleImport(ASTSource result) {
       _cachedParsingTargets.add(result.fullName);
       for (final decl in result.imports) {
         if (decl.isPreloadedModule) {
@@ -173,7 +178,7 @@ class HTParser extends TokenReader {
           continue;
         }
         try {
-          late final AstSource importedSource;
+          late final ASTSource importedSource;
           final currentDir =
               result.fullName.startsWith(InternalIdentifier.anonymousScript)
                   ? sourceContext.root
@@ -190,6 +195,8 @@ class HTParser extends TokenReader {
           else {
             final source2 = sourceContext.getResource(importFullName);
             importedSource = parseSource(source2);
+            // final parser2 = HTParser(sourceContext: sourceContext);
+            // importedSource = parser2.parseSource(source2);
             parserErrors.addAll(importedSource.errors!);
             // _cachedParseResults[importFullName] = importedSource;
           }
@@ -218,7 +225,7 @@ class HTParser extends TokenReader {
       handleImport(result);
       sources[result.fullName] = result;
     }
-    final compilation = AstCompilation(
+    final compilation = ASTCompilation(
         values: values,
         sources: sources,
         entryResourceName: entry.fullName,
@@ -238,7 +245,7 @@ class HTParser extends TokenReader {
     return handled;
   }
 
-  bool _handleTrailingComment(AstNode expr) {
+  bool _handleTrailingComment(ASTNode expr) {
     if (curTok is TokenComment) {
       final tokenComment = curTok as TokenComment;
       if (tokenComment.isTrailing) {
@@ -250,18 +257,18 @@ class HTParser extends TokenReader {
     return false;
   }
 
-  AstNode? _parseStmt({ParseStyle sourceType = ParseStyle.functionDefinition}) {
+  ASTNode? _parseStmt({ParseStyle sourceType = ParseStyle.functionDefinition}) {
     if (_handlePrecedingComment()) {
       return null;
     }
 
-    AstNode stmt;
+    ASTNode stmt;
     final precedingCommentsOfThisStmt =
         List<Comment>.from(_currentPrecedingComments);
     _currentPrecedingComments.clear();
     if (curTok.type == Semantic.emptyLine) {
       final empty = advance();
-      stmt = EmptyLine(
+      stmt = ASTEmptyLine(
           line: empty.line, column: empty.column, offset: empty.offset);
     } else {
       switch (sourceType) {
@@ -308,7 +315,7 @@ class HTParser extends TokenReader {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyLine(
+                    stmt = ASTEmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -331,7 +338,7 @@ class HTParser extends TokenReader {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyLine(
+                    stmt = ASTEmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -457,7 +464,7 @@ class HTParser extends TokenReader {
                           length: curTok.length);
                       errors?.add(err);
                       final errToken = advance();
-                      stmt = EmptyLine(
+                      stmt = ASTEmptyLine(
                           source: _currentSource,
                           line: errToken.line,
                           column: errToken.column,
@@ -488,7 +495,7 @@ class HTParser extends TokenReader {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyLine(
+                    stmt = ASTEmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -504,7 +511,7 @@ class HTParser extends TokenReader {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyLine(
+                    stmt = ASTEmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -549,7 +556,7 @@ class HTParser extends TokenReader {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyLine(
+                stmt = ASTEmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -586,7 +593,7 @@ class HTParser extends TokenReader {
                           length: curTok.length);
                       errors?.add(err);
                       final errToken = advance();
-                      stmt = EmptyLine(
+                      stmt = ASTEmptyLine(
                           source: _currentSource,
                           line: errToken.line,
                           column: errToken.column,
@@ -617,7 +624,7 @@ class HTParser extends TokenReader {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyLine(
+                    stmt = ASTEmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -633,7 +640,7 @@ class HTParser extends TokenReader {
                         length: curTok.length);
                     errors?.add(err);
                     final errToken = advance();
-                    stmt = EmptyLine(
+                    stmt = ASTEmptyLine(
                         source: _currentSource,
                         line: errToken.line,
                         column: errToken.column,
@@ -676,7 +683,7 @@ class HTParser extends TokenReader {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyLine(
+                stmt = ASTEmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -699,7 +706,7 @@ class HTParser extends TokenReader {
                   length: curTok.length);
               errors?.add(err);
               final errToken = advance();
-              stmt = EmptyLine(
+              stmt = ASTEmptyLine(
                   source: _currentSource,
                   line: errToken.line,
                   column: errToken.column,
@@ -747,7 +754,7 @@ class HTParser extends TokenReader {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyLine(
+                  stmt = ASTEmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -772,7 +779,7 @@ class HTParser extends TokenReader {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyLine(
+                  stmt = ASTEmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -814,7 +821,7 @@ class HTParser extends TokenReader {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyLine(
+                  stmt = ASTEmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -828,7 +835,7 @@ class HTParser extends TokenReader {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyLine(
+                  stmt = ASTEmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -852,7 +859,7 @@ class HTParser extends TokenReader {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyLine(
+                  stmt = ASTEmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -866,7 +873,7 @@ class HTParser extends TokenReader {
                       length: curTok.length);
                   errors?.add(err);
                   final errToken = advance();
-                  stmt = EmptyLine(
+                  stmt = ASTEmptyLine(
                       source: _currentSource,
                       line: errToken.line,
                       column: errToken.column,
@@ -889,7 +896,7 @@ class HTParser extends TokenReader {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyLine(
+                stmt = ASTEmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -936,7 +943,7 @@ class HTParser extends TokenReader {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyLine(
+                stmt = ASTEmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -978,7 +985,7 @@ class HTParser extends TokenReader {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyLine(
+                stmt = ASTEmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -992,7 +999,7 @@ class HTParser extends TokenReader {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyLine(
+                stmt = ASTEmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -1014,7 +1021,7 @@ class HTParser extends TokenReader {
                   length: curTok.length);
               errors?.add(err);
               final errToken = advance();
-              stmt = EmptyLine(
+              stmt = ASTEmptyLine(
                   source: _currentSource,
                   line: errToken.line,
                   column: errToken.column,
@@ -1151,7 +1158,7 @@ class HTParser extends TokenReader {
                     length: curTok.length);
                 errors?.add(err);
                 final errToken = advance();
-                stmt = EmptyLine(
+                stmt = ASTEmptyLine(
                     source: _currentSource,
                     line: errToken.line,
                     column: errToken.column,
@@ -1215,9 +1222,9 @@ class HTParser extends TokenReader {
   /// Recursive descent parsing
   ///
   /// Assignment operator =, precedence 1, associativity right
-  AstNode _parseExpr() {
+  ASTNode _parseExpr() {
     _handlePrecedingComment();
-    AstNode? expr;
+    ASTNode? expr;
     final left = _parserTernaryExpr();
     if (HTLexicon.assignments.contains(curTok.type)) {
       final op = advance();
@@ -1239,7 +1246,7 @@ class HTParser extends TokenReader {
   }
 
   /// Ternery operator: e1 ? e2 : e3, precedence 3, associativity right
-  AstNode _parserTernaryExpr() {
+  ASTNode _parserTernaryExpr() {
     var condition = _parseIfNullExpr();
     if (expect([HTLexicon.ternaryThen], consume: true)) {
       _leftValueLegality = false;
@@ -1257,7 +1264,7 @@ class HTParser extends TokenReader {
   }
 
   /// If null: e1 ?? e2, precedence 4, associativity left
-  AstNode _parseIfNullExpr() {
+  ASTNode _parseIfNullExpr() {
     var left = _parseLogicalOrExpr();
     if (curTok.type == HTLexicon.ifNull) {
       _leftValueLegality = false;
@@ -1276,7 +1283,7 @@ class HTParser extends TokenReader {
   }
 
   /// Logical or: ||, precedence 5, associativity left
-  AstNode _parseLogicalOrExpr() {
+  ASTNode _parseLogicalOrExpr() {
     var left = _parseLogicalAndExpr();
     if (curTok.type == HTLexicon.logicalOr) {
       _leftValueLegality = false;
@@ -1295,7 +1302,7 @@ class HTParser extends TokenReader {
   }
 
   /// Logical and: &&, precedence 6, associativity left
-  AstNode _parseLogicalAndExpr() {
+  ASTNode _parseLogicalAndExpr() {
     var left = _parseEqualityExpr();
     if (curTok.type == HTLexicon.logicalAnd) {
       _leftValueLegality = false;
@@ -1314,7 +1321,7 @@ class HTParser extends TokenReader {
   }
 
   /// Logical equal: ==, !=, precedence 7, associativity none
-  AstNode _parseEqualityExpr() {
+  ASTNode _parseEqualityExpr() {
     var left = _parseRelationalExpr();
     if (HTLexicon.equalitys.contains(curTok.type)) {
       _leftValueLegality = false;
@@ -1331,7 +1338,7 @@ class HTParser extends TokenReader {
   }
 
   /// Logical compare: <, >, <=, >=, as, is, is!, in, in!, precedence 8, associativity none
-  AstNode _parseRelationalExpr() {
+  ASTNode _parseRelationalExpr() {
     var left = _parseAdditiveExpr();
     if (HTLexicon.logicalRelationals.contains(curTok.type)) {
       _leftValueLegality = false;
@@ -1384,7 +1391,7 @@ class HTParser extends TokenReader {
   }
 
   /// Add: +, -, precedence 13, associativity left
-  AstNode _parseAdditiveExpr() {
+  ASTNode _parseAdditiveExpr() {
     var left = _parseMultiplicativeExpr();
     if (HTLexicon.additives.contains(curTok.type)) {
       _leftValueLegality = false;
@@ -1403,7 +1410,7 @@ class HTParser extends TokenReader {
   }
 
   /// Multiply *, /, ~/, %, precedence 14, associativity left
-  AstNode _parseMultiplicativeExpr() {
+  ASTNode _parseMultiplicativeExpr() {
     var left = _parseUnaryPrefixExpr();
     if (HTLexicon.multiplicatives.contains(curTok.type)) {
       _leftValueLegality = false;
@@ -1422,7 +1429,7 @@ class HTParser extends TokenReader {
   }
 
   /// Prefix -e, !e，++e, --e, precedence 15, associativity none
-  AstNode _parseUnaryPrefixExpr() {
+  ASTNode _parseUnaryPrefixExpr() {
     if (!(HTLexicon.unaryPrefixs.contains(curTok.type))) {
       return _parseUnaryPostfixExpr();
     } else {
@@ -1449,7 +1456,7 @@ class HTParser extends TokenReader {
   }
 
   /// Postfix e., e?., e[], e?[], e(), e?(), e++, e-- precedence 16, associativity right
-  AstNode _parseUnaryPostfixExpr() {
+  ASTNode _parseUnaryPostfixExpr() {
     var expr = _parsePrimaryExpr();
     while (HTLexicon.unaryPostfixs.contains(curTok.type)) {
       final op = advance();
@@ -1528,8 +1535,8 @@ class HTParser extends TokenReader {
           break;
         case HTLexicon.nullableFunctionCallArgumentStart:
           _leftValueLegality = false;
-          var positionalArgs = <AstNode>[];
-          var namedArgs = <String, AstNode>{};
+          var positionalArgs = <ASTNode>[];
+          var namedArgs = <String, ASTNode>{};
           _handleCallArguments(positionalArgs, namedArgs);
           expr = CallExpr(expr,
               positionalArgs: positionalArgs,
@@ -1549,8 +1556,8 @@ class HTParser extends TokenReader {
             isNullable = true;
           }
           _leftValueLegality = false;
-          var positionalArgs = <AstNode>[];
-          var namedArgs = <String, AstNode>{};
+          var positionalArgs = <ASTNode>[];
+          var namedArgs = <String, ASTNode>{};
           _handleCallArguments(positionalArgs, namedArgs);
           expr = CallExpr(expr,
               positionalArgs: positionalArgs,
@@ -1580,65 +1587,65 @@ class HTParser extends TokenReader {
   }
 
   /// Expression without associativity
-  AstNode _parsePrimaryExpr() {
+  ASTNode _parsePrimaryExpr() {
     switch (curTok.type) {
       case HTLexicon.kNull:
         final token = advance();
         _leftValueLegality = false;
-        return NullExpr(
+        return ASTLiteralNull(
             source: _currentSource,
             line: token.line,
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case Semantic.booleanLiteral:
-        final token = match(Semantic.booleanLiteral) as TokenBooleanLiteral;
+      case Semantic.literalBoolean:
+        final token = match(Semantic.literalBoolean) as TokenBooleanLiteral;
         _leftValueLegality = false;
-        return BooleanLiteralExpr(token.literal,
+        return ASTLiteralBoolean(token.literal,
             source: _currentSource,
             line: token.line,
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case Semantic.integerLiteral:
-        final token = match(Semantic.integerLiteral) as TokenIntLiteral;
+      case Semantic.literalInteger:
+        final token = match(Semantic.literalInteger) as TokenIntLiteral;
         _leftValueLegality = false;
-        return IntegerLiteralExpr(token.literal,
+        return ASTLiteralInteger(token.literal,
             source: _currentSource,
             line: token.line,
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case Semantic.floatLiteral:
+      case Semantic.literalFloat:
         final token = advance() as TokenFloatLiteral;
         _leftValueLegality = false;
-        return FloatLiteralExpr(token.literal,
+        return ASTLiteralFloat(token.literal,
             source: _currentSource,
             line: token.line,
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case Semantic.stringLiteral:
+      case Semantic.literalString:
         final token = advance() as TokenStringLiteral;
         _leftValueLegality = false;
-        return StringLiteralExpr(token.literal, token.startMark, token.endMark,
+        return ASTLiteralString(token.literal, token.startMark, token.endMark,
             source: _currentSource,
             line: token.line,
             column: token.column,
             offset: token.offset,
             length: token.length);
-      case Semantic.stringInterpolation:
+      case Semantic.literalStringInterpolation:
         final token = advance() as TokenStringInterpolation;
-        final interpolations = <AstNode>[];
-        for (final tokens in token.interpolations) {
+        final interpolations = <ASTNode>[];
+        for (final token in token.interpolations) {
           final exprParser = HTParser();
-          final nodes = exprParser.parseToken(tokens,
+          final nodes = exprParser.parseToken(token,
               source: _currentSource, style: ParseStyle.expression);
           errors?.addAll(exprParser.errors!);
 
-          AstNode? expr;
+          ASTNode? expr;
           for (final node in nodes) {
-            if (node is! EmptyLine) {
+            if (node is! ASTEmptyLine) {
               if (expr == null) {
                 expr = node;
               } else {
@@ -1666,7 +1673,7 @@ class HTParser extends TokenReader {
             (Match m) =>
                 '${HTLexicon.functionBlockStart}${i++}${HTLexicon.functionBlockEnd}');
         _leftValueLegality = false;
-        return StringInterpolationExpr(
+        return ASTLiteralStringInterpolation(
             text, token.startMark, token.endMark, interpolations,
             source: _currentSource,
             line: token.line,
@@ -1697,8 +1704,8 @@ class HTParser extends TokenReader {
         final idTok = match(Semantic.identifier) as TokenIdentifier;
         final id = IdentifierExpr.fromToken(idTok,
             isMarked: idTok.isMarked, source: _currentSource);
-        var positionalArgs = <AstNode>[];
-        var namedArgs = <String, AstNode>{};
+        var positionalArgs = <ASTNode>[];
+        var namedArgs = <String, ASTNode>{};
         if (expect([HTLexicon.functionCallArgumentStart], consume: true)) {
           _handleCallArguments(positionalArgs, namedArgs);
         }
@@ -1741,10 +1748,10 @@ class HTParser extends TokenReader {
         }
       case HTLexicon.listStart:
         final start = advance();
-        final listExpr = <AstNode>[];
+        final listExpr = <ASTNode>[];
         while (curTok.type != HTLexicon.listEnd &&
             curTok.type != Semantic.endOfFile) {
-          AstNode item;
+          ASTNode item;
           if (curTok.type == HTLexicon.spreadSyntax) {
             final spreadTok = advance();
             item = _parseExpr();
@@ -1796,7 +1803,7 @@ class HTParser extends TokenReader {
             length: curTok.length);
         errors?.add(err);
         final errToken = advance();
-        return EmptyLine(
+        return ASTEmptyLine(
             source: _currentSource,
             line: errToken.line,
             column: errToken.column,
@@ -1805,7 +1812,7 @@ class HTParser extends TokenReader {
   }
 
   CommaExpr _handleCommaExpr(String endMark, {bool isLocal = true}) {
-    final list = <AstNode>[];
+    final list = <ASTNode>[];
     while (curTok.type != endMark && curTok.type != Semantic.endOfFile) {
       if (list.isNotEmpty) {
         match(HTLexicon.comma);
@@ -1907,7 +1914,7 @@ class HTParser extends TokenReader {
           curTok.type != Semantic.endOfFile) {
         _handlePrecedingComment();
         late Token idTok;
-        if (curTok.type == Semantic.stringLiteral) {
+        if (curTok.type == Semantic.literalString) {
           idTok = advance();
         } else {
           idTok = match(Semantic.identifier);
@@ -1971,7 +1978,7 @@ class HTParser extends TokenReader {
       ParseStyle sourceType = ParseStyle.functionDefinition,
       bool hasOwnNamespace = true}) {
     final startTok = match(HTLexicon.functionBlockStart);
-    final statements = <AstNode>[];
+    final statements = <ASTNode>[];
     while (curTok.type != HTLexicon.functionBlockEnd &&
         curTok.type != Semantic.endOfFile) {
       final stmt = _parseStmt(sourceType: sourceType);
@@ -1981,7 +1988,7 @@ class HTParser extends TokenReader {
     }
     final endTok = match(HTLexicon.functionBlockEnd);
     if (statements.isEmpty) {
-      final empty = EmptyLine(
+      final empty = ASTEmptyLine(
           source: _currentSource,
           line: endTok.line,
           column: endTok.column,
@@ -2003,7 +2010,7 @@ class HTParser extends TokenReader {
   }
 
   void _handleCallArguments(
-      List<AstNode> positionalArgs, Map<String, AstNode> namedArgs) {
+      List<ASTNode> positionalArgs, Map<String, ASTNode> namedArgs) {
     var isNamed = false;
     while ((curTok.type != HTLexicon.groupExprEnd) &&
         (curTok.type != Semantic.endOfFile)) {
@@ -2022,7 +2029,7 @@ class HTParser extends TokenReader {
         _handleTrailingComment(namedArg);
         namedArgs[name] = namedArg;
       } else {
-        late AstNode positionalArg;
+        late ASTNode positionalArg;
         if (curTok.type == HTLexicon.spreadSyntax) {
           final spreadTok = advance();
           final spread = _parseExpr();
@@ -2045,10 +2052,10 @@ class HTParser extends TokenReader {
     match(HTLexicon.functionCallArgumentEnd);
   }
 
-  AstNode _parseExprStmt() {
+  ASTNode _parseExprStmt() {
     if (curTok.type == HTLexicon.endOfStatementMark) {
       final empty = advance();
-      final stmt = EmptyLine(
+      final stmt = ASTEmptyLine(
           hasEndOfStmtMark: true,
           source: _currentSource,
           line: empty.line,
@@ -2073,7 +2080,7 @@ class HTParser extends TokenReader {
 
   ReturnStmt _parseReturnStmt() {
     var keyword = advance();
-    AstNode? expr;
+    ASTNode? expr;
     if (curTok.type != HTLexicon.functionBlockEnd &&
         curTok.type != HTLexicon.endOfStatementMark &&
         curTok.type != Semantic.endOfFile) {
@@ -2091,7 +2098,7 @@ class HTParser extends TokenReader {
         length: curTok.offset - keyword.offset);
   }
 
-  AstNode _parseExprOrStmtOrBlock({bool isExpression = false}) {
+  ASTNode _parseExprOrStmtOrBlock({bool isExpression = false}) {
     if (curTok.type == HTLexicon.functionBlockStart) {
       return _parseBlockStmt(id: Semantic.elseBranch);
     } else {
@@ -2108,7 +2115,7 @@ class HTParser extends TokenReader {
               offset: curTok.offset,
               length: curTok.length);
           errors?.add(err);
-          node = EmptyLine(
+          node = ASTEmptyLine(
               source: _currentSource,
               line: curTok.line,
               column: curTok.column,
@@ -2129,7 +2136,7 @@ class HTParser extends TokenReader {
     match(HTLexicon.groupExprEnd);
     var thenBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
     _handlePrecedingComment();
-    AstNode? elseBranch;
+    ASTNode? elseBranch;
     if (isExpression) {
       match(HTLexicon.kElse);
       elseBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
@@ -2165,7 +2172,7 @@ class HTParser extends TokenReader {
   DoStmt _parseDoStmt() {
     final keyword = advance();
     final loop = _parseBlockStmt(id: Semantic.doLoop);
-    AstNode? condition;
+    ASTNode? condition;
     if (expect([HTLexicon.kWhile], consume: true)) {
       match(HTLexicon.groupExprStart);
       condition = _parseExpr();
@@ -2182,13 +2189,13 @@ class HTParser extends TokenReader {
         length: curTok.offset - keyword.offset);
   }
 
-  AstNode _parseForStmt() {
+  ASTNode _parseForStmt() {
     final keyword = advance();
     final hasBracket = expect([HTLexicon.groupExprStart], consume: true);
     final forStmtType = peek(2).lexeme;
     VarDecl? decl;
-    AstNode? condition;
-    AstNode? increment;
+    ASTNode? condition;
+    ASTNode? increment;
     final newSymbolMap = <String, String>{};
     _markedSymbolsList.add(newSymbolMap);
     if (forStmtType == HTLexicon.kIn || forStmtType == HTLexicon.kOf) {
@@ -2251,14 +2258,14 @@ class HTParser extends TokenReader {
 
   WhenStmt _parseWhen({bool isExpression = false}) {
     final keyword = advance();
-    AstNode? condition;
+    ASTNode? condition;
     if (curTok.type != HTLexicon.functionBlockStart) {
       match(HTLexicon.groupExprStart);
       condition = _parseExpr();
       match(HTLexicon.groupExprEnd);
     }
-    final options = <AstNode, AstNode>{};
-    AstNode? elseBranch;
+    final options = <ASTNode, ASTNode>{};
+    ASTNode? elseBranch;
     match(HTLexicon.functionBlockStart);
     while (curTok.type != HTLexicon.functionBlockEnd &&
         curTok.type != Semantic.endOfFile) {
@@ -2268,7 +2275,7 @@ class HTParser extends TokenReader {
         match(HTLexicon.whenBranchIndicator);
         elseBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
       } else {
-        AstNode caseExpr;
+        ASTNode caseExpr;
         if (condition != null) {
           if (peek(1).type == HTLexicon.comma) {
             caseExpr =
@@ -2367,7 +2374,7 @@ class HTParser extends TokenReader {
       hasEndOfStmtMark = expect([HTLexicon.endOfStatementMark], consume: true);
     }
 
-    final fromPathTok = match(Semantic.stringLiteral);
+    final fromPathTok = match(Semantic.literalString);
     String fromPathRaw = fromPathTok.literal;
     String fromPath;
     bool isPreloadedModule = false;
@@ -2439,7 +2446,7 @@ class HTParser extends TokenReader {
           expect([HTLexicon.endOfStatementMark], consume: true);
       if (!hasEndOfStmtMark && curTok.lexeme == HTLexicon.kFrom) {
         advance();
-        final fromPathTok = match(Semantic.stringLiteral);
+        final fromPathTok = match(Semantic.literalString);
         final ext = path.extension(fromPathTok.literal);
         if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
           final err = HTError.importListOnNonHetuSource(
@@ -2469,7 +2476,7 @@ class HTParser extends TokenReader {
     }
     // export all of the symbols from other source
     else {
-      final key = match(Semantic.stringLiteral);
+      final key = match(Semantic.literalString);
       final hasEndOfStmtMark =
           expect([HTLexicon.endOfStatementMark], consume: true);
       stmt = ImportExportDecl(
@@ -2486,7 +2493,7 @@ class HTParser extends TokenReader {
     return stmt;
   }
 
-  AstNode _parseDeleteStmt() {
+  ASTNode _parseDeleteStmt() {
     var keyword = advance();
     final nextTok = peek(1);
     if (curTok.type == Semantic.identifier &&
@@ -2528,7 +2535,7 @@ class HTParser extends TokenReader {
             offset: curTok.offset,
             length: curTok.length);
         errors?.add(err);
-        final empty = EmptyLine(
+        final empty = ASTEmptyLine(
             source: _currentSource,
             line: keyword.line,
             column: keyword.column,
@@ -2589,7 +2596,7 @@ class HTParser extends TokenReader {
       bool isTopLevel = false,
       bool lateFinalize = false,
       bool lateInitialize = false,
-      AstNode? additionalInitializer,
+      ASTNode? additionalInitializer,
       bool hasEndOfStatement = false}) {
     final keyword = advance();
     final idTok = match(Semantic.identifier);
@@ -2611,7 +2618,7 @@ class HTParser extends TokenReader {
     if (expect([HTLexicon.typeIndicator], consume: true)) {
       declType = _parseTypeExpr();
     }
-    AstNode? initializer;
+    ASTNode? initializer;
     if (!lateFinalize) {
       if (isConst) {
         match(HTLexicon.assign);
@@ -2804,7 +2811,7 @@ class HTParser extends TokenReader {
         if (expect([HTLexicon.typeIndicator], consume: true)) {
           paramDeclType = _parseTypeExpr();
         }
-        AstNode? initializer;
+        ASTNode? initializer;
         if (expect([HTLexicon.assign], consume: true)) {
           if (isOptional || isNamed) {
             initializer = _parseExpr();
@@ -2921,8 +2928,8 @@ class HTParser extends TokenReader {
       } else {
         match(HTLexicon.groupExprStart);
       }
-      var positionalArgs = <AstNode>[];
-      var namedArgs = <String, AstNode>{};
+      var positionalArgs = <ASTNode>[];
+      var namedArgs = <String, ASTNode>{};
       _handleCallArguments(positionalArgs, namedArgs);
       referCtor = RedirectingConstructorCallExpr(
           IdentifierExpr.fromToken(ctorCallee, source: _currentSource),
@@ -2939,7 +2946,7 @@ class HTParser extends TokenReader {
     }
     bool isExpressionBody = false;
     bool hasEndOfStmtMark = false;
-    AstNode? definition;
+    ASTNode? definition;
     if (curTok.type == HTLexicon.functionBlockStart) {
       if (category == FunctionCategory.literal && !hasKeyword) {
         startTok = curTok;
@@ -3125,7 +3132,7 @@ class HTParser extends TokenReader {
     }
     final savedStructId = _currentStructId;
     _currentStructId = id.id;
-    final definition = <AstNode>[];
+    final definition = <ASTNode>[];
     final startTok = match(HTLexicon.functionBlockStart);
     while (curTok.type != HTLexicon.functionBlockEnd &&
         curTok.type != Semantic.endOfFile) {
@@ -3136,7 +3143,7 @@ class HTParser extends TokenReader {
     }
     final endTok = match(HTLexicon.functionBlockEnd);
     if (definition.isEmpty) {
-      final empty = EmptyLine(
+      final empty = ASTEmptyLine(
           source: _currentSource,
           line: endTok.line,
           column: endTok.column,
@@ -3173,7 +3180,7 @@ class HTParser extends TokenReader {
     while (curTok.type != HTLexicon.functionBlockEnd &&
         curTok.type != Semantic.endOfFile) {
       if (curTok.type == Semantic.identifier ||
-          curTok.type == Semantic.stringLiteral) {
+          curTok.type == Semantic.literalString) {
         final keyTok = advance();
         late final StructObjField field;
         if (curTok.type == HTLexicon.comma ||

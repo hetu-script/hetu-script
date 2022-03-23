@@ -1,4 +1,5 @@
 import 'package:hetu_script/lexer/lexer.dart';
+import 'package:hetu_script/grammar/token.dart';
 
 void main() {
   final source = r'''
@@ -23,8 +24,9 @@ fun main {
 }
 ''';
   final lexer = HTLexer();
-  final tokens = lexer.lex(source);
-  for (final token in tokens) {
-    print(token.lexeme);
-  }
+  Token? token = lexer.lex(source);
+  do {
+    print(token?.lexeme);
+    token = token?.next;
+  } while (token != null);
 }
