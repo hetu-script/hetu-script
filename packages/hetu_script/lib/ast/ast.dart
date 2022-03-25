@@ -1,5 +1,5 @@
 import '../declaration/namespace/declaration_namespace.dart';
-import '../grammar/token.dart';
+import '../parser/token.dart';
 import '../grammar/constant.dart';
 import '../source/source.dart';
 import '../declaration/declaration.dart';
@@ -14,7 +14,7 @@ part 'visitor/abstract_ast_visitor.dart';
 abstract class ASTNode {
   final String type;
 
-  final precedingComments = <Comment>[];
+  List<Comment> precedingComments = [];
 
   Comment? trailingComment;
 

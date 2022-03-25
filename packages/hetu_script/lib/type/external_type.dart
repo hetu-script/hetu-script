@@ -1,5 +1,5 @@
 import '../grammar/constant.dart';
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import 'type.dart';
 
 // An unknown object type passed into script from other language

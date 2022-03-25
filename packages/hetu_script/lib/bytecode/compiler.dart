@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../ast/ast.dart';
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import '../grammar/constant.dart';
 import '../shared/constants.dart';
 import '../constant/global_constant_table.dart';

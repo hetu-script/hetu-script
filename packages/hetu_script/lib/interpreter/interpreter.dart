@@ -22,7 +22,7 @@ import '../type/unresolved_type.dart';
 import '../type/function_type.dart';
 import '../type/nominal_type.dart';
 import '../type/structural_type.dart';
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import '../grammar/constant.dart';
 import '../source/source.dart';
 import '../resource/resource.dart';

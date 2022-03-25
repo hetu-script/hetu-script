@@ -1,5 +1,5 @@
 import '../ast/ast.dart';
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import '../shared/stringify.dart';
 import '../analyzer/analysis_error.dart';
 

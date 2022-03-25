@@ -1,4 +1,4 @@
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import '../value/struct/struct.dart';
 
 bool isJsonDataType(dynamic object) {

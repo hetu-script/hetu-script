@@ -1,5 +1,5 @@
 import '../error/error.dart';
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 // import '../grammar/semantic.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';

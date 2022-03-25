@@ -1,10 +1,14 @@
 /// Lexicon used by Hetu,
 abstract class HTLexicon {
+  /// the identity name of this lexicon.
+  String get name;
+
   String get identifierStartPattern;
   String get identifierPattern;
   String get numberStartPattern;
   String get numberPattern;
   String get hexNumberPattern;
+  String get stringInterpolationPattern;
 
   /// a character sequence that marked the start of literal hex number.
   String get hexNumberStart;
@@ -125,6 +129,14 @@ abstract class HTLexicon {
   Set<String> get destructuringDeclarationMark => {
         listStart,
         structStart,
+      };
+
+  /// Variable declaration keyword
+  Set<String> get variableDeclarationKeywords => {
+        kVar,
+        kFinal,
+        kConst,
+        kLate,
       };
 
   /// Variable declaration keyword
@@ -286,6 +298,12 @@ abstract class HTLexicon {
         functionCallArgumentStart,
         postIncrement,
         postDecrement,
+      };
+
+  /// prefix operators that modify the value
+  Set<String> get unaryPrefixsOnLeftValue => {
+        preIncrement,
+        preDecrement,
       };
 
   String get logicalNot;

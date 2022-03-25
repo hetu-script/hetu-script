@@ -94,8 +94,6 @@ String? getReturnTypeString(HTDeclaration decl) {
   } else if (decl is HTVariableDeclaration) {
     if (decl.declType != null) {
       return decl.declType.toString();
-    } else {
-      return HTLexicon.typeAny;
     }
   } else if (decl is HTTypeAliasDeclaration) {
     return decl.declType.toString();

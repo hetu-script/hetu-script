@@ -1,5 +1,5 @@
 import 'package:hetu_script/lexer/lexer.dart';
-import 'package:hetu_script/grammar/token.dart';
+import 'package:hetu_script/parser/token.dart';
 
 void main() {
   final source = r'''

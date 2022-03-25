@@ -3,7 +3,7 @@
 
 /// There are some original methods, like List.random, etc...
 
-external class num {
+external abstract class num {
 
   fun toPercentageString([fractionDigits: int = 0]) -> str
 

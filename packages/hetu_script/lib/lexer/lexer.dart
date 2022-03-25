@@ -1,8 +1,8 @@
 import 'package:characters/characters.dart';
 
-import '../grammar/token.dart';
-import '../grammar/lexicon2.dart';
-import '../grammar/lexicon_default_impl.dart';
+import '../parser/token.dart';
+import '../lexicon/lexicon2.dart';
+import '../lexicon/lexicon_default_impl.dart';
 import '../comment/comment.dart' show CommentType;
 
 extension on String {

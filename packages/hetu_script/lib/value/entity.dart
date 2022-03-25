@@ -1,5 +1,5 @@
 import '../error/error.dart';
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import '../type/type.dart';
 import '../type/unresolved_type.dart';
 

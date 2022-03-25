@@ -240,9 +240,9 @@ void format(List<String> args, String outPath) {
 
 void analyze(List<String> args) {
   final analyzer = HTAnalyzer(sourceContext: sourceContext);
-  final parser = HTParser(sourceContext: sourceContext);
+  final parser = HTBundler(sourceContext: sourceContext);
   final source = sourceContext.getResource(args.first);
-  final compilation = parser.parseToModule(source);
+  final compilation = parser.bundle(source);
   final result = analyzer.analyzeCompilation(compilation);
   if (result.errors.isNotEmpty) {
     for (final error in result.errors) {
@@ -266,8 +266,8 @@ void compile(List<String> args, String? outPath,
   final source = sourceContext.getResource(args.first);
   stdout.write('Compiling [${source.fullName}] ...');
 
-  final parser = HTParser(sourceContext: sourceContext);
-  final module = parser.parseToModule(source);
+  final parser = HTBundler(sourceContext: sourceContext);
+  final module = parser.bundle(source);
   if (module.errors.isNotEmpty) {
     for (final err in module.errors) {
       print(err);

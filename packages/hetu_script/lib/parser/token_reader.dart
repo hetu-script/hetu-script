@@ -1,14 +1,14 @@
 // import '../source/source.dart';
 import '../error/error.dart';
 // import '../error/error_handler.dart';
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import '../grammar/constant.dart';
-import '../grammar/token.dart';
+import 'token.dart';
 
 /// Abstract interface for handling a token list.
 abstract class TokenReader {
   /// The file current under processing, used in error message.
-  String? get currrentFileName;
+  String? currrentFileName;
 
   int _line = 0;
   int _column = 0;

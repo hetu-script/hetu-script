@@ -1,6 +1,6 @@
 import 'package:quiver/core.dart';
 
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import '../value/entity.dart';
 import '../declaration/namespace/declaration_namespace.dart';
 import 'unresolved_type.dart';

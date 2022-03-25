@@ -1,7 +1,7 @@
 import 'package:quiver/core.dart';
 
 import '../declaration/type/abstract_type_declaration.dart';
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import 'type.dart';
 import '../declaration/generic/generic_type_parameter.dart';
 

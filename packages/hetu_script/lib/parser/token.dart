@@ -1,4 +1,4 @@
-import 'constant.dart';
+import '../grammar/constant.dart';
 import '../comment/comment.dart' show CommentType;
 
 class Token {
@@ -36,25 +36,6 @@ class Token {
     this.previous,
     this.next,
   });
-}
-
-class TokenEmpty extends Token {
-  @override
-  String get type => Semantic.empty;
-
-  TokenEmpty(
-      {required int line,
-      required int column,
-      required int offset,
-      Token? previous,
-      Token? next})
-      : super(
-            lexeme: '',
-            line: line,
-            column: column,
-            offset: offset,
-            previous: previous,
-            next: next);
 }
 
 class TokenEmptyLine extends Token {

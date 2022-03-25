@@ -3,6 +3,9 @@ import 'lexicon2.dart';
 /// Default lexicon implementation used by Hetu.
 class HTDefaultLexicon extends HTLexicon {
   @override
+  String get name => r'default';
+
+  @override
   String get identifierStartPattern => r'[_\$\p{L}]';
 
   @override
@@ -16,6 +19,9 @@ class HTDefaultLexicon extends HTLexicon {
 
   @override
   String get hexNumberPattern => r'[0-9a-fA-F]';
+
+  @override
+  String get stringInterpolationPattern => r'\${([^\${}]*)}';
 
   @override
   String get hexNumberStart => r'0x';

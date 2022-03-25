@@ -3,7 +3,7 @@ import '../../declaration/declaration.dart';
 import '../../value/namespace/namespace.dart';
 import 'struct.dart';
 import '../../error/error.dart';
-import '../../grammar/lexicon.dart';
+import '../../lexicon/lexicon.dart';
 import '../../grammar/constant.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';

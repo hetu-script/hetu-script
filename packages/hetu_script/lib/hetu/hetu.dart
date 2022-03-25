@@ -9,7 +9,7 @@ import '../type/type.dart';
 import '../source/source.dart';
 import '../bytecode/compiler.dart';
 import '../error/error_severity.dart';
-import '../parser.dart';
+import '../bundler/bundler.dart';
 import '../preincludes/preinclude_functions.dart';
 import '../preincludes/preinclude_module.dart';
 import '../locale/locale.dart';
@@ -195,8 +195,8 @@ class Hetu {
   Uint8List _compileSource(HTSource source,
       {String? moduleName, CompilerConfig? config, bool errorHandled = false}) {
     try {
-      final parser = HTParser(sourceContext: sourceContext);
-      final compilation = parser.parseToModule(source);
+      final parser = HTBundler(sourceContext: sourceContext);
+      final compilation = parser.bundle(source);
       final result = analyzer.analyzeCompilation(compilation);
       if (result.errors.isNotEmpty) {
         for (final error in result.errors) {

@@ -1,7 +1,7 @@
 import '../../binding/external_function.dart';
 import '../../error/error.dart';
 import '../../grammar/constant.dart';
-import '../../grammar/lexicon.dart';
+import '../../lexicon/lexicon.dart';
 import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';

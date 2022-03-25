@@ -8,7 +8,7 @@ import '../source/source.dart';
 import '../error/error_handler.dart';
 import 'analysis_result.dart';
 import 'analyzer.dart';
-import '../parser/parser.dart';
+import '../bundler/bundler.dart';
 
 class HTAnalysisManager {
   final HTErrorHandlerCallback? errorHandler;
@@ -43,8 +43,8 @@ class HTAnalysisManager {
     // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     final analyzer = _pathsToAnalyzer[fullName]!;
     final source = sourceContextManager.getResource(fullName)!;
-    final parser = HTParser(sourceContext: analyzer.sourceContext);
-    final compilation = parser.parseToModule(source);
+    final parser = HTBundler(sourceContext: analyzer.sourceContext);
+    final compilation = parser.bundle(source);
     final result = analyzer.analyzeCompilation(compilation);
     _cachedSourceAnalysisResults.addAll(result.sourceAnalysisResults);
     return result.sourceAnalysisResults.values.last;

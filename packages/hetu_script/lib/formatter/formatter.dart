@@ -1,8 +1,8 @@
 import '../ast/ast.dart';
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import '../grammar/constant.dart';
 import '../lexer/lexer.dart';
-import '../parser/parser.dart';
+import '../bundler/bundler.dart';
 import '../shared/stringify.dart';
 
 class FormatterConfig {
@@ -25,7 +25,7 @@ class FormatterConfig {
 /// Class for printing out formatted string content of a ast root
 class HTFormatter implements AbstractASTVisitor<String> {
   late final HTLexer _lexer;
-  late final HTParser _parser;
+  late final HTBundler _parser;
 
   var _curIndentCount = 0;
 
@@ -35,7 +35,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
 
   HTFormatter({this.config = const FormatterConfig()}) {
     _lexer = HTLexer();
-    _parser = HTParser();
+    _parser = HTBundler();
   }
 
   String get curIndent {

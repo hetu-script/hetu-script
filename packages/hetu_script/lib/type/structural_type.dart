@@ -1,5 +1,5 @@
 import '../value/entity.dart';
-import '../grammar/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import 'type.dart';
 import '../value/namespace/namespace.dart';
 

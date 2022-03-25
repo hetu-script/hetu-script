@@ -1,7 +1,7 @@
 import '../struct/named_struct.dart';
 import '../variable/variable.dart';
 import '../../grammar/constant.dart';
-import '../../grammar/lexicon.dart';
+import '../../lexicon/lexicon.dart';
 import '../entity.dart';
 import '../function/function.dart';
 import '../../value/namespace/namespace.dart';
