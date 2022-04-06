@@ -1425,7 +1425,7 @@ class HTParser extends TokenReader {
     } else {
       final op = advance();
       final value = _parseUnaryPostfixExpr();
-      if (op.type != HTLexicon.logicalNot && op.type != HTLexicon.negative) {
+      if (HTLexicon.unaryPrefixsOnLeftValue.contains(op.type)) {
         if (!_leftValueLegality) {
           final err = HTError.invalidLeftValue(
               filename: _currrentFileName,

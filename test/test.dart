@@ -17,19 +17,7 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = hetu.eval(r'''
-    struct B {
-      var age = 42
-      construct (age: num) {
-        this.age = age
-      }
-    }
-    final t = typeof B
-    print(t)
-    
-    type T = {
-      age: int
-    }
-    print(B is T)
+    print(typeof 1)
   ''');
   // final r = hetu.evalFile('eval.hts');
 
