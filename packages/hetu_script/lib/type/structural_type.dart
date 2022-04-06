@@ -21,20 +21,16 @@ class HTStructuralType extends HTType {
       if (other.fieldTypes.isEmpty) {
         return true;
       } else {
-        if (other.fieldTypes.length != fieldTypes.length) {
-          return false;
-        } else {
-          for (final key in other.fieldTypes.keys) {
-            if (!fieldTypes.containsKey(key)) {
+        for (final key in other.fieldTypes.keys) {
+          if (!fieldTypes.containsKey(key)) {
+            return false;
+          } else {
+            if (fieldTypes[key]!.isNotA(other.fieldTypes[key])) {
               return false;
-            } else {
-              if (fieldTypes[key]!.isNotA(other.fieldTypes[key])) {
-                return false;
-              }
             }
           }
-          return true;
         }
+        return true;
       }
     } else {
       return false;

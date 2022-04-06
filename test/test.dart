@@ -16,31 +16,23 @@ void main() {
     ),
     sourceContext: sourceContext,
   );
-<<<<<<< HEAD
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = hetu.eval(r'''
-      1 + 2
+    struct B {
+      var age = 42
+      construct (age: num) {
+        this.age = age
+      }
+    }
+    final t = typeof B
+    print(t)
+    
+    type T = {
+      age: int
+    }
+    print(B is T)
   ''');
-=======
-  hetu.init(locale: HTLocaleSimplifiedChinese(), externalFunctions: {
-    "my_eval": (HTEntity entity,
-        {List<dynamic> positionalArgs = const [],
-        Map<String, dynamic> namedArgs = const {},
-        List<HTType> typeArgs = const []}) {
-      final code = positionalArgs.first as String;
-      return hetu.eval(code);
-    },
-  });
-
-  // final r = hetu.eval(r'''
-  //   external fun my_eval
-  //   var a
-  //   a = my_eval('3')
-  //   a
-  // ''');
-  final r = hetu.evalFile('eval.hts');
->>>>>>> fix bug on eval method within script where stack frame is not properly restored. (#50)
 
   print(r);
 }
