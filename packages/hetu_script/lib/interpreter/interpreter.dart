@@ -97,8 +97,6 @@ class Hetu extends HTAbstractInterpreter {
   late HTBytecodeModule _currentBytecodeModule;
   HTBytecodeModule get bytecodeModule => _currentBytecodeModule;
 
-  bool _asConstantInterpreter = false;
-
   HTClass? _class;
   HTFunction? _function;
 
@@ -655,17 +653,19 @@ class Hetu extends HTAbstractInterpreter {
         }
       }
       _cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
+      dynamic result;
       if (invokeFunc != null) {
-        final result = invoke(invokeFunc,
+        result = invoke(invokeFunc,
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
             errorHandled: true);
         return result;
       }
       if (_isModuleEntryScript) {
-        return _stackFrames.last.first;
+        result = _stackFrames.last.first;
       }
       stackTraceList.clear();
+      return result;
     } catch (error) {
       if (errorHandled) {
         rethrow;
@@ -753,8 +753,8 @@ class Hetu extends HTAbstractInterpreter {
     if (savedColumn != null) {
       _column = savedColumn;
     }
-    --_currentStackIndex;
     if (clearStack) {
+      --_currentStackIndex;
       _stackFrames.removeLast();
     }
   }
@@ -774,7 +774,6 @@ class Hetu extends HTAbstractInterpreter {
       int? ip,
       int? line,
       int? column,
-      bool? asConstantInterpreter,
       bool clearStack = true}) {
     final savedFileName = _currentFileName;
     final savedLibrary = _currentBytecodeModule;
@@ -783,7 +782,6 @@ class Hetu extends HTAbstractInterpreter {
     final savedIp = _currentBytecodeModule.ip;
     final savedLine = _currentLine;
     final savedColumn = _column;
-    final savedConstantInterpreterConfig = _asConstantInterpreter;
     var libChanged = false;
     var ipChanged = false;
     if (filename != null) {
@@ -820,9 +818,6 @@ class Hetu extends HTAbstractInterpreter {
     if (_stackFrames.length <= _currentStackIndex) {
       _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
     }
-    if (asConstantInterpreter != null) {
-      _asConstantInterpreter = asConstantInterpreter;
-    }
 
     final result = _execute();
 
@@ -835,11 +830,10 @@ class Hetu extends HTAbstractInterpreter {
     }
     _currentLine = savedLine;
     _column = savedColumn;
-    --_currentStackIndex;
     if (clearStack) {
+      --_currentStackIndex;
       _stackFrames.removeLast();
     }
-    _asConstantInterpreter = savedConstantInterpreterConfig;
     return result;
   }
 

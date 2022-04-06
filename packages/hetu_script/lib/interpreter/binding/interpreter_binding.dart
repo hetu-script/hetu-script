@@ -13,7 +13,19 @@ class HTHetuClassBinding extends HTExternalClass {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           final code = positionalArgs.first as String;
-          return interpreter.eval(code);
+          final savedFileName = interpreter.currentFileName;
+          final savedModuleName = interpreter.bytecodeModule.id;
+          final savedNamespace = interpreter.currentNamespace;
+          final savedIp = interpreter.bytecodeModule.ip;
+          final result = interpreter.eval(code);
+          interpreter.restoreStackFrame(
+            clearStack: false,
+            savedFileName: savedFileName,
+            savedModuleName: savedModuleName,
+            savedNamespace: savedNamespace,
+            savedIp: savedIp,
+          );
+          return result;
         };
       case 'createStructfromJson':
         return (HTEntity entity,

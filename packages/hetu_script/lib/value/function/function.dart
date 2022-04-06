@@ -392,7 +392,7 @@ class HTFunction extends HTFunctionDeclaration
           final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
           for (var i = 0; i < referCtorPosArgIps.length; ++i) {
             final savedFileName = interpreter.currentFileName;
-            final savedlibraryName = interpreter.bytecodeModule.id;
+            final savedModuleName = interpreter.bytecodeModule.id;
             final savedNamespace = interpreter.currentNamespace;
             final savedIp = interpreter.bytecodeModule.ip;
             interpreter.newStackFrame(
@@ -410,7 +410,7 @@ class HTFunction extends HTFunctionDeclaration
             }
             interpreter.restoreStackFrame(
               savedFileName: savedFileName,
-              savedModuleName: savedlibraryName,
+              savedModuleName: savedModuleName,
               savedNamespace: savedNamespace,
               savedIp: savedIp,
             );
