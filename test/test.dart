@@ -14,23 +14,24 @@ void main() {
     ),
     sourceContext: sourceContext,
   );
-  hetu.init(locale: HTLocaleSimplifiedChinese(), externalFunctions: {
-    "my_eval": (HTEntity entity,
-        {List<dynamic> positionalArgs = const [],
-        Map<String, dynamic> namedArgs = const {},
-        List<HTType> typeArgs = const []}) {
-      final code = positionalArgs.first as String;
-      return hetu.eval(code);
-    },
-  });
+  hetu.init(locale: HTLocaleSimplifiedChinese());
 
-  // final r = hetu.eval(r'''
-  //   external fun my_eval
-  //   var a
-  //   a = my_eval('3')
-  //   a
-  // ''');
-  final r = hetu.evalFile('eval.hts');
+  final r = hetu.eval(r'''
+    struct B {
+      var age = 42
+      construct (age: num) {
+        this.age = age
+      }
+    }
+    final t = typeof B
+    print(t)
+    
+    type T = {
+      age: int
+    }
+    print(B is T)
+  ''');
+  // final r = hetu.evalFile('eval.hts');
 
   print(r);
 }

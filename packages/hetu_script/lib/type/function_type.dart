@@ -21,6 +21,17 @@ class HTParameterType {
 
   const HTParameterType(this.declType,
       {required this.isOptional, required this.isVariadic, this.id});
+
+  @override
+  String toString() {
+    final output = StringBuffer();
+    if (isNamed) {
+      output.write('$id${HTLexicon.typeIndicator}$declType');
+    } else {
+      output.write(declType.toString());
+    }
+    return output.toString();
+  }
 }
 
 class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
@@ -39,7 +50,7 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
 
   @override
   String toString() {
-    var output = StringBuffer();
+    final output = StringBuffer();
     output.write('${HTLexicon.typeFunction} ');
     if (genericTypeParameters.isNotEmpty) {
       output.write(HTLexicon.typeParameterStart);

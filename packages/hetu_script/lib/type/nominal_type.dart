@@ -29,11 +29,6 @@ class HTNominalType extends HTType {
   // }
 
   @override
-  String toString() {
-    return '${HTLexicon.kClass} ${super.toString()}';
-  }
-
-  @override
   bool operator ==(Object other) {
     return other is HTNominalType && hashCode == other.hashCode;
   }
