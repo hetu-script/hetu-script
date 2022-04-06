@@ -618,17 +618,20 @@ class HTInterpreter {
           }
         }
       }
+      _cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
+      dynamic result;
       if (invokeFunc != null) {
-        final result = invoke(invokeFunc,
+        result = invoke(invokeFunc,
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
             errorHandled: true);
         return result;
       }
       if (_isModuleEntryScript) {
-        return _stackFrames.last.first;
+        result = _stackFrames.last.first;
       }
       stackTraceList.clear();
+      return result;
     } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;

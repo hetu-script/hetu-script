@@ -1,0 +1,4 @@
+
+var a = eval('3')
+print(a)
+a
