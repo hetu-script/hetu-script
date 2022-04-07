@@ -3,7 +3,6 @@ import '../../declaration/declaration.dart';
 import '../../value/namespace/namespace.dart';
 import 'struct.dart';
 import '../../error/error.dart';
-import '../../lexicon/lexicon.dart';
 import '../../grammar/constant.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
@@ -72,9 +71,9 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
       if (prototypeId != null) {
         static.prototype = closure!
             .memberGet(prototypeId!, from: closure!.fullName, recursive: true);
-      } else if (id != HTLexicon.globalPrototypeId) {
-        static.prototype =
-            interpreter.globalNamespace.memberGet(HTLexicon.globalPrototypeId);
+      } else if (id != interpreter.lexicon.globalPrototypeId) {
+        static.prototype = interpreter.globalNamespace
+            .memberGet(interpreter.lexicon.globalPrototypeId);
       }
     }
     HTStruct self = interpreter.execute(

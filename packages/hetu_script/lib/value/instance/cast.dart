@@ -33,8 +33,7 @@ class HTCast with HTEntity, InterpreterRef {
     //   extended.add(curSuper!.extendedType!);
     // }
     // }
-
-    if (castee.valueType.isNotA(valueType)) {
+    if (castee.valueType?.isNotA(valueType) ?? true) {
       throw HTError.typeCast(castee.valueType.toString(), valueType.toString());
     }
 

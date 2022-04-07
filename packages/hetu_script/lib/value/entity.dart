@@ -1,7 +1,6 @@
 import '../error/error.dart';
 import '../lexicon/lexicon.dart';
 import '../type/type.dart';
-import '../type/unresolved_type.dart';
 
 /// The encapsulated null object, used when try to interact with a null value.
 class _HTNull with HTEntity {
@@ -10,18 +9,16 @@ class _HTNull with HTEntity {
   @override
   String toString() => HTLexicon.kNull;
 
-  @override
-  HTType get valueType => HTType.nullType;
+  // @override
+  // HTType get valueType => const HTTypeNull();
 }
 
 /// A interface for store and access symbols from a collection.
 abstract class HTEntity {
-  static const type = HTUnresolvedType(HTLexicon.globalObjectId);
-
   /// An constant null object.
   static const nullValue = _HTNull();
 
-  HTType get valueType => type;
+  HTType? get valueType => null;
 
   bool contains(String varName) => false;
 

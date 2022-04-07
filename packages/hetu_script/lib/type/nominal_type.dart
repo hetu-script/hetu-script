@@ -9,8 +9,14 @@ class HTNominalType extends HTType {
   // late final Iterable<HTType> implemented;
   // late final Iterable<HTType> mixined;
 
+  final String _id;
+
+  @override
+  String get id => _id;
+
   HTNominalType(this.klass, {List<HTType> typeArgs = const []})
-      : super(klass.id!, typeArgs: typeArgs);
+      : _id = klass.id!,
+        super(id: klass.id!, typeArgs: typeArgs);
 
   // HTNominalType.fromClass(HTClass klass,
   //     {Iterable<HTValueType> typeArgs = const [],
@@ -60,7 +66,7 @@ class HTNominalType extends HTType {
   bool isA(HTType? other) {
     if (other == null) {
       return true;
-    } else if (other == HTType.any) {
+    } else if (other is HTTypeAny) {
       return true;
     } else if (this == other) {
       return true;

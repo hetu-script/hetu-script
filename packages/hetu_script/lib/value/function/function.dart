@@ -1,7 +1,6 @@
 import '../../external/external_function.dart';
 import '../../error/error.dart';
 import '../../grammar/constant.dart';
-import '../../lexicon/lexicon.dart';
 import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
@@ -71,7 +70,7 @@ class HTFunction extends HTFunctionDeclaration
       List<HTGenericTypeParameter> genericTypeParameters = const [],
       bool hasParamDecls = true,
       this.paramDecls = const {},
-      HTType? returnType,
+      required HTFunctionType declType,
       bool isField = false,
       bool isAbstract = false,
       bool isVariadic = false,
@@ -98,7 +97,7 @@ class HTFunction extends HTFunctionDeclaration
             genericTypeParameters: genericTypeParameters,
             hasParamDecls: hasParamDecls,
             paramDecls: paramDecls,
-            returnType: returnType,
+            declType: declType,
             isField: isField,
             isAbstract: isAbstract,
             isVariadic: isVariadic,
@@ -111,6 +110,59 @@ class HTFunction extends HTFunctionDeclaration
     this.definitionIp = definitionIp;
     this.definitionLine = definitionLine;
     this.definitionColumn = definitionColumn;
+  }
+
+  /// Print function signature to String with function [id] and parameter [id].
+  @override
+  String toString() {
+    var result = StringBuffer();
+    result.write(Semantic.function);
+    if (id != null) {
+      result.write(' $id');
+    }
+    if (declType.typeArgs.isNotEmpty) {
+      result.write(interpreter.lexicon.typeParameterStart);
+      for (var i = 0; i < declType.typeArgs.length; ++i) {
+        result.write(declType.typeArgs[i]);
+        if (i < declType.typeArgs.length - 1) {
+          result.write('${interpreter.lexicon.comma} ');
+        }
+      }
+      result.write(interpreter.lexicon.typeParameterEnd);
+    }
+    result.write(interpreter.lexicon.groupExprStart);
+    var i = 0;
+    var optionalStarted = false;
+    var namedStarted = false;
+    for (final param in paramDecls.values) {
+      if (param.isVariadic) {
+        result.write(interpreter.lexicon.variadicArgs + ' ');
+      }
+      if (param.isOptional && !optionalStarted) {
+        optionalStarted = true;
+        result.write(interpreter.lexicon.optionalPositionalParameterStart);
+      } else if (param.isNamed && !namedStarted) {
+        namedStarted = true;
+        result.write(interpreter.lexicon.functionBlockStart);
+      }
+      result.write(param.id);
+      if (param.declType != null) {
+        result.write('${interpreter.lexicon.typeIndicator} ${param.declType}');
+      }
+      if (i < paramDecls.length - 1) {
+        result.write('${interpreter.lexicon.comma} ');
+      }
+      ++i;
+    }
+    if (optionalStarted) {
+      result.write(interpreter.lexicon.optionalPositionalParameterEnd);
+    } else if (namedStarted) {
+      result.write(interpreter.lexicon.functionBlockEnd);
+    }
+    result.write(
+        '${interpreter.lexicon.groupExprEnd} ${interpreter.lexicon.functionReturnTypeIndicator} ' +
+            returnType.toString());
+    return result.toString();
   }
 
   @override
@@ -155,7 +207,7 @@ class HTFunction extends HTFunctionDeclaration
           genericTypeParameters: genericTypeParameters,
           hasParamDecls: hasParamDecls,
           paramDecls: paramDecls,
-          returnType: returnType,
+          declType: declType,
           isAbstract: isAbstract,
           isVariadic: isVariadic,
           minArity: minArity,
@@ -197,24 +249,23 @@ class HTFunction extends HTFunctionDeclaration
 
   @override
   dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
-      case HTLexicon.bind:
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            bind(positionalArgs.first);
-      case HTLexicon.apply:
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            apply(positionalArgs.first,
-                positionalArgs: positionalArgs,
-                namedArgs: namedArgs,
-                typeArgs: typeArgs);
-      default:
-        throw HTError.undefined(varName);
+    if (varName == interpreter.lexicon.idBind) {
+      return (HTEntity entity,
+              {List<dynamic> positionalArgs = const [],
+              Map<String, dynamic> namedArgs = const {},
+              List<HTType> typeArgs = const []}) =>
+          bind(positionalArgs.first);
+    } else if (varName == interpreter.lexicon.idApply) {
+      return (HTEntity entity,
+              {List<dynamic> positionalArgs = const [],
+              Map<String, dynamic> namedArgs = const {},
+              List<HTType> typeArgs = const []}) =>
+          apply(positionalArgs.first,
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
+              typeArgs: typeArgs);
+    } else {
+      throw HTError.undefined(varName);
     }
   }
 
@@ -292,12 +343,12 @@ class HTFunction extends HTFunctionDeclaration
         if (instance != null) {
           if (namespace is HTInstanceNamespace) {
             callClosure.define(
-                HTLexicon.kSuper,
-                HTVariable(HTLexicon.kSuper,
+                interpreter.lexicon.kSuper,
+                HTVariable(interpreter.lexicon.kSuper,
                     value: (namespace as HTInstanceNamespace).next));
           }
-          callClosure.define(
-              HTLexicon.kThis, HTVariable(HTLexicon.kThis, value: instance));
+          callClosure.define(interpreter.lexicon.kThis,
+              HTVariable(interpreter.lexicon.kThis, value: instance));
         }
 
         var variadicStart = -1;
@@ -306,7 +357,7 @@ class HTFunction extends HTFunctionDeclaration
           var decl = paramDecls.values.elementAt(i).clone();
           final paramId = paramDecls.keys.elementAt(i);
           // omit params with '_' as id
-          if (!decl.isNamed && paramId == HTLexicon.omittedMark) {
+          if (!decl.isNamed && paramId == interpreter.lexicon.omittedMark) {
             continue;
           }
           callClosure.define(paramId, decl);
@@ -347,7 +398,7 @@ class HTFunction extends HTFunctionDeclaration
 
           late final HTFunction constructor;
           if (klass != null) {
-            if (name == HTLexicon.kSuper) {
+            if (name == interpreter.lexicon.kSuper) {
               final superClass = klass!.superClass!;
               if (key == null) {
                 constructor = superClass.namespace.memberGet(
@@ -358,7 +409,7 @@ class HTFunction extends HTFunctionDeclaration
                     '${InternalIdentifier.namedConstructorPrefix}$key',
                     recursive: false);
               }
-            } else if (name == HTLexicon.kThis) {
+            } else if (name == interpreter.lexicon.kThis) {
               if (key == null) {
                 constructor = klass!.namespace.memberGet(
                     InternalIdentifier.defaultConstructor,
@@ -374,7 +425,7 @@ class HTFunction extends HTFunctionDeclaration
             constructor.namespace = instanceNamespace.next!;
             constructor.instance = instance;
           } else {
-            if (name == HTLexicon.kThis) {
+            if (name == interpreter.lexicon.kThis) {
               final prototype = (instance as HTStruct);
               if (key == null) {
                 constructor =

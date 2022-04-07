@@ -1,7 +1,6 @@
 // import '../source/source.dart';
 import '../error/error.dart';
 // import '../error/error_handler.dart';
-import '../lexicon/lexicon.dart';
 import '../grammar/constant.dart';
 import 'token.dart';
 

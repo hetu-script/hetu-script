@@ -1,15 +1,13 @@
-import '../value/entity.dart';
 import '../lexicon/lexicon.dart';
 import 'type.dart';
 import '../value/namespace/namespace.dart';
 
 /// A type checks interfaces rather than type ids.
-class HTStructuralType extends HTType with HTEntity {
+class HTStructuralType extends HTType {
   late final Map<String, HTType> fieldTypes;
 
   HTStructuralType(HTNamespace closure,
-      {Map<String, HTType> fieldTypes = const {}})
-      : super(HTLexicon.kStruct) {
+      {Map<String, HTType> fieldTypes = const {}}) {
     this.fieldTypes =
         fieldTypes.map((key, value) => MapEntry(key, value.resolve(closure)));
   }
@@ -42,7 +40,7 @@ class HTStructuralType extends HTType with HTEntity {
   bool isA(HTType? other) {
     if (other == null) {
       return true;
-    } else if (other == HTType.any) {
+    } else if (other is HTTypeAny) {
       return true;
     } else if (other is HTStructuralType) {
       if (other.fieldTypes.isEmpty) {

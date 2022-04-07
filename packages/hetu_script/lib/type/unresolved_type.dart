@@ -18,9 +18,15 @@ class HTUnresolvedType extends HTType {
   @override
   bool get isResolved => false;
 
+  final String _id;
+
+  @override
+  String get id => _id;
+
   const HTUnresolvedType(String id,
       {List<HTType> typeArgs = const [], bool isNullable = false})
-      : super(id, typeArgs: typeArgs, isNullable: isNullable);
+      : _id = id,
+        super(id: id, typeArgs: typeArgs, isNullable: isNullable);
 
   @override
   HTType resolve(HTDeclarationNamespace namespace) {

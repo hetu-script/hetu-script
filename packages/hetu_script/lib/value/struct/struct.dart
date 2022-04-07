@@ -1,7 +1,6 @@
 import '../struct/named_struct.dart';
 import '../variable/variable.dart';
 import '../../grammar/constant.dart';
-import '../../lexicon/lexicon.dart';
 import '../entity.dart';
 import '../function/function.dart';
 import '../../value/namespace/namespace.dart';
@@ -27,6 +26,8 @@ class HTStruct with HTEntity {
 
   HTStruct? prototype;
 
+  final bool isRootPrototype;
+
   HTNamedStruct? declaration;
 
   final Map<String, dynamic> _fields;
@@ -41,19 +42,24 @@ class HTStruct with HTEntity {
     for (final key in _fields.keys) {
       final value = _fields[key];
       final encap = interpreter.encapsulate(value);
-      final unresolvedType = encap.valueType;
-      fieldTypes[key] = unresolvedType.resolve(namespace);
+      fieldTypes[key] = encap.valueType?.resolve(namespace) ??
+          HTTypeAny(interpreter.lexicon.typeAny);
     }
     return HTStructuralType(namespace, fieldTypes: fieldTypes);
   }
 
   HTStruct(this.interpreter,
-      {String? id, this.prototype, Map<String, dynamic>? fields, this.closure})
+      {String? id,
+      this.prototype,
+      this.isRootPrototype = false,
+      Map<String, dynamic>? fields,
+      this.closure})
       : id = id ??
             '${InternalIdentifier.anonymousStruct}${structLiteralIndex++}',
         _fields = fields ?? {} {
     namespace = HTNamespace(id: this.id, closure: closure);
-    namespace.define(HTLexicon.kThis, HTVariable(HTLexicon.kThis, value: this));
+    namespace.define(interpreter.lexicon.kThis,
+        HTVariable(interpreter.lexicon.kThis, value: this));
   }
 
   Map<String, dynamic> toJson() => util.jsonifyStruct(this);
@@ -63,9 +69,9 @@ class HTStruct with HTEntity {
     if (_fields.isNotEmpty) {
       final content =
           interpreter.lexicon.stringifyStructMembers(this, from: this);
-      return '${HTLexicon.functionBlockStart}\n$content${HTLexicon.functionBlockEnd}';
+      return '${interpreter.lexicon.functionBlockStart}\n$content${interpreter.lexicon.functionBlockEnd}';
     } else {
-      return '${HTLexicon.functionBlockStart}${HTLexicon.functionBlockEnd}';
+      return '${interpreter.lexicon.functionBlockStart}${interpreter.lexicon.functionBlockEnd}';
     }
   }
 
@@ -118,7 +124,6 @@ class HTStruct with HTEntity {
   }
 
   Iterable<String> get keys => _fields.keys;
-  // .where((element) => !element.startsWith(HTLexicon.internalPrefix));
 
   Iterable<dynamic> get values => _fields.values;
 
@@ -152,21 +157,21 @@ class HTStruct with HTEntity {
         : InternalIdentifier.defaultConstructor;
 
     if (_fields.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (varName.startsWith(interpreter.lexicon.privatePrefix) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
       value = _fields[varName];
     } else if (_fields.containsKey(getter)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (varName.startsWith(interpreter.lexicon.privatePrefix) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
       value = _fields[getter]!;
     } else if (_fields.containsKey(constructor)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (varName.startsWith(interpreter.lexicon.privatePrefix) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
@@ -207,7 +212,7 @@ class HTStruct with HTEntity {
 
     final setter = '${InternalIdentifier.setter}$varName';
     if (_fields.containsKey(varName)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (varName.startsWith(interpreter.lexicon.privatePrefix) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
@@ -215,7 +220,7 @@ class HTStruct with HTEntity {
       _fields[varName] = varValue;
       return true;
     } else if (_fields.containsKey(setter)) {
-      if (varName.startsWith(HTLexicon.privatePrefix) &&
+      if (varName.startsWith(interpreter.lexicon.privatePrefix) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
@@ -260,7 +265,7 @@ class HTStruct with HTEntity {
 
   void assign(HTStruct other) {
     for (final key in other._fields.keys) {
-      if (key.startsWith(HTLexicon.internalPrefix)) continue;
+      if (key.startsWith(interpreter.lexicon.internalPrefix)) continue;
       final value = other._fields[key];
       final copiedValue = interpreter.toStructValue(value);
       define(key, copiedValue);

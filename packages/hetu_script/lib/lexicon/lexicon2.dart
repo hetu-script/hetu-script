@@ -101,9 +101,9 @@ abstract class HTLexicon {
   String get privatePrefix;
   String get internalPrefix;
 
-  String get typeVoid;
   String get typeAny;
   String get typeUnknown;
+  String get typeVoid;
   String get typeNever;
   String get typeFunction;
   String get typeBoolean;
@@ -111,12 +111,24 @@ abstract class HTLexicon {
   String get typeFloat;
   String get typeString;
 
-  String get propertyCollectionValues;
-  String get propertyCollectionContains;
-  String get propertyIterableIterator;
-  String get propertyIterableIteratorMoveNext;
-  String get propertyIterableIteratorCurrent;
-  String get propertyToString;
+  String get idCollectionValues;
+  String get idCollectionContains;
+  String get idIterableIterator;
+  String get idIterableIteratorMoveNext;
+  String get idIterableIteratorCurrent;
+  String get idToString;
+  String get idBind;
+  String get idApply;
+
+  // Set<String> get primitiveTypes => {
+  //       kType,
+  //       kNull,
+  //       typeAny,
+  //       typeVoid,
+  //       typeUnknown,
+  //       typeNever,
+  //       typeFunction,
+  //     };
 
   String get kNull;
   String get kTrue;
@@ -183,8 +195,6 @@ abstract class HTLexicon {
   String get kGet;
   String get kSet;
   String get kAsync;
-  String get bind;
-  String get apply;
 
   String get kAwait;
   String get kBreak;

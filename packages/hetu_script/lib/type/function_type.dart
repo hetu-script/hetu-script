@@ -19,8 +19,11 @@ class HTParameterType {
   /// Wether this is a named parameter.
   final String? id;
 
-  const HTParameterType(this.declType,
-      {required this.isOptional, required this.isVariadic, this.id});
+  const HTParameterType(
+      {this.id,
+      required this.declType,
+      required this.isOptional,
+      required this.isVariadic});
 }
 
 class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
@@ -34,8 +37,7 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
   HTFunctionType(
       {this.genericTypeParameters = const [],
       this.parameterTypes = const [],
-      this.returnType = HTType.any})
-      : super(HTLexicon.kFun);
+      required this.returnType});
 
   @override
   String toString() {
@@ -111,34 +113,34 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
   bool isA(HTType? other) {
     if (other == null) {
       return true;
-    } else if (other == HTType.any) {
-      return true;
-    } else if (other == HTType.function) {
+    } else if (other is HTTypeAny) {
       return true;
     } else if (other is HTFunctionType) {
       if (genericTypeParameters.length != other.genericTypeParameters.length) {
         return false;
-      } else if (returnType.isNotA(other.returnType)) {
+      }
+
+      if (returnType.isNotA(other.returnType)) {
         return false;
-      } else {
-        for (var i = 0; i < parameterTypes.length; ++i) {
-          final param = parameterTypes[i];
-          HTParameterType? otherParam;
-          if (other.parameterTypes.length > i) {
-            otherParam = other.parameterTypes[i];
-          }
-          if (!param.isOptional && !param.isVariadic) {
-            if (otherParam == null ||
-                otherParam.isOptional != param.isOptional ||
-                otherParam.isVariadic != param.isVariadic ||
-                otherParam.isNamed != param.isNamed ||
-                (otherParam.declType.isNotA(param.declType))) {
-              return false;
-            }
+      }
+
+      for (var i = 0; i < parameterTypes.length; ++i) {
+        final param = parameterTypes[i];
+        HTParameterType? otherParam;
+        if (other.parameterTypes.length > i) {
+          otherParam = other.parameterTypes[i];
+        }
+        if (!param.isOptional && !param.isVariadic) {
+          if (otherParam == null ||
+              otherParam.isOptional != param.isOptional ||
+              otherParam.isVariadic != param.isVariadic ||
+              otherParam.isNamed != param.isNamed ||
+              (otherParam.declType.isNotA(param.declType))) {
+            return false;
           }
         }
-        return true;
       }
+      return true;
     } else {
       return false;
     }

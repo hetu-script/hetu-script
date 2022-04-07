@@ -332,8 +332,8 @@ class HTInterpreter {
   /// there must also be a declaraction in script
   void bindExternalClass(HTExternalClass externalClass,
       {bool override = false}) {
-    if (externClasses.containsKey(externalClass.valueType) && !override) {
-      throw HTError.definedRuntime(externalClass.valueType.toString());
+    if (externClasses.containsKey(externalClass.id) && !override) {
+      throw HTError.definedRuntime(externalClass.id);
     }
     externClasses[externalClass.id] = externalClass;
   }
@@ -1379,7 +1379,10 @@ class HTInterpreter {
               from: _currentNamespace.fullName, recursive: true);
         }
         final struct = HTStruct(this,
-            id: id, prototype: prototype, closure: _currentNamespace);
+            id: id,
+            prototype: prototype,
+            isRootPrototype: id == _lexicon.globalPrototypeId,
+            closure: _currentNamespace);
         final fieldsCount = _currentBytecodeModule.read();
         for (var i = 0; i < fieldsCount; ++i) {
           final fieldType = _currentBytecodeModule.read();
@@ -1424,6 +1427,20 @@ class HTInterpreter {
         final minArity = _currentBytecodeModule.read();
         final maxArity = _currentBytecodeModule.read();
         final paramDecls = _getParams(_currentBytecodeModule.read());
+        HTType? returnType;
+        final hasReturnType = _currentBytecodeModule.readBool();
+        if (hasReturnType) {
+          returnType = _handleTypeExpr();
+        }
+        final declType = HTFunctionType(
+            parameterTypes: paramDecls.values
+                .map((param) => HTParameterType(
+                    declType: param.declType ?? HTTypeAny(_lexicon.typeAny),
+                    isOptional: param.isOptional,
+                    isVariadic: param.isVariadic,
+                    id: param.isNamed ? param.id : null))
+                .toList(),
+            returnType: returnType ?? HTTypeAny(_lexicon.typeAny));
         int? line, column, definitionIp;
         final hasDefinition = _currentBytecodeModule.readBool();
         if (hasDefinition) {
@@ -1440,6 +1457,7 @@ class HTInterpreter {
             externalTypeId: externalTypedef,
             hasParamDecls: hasParamDecls,
             paramDecls: paramDecls,
+            declType: declType,
             isVariadic: isVariadic,
             minArity: minArity,
             maxArity: maxArity,
@@ -1585,13 +1603,13 @@ class HTInterpreter {
         final object = _getRegVal(HTRegIdx.relationLeft);
         final type = (_localValue as HTType).resolve(_currentNamespace);
         final encapsulated = encapsulate(object);
-        _localValue = encapsulated.valueType.isA(type);
+        _localValue = encapsulated.valueType?.isA(type) ?? false;
         break;
       case HTOpCode.typeIsNot:
         final object = _getRegVal(HTRegIdx.relationLeft);
         final type = (_localValue as HTType).resolve(_currentNamespace);
         final encapsulated = encapsulate(object);
-        _localValue = encapsulated.valueType.isNotA(type);
+        _localValue = encapsulated.valueType?.isNotA(type) ?? true;
         break;
       case HTOpCode.add:
         var left = _getRegVal(HTRegIdx.addLeft);
@@ -1800,8 +1818,14 @@ class HTInterpreter {
           typeArgs.add(typearg);
         }
         final isNullable = (_currentBytecodeModule.read() == 0) ? false : true;
-        if (HTType.primitiveTypes.containsKey(typeName)) {
-          return HTType.primitiveTypes[typeName]!;
+        if (typeName == _lexicon.typeAny) {
+          return HTTypeAny(_lexicon.typeAny);
+        } else if (typeName == _lexicon.typeUnknown) {
+          return HTTypeUnknown(_lexicon.typeUnknown);
+        } else if (typeName == _lexicon.typeVoid) {
+          return HTTypeVoid(_lexicon.typeVoid);
+        } else if (typeName == _lexicon.typeNever) {
+          return HTTypeNever(_lexicon.typeNever);
         } else {
           return HTUnresolvedType(typeName,
               typeArgs: typeArgs, isNullable: isNullable);
@@ -1818,8 +1842,11 @@ class HTInterpreter {
           if (isNamed) {
             paramId = _currentBytecodeModule.readShortString();
           }
-          final decl = HTParameterType(declType,
-              isOptional: isOptional, isVariadic: isVariadic, id: paramId);
+          final decl = HTParameterType(
+              id: paramId,
+              declType: declType,
+              isOptional: isOptional,
+              isVariadic: isVariadic);
           parameterTypes.add(decl);
         }
         final returnType = _handleTypeExpr();
@@ -2066,6 +2093,20 @@ class HTInterpreter {
     final maxArity = _currentBytecodeModule.read();
     final paramLength = _currentBytecodeModule.read();
     final paramDecls = _getParams(paramLength);
+    HTType? returnType;
+    final hasReturnType = _currentBytecodeModule.readBool();
+    if (hasReturnType) {
+      returnType = _handleTypeExpr();
+    }
+    final declType = HTFunctionType(
+        parameterTypes: paramDecls.values
+            .map((param) => HTParameterType(
+                declType: param.declType ?? HTTypeAny(_lexicon.typeAny),
+                isOptional: param.isOptional,
+                isVariadic: param.isVariadic,
+                id: param.isNamed ? param.id : null))
+            .toList(),
+        returnType: returnType ?? HTTypeAny(_lexicon.typeAny));
     RedirectingConstructor? redirCtor;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
@@ -2119,6 +2160,7 @@ class HTInterpreter {
         externalTypeId: externalTypeId,
         hasParamDecls: hasParamDecls,
         paramDecls: paramDecls,
+        declType: declType,
         isVariadic: isVariadic,
         minArity: minArity,
         maxArity: maxArity,
@@ -2148,7 +2190,7 @@ class HTInterpreter {
       superType = _handleTypeExpr();
     } else {
       if (!isExternal && (id != _lexicon.globalObjectId)) {
-        superType = HTEntity.type;
+        superType = HTUnresolvedType(_lexicon.globalObjectId);
       }
     }
     final isEnum = _currentBytecodeModule.readBool();
@@ -2165,14 +2207,14 @@ class HTInterpreter {
     // deal with definition block
     execute(namespace: klass.namespace);
     // Add default constructor if non-exist.
-    if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
-      final ctor = HTFunction(InternalIdentifier.defaultConstructor,
-          _currentFileName, _currentBytecodeModule.id, this,
-          classId: klass.id,
-          category: FunctionCategory.constructor,
-          closure: klass.namespace);
-      klass.namespace.define(InternalIdentifier.defaultConstructor, ctor);
-    }
+    // if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
+    //   final ctor = HTFunction(InternalIdentifier.defaultConstructor,
+    //       _currentFileName, _currentBytecodeModule.id, this,
+    //       classId: klass.id,
+    //       category: FunctionCategory.constructor,
+    //       closure: klass.namespace);
+    //   klass.namespace.define(InternalIdentifier.defaultConstructor, ctor);
+    // }
     if (_isModuleEntryScript || _function != null) {
       klass.resolve();
     }

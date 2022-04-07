@@ -35,6 +35,7 @@ abstract class InternalIdentifier {
 
   static const instanceOfDescription = 'instance of';
   static const externalType = 'external type';
+  static const nullValue = 'null';
 }
 
 abstract class Semantic {

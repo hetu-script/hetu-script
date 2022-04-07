@@ -14,6 +14,7 @@ import '../declaration/class/class_declaration.dart';
 import '../ast/ast.dart';
 import '../comment/comment.dart';
 import '../parser/parser.dart';
+import '../type/type.dart' show PrimitiveTypeCategory;
 
 /// Default parser implementation used by Hetu.
 class HTDefaultParser extends HTParser {
@@ -1679,7 +1680,7 @@ class HTDefaultParser extends HTParser {
           length: curTok.offset - startTok.offset);
     }
     // structural type (interface of struct)
-    else if (curTok.type == _lexicon.functionBlockStart) {
+    else if (curTok.type == _lexicon.structStart) {
       final startTok = advance();
       final fieldTypes = <FieldTypeExpr>[];
       while (curTok.type != _lexicon.functionBlockEnd &&
@@ -1710,6 +1711,16 @@ class HTDefaultParser extends HTParser {
     else {
       final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok, source: _currentSource);
+      PrimitiveTypeCategory category = PrimitiveTypeCategory.none;
+      if (id.id == _lexicon.typeAny) {
+        category = PrimitiveTypeCategory.any;
+      } else if (id.id == _lexicon.typeUnknown) {
+        category = PrimitiveTypeCategory.unknown;
+      } else if (id.id == _lexicon.typeVoid) {
+        category = PrimitiveTypeCategory.vo1d;
+      } else if (id.id == _lexicon.typeNever) {
+        category = PrimitiveTypeCategory.never;
+      }
       final typeArgs = <TypeExpr>[];
       if (expect([_lexicon.typeParameterStart], consume: true)) {
         if (curTok.type == _lexicon.typeParameterEnd) {
@@ -1736,6 +1747,7 @@ class HTDefaultParser extends HTParser {
         arguments: typeArgs,
         isNullable: isNullable,
         isLocal: isLocal,
+        primitiveTypeCategory: category,
         source: _currentSource,
         line: idTok.line,
         column: idTok.column,
@@ -2756,16 +2768,17 @@ class HTDefaultParser extends HTParser {
       }
     }
     _currentFunctionCategory = savedCurFuncType;
-    return FuncDecl(internalName, paramDecls,
+    return FuncDecl(internalName,
         id: id != null
             ? IdentifierExpr.fromToken(id, source: _currentSource)
             : null,
         classId: classId,
         genericTypeParameters: genericParameters,
         externalTypeId: externalTypedef,
-        returnType: returnType,
         redirectingCtorCallExpr: referCtor,
         hasParamDecls: hasParamDecls,
+        paramDecls: paramDecls,
+        returnType: returnType,
         minArity: minArity,
         maxArity: maxArity,
         isExpressionBody: isExpressionBody,

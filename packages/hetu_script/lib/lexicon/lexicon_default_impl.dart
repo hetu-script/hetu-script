@@ -103,22 +103,28 @@ class HTDefaultLexicon extends HTLexicon {
   String get typeString => 'str';
 
   @override
-  String get propertyCollectionValues => 'values';
+  String get idCollectionValues => 'values';
 
   @override
-  String get propertyCollectionContains => 'contains';
+  String get idCollectionContains => 'contains';
 
   @override
-  String get propertyIterableIterator => 'iterator';
+  String get idIterableIterator => 'iterator';
 
   @override
-  String get propertyIterableIteratorMoveNext => 'moveNext';
+  String get idIterableIteratorMoveNext => 'moveNext';
 
   @override
-  String get propertyIterableIteratorCurrent => 'current';
+  String get idIterableIteratorCurrent => 'current';
 
   @override
-  String get propertyToString => 'toString';
+  String get idToString => 'toString';
+
+  @override
+  String get idBind => 'bind';
+
+  @override
+  String get idApply => 'apply';
 
   @override
   String get kNull => 'null';
@@ -230,12 +236,6 @@ class HTDefaultLexicon extends HTLexicon {
 
   @override
   String get kAsync => 'async';
-
-  @override
-  String get bind => 'bind';
-
-  @override
-  String get apply => 'apply';
 
   @override
   String get kAwait => 'await';

@@ -2,7 +2,8 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../ast/ast.dart';
-import '../lexicon/lexicon.dart';
+import '../lexicon/lexicon2.dart';
+import '../lexicon/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../shared/constants.dart';
 import '../constant/global_constant_table.dart';
@@ -61,6 +62,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   CompilerConfig config;
 
+  late final HTLexicon _lexicon;
+
   late HTGlobalConstantTable _currentConstantTable;
 
   int _curLine = 0;
@@ -70,8 +73,11 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   final List<Map<String, String>> _markedSymbolsList = [];
 
-  HTCompiler({CompilerConfig? config})
-      : config = config ?? const CompilerConfigImpl();
+  HTCompiler({
+    CompilerConfig? config,
+    HTLexicon? lexicon,
+  })  : config = config ?? const CompilerConfigImpl(),
+        _lexicon = lexicon ?? HTDefaultLexicon();
 
   Uint8List compile(ASTCompilation compilation) => compilation.accept(this);
 
@@ -358,7 +364,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitStringLiteralExpr(ASTLiteralString expr) {
     var literal = expr.value;
-    HTLexicon.stringEscapes.forEach((key, value) {
+    _lexicon.escapeCharacters.forEach((key, value) {
       literal = literal.replaceAll(key, value);
     });
     if (literal.length > constStringLengthLimit) {
@@ -380,7 +386,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.stringInterpolation);
     var literal = expr.text;
-    HTLexicon.stringEscapes.forEach((key, value) {
+    _lexicon.escapeCharacters.forEach((key, value) {
       literal = literal.replaceAll(key, value);
     });
     bytesBuilder.add(_utf8String(literal));
@@ -635,37 +641,31 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitUnaryPrefixExpr(UnaryPrefixExpr expr) {
     final bytesBuilder = BytesBuilder();
     final value = compileAST(expr.object);
-    switch (expr.op) {
-      case HTLexicon.negative:
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.negative);
-        break;
-      case HTLexicon.logicalNot:
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.logicalNot);
-        break;
-      case HTLexicon.preIncrement:
-        final constOne = ASTLiteralInteger(1);
-        late final ASTNode value;
-        final add = BinaryExpr(expr.object, HTLexicon.add, constOne);
-        value = AssignExpr(expr.object, HTLexicon.assign, add);
-        final group = GroupExpr(value);
-        final bytes = compileAST(group);
-        bytesBuilder.add(bytes);
-        break;
-      case HTLexicon.preDecrement:
-        final constOne = ASTLiteralInteger(1);
-        late final ASTNode value;
-        final subtract = BinaryExpr(expr.object, HTLexicon.subtract, constOne);
-        value = AssignExpr(expr.object, HTLexicon.assign, subtract);
-        final group = GroupExpr(value);
-        final bytes = compileAST(group);
-        bytesBuilder.add(bytes);
-        break;
-      case HTLexicon.kTypeof:
-        bytesBuilder.add(value);
-        bytesBuilder.addByte(HTOpCode.typeOf);
-        break;
+    if (expr.op == _lexicon.negative) {
+      bytesBuilder.add(value);
+      bytesBuilder.addByte(HTOpCode.negative);
+    } else if (expr.op == _lexicon.logicalNot) {
+      bytesBuilder.add(value);
+      bytesBuilder.addByte(HTOpCode.logicalNot);
+    } else if (expr.op == _lexicon.preIncrement) {
+      final constOne = ASTLiteralInteger(1);
+      late final ASTNode value;
+      final add = BinaryExpr(expr.object, _lexicon.add, constOne);
+      value = AssignExpr(expr.object, _lexicon.assign, add);
+      final group = GroupExpr(value);
+      final bytes = compileAST(group);
+      bytesBuilder.add(bytes);
+    } else if (expr.op == _lexicon.preDecrement) {
+      final constOne = ASTLiteralInteger(1);
+      late final ASTNode value;
+      final subtract = BinaryExpr(expr.object, _lexicon.subtract, constOne);
+      value = AssignExpr(expr.object, _lexicon.assign, subtract);
+      final group = GroupExpr(value);
+      final bytes = compileAST(group);
+      bytesBuilder.add(bytes);
+    } else if (expr.op == _lexicon.kTypeof) {
+      bytesBuilder.add(value);
+      bytesBuilder.addByte(HTOpCode.typeOf);
     }
     return bytesBuilder.toBytes();
   }
@@ -675,163 +675,138 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     final left = compileAST(expr.left);
     final right = compileAST(expr.right);
-    switch (expr.op) {
-      case HTLexicon.ifNull:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.orLeft);
-        bytesBuilder.addByte(HTOpCode.ifNull);
-        bytesBuilder.add(_uint16(right.length + 1)); // length of right value
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.endOfExec);
-        break;
-      case HTLexicon.logicalOr:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.orLeft);
-        bytesBuilder.addByte(HTOpCode.logicalOr);
-        bytesBuilder.add(_uint16(right.length + 1)); // length of right value
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.endOfExec);
-        break;
-      case HTLexicon.logicalAnd:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.andLeft);
-        bytesBuilder.addByte(HTOpCode.logicalAnd);
-        bytesBuilder.add(_uint16(right.length + 1)); // length of right value
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.endOfExec);
-        break;
-      case HTLexicon.equal:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.equalLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.equal);
-        break;
-      case HTLexicon.notEqual:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.equalLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.notEqual);
-        break;
-      case HTLexicon.lesser:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.relationLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.lesser);
-        break;
-      case HTLexicon.greater:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.relationLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.greater);
-        break;
-      case HTLexicon.lesserOrEqual:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.relationLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.lesserOrEqual);
-        break;
-      case HTLexicon.greaterOrEqual:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.relationLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.greaterOrEqual);
-        break;
-      case HTLexicon.kAs:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.relationLeft);
-        final right = compileAST(expr.right);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.typeAs);
-        break;
-      case HTLexicon.kIs:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.relationLeft);
-        final right = compileAST(expr.right);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.typeIs);
-        break;
-      case HTLexicon.kIsNot:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.relationLeft);
-        final right = compileAST(expr.right);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.typeIsNot);
-        break;
-      case HTLexicon.add:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.add);
-        break;
-      case HTLexicon.subtract:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.addLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.subtract);
-        break;
-      case HTLexicon.multiply:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.multiplyLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.multiply);
-        break;
-      case HTLexicon.devide:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.multiplyLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.devide);
-        break;
-      case HTLexicon.truncatingDevide:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.multiplyLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.truncatingDevide);
-        break;
-      case HTLexicon.modulo:
-        bytesBuilder.add(left);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.multiplyLeft);
-        bytesBuilder.add(right);
-        bytesBuilder.addByte(HTOpCode.modulo);
-        break;
-      case HTLexicon.kIn:
-        final containsCallExpr = CallExpr(
-            MemberExpr(
-                expr.right,
-                IdentifierExpr(HTLexicon.propertyCollectionContains,
-                    isLocal: false)),
-            positionalArgs: [expr.left]);
-        final containsCallExprBytes = visitCallExpr(containsCallExpr);
-        bytesBuilder.add(containsCallExprBytes);
-        break;
-      case HTLexicon.kNotIn:
-        final containsCallExpr = CallExpr(
-            MemberExpr(
-                expr.right,
-                IdentifierExpr(HTLexicon.propertyCollectionContains,
-                    isLocal: false)),
-            positionalArgs: [expr.left]);
-        final containsCallExprBytes = visitCallExpr(containsCallExpr);
-        bytesBuilder.add(containsCallExprBytes);
-        bytesBuilder.addByte(HTOpCode.logicalNot);
-        break;
+    if (expr.op == _lexicon.ifNull) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.orLeft);
+      bytesBuilder.addByte(HTOpCode.ifNull);
+      bytesBuilder.add(_uint16(right.length + 1)); // length of right value
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+    } else if (expr.op == _lexicon.logicalOr) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.orLeft);
+      bytesBuilder.addByte(HTOpCode.logicalOr);
+      bytesBuilder.add(_uint16(right.length + 1)); // length of right value
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+    } else if (expr.op == _lexicon.logicalAnd) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.andLeft);
+      bytesBuilder.addByte(HTOpCode.logicalAnd);
+      bytesBuilder.add(_uint16(right.length + 1)); // length of right value
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.endOfExec);
+    } else if (expr.op == _lexicon.equal) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.equalLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.equal);
+    } else if (expr.op == _lexicon.notEqual) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.equalLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.notEqual);
+    } else if (expr.op == _lexicon.lesser) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.relationLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.lesser);
+    } else if (expr.op == _lexicon.greater) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.relationLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.greater);
+    } else if (expr.op == _lexicon.lesserOrEqual) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.relationLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.lesserOrEqual);
+    } else if (expr.op == _lexicon.greaterOrEqual) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.relationLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.greaterOrEqual);
+    } else if (expr.op == _lexicon.kAs) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.relationLeft);
+      final right = compileAST(expr.right);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.typeAs);
+    } else if (expr.op == _lexicon.kIs) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.relationLeft);
+      final right = compileAST(expr.right);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.typeIs);
+    } else if (expr.op == _lexicon.kIsNot) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.relationLeft);
+      final right = compileAST(expr.right);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.typeIsNot);
+    } else if (expr.op == _lexicon.add) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.addLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.add);
+    } else if (expr.op == _lexicon.subtract) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.addLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.subtract);
+    } else if (expr.op == _lexicon.multiply) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.multiplyLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.multiply);
+    } else if (expr.op == _lexicon.devide) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.multiplyLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.devide);
+    } else if (expr.op == _lexicon.truncatingDevide) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.multiplyLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.truncatingDevide);
+    } else if (expr.op == _lexicon.modulo) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(HTOpCode.register);
+      bytesBuilder.addByte(HTRegIdx.multiplyLeft);
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(HTOpCode.modulo);
+    } else if (expr.op == _lexicon.kIn) {
+      final containsCallExpr = CallExpr(
+          MemberExpr(expr.right,
+              IdentifierExpr(_lexicon.idCollectionContains, isLocal: false)),
+          positionalArgs: [expr.left]);
+      final containsCallExprBytes = visitCallExpr(containsCallExpr);
+      bytesBuilder.add(containsCallExprBytes);
+    } else if (expr.op == _lexicon.kNotIn) {
+      final containsCallExpr = CallExpr(
+          MemberExpr(expr.right,
+              IdentifierExpr(_lexicon.idCollectionContains, isLocal: false)),
+          positionalArgs: [expr.left]);
+      final containsCallExprBytes = visitCallExpr(containsCallExpr);
+      bytesBuilder.add(containsCallExprBytes);
+      bytesBuilder.addByte(HTOpCode.logicalNot);
     }
     return bytesBuilder.toBytes();
   }
@@ -859,29 +834,26 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.add(value);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
-    switch (expr.op) {
-      case HTLexicon.postIncrement:
-        final constOne = ASTLiteralInteger(1);
-        late final ASTNode value;
-        final add = BinaryExpr(expr.object, HTLexicon.add, constOne);
-        value = AssignExpr(expr.object, HTLexicon.assign, add);
-        final group = GroupExpr(value);
-        final subtract = BinaryExpr(group, HTLexicon.subtract, constOne);
-        final group2 = GroupExpr(subtract);
-        final bytes = compileAST(group2);
-        bytesBuilder.add(bytes);
-        break;
-      case HTLexicon.postDecrement:
-        final constOne = ASTLiteralInteger(1);
-        late final ASTNode value;
-        final subtract = BinaryExpr(expr.object, HTLexicon.subtract, constOne);
-        value = AssignExpr(expr.object, HTLexicon.assign, subtract);
-        final group = GroupExpr(value);
-        final add = BinaryExpr(group, HTLexicon.add, constOne);
-        final group2 = GroupExpr(add);
-        final bytes = compileAST(group2);
-        bytesBuilder.add(bytes);
-        break;
+    if (expr.op == _lexicon.postIncrement) {
+      final constOne = ASTLiteralInteger(1);
+      late final ASTNode value;
+      final add = BinaryExpr(expr.object, _lexicon.add, constOne);
+      value = AssignExpr(expr.object, _lexicon.assign, add);
+      final group = GroupExpr(value);
+      final subtract = BinaryExpr(group, _lexicon.subtract, constOne);
+      final group2 = GroupExpr(subtract);
+      final bytes = compileAST(group2);
+      bytesBuilder.add(bytes);
+    } else if (expr.op == _lexicon.postDecrement) {
+      final constOne = ASTLiteralInteger(1);
+      late final ASTNode value;
+      final subtract = BinaryExpr(expr.object, _lexicon.subtract, constOne);
+      value = AssignExpr(expr.object, _lexicon.assign, subtract);
+      final group = GroupExpr(value);
+      final add = BinaryExpr(group, _lexicon.add, constOne);
+      final group2 = GroupExpr(add);
+      final bytes = compileAST(group2);
+      bytesBuilder.add(bytes);
     }
     return bytesBuilder.toBytes();
   }
@@ -889,7 +861,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitAssignExpr(AssignExpr expr) {
     final bytesBuilder = BytesBuilder();
-    if (expr.op == HTLexicon.assign) {
+    if (expr.op == _lexicon.assign) {
       if (expr.left is MemberExpr) {
         final memberExpr = expr.left as MemberExpr;
         final object = compileAST(memberExpr.object);
@@ -929,16 +901,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.add(left);
         bytesBuilder.addByte(HTOpCode.assign);
       }
-    } else if (expr.op == HTLexicon.assignIfNull) {
+    } else if (expr.op == _lexicon.assignIfNull) {
       final ifStmt = IfStmt(
         BinaryExpr(
           expr.left,
-          HTLexicon.equal,
+          _lexicon.equal,
           ASTLiteralNull(),
         ),
         AssignExpr(
           expr.left,
-          HTLexicon.assign,
+          _lexicon.assign,
           expr.right,
           source: expr.source,
           line: expr.line,
@@ -950,7 +922,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       final spreaded = AssignExpr(
           expr.left,
-          HTLexicon.assign,
+          _lexicon.assign,
           BinaryExpr(
               expr.left, expr.op.substring(0, expr.op.length - 1), expr.right),
           source: expr.source,
@@ -1188,7 +1160,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     _markedSymbolsList.add(newSymbolMap);
     if (stmt.init != null) {
       final userDecl = stmt.init as VarDecl;
-      final markedId = '${HTLexicon.internalPrefix}${userDecl.id}';
+      final markedId = '${_lexicon.internalPrefix}${userDecl.id}';
       newSymbolMap[userDecl.id.id] = markedId;
       Uint8List? initializer;
       if (userDecl.initializer != null) {
@@ -1242,12 +1214,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
     final collection = stmt.iterateValue
         ? MemberExpr(stmt.collection,
-            IdentifierExpr(HTLexicon.propertyCollectionValues, isLocal: false))
+            IdentifierExpr(_lexicon.idCollectionValues, isLocal: false))
         : stmt.collection;
 
     // declare the iterator
     final iterInit = MemberExpr(collection,
-        IdentifierExpr(HTLexicon.propertyIterableIterator, isLocal: false));
+        IdentifierExpr(_lexicon.idIterableIterator, isLocal: false));
     final iterInitBytes = compileAST(iterInit, endOfExec: true);
     final iterId = '__iter${iterIndex++}';
     final iterDecl = _assembleVarDeclStmt(
@@ -1257,18 +1229,14 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
     // update iter move result
     // calls iterator.moveNext()
-    final moveIter = CallExpr(MemberExpr(
-        IdentifierExpr(iterId),
-        IdentifierExpr(HTLexicon.propertyIterableIteratorMoveNext,
-            isLocal: false)));
+    final moveIter = CallExpr(MemberExpr(IdentifierExpr(iterId),
+        IdentifierExpr(_lexicon.idIterableIteratorMoveNext, isLocal: false)));
     final moveIterBytes = visitCallExpr(moveIter);
     final condition = moveIterBytes;
 
     // get current item value
-    stmt.iterator.initializer = MemberExpr(
-        IdentifierExpr(iterId),
-        IdentifierExpr(HTLexicon.propertyIterableIteratorCurrent,
-            isLocal: false));
+    stmt.iterator.initializer = MemberExpr(IdentifierExpr(iterId),
+        IdentifierExpr(_lexicon.idIterableIteratorCurrent, isLocal: false));
     stmt.loop.statements.insert(0, stmt.iterator);
     final loop = visitBlockStmt(stmt.loop);
 
@@ -1311,10 +1279,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
           caseBytesBuilder.addByte(WhenCaseTypeCode.elementIn);
           Uint8List bytes;
           if (ast.valueOf) {
-            final getValues = MemberExpr(
-                ast.collection,
-                IdentifierExpr(HTLexicon.propertyCollectionValues,
-                    isLocal: false));
+            final getValues = MemberExpr(ast.collection,
+                IdentifierExpr(_lexicon.idCollectionValues, isLocal: false));
             bytes = compileAST(getValues, endOfExec: true);
           } else {
             bytes = compileAST(ast.collection, endOfExec: true);
@@ -1686,6 +1652,14 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final bytes = visitParamDecl(param);
       bytesBuilder.add(bytes);
     }
+    if (stmt.returnType != null) {
+      bytesBuilder.addByte(1); // bool: hasReturnType
+      // use compileAst here because there are multiple types of typeExpr
+      final bytes = compileAST(stmt.returnType!);
+      bytesBuilder.add(bytes);
+    } else {
+      bytesBuilder.addByte(0); // bool: hasReturnType
+    }
     if (stmt.category == FunctionCategory.constructor) {
       // referring to another constructor
       if (stmt.redirectingCtorCallExpr != null) {
@@ -1752,19 +1726,19 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: has super class
       bytesBuilder.addByte(1); // bool: is enum
 
-      final valueId = '${HTLexicon.privatePrefix}${Semantic.name}';
+      final valueId = '${_lexicon.privatePrefix}${Semantic.name}';
       final value = VarDecl(IdentifierExpr(valueId), classId: stmt.id.id);
       final valueBytes = visitVarDecl(value);
       bytesBuilder.add(valueBytes);
 
       final ctorParam = ParamDecl(IdentifierExpr(Semantic.name));
-      final ctorDef = AssignExpr(IdentifierExpr(valueId), HTLexicon.assign,
+      final ctorDef = AssignExpr(IdentifierExpr(valueId), _lexicon.assign,
           IdentifierExpr(Semantic.name));
       final constructor = FuncDecl(
-          '${InternalIdentifier.namedConstructorPrefix}${HTLexicon.privatePrefix}',
-          [ctorParam],
-          id: IdentifierExpr(HTLexicon.privatePrefix),
+          '${InternalIdentifier.namedConstructorPrefix}${_lexicon.privatePrefix}',
+          id: IdentifierExpr(_lexicon.privatePrefix),
           classId: stmt.id.id,
+          paramDecls: [ctorParam],
           minArity: 1,
           maxArity: 1,
           definition: ctorDef,
@@ -1773,15 +1747,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.add(ctorBytes);
 
       final toStringDef = ASTStringInterpolation(
-          '${stmt.id.id}${HTLexicon.memberGet}${HTLexicon.stringInterpolationStart}0${HTLexicon.stringInterpolationEnd}',
-          HTLexicon.stringStart1,
-          HTLexicon.stringEnd1,
+          '${stmt.id.id}${_lexicon.memberGet}${_lexicon.stringInterpolationStart}0${_lexicon.stringInterpolationEnd}',
+          _lexicon.stringStart1,
+          _lexicon.stringEnd1,
           [IdentifierExpr(valueId)]);
-      final toStringFunc = FuncDecl(HTLexicon.propertyToString, [],
-          id: IdentifierExpr(HTLexicon.propertyToString),
+      final toStringFunc = FuncDecl(_lexicon.idToString,
+          id: IdentifierExpr(_lexicon.idToString),
           classId: stmt.id.id,
-          returnType: TypeExpr(id: IdentifierExpr(HTLexicon.typeString)),
           hasParamDecls: true,
+          paramDecls: [],
+          returnType: TypeExpr(id: IdentifierExpr(_lexicon.typeString)),
           definition: toStringDef);
       final toStringBytes = visitFuncDecl(toStringFunc);
       bytesBuilder.add(toStringBytes);
@@ -1791,10 +1766,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         itemList.add(item);
         final itemInit = CallExpr(
             MemberExpr(stmt.id,
-                IdentifierExpr(HTLexicon.privatePrefix, isLocal: false)),
+                IdentifierExpr(_lexicon.privatePrefix, isLocal: false)),
             positionalArgs: [
               ASTLiteralString(
-                  item.id, HTLexicon.stringStart1, HTLexicon.stringEnd1)
+                  item.id, _lexicon.stringStart1, _lexicon.stringEnd1)
             ]);
         final itemDecl = VarDecl(item,
             classId: stmt.classId,
@@ -1806,8 +1781,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       }
 
       final valuesInit = ListExpr(itemList);
-      final valuesDecl = VarDecl(
-          IdentifierExpr(HTLexicon.propertyCollectionValues),
+      final valuesDecl = VarDecl(IdentifierExpr(_lexicon.idCollectionValues),
           classId: stmt.classId,
           initializer: valuesInit,
           isStatic: true,

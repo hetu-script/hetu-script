@@ -1,7 +1,6 @@
 import 'package:meta/meta.dart';
 
 import '../../grammar/constant.dart';
-import '../../lexicon/lexicon.dart';
 import '../../type/type.dart';
 import '../../type/function_type.dart';
 import '../../source/source.dart';
@@ -80,7 +79,7 @@ class HTFunctionDeclaration extends HTDeclaration
       this.genericTypeParameters = const [],
       this.hasParamDecls = true,
       Map<String, HTAbstractParameter> paramDecls = const {},
-      HTType? returnType,
+      required this.declType,
       this.isField = false,
       this.isAbstract = false,
       this.isVariadic = false,
@@ -88,14 +87,6 @@ class HTFunctionDeclaration extends HTDeclaration
       this.maxArity = 0,
       this.namespace})
       : _paramDecls = paramDecls,
-        declType = HTFunctionType(
-            parameterTypes: paramDecls.values
-                .map((param) => HTParameterType(param.declType ?? HTType.any,
-                    isOptional: param.isOptional,
-                    isVariadic: param.isVariadic,
-                    id: param.isNamed ? param.id : null))
-                .toList(),
-            returnType: returnType ?? HTType.any),
         super(
             id: id,
             classId: classId,
@@ -105,59 +96,6 @@ class HTFunctionDeclaration extends HTDeclaration
             isStatic: isStatic,
             isConst: isConst,
             isTopLevel: isTopLevel);
-
-  /// Print function signature to String with function [id] and parameter [id].
-  @override
-  String toString() {
-    var result = StringBuffer();
-    result.write(Semantic.function);
-    if (id != null) {
-      result.write(' $id');
-    }
-    if (declType.typeArgs.isNotEmpty) {
-      result.write(HTLexicon.typeParameterStart);
-      for (var i = 0; i < declType.typeArgs.length; ++i) {
-        result.write(declType.typeArgs[i]);
-        if (i < declType.typeArgs.length - 1) {
-          result.write('${HTLexicon.comma} ');
-        }
-      }
-      result.write(HTLexicon.typeParameterEnd);
-    }
-    result.write(HTLexicon.groupExprStart);
-    var i = 0;
-    var optionalStarted = false;
-    var namedStarted = false;
-    for (final param in paramDecls.values) {
-      if (param.isVariadic) {
-        result.write(HTLexicon.variadicArgs + ' ');
-      }
-      if (param.isOptional && !optionalStarted) {
-        optionalStarted = true;
-        result.write(HTLexicon.optionalPositionalParameterStart);
-      } else if (param.isNamed && !namedStarted) {
-        namedStarted = true;
-        result.write(HTLexicon.functionBlockStart);
-      }
-      result.write(param.id);
-      if (param.declType != null) {
-        result.write('${HTLexicon.typeIndicator} ${param.declType}');
-      }
-      if (i < paramDecls.length - 1) {
-        result.write('${HTLexicon.comma} ');
-      }
-      ++i;
-    }
-    if (optionalStarted) {
-      result.write(HTLexicon.optionalPositionalParameterEnd);
-    } else if (namedStarted) {
-      result.write(HTLexicon.functionBlockEnd);
-    }
-    result.write(
-        '${HTLexicon.groupExprEnd} ${HTLexicon.functionReturnTypeIndicator} ' +
-            returnType.toString());
-    return result.toString();
-  }
 
   @override
   @mustCallSuper
@@ -184,10 +122,12 @@ class HTFunctionDeclaration extends HTDeclaration
       category: category,
       externalTypeId: externalTypeId,
       genericTypeParameters: genericTypeParameters,
+      paramDecls: paramDecls,
+      declType: declType,
+      isField: isField,
       isAbstract: isAbstract,
       isVariadic: isVariadic,
       minArity: minArity,
       maxArity: maxArity,
-      paramDecls: paramDecls,
-      returnType: returnType);
+      namespace: namespace);
 }

@@ -7,6 +7,8 @@ void main() {
     config: InterpreterConfig(
       checkTypeErrors: true,
       computeConstantExpressionValue: true,
+      // showDartStackTrace: true,
+      // stackTraceDisplayCountLimit: 20,
       allowVariableShadowing: true,
       allowImplicitVariableDeclaration: false,
       allowImplicitNullToZeroConversion: true,
@@ -17,7 +19,7 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   hetu.eval(r'''
-    print(stringify({a:42}))
+    print(typeof fun () -> {})
   ''');
 
   // final r = hetu.evalFile('eval.hts');

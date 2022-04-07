@@ -7,6 +7,7 @@ import '../../resource/resource.dart' show HTResourceType;
 import '../../source/line_info.dart';
 import '../error/error.dart';
 import '../comment/comment.dart';
+import '../type/type.dart' show PrimitiveTypeCategory;
 
 part 'visitor/abstract_ast_visitor.dart';
 
@@ -545,11 +546,14 @@ class TypeExpr extends ASTNode {
 
   final bool isLocal;
 
+  final PrimitiveTypeCategory primitiveTypeCategory;
+
   TypeExpr(
       {this.id,
       this.arguments = const [],
       this.isNullable = false,
       this.isLocal = true,
+      this.primitiveTypeCategory = PrimitiveTypeCategory.none,
       HTSource? source,
       int line = 0,
       int column = 0,
@@ -1994,14 +1998,15 @@ class FuncDecl extends ASTNode {
   @override
   bool get isExpression => false;
 
-  FuncDecl(this.internalName, this.paramDecls,
+  FuncDecl(this.internalName,
       {this.id,
       this.classId,
       this.genericTypeParameters = const [],
       this.externalTypeId,
-      this.returnType,
       this.redirectingCtorCallExpr,
+      this.paramDecls = const [],
       this.hasParamDecls = true,
+      this.returnType,
       this.minArity = 0,
       this.maxArity = 0,
       this.isExpressionBody = false,

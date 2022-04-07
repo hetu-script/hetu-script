@@ -46,11 +46,11 @@ class Hetu {
         lexicon = lexicon ?? HTDefaultLexicon() {
     analyzer =
         HTAnalyzer(config: this.config, sourceContext: this.sourceContext);
-    compiler = HTCompiler(config: this.config);
+    compiler = HTCompiler(config: this.config, lexicon: this.lexicon);
     interpreter = HTInterpreter(
         config: this.config,
         sourceContext: this.sourceContext,
-        lexicon: lexicon);
+        lexicon: this.lexicon);
   }
 
   /// Initialize the interpreter,
