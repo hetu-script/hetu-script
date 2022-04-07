@@ -1,6 +1,40 @@
-external fun print(... args: any)
+external class Hetu {
 
-external fun stringify(obj: any)
+  fun createStructfromJson(data)
+
+  fun stringify(obj: any) -> any
+}
+
+var _isInitialized = false
+
+late _hetu
+
+fun initHetuEnv(hetu) {
+  _hetu = hetu
+  _isInitialized = true
+}
+
+fun createStructfromJson(data) {
+  if (!_isInitialized) {
+    throw 'Hetu environment is not initialized!'
+  }
+  _hetu.createStructfromJson(data)
+}
+
+fun eval(code: str) {
+  if (!_isInitialized) {
+    throw 'Hetu environment is not initialized!'
+  }
+}
+
+external fun _print(obj: any)
+
+fun print(... args: any) {
+  final mapped = args.map((e) => _hetu.stringify(e)).join(' ')
+  _print(mapped)
+}
+
+fun stringify(obj: any) => _hetu.stringify(obj)
 
 external fun jsonify(obj)
 

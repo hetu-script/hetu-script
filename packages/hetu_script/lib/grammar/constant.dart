@@ -34,6 +34,7 @@ abstract class InternalIdentifier {
   static const anonymousBlock = r'$anonymous_block';
 
   static const instanceOfDescription = 'instance of';
+  static const externalType = 'external type';
 }
 
 abstract class Semantic {
@@ -42,7 +43,6 @@ abstract class Semantic {
   static const namespace = 'namespace';
 
   static const global = 'global';
-  static const extern = 'external';
   static const preclude = 'preclude';
   static const anonymous = 'anonymous';
 

@@ -1,4 +1,5 @@
 import 'lexicon2.dart';
+import '../value/struct/struct.dart';
 
 /// Default lexicon implementation used by Hetu.
 class HTDefaultLexicon extends HTLexicon {
@@ -292,6 +293,9 @@ class HTDefaultLexicon extends HTLexicon {
 
   @override
   String get kThrow => 'throw';
+
+  @override
+  String get indent => '  ';
 
   /// .
   @override
@@ -603,4 +607,132 @@ class HTDefaultLexicon extends HTLexicon {
   /// >
   @override
   String get typeParameterEnd => '>';
+
+  var _curIndentCount = 0;
+
+  String _curIndent() {
+    final output = StringBuffer();
+    var i = _curIndentCount;
+    while (i > 0) {
+      output.write(indent);
+      --i;
+    }
+    return output.toString();
+  }
+
+  @override
+  String stringify(dynamic object, {bool asStringLiteral = false}) {
+    final output = StringBuffer();
+    if (object is String) {
+      if (asStringLiteral) {
+        // if (object.contains("'")) {
+        //   final objString = object.replaceAll(r"'", r"\'");
+        //   return "'$objString'";
+        // } else {
+        return "'$object'";
+        // }
+      } else {
+        return object;
+      }
+    } else if (object is HTStruct) {
+      if (object.isEmpty) {
+        output.write('$functionBlockStart$functionBlockEnd');
+      } else {
+        output.writeln(functionBlockStart);
+        final structString = stringifyStructMembers(object);
+        output.write(structString);
+        output.write(_curIndent());
+        output.write(functionBlockEnd);
+      }
+    } else if (object is Iterable) {
+      final listString = stringifyList(object);
+      output.write(listString);
+    } else if (object is Map) {
+      output.write(functionBlockStart);
+      final keys = object.keys.toList();
+      for (var i = 0; i < keys.length; ++i) {
+        final key = keys[i];
+        final value = object[key];
+        final keyString = stringify(key);
+        final valueString = stringify(value);
+        output.write('$keyString: $valueString');
+        if (i < keys.length - 1) {
+          output.write('$comma ');
+        }
+      }
+      output.write(functionBlockEnd);
+    } else {
+      output.write(object.toString());
+    }
+    return output.toString();
+  }
+
+  @override
+  String stringifyList(Iterable list) {
+    if (list.isEmpty) {
+      return '$listStart$listEnd';
+    }
+    final output = StringBuffer();
+    output.writeln(listStart);
+    ++_curIndentCount;
+    for (var i = 0; i < list.length; ++i) {
+      final item = list.elementAt(i);
+      output.write(_curIndent());
+      final itemString = stringify(item, asStringLiteral: true);
+      output.write(itemString);
+      if (i < list.length - 1) {
+        output.write(comma);
+      }
+      output.writeln();
+    }
+    --_curIndentCount;
+    output.write(_curIndent());
+    output.write(listEnd);
+    return output.toString();
+  }
+
+  @override
+  String stringifyStructMembers(HTStruct struct, {HTStruct? from}) {
+    final output = StringBuffer();
+    ++_curIndentCount;
+    for (var i = 0; i < struct.length; ++i) {
+      final key = struct.keys.elementAt(i);
+      if (key.startsWith(internalPrefix)) {
+        continue;
+      }
+      if (from != null && from != struct) {
+        if (from.contains(key)) {
+          continue;
+        }
+      }
+      output.write(_curIndent());
+      final value = struct[key];
+      final valueBuffer = StringBuffer();
+      if (value is HTStruct) {
+        if (value.isEmpty) {
+          valueBuffer.write('$functionBlockStart$functionBlockEnd');
+        } else {
+          final content = stringifyStructMembers(value, from: from);
+          valueBuffer.writeln(functionBlockStart);
+          valueBuffer.write(content);
+          valueBuffer.write(_curIndent());
+          valueBuffer.write(functionBlockEnd);
+        }
+      } else {
+        final valueString = stringify(value, asStringLiteral: true);
+        valueBuffer.write(valueString);
+      }
+      output.write('$key$structValueIndicator $valueBuffer');
+      if (i < struct.length - 1) {
+        output.write(comma);
+      }
+      output.writeln();
+    }
+    if (struct.prototype != null && struct.prototype!.id != globalPrototypeId) {
+      final inherits = stringifyStructMembers(struct.prototype!, from: struct);
+      output.write(inherits);
+    }
+    --_curIndentCount;
+    return output.toString();
+  }
 }

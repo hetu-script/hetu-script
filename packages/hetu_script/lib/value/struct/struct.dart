@@ -5,7 +5,7 @@ import '../../lexicon/lexicon.dart';
 import '../entity.dart';
 import '../function/function.dart';
 import '../../value/namespace/namespace.dart';
-import '../../shared/stringify.dart' as util;
+// import '../../shared/stringify.dart' as util;
 import '../../shared/jsonify.dart' as util;
 import '../../type/type.dart';
 import '../../type/structural_type.dart';
@@ -61,7 +61,8 @@ class HTStruct with HTEntity {
   @override
   String toString() {
     if (_fields.isNotEmpty) {
-      final content = util.stringifyStructMembers(this, from: this);
+      final content =
+          interpreter.lexicon.stringifyStructMembers(this, from: this);
       return '${HTLexicon.functionBlockStart}\n$content${HTLexicon.functionBlockEnd}';
     } else {
       return '${HTLexicon.functionBlockStart}${HTLexicon.functionBlockEnd}';

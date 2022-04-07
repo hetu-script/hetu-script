@@ -1,4 +1,4 @@
-import '../../binding/external_class.dart';
+import '../../external/external_class.dart';
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
@@ -73,27 +73,10 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
       _value = value;
       _isInitialized = true;
     }
-
-    // if (declType != null) {
-    //   _declType = declType;
-
-    //   if (_declType is HTFunctionDeclarationType ||
-    //       _declType is HTObjectType ||
-    //       (HTLexicon.primitiveType.contains(declType.id))) {
-    //     _isTypeInitialized = true;
-    //   }
-    // } else {
-    //   if (!typeInferrence || (definitionIp == null)) {
-    //     _declType = HTType.ANY;
-    //     _isTypeInitialized = true;
-    //   }
-    // }
   }
 
   /// Initialize this variable with its declared initializer bytecode
   void initialize() {
-    // if (_value != null) return;
-
     if (definitionIp != null) {
       if (!_isInitializing) {
         _isInitializing = true;
@@ -144,11 +127,9 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
 
   // dynamic _computeValue(dynamic value, HTType type) {
   //   final resolvedType = type.isResolved ? type : type.resolve(interpreter);
-
   //   if (resolvedType is HTNominalType && value is Map) {
   //     return resolvedType.klass.createInstanceFromJson(value);
   //   }
-
   //   // basically doing a type erasure here.
   //   if ((value is List) &&
   //       (type.id == HTLexicon.list) &&

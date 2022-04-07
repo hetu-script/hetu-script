@@ -13,14 +13,20 @@ import '../bundler/bundler.dart';
 import '../preincludes/preinclude_functions.dart';
 import '../preincludes/preinclude_module.dart';
 import '../locale/locale.dart';
-import '../binding/external_function.dart';
-import '../binding/external_class.dart';
+import '../external/external_function.dart';
+import '../external/external_class.dart';
+import '../binding/class_binding.dart';
+import '../binding/hetu_binding.dart';
+import '../lexicon/lexicon2.dart';
+import '../lexicon/lexicon_default_impl.dart';
 
 /// A wrapper class for sourceContext, analyzer, compiler and interpreter to work together.
 class Hetu {
   InterpreterConfig config;
 
   final HTResourceContext<HTSource> sourceContext;
+
+  late final HTLexicon lexicon;
 
   late final HTAnalyzer analyzer;
 
@@ -31,14 +37,20 @@ class Hetu {
   bool _isInitted = false;
   bool get isInitted => _isInitted;
 
-  Hetu({InterpreterConfig? config, HTResourceContext<HTSource>? sourceContext})
+  Hetu(
+      {InterpreterConfig? config,
+      HTResourceContext<HTSource>? sourceContext,
+      HTLexicon? lexicon})
       : config = config ?? InterpreterConfig(),
-        sourceContext = sourceContext ?? HTOverlayContext() {
+        sourceContext = sourceContext ?? HTOverlayContext(),
+        lexicon = lexicon ?? HTDefaultLexicon() {
     analyzer =
         HTAnalyzer(config: this.config, sourceContext: this.sourceContext);
     compiler = HTCompiler(config: this.config);
-    interpreter =
-        HTInterpreter(config: this.config, sourceContext: this.sourceContext);
+    interpreter = HTInterpreter(
+        config: this.config,
+        sourceContext: this.sourceContext,
+        lexicon: lexicon);
   }
 
   /// Initialize the interpreter,
@@ -82,7 +94,6 @@ class Hetu {
       final coreModule = Uint8List.fromList(hetuCoreModule);
       interpreter.loadBytecode(
           bytes: coreModule, moduleName: 'core', globallyImport: true);
-      interpreter.invoke('setInterpreter', positionalArgs: [interpreter]);
     }
 
     for (final key in externalFunctions.keys) {
@@ -94,6 +105,7 @@ class Hetu {
     for (final value in externalClasses) {
       interpreter.bindExternalClass(value);
     }
+    interpreter.invoke('initHetuEnv', positionalArgs: [this]);
     _isInitted = true;
   }
 
@@ -195,8 +207,8 @@ class Hetu {
   Uint8List _compileSource(HTSource source,
       {String? moduleName, CompilerConfig? config, bool errorHandled = false}) {
     try {
-      final parser = HTBundler(sourceContext: sourceContext);
-      final compilation = parser.bundle(source);
+      final bundler = HTBundler(sourceContext: sourceContext);
+      final compilation = bundler.bundle(source);
       final result = analyzer.analyzeCompilation(compilation);
       if (result.errors.isNotEmpty) {
         for (final error in result.errors) {

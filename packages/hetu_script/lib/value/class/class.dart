@@ -1,4 +1,4 @@
-import '../../binding/external_class.dart';
+import '../../external/external_class.dart';
 import '../../grammar/constant.dart';
 import '../../error/error.dart';
 import '../../source/source.dart';

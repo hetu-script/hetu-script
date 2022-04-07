@@ -1,5 +1,5 @@
 import '../../declaration/declaration.dart';
-import '../../binding/external_class.dart';
+import '../../external/external_class.dart';
 import '../../interpreter/interpreter.dart';
 import '../entity.dart';
 import '../../value/namespace/namespace.dart';

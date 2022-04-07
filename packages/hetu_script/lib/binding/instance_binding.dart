@@ -1,4 +1,13 @@
-part of '../interpreter.dart';
+import 'dart:math' as math;
+
+import 'package:characters/characters.dart';
+
+import '../value/entity.dart';
+import '../type/type.dart';
+import '../locale/locale.dart';
+import '../error/error.dart';
+import '../shared/jsonify.dart';
+import '../value/function/function.dart';
 
 extension NumBinding on num {
   dynamic htFetch(String varName) {
@@ -630,7 +639,7 @@ extension IterableBinding on Iterable {
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            stringify(this);
+            toString();
       default:
         throw HTError.undefined(varName);
     }

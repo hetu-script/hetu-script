@@ -6,7 +6,6 @@ import '../lexicon/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../lexer/lexer.dart';
 import '../parser/parser.dart';
-import '../shared/stringify.dart';
 
 class FormatterConfig {
   final int pageWidth;
@@ -141,7 +140,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
 
   @override
   String visitStringLiteralExpr(ASTLiteralString expr) {
-    return stringify(expr.value, asStringLiteral: true);
+    return _lexicon.stringify(expr.value, asStringLiteral: true);
   }
 
   @override

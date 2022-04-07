@@ -1,11 +1,16 @@
 import '../ast/ast.dart';
-import '../lexicon/lexicon.dart';
-import '../shared/stringify.dart';
+import '../lexicon/lexicon2.dart';
+import '../lexicon/lexicon_default_impl.dart';
 import '../analyzer/analysis_error.dart';
 
 /// A interpreter that computes the constant value before compilation.
 /// If the AstNode provided is non-constant value, return null.
 class HTConstantInterpreter implements AbstractASTVisitor<void> {
+  late final HTLexicon _lexicon;
+
+  HTConstantInterpreter({HTLexicon? lexicon})
+      : _lexicon = lexicon ?? HTDefaultLexicon();
+
   /// Errors of a single file
   late List<HTAnalysisError> errors = [];
 
@@ -47,12 +52,12 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
       if (!expr.isConstValue) {
         return;
       }
-      interpolations.add(stringify(expr.value));
+      interpolations.add(_lexicon.stringify(expr.value));
     }
     var text = node.text;
     for (var i = 0; i < interpolations.length; ++i) {
       text = text.replaceAll(
-          '${HTLexicon.functionBlockStart}$i${HTLexicon.functionBlockEnd}',
+          '${_lexicon.functionBlockStart}$i${_lexicon.functionBlockEnd}',
           interpolations[i]);
     }
     node.value = text;
@@ -125,9 +130,9 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
   @override
   void visitUnaryPrefixExpr(UnaryPrefixExpr node) {
     node.subAccept(this);
-    if (node.op == HTLexicon.logicalNot && node.object.isConstValue) {
+    if (node.op == _lexicon.logicalNot && node.object.isConstValue) {
       node.value = !node.object.value;
-    } else if (node.op == HTLexicon.negative &&
+    } else if (node.op == _lexicon.negative &&
         node.object is ASTLiteralInteger) {
       node.value = -(node.object as ASTLiteralInteger).value;
     }
@@ -143,77 +148,62 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
   void visitBinaryExpr(BinaryExpr node) {
     final left = node.left.value;
     final right = node.right.value;
-    switch (node.op) {
-      case HTLexicon.multiply:
-        if (left != null && right != null) {
-          node.value = left * right;
-        }
-        break;
-      case HTLexicon.devide:
-        if (left != null && right != null) {
-          node.value = left / right;
-        }
-        break;
-      case HTLexicon.truncatingDevide:
-        if (left != null && right != null) {
-          node.value = left ~/ right;
-        }
-        break;
-      case HTLexicon.modulo:
-        if (left != null && right != null) {
-          node.value = left % right;
-        }
-        break;
-      case HTLexicon.add:
-        if (left != null && right != null) {
-          node.value = left + right;
-        }
-        break;
-      case HTLexicon.subtract:
-        if (left != null && right != null) {
-          node.value = left - right;
-        }
-        break;
-      case HTLexicon.lesser:
-        if (left != null && right != null) {
-          node.value = left < right;
-        }
-        break;
-      case HTLexicon.lesserOrEqual:
-        if (left != null && right != null) {
-          node.value = left <= right;
-        }
-        break;
-      case HTLexicon.greater:
-        if (left != null && right != null) {
-          node.value = left > right;
-        }
-        break;
-      case HTLexicon.greaterOrEqual:
-        if (left != null && right != null) {
-          node.value = left >= right;
-        }
-        break;
-      case HTLexicon.equal:
-        if (left != null && right != null) {
-          node.value = left == right;
-        }
-        break;
-      case HTLexicon.notEqual:
-        if (left != null && right != null) {
-          node.value = left != right;
-        }
-        break;
-      case HTLexicon.logicalAnd:
-        if (left != null && right != null) {
-          node.value = left && right;
-        }
-        break;
-      case HTLexicon.logicalOr:
-        if (left != null && right != null) {
-          node.value = left || right;
-        }
-        break;
+    if (node.op == _lexicon.multiply) {
+      if (left != null && right != null) {
+        node.value = left * right;
+      }
+    } else if (node.op == _lexicon.devide) {
+      if (left != null && right != null) {
+        node.value = left / right;
+      }
+    } else if (node.op == _lexicon.truncatingDevide) {
+      if (left != null && right != null) {
+        node.value = left ~/ right;
+      }
+    } else if (node.op == _lexicon.modulo) {
+      if (left != null && right != null) {
+        node.value = left % right;
+      }
+    } else if (node.op == _lexicon.add) {
+      if (left != null && right != null) {
+        node.value = left + right;
+      }
+    } else if (node.op == _lexicon.subtract) {
+      if (left != null && right != null) {
+        node.value = left - right;
+      }
+    } else if (node.op == _lexicon.lesser) {
+      if (left != null && right != null) {
+        node.value = left < right;
+      }
+    } else if (node.op == _lexicon.lesserOrEqual) {
+      if (left != null && right != null) {
+        node.value = left <= right;
+      }
+    } else if (node.op == _lexicon.greater) {
+      if (left != null && right != null) {
+        node.value = left > right;
+      }
+    } else if (node.op == _lexicon.greaterOrEqual) {
+      if (left != null && right != null) {
+        node.value = left >= right;
+      }
+    } else if (node.op == _lexicon.equal) {
+      if (left != null && right != null) {
+        node.value = left == right;
+      }
+    } else if (node.op == _lexicon.notEqual) {
+      if (left != null && right != null) {
+        node.value = left != right;
+      }
+    } else if (node.op == _lexicon.logicalAnd) {
+      if (left != null && right != null) {
+        node.value = left && right;
+      }
+    } else if (node.op == _lexicon.logicalOr) {
+      if (left != null && right != null) {
+        node.value = left || right;
+      }
     }
   }
 

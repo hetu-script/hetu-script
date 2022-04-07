@@ -1,4 +1,4 @@
-import '../../binding/external_function.dart';
+import '../../external/external_function.dart';
 import '../../error/error.dart';
 import '../../grammar/constant.dart';
 import '../../lexicon/lexicon.dart';

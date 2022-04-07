@@ -1,4 +1,3 @@
-export 'hetu.ht'
 export 'core.ht'
 export 'object.ht'
 export 'struct.ht'

@@ -1,3 +1,5 @@
+import '../value/struct/struct.dart';
+
 /// Lexicon used by Hetu,
 abstract class HTLexicon {
   /// the identity name of this lexicon.
@@ -251,6 +253,8 @@ abstract class HTLexicon {
         // kCatch,
         // kFinally,
       };
+
+  String get indent;
 
   String get decimalPoint;
 
@@ -562,4 +566,13 @@ abstract class HTLexicon {
   //       externalFunctionTypeDefStart: externalFunctionTypeDefEnd,
   //       typeParameterStart: typeParameterEnd,
   //     };
+
+  /// Print an object to a string.
+  String stringify(dynamic object, {bool asStringLiteral = false});
+
+  /// Print all members of a list object to a string.
+  String stringifyList(Iterable list);
+
+  /// Print all members of a struct object to a string.
+  String stringifyStructMembers(HTStruct struct, {HTStruct? from});
 }
