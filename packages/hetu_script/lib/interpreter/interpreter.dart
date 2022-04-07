@@ -136,8 +136,6 @@ class HTInterpreter {
   late HTBytecodeModule _currentBytecodeModule;
   HTBytecodeModule get bytecodeModule => _currentBytecodeModule;
 
-  bool _asConstantInterpreter = false;
-
   HTClass? _class;
   HTFunction? _function;
 
@@ -201,7 +199,8 @@ class HTInterpreter {
   /// inexpicit type conversion for truthy values
   bool _truthy(dynamic condition) {
     if (config.allowImplicitEmptyValueToFalseConversion) {
-      if (condition == null ||
+      if (condition == false ||
+          condition == null ||
           condition == 0 ||
           condition == '' ||
           condition == '0' ||
@@ -738,8 +737,8 @@ class HTInterpreter {
     if (savedColumn != null) {
       _column = savedColumn;
     }
-    --_currentStackIndex;
     if (clearStack) {
+      --_currentStackIndex;
       _stackFrames.removeLast();
     }
   }
@@ -759,7 +758,6 @@ class HTInterpreter {
       int? ip,
       int? line,
       int? column,
-      bool? asConstantInterpreter,
       bool clearStack = true}) {
     final savedFileName = _currentFileName;
     final savedLibrary = _currentBytecodeModule;
@@ -768,7 +766,6 @@ class HTInterpreter {
     final savedIp = _currentBytecodeModule.ip;
     final savedLine = _currentLine;
     final savedColumn = _column;
-    final savedConstantInterpreterConfig = _asConstantInterpreter;
     var libChanged = false;
     var ipChanged = false;
     if (filename != null) {
@@ -805,9 +802,6 @@ class HTInterpreter {
     if (_stackFrames.length <= _currentStackIndex) {
       _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
     }
-    if (asConstantInterpreter != null) {
-      _asConstantInterpreter = asConstantInterpreter;
-    }
 
     final result = _execute();
 
@@ -820,11 +814,10 @@ class HTInterpreter {
     }
     _currentLine = savedLine;
     _column = savedColumn;
-    --_currentStackIndex;
     if (clearStack) {
+      --_currentStackIndex;
       _stackFrames.removeLast();
     }
-    _asConstantInterpreter = savedConstantInterpreterConfig;
     return result;
   }
 

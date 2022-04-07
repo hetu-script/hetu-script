@@ -5,7 +5,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   final String percentageMark = '%';
 
   @override
-  final String scriptStackTrace = 'Hetu 函数调用栈';
+  final String scriptStackTrace = '河图函数调用栈';
   @override
   final String externalStackTrace = 'Dart 函数调用栈';
 

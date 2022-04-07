@@ -25,6 +25,26 @@ class HTHetuClassBinding extends HTExternalClass {
           final jsonData = positionalArgs.first as Map<dynamic, dynamic>;
           return hetu.interpreter.createStructfromJson(jsonData);
         };
+      case 'eval':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          final code = positionalArgs.first as String;
+          final savedFileName = hetu.interpreter.currentFileName;
+          final savedModuleName = hetu.interpreter.bytecodeModule.id;
+          final savedNamespace = hetu.interpreter.currentNamespace;
+          final savedIp = hetu.interpreter.bytecodeModule.ip;
+          final result = hetu.eval(code);
+          hetu.interpreter.restoreStackFrame(
+            clearStack: false,
+            savedFileName: savedFileName,
+            savedModuleName: savedModuleName,
+            savedNamespace: savedNamespace,
+            savedIp: savedIp,
+          );
+          return result;
+        };
       default:
         throw HTError.undefined(varName);
     }

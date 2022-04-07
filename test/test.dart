@@ -17,7 +17,7 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   hetu.eval(r'''
-      print(eval('42'))
+    print(stringify({a:42}))
   ''');
 
   // final r = hetu.evalFile('eval.hts');
