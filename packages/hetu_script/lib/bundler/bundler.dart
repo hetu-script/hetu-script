@@ -1,3 +1,4 @@
+import 'package:hetu_script/parser/parser_default_impl.dart';
 import 'package:path/path.dart' as path;
 
 import '../resource/resource.dart';
@@ -9,24 +10,21 @@ import '../error/error.dart';
 import '../ast/ast.dart';
 import '../parser/parser.dart';
 
-/// Walk through a token list and generates a abstract syntax tree.
+/// Handle import statement in sources and bundle
+/// all related sources into a single compilation
 class HTBundler {
   final Map<String, HTParser> parsers = {};
 
   late HTParser _currentParser;
 
-  // final _cachedParseResults = <String, AstSource>{};
-
   final HTResourceContext<HTSource> sourceContext;
 
-  // final AbstractLexicon lexicon;
-
   HTBundler(
-      {required String parserName,
-      required HTParser parser,
+      {String parserName = 'default',
+      HTParser? parser,
       HTResourceContext<HTSource>? sourceContext})
       : sourceContext = sourceContext ?? HTOverlayContext() {
-    parsers[parserName] = _currentParser = parser;
+    parsers[parserName] = _currentParser = parser ?? HTDefaultParser();
   }
 
   /// Parse a string content and generate a library,

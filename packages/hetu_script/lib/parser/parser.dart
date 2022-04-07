@@ -1,6 +1,4 @@
-import '../lexicon/lexicon2.dart';
 import 'token_reader.dart';
-import '../lexer/lexer.dart';
 import '../ast/ast.dart';
 import '../source/source.dart';
 import 'token.dart';
@@ -35,7 +33,7 @@ abstract class ParserConfig {}
 
 class ParserConfigImpl implements ParserConfig {}
 
-/// Convert tokens into ASTs by a certain grammar rules set.
+/// Convert tokens into [ASTSource] by a certain grammar rules set.
 abstract class HTParser with TokenReader {
   static var anonymousFunctionIndex = 0;
 

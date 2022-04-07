@@ -1,8 +1,11 @@
+import 'package:hetu_script/parser/parser_default_impl.dart';
+
 import '../ast/ast.dart';
-import '../lexicon/lexicon.dart';
+import '../lexicon/lexicon2.dart';
+import '../lexicon/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../lexer/lexer.dart';
-import '../bundler/bundler.dart';
+import '../parser/parser.dart';
 import '../shared/stringify.dart';
 
 class FormatterConfig {
@@ -24,8 +27,9 @@ class FormatterConfig {
 
 /// Class for printing out formatted string content of a ast root
 class HTFormatter implements AbstractASTVisitor<String> {
+  late final HTLexicon _lexicon;
   late final HTLexer _lexer;
-  late final HTBundler _parser;
+  late final HTParser _parser;
 
   var _curIndentCount = 0;
 
@@ -33,9 +37,13 @@ class HTFormatter implements AbstractASTVisitor<String> {
 
   FormatterConfig config;
 
-  HTFormatter({this.config = const FormatterConfig()}) {
-    _lexer = HTLexer();
-    _parser = HTBundler();
+  HTFormatter(
+      {this.config = const FormatterConfig(),
+      HTLexicon? lexicon,
+      HTParser? parser})
+      : _lexicon = lexicon ?? HTDefaultLexicon(),
+        _parser = parser ?? HTDefaultParser() {
+    _lexer = HTLexer(lexicon: _lexicon);
   }
 
   String get curIndent {
@@ -113,12 +121,12 @@ class HTFormatter implements AbstractASTVisitor<String> {
 
   @override
   String visitNullExpr(ASTLiteralNull expr) {
-    return HTLexicon.kNull;
+    return _lexicon.kNull;
   }
 
   @override
   String visitBooleanExpr(ASTLiteralBoolean expr) {
-    return expr.value ? HTLexicon.kTrue : HTLexicon.kFalse;
+    return expr.value ? _lexicon.kTrue : _lexicon.kFalse;
   }
 
   @override
@@ -146,8 +154,8 @@ class HTFormatter implements AbstractASTVisitor<String> {
     var output = expr.text;
     for (var i = 0; i < interpolation.length; ++i) {
       output = output.replaceAll(
-          '${HTLexicon.functionBlockStart}$i${HTLexicon.functionBlockEnd}',
-          '${HTLexicon.stringInterpolationMark}${HTLexicon.stringInterpolationStart}${interpolation[i]}${HTLexicon.stringInterpolationEnd}');
+          '${_lexicon.functionBlockStart}$i${_lexicon.functionBlockEnd}',
+          '${_lexicon.stringInterpolationStart}${interpolation[i]}${_lexicon.stringInterpolationEnd}');
     }
     return "'$output'";
   }
@@ -155,7 +163,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitSpreadExpr(SpreadExpr expr) {
     final output = StringBuffer();
-    output.write(HTLexicon.spreadSyntax);
+    output.write(_lexicon.spreadSyntax);
     final valueString = formatAST(expr.collection);
     output.write(valueString);
     return output.toString();
@@ -165,36 +173,36 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitCommaExpr(CommaExpr expr) {
     final output = StringBuffer();
     output.write(
-        expr.list.map((item) => formatAST(item)).join('${HTLexicon.comma} '));
+        expr.list.map((item) => formatAST(item)).join('${_lexicon.comma} '));
     return output.toString();
   }
 
   @override
   String visitListExpr(ListExpr expr) {
     final output = StringBuffer();
-    output.write(HTLexicon.listStart);
+    output.write(_lexicon.listStart);
     output.write(
-        expr.list.map((item) => formatAST(item)).join('${HTLexicon.comma} '));
-    output.write(HTLexicon.listEnd);
+        expr.list.map((item) => formatAST(item)).join('${_lexicon.comma} '));
+    output.write(_lexicon.listEnd);
     return output.toString();
   }
 
   @override
   String visitInOfExpr(InOfExpr expr) {
     final collection = formatAST(expr.collection);
-    return '${HTLexicon.kIn} $collection';
+    return '${_lexicon.kIn} $collection';
   }
 
   @override
   String visitGroupExpr(GroupExpr expr) {
     final inner = formatAST(expr.inner);
-    return '${HTLexicon.groupExprStart}$inner${HTLexicon.groupExprEnd}';
+    return '${_lexicon.groupExprStart}$inner${_lexicon.groupExprEnd}';
   }
 
   @override
   String visitIdentifierExpr(IdentifierExpr expr) {
     if (expr.isMarked) {
-      return '${HTLexicon.identifierStart}${expr.id}${HTLexicon.identifierEnd}';
+      return '${_lexicon.identifierStart}${expr.id}${_lexicon.identifierEnd}';
     } else {
       return expr.id;
     }
@@ -218,7 +226,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
     final condition = formatAST(expr.condition);
     final thenBranch = formatAST(expr.thenBranch);
     final elseBranch = formatAST(expr.elseBranch);
-    return '$condition ${HTLexicon.ternaryThen} $thenBranch ${HTLexicon.ternaryElse} $elseBranch';
+    return '$condition ${_lexicon.ternaryThen} $thenBranch ${_lexicon.ternaryElse} $elseBranch';
   }
 
   @override
@@ -226,15 +234,15 @@ class HTFormatter implements AbstractASTVisitor<String> {
     final output = StringBuffer();
     output.write(expr.id);
     if (expr.arguments.isNotEmpty) {
-      output.write(HTLexicon.typeParameterStart);
+      output.write(_lexicon.typeParameterStart);
       for (final type in expr.arguments) {
         final typeString = visitTypeExpr(type);
         output.write(typeString);
       }
-      output.write(HTLexicon.typeParameterEnd);
+      output.write(_lexicon.typeParameterEnd);
     }
     if (expr.isNullable) {
-      output.write(HTLexicon.nullableTypePostfix);
+      output.write(_lexicon.nullableTypePostfix);
     }
     return output.toString();
   }
@@ -247,13 +255,13 @@ class HTFormatter implements AbstractASTVisitor<String> {
     if (expr.id != null) {
       if (!isNamed) {
         isNamed = true;
-        output.write(HTLexicon.functionBlockStart);
+        output.write(_lexicon.functionBlockStart);
       }
-      output.write('${expr.id}${HTLexicon.typeIndicator} ');
+      output.write('${expr.id}${_lexicon.typeIndicator} ');
     }
     if (expr.isOptional && !isOptional) {
       isOptional = true;
-      output.write(HTLexicon.optionalPositionalParameterStart);
+      output.write(_lexicon.optionalPositionalParameterStart);
     }
     final typeString = visitTypeExpr(expr.declType);
     output.write(typeString);
@@ -263,17 +271,17 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitFunctionTypeExpr(FuncTypeExpr expr) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kFun} ${HTLexicon.groupExprStart}');
+    output.write('${_lexicon.kFun} ${_lexicon.groupExprStart}');
     output.write(expr.paramTypes
         .map((param) => visitParamTypeExpr(param))
-        .join('${HTLexicon.comma} '));
+        .join('${_lexicon.comma} '));
     if (expr.hasOptionalParam) {
-      output.write(HTLexicon.optionalPositionalParameterEnd);
+      output.write(_lexicon.optionalPositionalParameterEnd);
     } else if (expr.hasNamedParam) {
-      output.write(HTLexicon.functionBlockEnd);
+      output.write(_lexicon.functionBlockEnd);
     }
     output.write(
-        '${HTLexicon.groupExprEnd} ${HTLexicon.functionReturnTypeIndicator} ');
+        '${_lexicon.groupExprEnd} ${_lexicon.functionReturnTypeIndicator} ');
     final returnTypeString = visitTypeExpr(expr.returnType);
     output.write(returnTypeString);
     return output.toString();
@@ -284,14 +292,14 @@ class HTFormatter implements AbstractASTVisitor<String> {
     final output = StringBuffer();
     output.write(expr.id);
     final typeString = visitTypeExpr(expr.fieldType);
-    output.write('${HTLexicon.typeIndicator} $typeString');
+    output.write('${_lexicon.typeIndicator} $typeString');
     return output.toString();
   }
 
   @override
   String visitStructuralTypeExpr(StructuralTypeExpr expr) {
     final output = StringBuffer();
-    output.writeln(HTLexicon.functionBlockStart);
+    output.writeln(_lexicon.functionBlockStart);
     ++_curIndentCount;
     for (var i = 0; i < expr.fieldTypes.length; ++i) {
       final field = expr.fieldTypes[i];
@@ -299,11 +307,11 @@ class HTFormatter implements AbstractASTVisitor<String> {
       output.write(curIndent);
       output.write(fieldString);
       if (i < expr.fieldTypes.length - 1) {
-        output.writeln(HTLexicon.comma);
+        output.writeln(_lexicon.comma);
       }
     }
     --_curIndentCount;
-    output.writeln(HTLexicon.functionBlockEnd);
+    output.writeln(_lexicon.functionBlockEnd);
     return output.toString();
   }
 
@@ -316,23 +324,23 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitCallExpr(CallExpr expr) {
     final output = StringBuffer();
     final calleeString = formatAST(expr.callee);
-    output.write('$calleeString${HTLexicon.groupExprStart}');
+    output.write('$calleeString${_lexicon.groupExprStart}');
     for (var i = 0; i < expr.positionalArgs.length; ++i) {
       final arg = expr.positionalArgs[i];
       final argString = formatAST(arg);
       output.write(argString);
       if ((i < expr.positionalArgs.length - 1) || expr.namedArgs.isNotEmpty) {
-        output.write('${HTLexicon.comma} ');
+        output.write('${_lexicon.comma} ');
       }
     }
     if (expr.namedArgs.isNotEmpty) {
       output.write(expr.namedArgs.entries
           .toList()
           .map((entry) =>
-              '${entry.key}${HTLexicon.namedArgumentValueIndicator} ${formatAST(entry.value)}')
-          .join('${HTLexicon.comma} '));
+              '${entry.key}${_lexicon.namedArgumentValueIndicator} ${formatAST(entry.value)}')
+          .join('${_lexicon.comma} '));
     }
-    output.write(HTLexicon.groupExprEnd);
+    output.write(_lexicon.groupExprEnd);
     return output.toString();
   }
 
@@ -353,7 +361,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitMemberExpr(MemberExpr expr) {
     final collectionString = formatAST(expr.object);
     final keyString = formatAST(expr.key);
-    return '$collectionString${HTLexicon.memberGet}$keyString';
+    return '$collectionString${_lexicon.memberGet}$keyString';
   }
 
   // @override
@@ -361,14 +369,14 @@ class HTFormatter implements AbstractASTVisitor<String> {
   //   final collectionString = formatAst(expr.object);
   //   final keyString = visitIdentifierExpr(expr.key);
   //   final valueString = formatAst(expr.assignValue);
-  //   return '$collectionString${HTLexicon.memberGet}$keyString ${HTLexicon.assign} $valueString';
+  //   return '$collectionString${_lexicon.memberGet}$keyString ${_lexicon.assign} $valueString';
   // }
 
   @override
   String visitSubExpr(SubExpr expr) {
     final collectionString = formatAST(expr.object);
     final keyString = formatAST(expr.key);
-    return '$collectionString${HTLexicon.subGetStart}$keyString${HTLexicon.subGetEnd}';
+    return '$collectionString${_lexicon.subGetStart}$keyString${_lexicon.subGetEnd}';
   }
 
   // @override
@@ -376,17 +384,17 @@ class HTFormatter implements AbstractASTVisitor<String> {
   //   final collectionString = formatAst(expr.array);
   //   final keyString = formatAst(expr.key);
   //   final valueString = formatAst(expr.assignValue);
-  //   return '$collectionString${HTLexicon.subGetStart}$keyString${HTLexicon.subGetEnd} ${HTLexicon.assign} $valueString';
+  //   return '$collectionString${_lexicon.subGetStart}$keyString${_lexicon.subGetEnd} ${_lexicon.assign} $valueString';
   // }
 
   @override
   String visitAssertStmt(AssertStmt stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kAssert} ');
+    output.write('${_lexicon.kAssert} ');
     final exprString = formatAST(stmt.expr);
     output.write(exprString);
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -394,11 +402,11 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitThrowStmt(ThrowStmt stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kThrow} ');
+    output.write('${_lexicon.kThrow} ');
     final messageString = formatAST(stmt.message);
     output.write(messageString);
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -409,7 +417,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
     final exprString = formatAST(stmt.expr);
     output.write(exprString);
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -418,7 +426,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitBlockStmt(BlockStmt block) {
     final output = StringBuffer();
     if (block.statements.isNotEmpty) {
-      output.writeln(' ${HTLexicon.functionBlockStart}');
+      output.writeln(' ${_lexicon.functionBlockStart}');
       ++_curIndentCount;
       for (final stmt in block.statements) {
         final stmtString = formatAST(stmt);
@@ -429,10 +437,10 @@ class HTFormatter implements AbstractASTVisitor<String> {
       }
       --_curIndentCount;
       output.write(curIndent);
-      output.write(HTLexicon.functionBlockEnd);
+      output.write(_lexicon.functionBlockEnd);
     } else {
-      output.write(
-          ' ${HTLexicon.functionBlockStart}${HTLexicon.functionBlockEnd}');
+      output
+          .write(' ${_lexicon.functionBlockStart}${_lexicon.functionBlockEnd}');
     }
     return output.toString();
   }
@@ -440,13 +448,13 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitReturnStmt(ReturnStmt stmt) {
     final output = StringBuffer();
-    output.write(HTLexicon.kReturn);
+    output.write(_lexicon.kReturn);
     if (stmt.returnValue != null) {
       final valueString = formatAST(stmt.returnValue!);
       output.write(' $valueString');
     }
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -454,24 +462,24 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitIf(IfStmt ifStmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kIf} ${HTLexicon.groupExprStart}');
+    output.write('${_lexicon.kIf} ${_lexicon.groupExprStart}');
     final conditionString = formatAST(ifStmt.condition);
-    output.write('$conditionString${HTLexicon.groupExprEnd} ');
+    output.write('$conditionString${_lexicon.groupExprEnd} ');
     final thenBranchString = formatAST(ifStmt.thenBranch);
     output.write(thenBranchString);
     if ((ifStmt.elseBranch is IfStmt) || (ifStmt.elseBranch is BlockStmt)) {
-      output.write(' ${HTLexicon.kElse} ');
+      output.write(' ${_lexicon.kElse} ');
       final elseBranchString = formatAST(ifStmt.elseBranch!);
       output.write(elseBranchString);
     } else if (ifStmt.elseBranch != null) {
-      output.writeln(' ${HTLexicon.kElse} ${HTLexicon.functionBlockStart}');
+      output.writeln(' ${_lexicon.kElse} ${_lexicon.functionBlockStart}');
       ++_curIndentCount;
       output.write(curIndent);
       final elseBranchString = formatAST(ifStmt.elseBranch!);
       output.writeln(elseBranchString);
       --_curIndentCount;
       output.write(curIndent);
-      output.write(HTLexicon.functionBlockEnd);
+      output.write(_lexicon.functionBlockEnd);
     }
     return output.toString();
   }
@@ -479,7 +487,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitWhileStmt(WhileStmt whileStmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kWhile} ');
+    output.write('${_lexicon.kWhile} ');
     final conditionString = formatAST(whileStmt.condition);
     output.write('$conditionString ');
     final loopString = formatAST(whileStmt.loop);
@@ -490,16 +498,16 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitDoStmt(DoStmt doStmt) {
     final output = StringBuffer();
-    output.write(HTLexicon.kDo);
+    output.write(_lexicon.kDo);
     final loopString = formatAST(doStmt.loop);
     output.write(loopString);
     if (doStmt.condition != null) {
       final conditionString = formatAST(doStmt.condition!);
-      output.write(' ${HTLexicon.kWhile} ');
+      output.write(' ${_lexicon.kWhile} ');
       output.write(conditionString);
     }
     if (doStmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -507,9 +515,9 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitForStmt(ForStmt forStmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kFor} ');
+    output.write('${_lexicon.kFor} ');
     if (forStmt.hasBracket) {
-      output.write(HTLexicon.groupExprStart);
+      output.write(_lexicon.groupExprStart);
     }
     final declString = forStmt.init != null ? formatAST(forStmt.init!) : '';
     final conditionString =
@@ -517,9 +525,9 @@ class HTFormatter implements AbstractASTVisitor<String> {
     final incrementString =
         forStmt.increment != null ? formatAST(forStmt.increment!) : '';
     output.write(
-        '$declString${HTLexicon.endOfStatementMark} $conditionString${HTLexicon.endOfStatementMark} $incrementString');
+        '$declString${_lexicon.endOfStatementMark} $conditionString${_lexicon.endOfStatementMark} $incrementString');
     if (forStmt.hasBracket) {
-      output.write('${HTLexicon.groupExprEnd} ');
+      output.write('${_lexicon.groupExprEnd} ');
     }
     final loopString = formatAST(forStmt.loop);
     output.write(loopString);
@@ -529,15 +537,15 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitForRangeStmt(ForRangeStmt forRangeStmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kFor} ');
+    output.write('${_lexicon.kFor} ');
     if (forRangeStmt.hasBracket) {
-      output.write(HTLexicon.groupExprStart);
+      output.write(_lexicon.groupExprStart);
     }
     final declString = formatAST(forRangeStmt.iterator);
     final collectionString = formatAST(forRangeStmt.collection);
-    output.write('$declString ${HTLexicon.kIn} $collectionString');
+    output.write('$declString ${_lexicon.kIn} $collectionString');
     if (forRangeStmt.hasBracket) {
-      output.write('${HTLexicon.groupExprEnd} ');
+      output.write('${_lexicon.groupExprEnd} ');
     }
     final stmtString = formatAST(forRangeStmt.loop);
     output.write(stmtString);
@@ -547,18 +555,18 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitWhen(WhenStmt stmt) {
     final output = StringBuffer();
-    output.write(HTLexicon.kWhen);
+    output.write(_lexicon.kWhen);
     if (stmt.condition != null) {
       final conditionString = formatAST(stmt.condition!);
       output.write(
-          ' ${HTLexicon.groupExprStart}$conditionString${HTLexicon.groupExprEnd}');
+          ' ${_lexicon.groupExprStart}$conditionString${_lexicon.groupExprEnd}');
     }
-    output.writeln(' ${HTLexicon.functionBlockStart}');
+    output.writeln(' ${_lexicon.functionBlockStart}');
     ++_curIndentCount;
     for (final option in stmt.cases.keys) {
       output.write(curIndent);
       final optionString = formatAST(option);
-      output.write('$optionString ${HTLexicon.whenBranchIndicator} ');
+      output.write('$optionString ${_lexicon.whenBranchIndicator} ');
       final branchString = formatAST(stmt.cases[option]!);
       output.writeln(branchString);
     }
@@ -566,11 +574,11 @@ class HTFormatter implements AbstractASTVisitor<String> {
       final elseBranchString = formatAST(stmt.elseBranch!);
       output.write(curIndent);
       output.writeln(
-          '${HTLexicon.kElse} ${HTLexicon.whenBranchIndicator} $elseBranchString');
+          '${_lexicon.kElse} ${_lexicon.whenBranchIndicator} $elseBranchString');
     }
     --_curIndentCount;
     output.write(curIndent);
-    output.write(HTLexicon.functionBlockEnd);
+    output.write(_lexicon.functionBlockEnd);
     return output.toString();
   }
 
@@ -579,7 +587,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
     final output = StringBuffer();
     output.write(stmt.keyword.lexeme);
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -589,7 +597,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
     final output = StringBuffer();
     output.write(stmt.keyword.lexeme);
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -597,9 +605,9 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitDeleteStmt(DeleteStmt stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kDelete} ${stmt.symbol}');
+    output.write('${_lexicon.kDelete} ${stmt.symbol}');
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -607,11 +615,11 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitDeleteMemberStmt(DeleteMemberStmt stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kDelete} ');
+    output.write('${_lexicon.kDelete} ');
     final objectString = formatAST(stmt.object);
-    output.write('$objectString${HTLexicon.memberGet}${stmt.key}');
+    output.write('$objectString${_lexicon.memberGet}${stmt.key}');
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -619,13 +627,13 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitDeleteSubStmt(DeleteSubStmt stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kDelete} ');
+    output.write('${_lexicon.kDelete} ');
     final objectString = formatAST(stmt.object);
     final keyString = formatAST(stmt.key);
     output.write(
-        '$objectString${HTLexicon.subGetStart}$keyString${HTLexicon.subGetEnd}');
+        '$objectString${_lexicon.subGetStart}$keyString${_lexicon.subGetEnd}');
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -634,33 +642,33 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitImportExportDecl(ImportExportDecl stmt) {
     final output = StringBuffer();
     if (!stmt.isExport) {
-      output.write('${HTLexicon.kImport} ');
+      output.write('${_lexicon.kImport} ');
       if (stmt.showList.isNotEmpty) {
-        output.write('${HTLexicon.functionBlockStart} ');
-        output.write(stmt.showList.join('${HTLexicon.comma} '));
-        output.write(' ${HTLexicon.functionBlockEnd} ${HTLexicon.kFrom} ');
+        output.write('${_lexicon.functionBlockStart} ');
+        output.write(stmt.showList.join('${_lexicon.comma} '));
+        output.write(' ${_lexicon.functionBlockEnd} ${_lexicon.kFrom} ');
       }
       output.write(
-          '${HTLexicon.stringStart1}${stmt.fromPath}${HTLexicon.stringEnd1}');
+          '${_lexicon.stringStart1}${stmt.fromPath}${_lexicon.stringEnd1}');
       if (stmt.alias != null) {
-        output.write(' ${HTLexicon.kAs} ${stmt.alias}');
+        output.write(' ${_lexicon.kAs} ${stmt.alias}');
       }
     } else {
-      output.write('${HTLexicon.kExport} ');
+      output.write('${_lexicon.kExport} ');
       if (stmt.fromPath == null) {
-        output.write(stmt.showList.join('${HTLexicon.comma} '));
+        output.write(stmt.showList.join('${_lexicon.comma} '));
       } else {
         if (stmt.showList.isNotEmpty) {
-          output.write('${HTLexicon.functionBlockStart} ');
-          output.write(stmt.showList.join('${HTLexicon.comma} '));
-          output.write(' ${HTLexicon.functionBlockEnd} ${HTLexicon.kFrom} ');
+          output.write('${_lexicon.functionBlockStart} ');
+          output.write(stmt.showList.join('${_lexicon.comma} '));
+          output.write(' ${_lexicon.functionBlockEnd} ${_lexicon.kFrom} ');
         }
         output.write(
-            '${HTLexicon.stringStart1}${stmt.fromPath}${HTLexicon.stringEnd1}');
+            '${_lexicon.stringStart1}${stmt.fromPath}${_lexicon.stringEnd1}');
       }
     }
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -668,7 +676,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitNamespaceDecl(NamespaceDecl stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kNamespace} ${stmt.id.id} ');
+    output.write('${_lexicon.kNamespace} ${stmt.id.id} ');
     final blockString = visitBlockStmt(stmt.definition);
     output.write(blockString);
     return output.toString();
@@ -677,11 +685,11 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitTypeAliasDecl(TypeAliasDecl stmt) {
     final output = StringBuffer();
-    output.write('${HTLexicon.kType} ${stmt.id.id} ${HTLexicon.assign} ');
+    output.write('${_lexicon.kType} ${stmt.id.id} ${_lexicon.assign} ');
     final valueString = formatAST(stmt.typeValue);
     output.write(valueString);
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -689,11 +697,11 @@ class HTFormatter implements AbstractASTVisitor<String> {
   // @override
   // String visitConstDecl(ConstDecl stmt) {
   //   final output = StringBuffer();
-  //   output.write('${HTLexicon.kConst} ${stmt.id.id} ${HTLexicon.assign} ');
+  //   output.write('${_lexicon.kConst} ${stmt.id.id} ${_lexicon.assign} ');
   //   final valueString = formatAst(stmt.constExpr);
   //   output.write(valueString);
   //   if (stmt.hasEndOfStmtMark) {
-  //     output.write(HTLexicon.semicolon);
+  //     output.write(_lexicon.semicolon);
   //   }
   //   return output.toString();
   // }
@@ -702,29 +710,29 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitVarDecl(VarDecl stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
-      output.write('${HTLexicon.kExternal} ');
+      output.write('${_lexicon.kExternal} ');
     }
     if (stmt.isStatic) {
-      output.write('${HTLexicon.kStatic} ');
+      output.write('${_lexicon.kStatic} ');
     }
     if (stmt.isConst) {
-      output.write('${HTLexicon.kConst} ');
+      output.write('${_lexicon.kConst} ');
     } else if (!stmt.isMutable) {
-      output.write('${HTLexicon.kFinal} ');
+      output.write('${_lexicon.kFinal} ');
     } else {
-      output.write('${HTLexicon.kVar} ');
+      output.write('${_lexicon.kVar} ');
     }
     output.write(stmt.id.id);
     if (stmt.declType != null) {
       final typeString = formatAST(stmt.declType!);
-      output.write('${HTLexicon.typeIndicator} $typeString');
+      output.write('${_lexicon.typeIndicator} $typeString');
     }
     if (stmt.initializer != null) {
       final initString = formatAST(stmt.initializer!);
-      output.write(' ${HTLexicon.assign} $initString');
+      output.write(' ${_lexicon.assign} $initString');
     }
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -733,14 +741,14 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitDestructuringDecl(DestructuringDecl stmt) {
     final output = StringBuffer();
     if (!stmt.isMutable) {
-      output.write('${HTLexicon.kFinal} ');
+      output.write('${_lexicon.kFinal} ');
     } else {
-      output.write('${HTLexicon.kVar} ');
+      output.write('${_lexicon.kVar} ');
     }
     if (stmt.isVector) {
-      output.write(HTLexicon.listStart);
+      output.write(_lexicon.listStart);
     } else {
-      output.write(HTLexicon.functionBlockStart);
+      output.write(_lexicon.functionBlockStart);
     }
     for (var i = 0; i < stmt.ids.length; ++i) {
       output.write(' ');
@@ -749,21 +757,21 @@ class HTFormatter implements AbstractASTVisitor<String> {
       final typeExpr = stmt.ids[id];
       if (typeExpr != null) {
         final typeString = visitTypeExpr(typeExpr);
-        output.write('${HTLexicon.typeIndicator} $typeString');
+        output.write('${_lexicon.typeIndicator} $typeString');
       }
       if (i < stmt.ids.length - 1) {
-        output.writeln(HTLexicon.comma);
+        output.writeln(_lexicon.comma);
       }
     }
     if (stmt.isVector) {
-      output.write(' ${HTLexicon.listStart} ${HTLexicon.assign} ');
+      output.write(' ${_lexicon.listStart} ${_lexicon.assign} ');
     } else {
-      output.write(' ${HTLexicon.functionBlockStart} ${HTLexicon.assign} ');
+      output.write(' ${_lexicon.functionBlockStart} ${_lexicon.assign} ');
     }
     final initString = formatAST(stmt.initializer);
     output.write(initString);
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -774,11 +782,11 @@ class HTFormatter implements AbstractASTVisitor<String> {
     output.write(stmt.id.id);
     if (stmt.declType != null) {
       final typeString = formatAST(stmt.declType!);
-      output.write('${HTLexicon.typeIndicator} $typeString');
+      output.write('${_lexicon.typeIndicator} $typeString');
     }
     if (stmt.initializer != null) {
       final initString = formatAST(stmt.initializer!);
-      output.write(' ${HTLexicon.assign} $initString');
+      output.write(' ${_lexicon.assign} $initString');
     }
     return output.toString();
   }
@@ -788,10 +796,10 @@ class HTFormatter implements AbstractASTVisitor<String> {
     final output = StringBuffer();
     output.write(stmt.callee.id);
     if (stmt.key != null) {
-      output.write('${HTLexicon.memberGet}${stmt.key}');
+      output.write('${_lexicon.memberGet}${stmt.key}');
     }
     if (stmt.hasEndOfStmtMark) {
-      output.write(HTLexicon.endOfStatementMark);
+      output.write(_lexicon.endOfStatementMark);
     }
     return output.toString();
   }
@@ -800,28 +808,28 @@ class HTFormatter implements AbstractASTVisitor<String> {
     final output = StringBuffer();
     var isOptional = false;
     var isNamed = false;
-    output.write(HTLexicon.groupExprStart);
+    output.write(_lexicon.groupExprStart);
     for (var i = 0; i < params.length; ++i) {
       final param = params[i];
       if (param.isOptional) {
         if (!isOptional) {
           isOptional = true;
-          output.write(HTLexicon.optionalPositionalParameterStart);
+          output.write(_lexicon.optionalPositionalParameterStart);
         }
         if (param.isVariadic) {
-          output.write('${HTLexicon.variadicArgs} ');
+          output.write('${_lexicon.variadicArgs} ');
         }
       } else if (param.isNamed && !isNamed) {
         isNamed = true;
-        output.write(HTLexicon.optionalPositionalParameterStart);
+        output.write(_lexicon.optionalPositionalParameterStart);
       }
       final paramString = visitParamDecl(param);
       output.write(paramString);
       if (i < params.length - 1) {
-        output.write('${HTLexicon.comma} ');
+        output.write('${_lexicon.comma} ');
       }
     }
-    output.write(HTLexicon.groupExprEnd);
+    output.write(_lexicon.groupExprEnd);
     return output.toString();
   }
 
@@ -829,35 +837,35 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitFuncDecl(FuncDecl stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
-      output.write('${HTLexicon.kExternal} ');
+      output.write('${_lexicon.kExternal} ');
     }
     if (stmt.isStatic) {
-      output.write('${HTLexicon.kStatic} ');
+      output.write('${_lexicon.kStatic} ');
     }
     switch (stmt.category) {
       case FunctionCategory.normal:
       case FunctionCategory.method:
       case FunctionCategory.literal:
-        output.write(HTLexicon.kFun);
+        output.write(_lexicon.kFun);
         break;
       case FunctionCategory.constructor:
-        output.write(HTLexicon.kFactory);
+        output.write(_lexicon.kFactory);
         break;
       case FunctionCategory.factoryConstructor:
-        output.write(HTLexicon.kFactory);
+        output.write(_lexicon.kFactory);
         break;
       case FunctionCategory.getter:
-        output.write(HTLexicon.kGet);
+        output.write(_lexicon.kGet);
         break;
       case FunctionCategory.setter:
-        output.write(HTLexicon.kSet);
+        output.write(_lexicon.kSet);
         break;
       default:
         break;
     }
     if (stmt.externalTypeId != null) {
       output.write(
-          ' ${HTLexicon.externalFunctionTypeDefStart}${stmt.externalTypeId}${HTLexicon.externalFunctionTypeDefEnd}');
+          ' ${_lexicon.externalFunctionTypeDefStart}${stmt.externalTypeId}${_lexicon.externalFunctionTypeDefEnd}');
     }
     if (stmt.id != null) {
       output.write(' ${stmt.id!.id}');
@@ -865,11 +873,11 @@ class HTFormatter implements AbstractASTVisitor<String> {
     final paramDeclString = printParamDecls(stmt.paramDecls);
     output.write('$paramDeclString ');
     if (stmt.returnType != null) {
-      output.write('${HTLexicon.functionReturnTypeIndicator} ');
+      output.write('${_lexicon.functionReturnTypeIndicator} ');
       final returnTypeString = visitTypeExpr(stmt.returnType!);
       output.write('$returnTypeString ');
     } else if (stmt.redirectingCtorCallExpr != null) {
-      output.write('${HTLexicon.constructorInitializationListIndicator} ');
+      output.write('${_lexicon.constructorInitializationListIndicator} ');
       final referCtorString =
           visitReferConstructCallExpr(stmt.redirectingCtorCallExpr!);
       output.write('$referCtorString ');
@@ -885,15 +893,15 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitClassDecl(ClassDecl stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
-      output.write('${HTLexicon.kExternal} ');
+      output.write('${_lexicon.kExternal} ');
     }
     if (stmt.isAbstract) {
-      output.write('${HTLexicon.kAbstract} ');
+      output.write('${_lexicon.kAbstract} ');
     }
-    output.write('${HTLexicon.kClass} ${stmt.id.id} ');
+    output.write('${_lexicon.kClass} ${stmt.id.id} ');
     if (stmt.superType != null) {
       final superClassTypeString = visitTypeExpr(stmt.superType!);
-      output.write('${HTLexicon.kExtends} $superClassTypeString ');
+      output.write('${_lexicon.kExtends} $superClassTypeString ');
     }
     final blockString = visitBlockStmt(stmt.definition);
     output.write(blockString);
@@ -904,16 +912,16 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitEnumDecl(EnumDecl stmt) {
     final output = StringBuffer();
     if (stmt.isExternal) {
-      output.write('${HTLexicon.kExternal} ');
+      output.write('${_lexicon.kExternal} ');
     }
     output.writeln(
-        '${HTLexicon.kEnum} ${stmt.id.id} ${HTLexicon.functionBlockStart}');
+        '${_lexicon.kEnum} ${stmt.id.id} ${_lexicon.functionBlockStart}');
     ++_curIndentCount;
-    output.write(stmt.enumerations.join('${HTLexicon.comma}\n'));
+    output.write(stmt.enumerations.join('${_lexicon.comma}\n'));
     output.writeln();
     --_curIndentCount;
     output.write(curIndent);
-    output.write(HTLexicon.functionBlockEnd);
+    output.write(_lexicon.functionBlockEnd);
     return output.toString();
   }
 
@@ -921,7 +929,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitStructDecl(StructDecl stmt) {
     final output = StringBuffer();
     output.writeln(
-        '${HTLexicon.kStruct} ${stmt.id.id} ${HTLexicon.functionBlockStart}');
+        '${_lexicon.kStruct} ${stmt.id.id} ${_lexicon.functionBlockStart}');
     ++_curIndentCount;
     for (var i = 0; i < stmt.definition.length; ++i) {
       final valueString = formatAST(stmt.definition[i]);
@@ -929,7 +937,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
     }
     --_curIndentCount;
     output.write(curIndent);
-    output.write(HTLexicon.functionBlockEnd);
+    output.write(_lexicon.functionBlockEnd);
     return output.toString();
   }
 
@@ -937,11 +945,11 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitStructObjField(StructObjField field) {
     final output = StringBuffer();
     if (field.key != null) {
-      output.write('${field.key}${HTLexicon.structValueIndicator} ');
+      output.write('${field.key}${_lexicon.structValueIndicator} ');
       final valueString = formatAST(field.fieldValue!);
       output.write(valueString);
     } else if (field.isSpread) {
-      output.write(HTLexicon.spreadSyntax);
+      output.write(_lexicon.spreadSyntax);
       final valueString = formatAST(field.fieldValue!);
       output.write(valueString);
     } else {
@@ -955,20 +963,20 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitStructObjExpr(StructObjExpr obj) {
     final output = StringBuffer();
-    output.writeln(HTLexicon.functionBlockStart);
+    output.writeln(_lexicon.functionBlockStart);
     ++_curIndentCount;
     for (var i = 0; i < obj.fields.length; ++i) {
       final field = obj.fields[i];
       final fieldString = visitStructObjField(field);
       output.write(fieldString);
       if (i < obj.fields.length - 1) {
-        output.write(HTLexicon.comma);
+        output.write(_lexicon.comma);
       }
       output.writeln();
     }
     --_curIndentCount;
     output.write(curIndent);
-    output.write(HTLexicon.functionBlockEnd);
+    output.write(_lexicon.functionBlockEnd);
     return output.toString();
   }
 }
