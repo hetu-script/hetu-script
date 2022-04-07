@@ -37,8 +37,8 @@ abstract class InternalIdentifier {
 }
 
 abstract class Semantic {
-  static const compilation = 'ast_compilation';
-  static const compilationUnit = 'ast_compilation_unit';
+  static const compilation = 'compilation';
+  static const source = 'source';
   static const namespace = 'namespace';
 
   static const global = 'global';

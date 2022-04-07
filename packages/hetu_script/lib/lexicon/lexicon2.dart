@@ -547,4 +547,19 @@ abstract class HTLexicon {
         typeParameterStart,
         typeParameterEnd,
       ];
+
+  /// Marker for group start and end.
+  // Map<String, String> get groupClosings => {
+  //       subGetStart: subGetEnd,
+  //       functionCallArgumentStart: functionCallArgumentEnd,
+  //       groupExprStart: groupExprEnd,
+  //       functionBlockStart: functionBlockEnd,
+  //       declarationBlockStart: declarationBlockEnd,
+  //       structStart: structEnd,
+  //       listStart: listEnd,
+  //       optionalPositionalParameterStart: optionalPositionalParameterEnd,
+  //       namedParameterStart: namedParameterEnd,
+  //       externalFunctionTypeDefStart: externalFunctionTypeDefEnd,
+  //       typeParameterStart: typeParameterEnd,
+  //     };
 }

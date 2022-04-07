@@ -1,6 +1,5 @@
 import 'package:meta/meta.dart';
 
-import '../../lexicon/lexicon.dart';
 import '../../type/type.dart';
 import '../../source/source.dart';
 import '../../grammar/constant.dart';
@@ -12,9 +11,6 @@ import '../generic/generic_type_parameter.dart';
 class HTClassDeclaration extends HTDeclaration
     implements HTAbstractTypeDeclaration {
   String get name => id ?? InternalIdentifier.anonymousClass;
-
-  @override
-  String toString() => '${HTLexicon.kClass} $name';
 
   @override
   final List<HTGenericTypeParameter> genericTypeParameters;

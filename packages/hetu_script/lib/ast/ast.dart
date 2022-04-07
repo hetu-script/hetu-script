@@ -101,7 +101,7 @@ class ASTSource extends ASTNode {
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(Semantic.compilationUnit,
+      : super(Semantic.source,
             source: source,
             line: line,
             column: column,

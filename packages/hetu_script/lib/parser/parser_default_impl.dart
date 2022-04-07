@@ -1485,11 +1485,22 @@ class HTDefaultParser extends HTParser {
     } else if (curTok.type == _lexicon.kWhen) {
       _leftValueLegality = false;
       return _parseWhen(isExpression: true);
-    } else if (curTok.type == _lexicon.groupExprStart) {
-      // a literal function expression
-      final token = seekGroupClosing();
-      if (token.type == _lexicon.functionBlockStart ||
-          token.type == _lexicon.functionSingleLineBodyIndicator) {
+    }
+    // a literal function expression
+    else if (curTok.type == _lexicon.groupExprStart) {
+      final tokenAfterGroupExprStart = curTok.next;
+      final tokenAfterGroupExprEnd = seekGroupClosing({
+        _lexicon.functionCallArgumentStart: _lexicon.functionCallArgumentEnd
+      });
+      if ((tokenAfterGroupExprStart?.type == _lexicon.groupExprEnd ||
+              (tokenAfterGroupExprStart?.type == Semantic.identifier &&
+                  (tokenAfterGroupExprStart?.next?.type ==
+                          _lexicon.typeIndicator ||
+                      tokenAfterGroupExprStart?.next?.type ==
+                          _lexicon.groupExprEnd))) &&
+          (tokenAfterGroupExprEnd.type == _lexicon.functionBlockStart ||
+              tokenAfterGroupExprEnd.type ==
+                  _lexicon.functionSingleLineBodyIndicator)) {
         _leftValueLegality = false;
         return _parseFunction(
             category: FunctionCategory.literal, hasKeyword: false);

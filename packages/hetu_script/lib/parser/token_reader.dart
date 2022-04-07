@@ -48,37 +48,25 @@ abstract class TokenReader {
     return result ?? endOfFile;
   }
 
-  /// Search for parentheses right token that can closing the current one, return the token next to it.
-  Token seekGroupClosing() {
+  /// Search for parentheses end that can close the current one, return the token next to it.
+  Token seekGroupClosing(Map<String, String> groupClosings) {
     var current = curTok;
-    late String closing;
+    final List<String> closings = [];
     var distance = 0;
     var depth = 0;
-    if (current.type == HTLexicon.groupExprStart) {
-      closing = HTLexicon.groupExprEnd;
-    } else if (current.type == HTLexicon.listStart) {
-      closing = HTLexicon.listEnd;
-    } else if (current.type == HTLexicon.functionBlockStart) {
-      closing = HTLexicon.functionBlockEnd;
-    } else if (current.type == HTLexicon.typeParameterStart) {
-      closing = HTLexicon.typeParameterEnd;
-    } else {
-      return current;
-    }
-    void forward() {
-      current = peek(distance);
-    }
 
     do {
-      forward();
+      current = peek(distance);
       ++distance;
-      if (current.type == HTLexicon.groupExprStart) {
+      if (groupClosings.containsKey(current.type)) {
+        closings.add(groupClosings[current.type]!);
         ++depth;
-      } else if (depth > 0 && current.type == closing) {
+      } else if (closings.isNotEmpty && (current.type == closings.last)) {
+        closings.removeLast();
         --depth;
       }
-    } while ((depth > 0 || current.type != closing) &&
-        current.type != Semantic.endOfFile);
+    } while (depth > 0 && current.type != Semantic.endOfFile);
+
     return peek(distance);
   }
 

@@ -1,5 +1,4 @@
 import '../error/error.dart';
-import '../lexicon/lexicon.dart';
 // import '../grammar/semantic.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
@@ -20,8 +19,7 @@ abstract class HTDeclaration {
   final bool _isPrivate;
 
   /// Wether this declaration is only accessible from the same namespace.
-  bool get isPrivate =>
-      _isPrivate || (id != null && id!.startsWith(HTLexicon.privatePrefix));
+  bool get isPrivate => _isPrivate || (id == null);
 
   final String? classId;
 
