@@ -495,7 +495,7 @@ class HTSystemClassBinding extends HTExternalClass {
   @override
   dynamic memberGet(String varName, {String? from}) {
     switch (varName) {
-      case 'System.now':
+      case 'OS.now':
         return DateTime.now().millisecondsSinceEpoch;
       default:
         throw HTError.undefined(varName);
