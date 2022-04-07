@@ -1,5 +1,5 @@
 name: hetu_script
-description: Hetu is a lightweight script language for embedding in Flutter apps.
+description: Hetu is a lightweight scripting language for embedding in Flutter apps.
 version: 0.4.0-pre1
 homepage: https://github.com/hetu-script/hetu-script
 

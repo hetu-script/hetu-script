@@ -2,7 +2,7 @@
 home: true
 heroImage: /LOGO_SMALL.png
 heroText: Hetu Script Language
-tagline: A lightweight script language written in Dart for embedding in Flutter apps.
+tagline: A lightweight scripting language written in Dart for embedding in Flutter apps.
 actions:
   - text: Get Started ->
     link: /en-US/guide/

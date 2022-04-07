@@ -40,7 +40,7 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
   void visitStringLiteralExpr(ASTLiteralString node) {}
 
   @override
-  void visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {
+  void visitStringInterpolationExpr(ASTStringInterpolation node) {
     final interpolations = <String>[];
     for (final expr in node.interpolations) {
       expr.accept(this);

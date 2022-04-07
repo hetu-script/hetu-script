@@ -179,7 +179,7 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
   }
 
   @override
-  void visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {
+  void visitStringInterpolationExpr(ASTStringInterpolation node) {
     node.subAccept(this);
     node.analysisNamespace = _currentNamespace;
   }

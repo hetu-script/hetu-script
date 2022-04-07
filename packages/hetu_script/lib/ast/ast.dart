@@ -312,7 +312,7 @@ class ASTLiteralString extends ASTNode {
             length: length);
 }
 
-class ASTLiteralStringInterpolation extends ASTNode {
+class ASTStringInterpolation extends ASTNode {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitStringInterpolationExpr(this);
@@ -332,7 +332,7 @@ class ASTLiteralStringInterpolation extends ASTNode {
 
   final List<ASTNode> interpolations;
 
-  ASTLiteralStringInterpolation(
+  ASTStringInterpolation(
       this.text, this.quotationLeft, this.quotationRight, this.interpolations,
       {HTSource? source,
       int line = 0,
@@ -768,7 +768,7 @@ class UnaryPrefixExpr extends ASTNode {
             length: length);
 }
 
-/// e., e?., e[], e?[], e(), e?(), e++, e--
+/// e++, e--
 class UnaryPostfixExpr extends ASTNode {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>

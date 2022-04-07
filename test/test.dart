@@ -2,10 +2,23 @@ import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
-  final sourceContext = HTFileSystemResourceContext(root: 'script/');
-  final hetu = Hetu(sourceContext: sourceContext);
-  hetu.init();
-  final result = hetu.evalFile('recursive2.ht', invokeFunc: 'main');
+  final sourceContext = HTFileSystemResourceContext(root: 'script');
+  var hetu = Hetu(
+    config: InterpreterConfig(
+      checkTypeErrors: true,
+      computeConstantExpressionValue: true,
+      allowVariableShadowing: true,
+      allowImplicitVariableDeclaration: false,
+      allowImplicitNullToZeroConversion: true,
+      allowImplicitEmptyValueToFalseConversion: true,
+    ),
+    sourceContext: sourceContext,
+  );
+  hetu.init(locale: HTLocaleSimplifiedChinese());
 
-  print(result);
+  hetu.eval(r'''
+      print('${6*7}')
+  ''');
+
+  // final r = hetu.evalFile('eval.hts');
 }

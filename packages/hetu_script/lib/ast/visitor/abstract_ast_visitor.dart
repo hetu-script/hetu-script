@@ -24,7 +24,7 @@ abstract class AbstractASTVisitor<T> {
 
   T? visitStringLiteralExpr(ASTLiteralString node) {}
 
-  T? visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {}
+  T? visitStringInterpolationExpr(ASTStringInterpolation node) {}
 
   T? visitIdentifierExpr(IdentifierExpr node) {}
 

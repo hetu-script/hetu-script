@@ -51,7 +51,7 @@ abstract class RecursiveASTVisitor<T> implements AbstractASTVisitor<T> {
   }
 
   @override
-  T? visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {
+  T? visitStringInterpolationExpr(ASTStringInterpolation node) {
     node.subAccept(this);
   }
 

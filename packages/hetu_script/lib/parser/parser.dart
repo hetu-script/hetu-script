@@ -35,8 +35,6 @@ class ParserConfigImpl implements ParserConfig {}
 
 /// Convert tokens into [ASTSource] by a certain grammar rules set.
 abstract class HTParser with TokenReader {
-  static var anonymousFunctionIndex = 0;
-
   /// the identity name of this parser.
   String get name;
 

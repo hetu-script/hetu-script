@@ -51,7 +51,7 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
   }
 
   @override
-  HTType visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {
+  HTType visitStringInterpolationExpr(ASTStringInterpolation node) {
     return HTUnresolvedType('str');
   }
 

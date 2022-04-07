@@ -1,5 +1,5 @@
 /// Hetu Script
-/// A lightweight script language for embedding in Flutter apps.
+/// A lightweight scripting language for embedding in Flutter apps.
 ///
 /// Copyright (C) 2022 Shao, Ran
 /// chengfubeiming@live.com

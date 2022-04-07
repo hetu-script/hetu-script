@@ -40,7 +40,7 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   void visitStringLiteralExpr(ASTLiteralString node) {}
 
   @override
-  void visitStringInterpolationExpr(ASTLiteralStringInterpolation node) {
+  void visitStringInterpolationExpr(ASTStringInterpolation node) {
     node.subAccept(this);
   }
 

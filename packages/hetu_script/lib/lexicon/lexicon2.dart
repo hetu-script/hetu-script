@@ -41,8 +41,8 @@ abstract class HTLexicon {
   /// This is to avoid ambiguity in parser.
   List<String> get autoSemicolonInsertAtStart => [
         functionBlockStart,
-        groupExprStart,
-        listStart,
+        functionCallArgumentStart,
+        subGetStart,
         preIncrement,
         preDecrement,
       ];

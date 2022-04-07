@@ -8,7 +8,7 @@ module.exports = {
       lang: 'en-US',
       title: 'Hetu Script Language',
       description:
-        'A lightweight script language written in Dart for embedding in Flutter apps.',
+        'A lightweight scripting language written in Dart for embedding in Flutter apps.',
     },
     '/zh-Hans/': {
       lang: 'zh-Hans',

@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-A lightweight script language written in Dart for embedding in Flutter apps.
+A lightweight scripting language written in Dart for embedding in Flutter apps.
 </p>
 
 <p align="center">
@@ -21,7 +21,7 @@ A lightweight script language written in Dart for embedding in Flutter apps.
 
 ## Introduction
 
-Hetu is a lightweight script language purely written in Dart for embedding in Flutter apps. Our goal is to enable Flutter app & game to have hotfix and scripting ability.
+Hetu is a lightweight scripting language purely written in Dart for embedding in Flutter apps. Our goal is to enable Flutter app & game to have hotfix and scripting ability.
 
 **[Documentation](https://hetu.dev/docs/en-US/) [中文文档](https://hetu.dev/docs/zh-Hans/)**
 

@@ -10,49 +10,37 @@ abstract class TokenReader {
   /// The file current under processing, used in error message.
   String? currrentFileName;
 
-  int _line = 0;
-  int _column = 0;
-  int get line => _line;
-  int get column => _column;
+  int line = 0;
+  int column = 0;
 
   List<HTError>? errors;
 
-  // var tokPos = 0;
-  late Token current;
+  /// Get current token.
+  late Token curTok;
+
+  late Token firstTok;
 
   late Token endOfFile;
 
-  late Token first;
-
-  late Token last;
-
-  /// Get current token.
   // Token get curTok => peek(0);
-  Token get curTok => current;
 
-  void setTokens(Token token) {
-    current = first = token;
+  void setTokens({required Token token, int? line, int? column}) {
+    curTok = firstTok = token;
     // _tokens.clear();
     // _tokens.addAll(tokens);
-    _line = 0;
-    _column = 0;
+    this.line = line ?? 0;
+    this.column = column ?? 0;
 
     Token cur = token;
     while (cur.next != null) {
       cur = cur.next!;
     }
-    last = cur;
-
-    endOfFile = Token(
-        lexeme: Semantic.endOfFile,
-        line: last.line + 1,
-        column: 0,
-        offset: last.offset + 1);
+    endOfFile = cur;
   }
 
   /// Get a token at a relative [distance] from current position.
   Token peek(int distance) {
-    Token? result = current;
+    Token? result = curTok;
     for (var i = distance; i != 0; i.sign > 0 ? --i : ++i) {
       result = i.sign > 0 ? result?.next : result?.previous;
     }
@@ -138,11 +126,11 @@ abstract class TokenReader {
 
   /// Advance till reach [distance], return the token at original position.
   Token advance([int distance = 1]) {
-    final previous = current;
+    final previous = curTok;
     for (var i = distance; i > 0; --i) {
-      current = current.next ?? endOfFile;
-      _line = curTok.line;
-      _column = curTok.column;
+      curTok = curTok.next ?? endOfFile;
+      line = curTok.line;
+      column = curTok.column;
     }
     return previous;
   }

@@ -4,6 +4,7 @@ import '../parser/token.dart';
 import '../lexicon/lexicon2.dart';
 import '../lexicon/lexicon_default_impl.dart';
 import '../comment/comment.dart' show CommentType;
+import '../grammar/constant.dart';
 
 extension on String {
   /// Whether this string is empty or contains only white space characters.
@@ -32,6 +33,8 @@ class HTLexer {
     _hexNumberRegExp = RegExp(this.lexicon.hexNumberPattern);
   }
 
+  /// Scan a string content and convert it into a linked list of tokens.
+  /// The last element in the list will always be a end of file token.
   Token lex(String content, {int line = 1, int column = 1, int offset = 0}) {
     final iter = content.characters.iterator;
     Token? firstToken;
@@ -484,7 +487,18 @@ class HTLexer {
       handleEndOfLine(lastTokenOfCurrentLine!.end);
     }
 
-    firstToken ??= TokenEmptyLine(line: line, column: column, offset: offset);
+    final endOfFile = Token(
+        lexeme: Semantic.endOfFile,
+        line: (lastToken?.line ?? 0) + 1,
+        column: 0,
+        offset: (lastToken?.offset ?? 0) + 1);
+
+    if (lastToken != null) {
+      lastToken!.next = endOfFile;
+      endOfFile.previous = lastToken;
+    } else {
+      firstToken = endOfFile;
+    }
 
     return firstToken!;
   }

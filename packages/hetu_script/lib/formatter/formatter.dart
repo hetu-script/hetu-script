@@ -145,7 +145,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   }
 
   @override
-  String visitStringInterpolationExpr(ASTLiteralStringInterpolation expr) {
+  String visitStringInterpolationExpr(ASTStringInterpolation expr) {
     final interpolation = <String>[];
     for (final node in expr.interpolations) {
       final nodeString = formatAST(node);

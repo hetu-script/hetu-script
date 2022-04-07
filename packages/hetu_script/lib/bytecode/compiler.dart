@@ -375,7 +375,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitStringInterpolationExpr(ASTLiteralStringInterpolation expr) {
+  Uint8List visitStringInterpolationExpr(ASTStringInterpolation expr) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.stringInterpolation);
@@ -1772,7 +1772,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final ctorBytes = visitFuncDecl(constructor);
       bytesBuilder.add(ctorBytes);
 
-      final toStringDef = ASTLiteralStringInterpolation(
+      final toStringDef = ASTStringInterpolation(
           '${stmt.id.id}${HTLexicon.memberGet}${HTLexicon.stringInterpolationStart}0${HTLexicon.stringInterpolationEnd}',
           HTLexicon.stringStart1,
           HTLexicon.stringEnd1,
