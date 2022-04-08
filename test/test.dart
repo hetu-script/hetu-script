@@ -19,7 +19,8 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   hetu.eval(r'''
-      print(OS.now)
+      1 + 2
+      ui
   ''');
 
   // final r = hetu.evalFile('eval.hts');
