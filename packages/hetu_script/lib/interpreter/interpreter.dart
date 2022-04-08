@@ -2206,15 +2206,17 @@ class HTInterpreter {
     _class = klass;
     // deal with definition block
     execute(namespace: klass.namespace);
-    // Add default constructor if non-exist.
-    // if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
-    //   final ctor = HTFunction(InternalIdentifier.defaultConstructor,
-    //       _currentFileName, _currentBytecodeModule.id, this,
-    //       classId: klass.id,
-    //       category: FunctionCategory.constructor,
-    //       closure: klass.namespace);
-    //   klass.namespace.define(InternalIdentifier.defaultConstructor, ctor);
-    // }
+    // Add default constructor if there's none.
+    if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
+      final ctorType = HTFunctionType(returnType: HTTypeAny(_lexicon.typeAny));
+      final ctor = HTFunction(InternalIdentifier.defaultConstructor,
+          _currentFileName, _currentBytecodeModule.id, this,
+          classId: klass.id,
+          closure: klass.namespace,
+          category: FunctionCategory.constructor,
+          declType: ctorType);
+      klass.namespace.define(InternalIdentifier.defaultConstructor, ctor);
+    }
     if (_isModuleEntryScript || _function != null) {
       klass.resolve();
     }

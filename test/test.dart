@@ -19,7 +19,13 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   hetu.eval(r'''
-    print(typeof fun () -> {})
+        enum Race {
+          caucasian,
+          mongolian,
+          african,
+        }
+        var race: Race = Race.african
+        print(race)
   ''');
 
   // final r = hetu.evalFile('eval.hts');

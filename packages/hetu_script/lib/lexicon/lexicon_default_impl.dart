@@ -50,12 +50,12 @@ class HTDefaultLexicon extends HTLexicon {
 
   @override
   Map<String, String> get escapeCharacters => <String, String>{
-        r'\': '\\',
-        r"'": "'",
-        r'"': '"',
-        r'`': '`',
-        r'n': '\n',
-        r't': '\t',
+        r'\\': '\\',
+        r"\'": "'",
+        r'\"': '"',
+        r'\`': '`',
+        r'\n': '\n',
+        r'\t': '\t',
       };
 
   @override
