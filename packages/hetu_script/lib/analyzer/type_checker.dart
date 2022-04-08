@@ -5,7 +5,7 @@ import '../ast/ast.dart';
 // import '../grammar/lexicon.dart';
 // import '../shared/stringify.dart';
 import '../type/type.dart';
-import '../lexer/lexicon2.dart';
+import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 
 /// A interpreter that compute [HTType] out of [ASTNode]

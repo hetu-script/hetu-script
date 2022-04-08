@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../ast/ast.dart';
-import '../lexer/lexicon2.dart';
+import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../shared/constants.dart';

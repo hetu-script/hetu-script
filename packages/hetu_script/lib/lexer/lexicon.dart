@@ -1,554 +1,589 @@
 /// Lexicon used by Hetu,
-class HTLexicon {
-  /// Regular expression used by lexer.
-  static const tokenPattern =
-      r'((//.*)|(/\*[\s\S]*\*/))|' // comment group(2 & 3)
-      r'(\.\.\.|~/=|\?\?=|\?\?|\|\||&&|\+\+|--|\*=|/=|\+=|-=|==|!=|<=|>=|->|=>|\?\.|\?\[|\?\(|~/|[></=%\+\*\-\?!,:;{}\[\]\)\(\.])|' // punctuation group(4)
-      r'(([_\$\p{L}]+[_\$\p{L}0-9]*)|([_]+))|' // unicode identifier group(5)
-      r'(0x[0-9a-fA-F]+|\d+(\.\d+)?)|' // number group(8)
-      r"('(\\'|[^'])*(\$\{[^\$\{\}]*\})+(\\'|[^'])*')|" // interpolation string with single quotation mark group(10)
-      r'("(\\"|[^"])*(\$\{[^\$\{\}]*\})+(\\"|[^"])*")|' // interpolation string with double quotation mark group(14)
-      r"('(\\'|[^'])*')|" // string with apostrophe mark group(18)
-      r'("(\\"|[^"])*")|' // string with quotation mark group(20)
-      r'(`(\\`|[^`])*`)|' // string with grave accent mark group(22)
-      r'(\n)'; // new line group(24)
+abstract class HTLexicon {
+  /// the identity name of this lexicon.
+  String get name;
 
-  static const tokenGroupSingleComment = 2;
-  static const tokenGroupBlockComment = 3;
-  static const tokenGroupPunctuation = 4;
-  static const tokenGroupIdentifier = 5;
-  static const tokenGroupNumber = 8;
-  static const tokenGroupApostropheStringInterpolation = 10;
-  static const tokenGroupQuotationStringInterpolation = 14;
-  static const tokenGroupApostropheString = 18;
-  static const tokenGroupQuotationString = 20;
-  static const tokenGroupStringGraveAccent = 22;
-  static const tokenGroupNewline = 24;
+  String get identifierStartPattern;
+  String get identifierPattern;
+  String get numberStartPattern;
+  String get numberPattern;
+  String get hexNumberPattern;
+  String get stringInterpolationPattern;
 
-  static const documentationCommentPattern = r'///';
+  /// a character sequence that marked the start of literal hex number.
+  String get hexNumberStart;
 
-  static const stringInterpolationPattern = r'\${([^\${}]*)}';
-  static const stringInterpolationMark = r'$';
-  static const stringInterpolationStart = r'{';
-  static const stringInterpolationEnd = r'}';
+  /// a character sequence that marked the start of single line comment.
+  String get singleLineCommentStart;
 
-  static const stringEscapes = <String, String>{
-    r'\\': '\\',
-    r"\'": '\'',
-    r'\"': '"',
-    r'\`': '`',
-    r'\n': '\n',
-    r'\t': '\t',
-  };
+  /// a character sequence that marked the start of multiline line comment.
+  String get multiLineCommentStart;
+
+  /// a character sequence that marked the end of multiline line comment.
+  String get multiLineCommentEnd;
+
+  /// a character sequence that marked the start of documentation comment.
+  String get documentationCommentStart;
+
+  /// a character sequence that marked the start of interpolation in strings.
+  String get stringInterpolationStart;
+
+  /// a single character that marked the end of interpolation in strings.
+  String get stringInterpolationEnd;
+
+  /// a single character that marked the start of escape in strings.
+  String get escapeCharacterStart;
+
+  /// escaped characters mapping.
+  Map<String, String> get escapeCharacters;
 
   /// Add semicolon before a line starting with one of '{, (, [, ++, --'.
   /// This is to avoid ambiguity in parser.
-  static const List<String> autoSemicolonInsertAtStart = [
-    functionBlockStart,
-    groupExprStart,
-    listStart,
-    preIncrement,
-    preDecrement,
-  ];
+  List<String> get autoSemicolonInsertAtStart => [
+        functionBlockStart,
+        functionArgumentStart,
+        subGetStart,
+        preIncrement,
+        preDecrement,
+      ];
 
   /// Add semicolon after a line with 'return'
-  static const Set<String> autoSemicolonInsertAtEnd = {
-    kReturn,
-  };
+  List<String> get autoSemicolonInsertAtEnd => [
+        kReturn,
+      ];
 
-  static const List<String> unfinishedTokens = [
-    logicalNot,
-    multiply,
-    devide,
-    modulo,
-    add,
-    subtract,
-    lesser,
-    lesserOrEqual,
-    greater,
-    greaterOrEqual,
-    equal,
-    notEqual,
-    ifNull,
-    logicalAnd,
-    logicalOr,
-    assign,
-    assignAdd,
-    assignSubtract,
-    assignMultiply,
-    assignDevide,
-    assignIfNull,
-    memberGet,
-    groupExprStart,
-    functionBlockStart,
-    subGetStart,
-    listStart,
-    optionalPositionalParameterStart,
-    externalFunctionTypeDefStart,
-    comma,
-    constructorInitializationListIndicator,
-    namedArgumentValueIndicator,
-    typeIndicator,
-    structValueIndicator,
-    functionReturnTypeIndicator,
-    whenBranchIndicator,
-    functionSingleLineBodyIndicator,
-    typeParameterStart,
-  ];
+  List<String> get unfinishedTokens => [
+        logicalNot,
+        multiply,
+        devide,
+        modulo,
+        add,
+        subtract,
+        lesser,
+        lesserOrEqual,
+        greater,
+        greaterOrEqual,
+        equal,
+        notEqual,
+        ifNull,
+        logicalAnd,
+        logicalOr,
+        assign,
+        assignAdd,
+        assignSubtract,
+        assignMultiply,
+        assignDevide,
+        assignIfNull,
+        memberGet,
+        groupExprStart,
+        functionBlockStart,
+        subGetStart,
+        listStart,
+        optionalPositionalParameterStart,
+        externalFunctionTypeDefStart,
+        comma,
+        constructorInitializationListIndicator,
+        namedArgumentValueIndicator,
+        typeIndicator,
+        structValueIndicator,
+        functionReturnTypeIndicator,
+        whenBranchIndicator,
+        functionSingleLineBodyIndicator,
+        typeParameterStart,
+      ];
 
-  static const globalObjectId = 'object';
-  static const globalPrototypeId = 'prototype';
-  static const programEntryFunctionId = 'main';
+  String get globalObjectId;
+  String get globalPrototypeId;
+  String get programEntryFunctionId;
 
-  static const typeVoid = 'void';
-  static const typeAny = 'any';
-  static const typeUnknown = 'unknown';
-  static const typeNever = 'never';
-  static const typeFunction = 'function';
-  static const typeBoolean = 'bool';
-  static const typeNumber = 'int';
-  static const typeFloat = 'float';
-  static const typeString = 'str';
+  String get privatePrefix;
+  String get internalPrefix;
 
-  static const propertyCollectionValues = 'values';
-  static const propertyCollectionContains = 'contains';
-  static const propertyIterableIterator = 'iterator';
-  static const propertyIterableIteratorMoveNext = 'moveNext';
-  static const propertyIterableIteratorCurrent = 'current';
-  static const propertyToString = 'toString';
+  String get typeAny;
+  String get typeUnknown;
+  String get typeVoid;
+  String get typeNever;
+  String get typeFunction;
+  String get typeBoolean;
+  String get typeNumber;
+  String get typeFloat;
+  String get typeString;
 
-  /// ...
-  static const variadicArgs = '...';
+  String get idCollectionValues;
+  String get idCollectionContains;
+  String get idIterableIterator;
+  String get idIterableIteratorMoveNext;
+  String get idIterableIteratorCurrent;
+  String get idToString;
+  String get idBind;
+  String get idApply;
 
-  /// _
-  static const privatePrefix = '_';
+  // Set<String> get primitiveTypes => {
+  //       kType,
+  //       kNull,
+  //       typeAny,
+  //       typeVoid,
+  //       typeUnknown,
+  //       typeNever,
+  //       typeFunction,
+  //     };
 
-  /// _
-  static const omittedMark = '_';
+  String get kNull;
+  String get kTrue;
+  String get kFalse;
 
-  /// $
-  static const internalPrefix = r'$';
+  String get kVar;
+  String get kFinal;
+  String get kLate;
+  String get kConst;
+  String get kDelete;
 
-  /// ->
-  static const functionReturnTypeIndicator = '->';
+  Set<String> get destructuringDeclarationMark => {
+        listStart,
+        structStart,
+      };
 
-  /// ->
-  static const whenBranchIndicator = '->';
-
-  /// =>
-  static const functionSingleLineBodyIndicator = '=>';
-
-  /// .
-  static const decimalPoint = '.';
-
-  /// ...
-  static const spreadSyntax = '...';
-
-  static const kNull = 'null';
-  static const kTrue = 'true';
-  static const kFalse = 'false';
-
-  // static const kDefine = 'def';
-  static const kVar = 'var';
-  static const kFinal = 'final';
-  static const kLate = 'late';
-  static const kConst = 'const';
-  static const kDelete = 'delete';
-
-  static const Set<String> destructuringDeclarationMark = {
-    listStart,
-    structStart,
-  };
+  /// Variable declaration keyword
+  Set<String> get variableDeclarationKeywords => {
+        kVar,
+        kFinal,
+        kConst,
+        kLate,
+      };
 
   /// Variable declaration keyword
   /// used in for statement's declaration part
-  static const Set<String> forDeclarationKeywords = {
-    kVar,
-    kFinal,
-  };
+  Set<String> get forDeclarationKeywords => {
+        kVar,
+        kFinal,
+      };
 
-  static const kType = 'type';
+  String get kType;
 
-  static const kImport = 'import';
-  static const kExport = 'export';
-  static const kFrom = 'from';
+  String get kImport;
+  String get kExport;
+  String get kFrom;
 
-  static const kAssert = 'assert';
-  static const kTypeof = 'typeof';
-  static const kAs = 'as';
-  static const kNamespace = 'namespace';
-  static const kClass = 'class';
-  static const kEnum = 'enum';
-  static const kFun = 'fun';
-  static const kStruct = 'struct';
-  // static const kInterface = 'inteface';
-  static const kThis = 'this';
-  static const kSuper = 'super';
+  String get kAssert;
+  String get kTypeof;
+  String get kAs;
+  String get kNamespace;
+  String get kClass;
+  String get kEnum;
+  String get kFun;
+  String get kStruct;
+  String get kThis;
+  String get kSuper;
 
-  static const Set<String> redirectingConstructorCallKeywords = {kThis, kSuper};
+  Set<String> get redirectingConstructorCallKeywords => {kThis, kSuper};
 
-  static const kAbstract = 'abstract';
-  static const kOverride = 'override';
-  static const kExternal = 'external';
-  static const kStatic = 'static';
-  static const kExtends = 'extends';
-  static const kImplements = 'implements';
-  static const kWith = 'with';
-  static const kRequired = 'required';
-  static const kReadonly = 'readonly';
+  String get kAbstract;
+  String get kOverride;
+  String get kExternal;
+  String get kStatic;
+  String get kExtends;
+  String get kImplements;
+  String get kWith;
+  String get kRequired;
+  String get kReadonly;
 
-  static const kConstruct = 'construct';
-  static const kNew = 'new';
-  static const kFactory = 'factory';
-  static const kGet = 'get';
-  static const kSet = 'set';
-  static const kAsync = 'async';
-  static const bind = 'bind';
-  static const apply = 'apply';
+  String get kConstruct;
+  String get kNew;
+  String get kFactory;
+  String get kGet;
+  String get kSet;
+  String get kAsync;
 
-  static const kAwait = 'await';
-  static const kBreak = 'break';
-  static const kContinue = 'continue';
-  static const kReturn = 'return';
-  static const kFor = 'for';
-  static const kIn = 'in';
-  static const kNotIn = 'in!';
-  static const kOf = 'of';
-  static const kIf = 'if';
-  static const kElse = 'else';
-  static const kWhile = 'while';
-  static const kDo = 'do';
-  static const kWhen = 'when';
-  static const kIs = 'is';
-  static const kIsNot = 'is!';
+  String get kAwait;
+  String get kBreak;
+  String get kContinue;
+  String get kReturn;
+  String get kFor;
+  String get kIn;
+  String get kNotIn;
+  String get kOf;
+  String get kIf;
+  String get kElse;
+  String get kWhile;
+  String get kDo;
+  String get kWhen;
+  String get kIs;
+  String get kIsNot;
 
-  static const kTry = 'try';
-  static const kCatch = 'catch';
-  static const kFinally = 'finally';
-  static const kThrow = 'throw';
+  String get kTry;
+  String get kCatch;
+  String get kFinally;
+  String get kThrow;
 
   /// reserved keywords, cannot used as identifier names
-  static const Set<String> keywords = {
-    kNull,
-    kTrue,
-    kFalse,
-    kVar,
-    kFinal,
-    kLate,
-    kConst,
-    kDelete,
-    kAssert,
-    kTypeof,
-    kNamespace,
-    kClass,
-    kEnum,
-    kFun,
-    kStruct,
-    kThis,
-    kSuper,
-    kAbstract,
-    kOverride,
-    kExternal,
-    kStatic,
-    kWith,
-    kNew,
-    kConstruct,
-    kFactory,
-    kGet,
-    kSet,
-    kAsync,
-    kAwait,
-    kBreak,
-    kContinue,
-    kReturn,
-    kFor,
-    kIn,
-    kIf,
-    kElse,
-    kWhile,
-    kDo,
-    kWhen,
-    kIs,
-    kAs,
-    kThrow,
-    // kTry,
-    // kCatch,
-    // kFinally,
-  };
+  Set<String> get keywords => {
+        kNull,
+        kVar,
+        kFinal,
+        kLate,
+        kConst,
+        kDelete,
+        kAssert,
+        kTypeof,
+        kNamespace,
+        kClass,
+        kEnum,
+        kFun,
+        kStruct,
+        kThis,
+        kSuper,
+        kAbstract,
+        kOverride,
+        kExternal,
+        kStatic,
+        kWith,
+        kNew,
+        kConstruct,
+        kFactory,
+        kGet,
+        kSet,
+        kAsync,
+        kAwait,
+        kBreak,
+        kContinue,
+        kReturn,
+        kFor,
+        kIn,
+        kIf,
+        kElse,
+        kWhile,
+        kDo,
+        kWhen,
+        kIs,
+        kAs,
+        kThrow,
+        // kTry,
+        // kCatch,
+        // kFinally,
+      };
 
-  /// ?.
-  static const nullableMemberGet = '?.';
+  String get indent;
 
-  /// .
-  static const memberGet = '.';
+  String get decimalPoint;
 
-  /// ?[
-  static const nullableSubGet = '?[';
+  String get variadicArgs;
 
-  /// ?(
-  static const nullableFunctionCallArgumentStart = '?(';
+  String get spreadSyntax;
 
-  /// (
-  static const functionCallArgumentStart = '(';
+  String get omittedMark;
 
-  /// )
-  static const functionCallArgumentEnd = ')';
+  String get functionReturnTypeIndicator;
 
-  /// ?
-  static const nullableTypePostfix = '?';
+  String get whenBranchIndicator;
 
-  /// ++
-  static const postIncrement = '++';
+  String get functionSingleLineBodyIndicator;
 
-  /// --
-  static const postDecrement = '--';
+  String get nullableMemberGet;
+
+  String get memberGet;
+
+  String get nullableSubGet;
+
+  String get subGetStart;
+
+  String get subGetEnd;
+
+  String get nullableFunctionArgumentCall;
+
+  String get functionArgumentStart;
+
+  String get functionArgumentEnd;
+
+  String get nullableTypePostfix;
+
+  String get postIncrement;
+
+  String get postDecrement;
 
   /// postfix operators
-  static const Set<String> unaryPostfixs = {
-    nullableMemberGet,
-    memberGet,
-    nullableSubGet,
-    subGetStart,
-    nullableFunctionCallArgumentStart,
-    functionCallArgumentStart,
-    postIncrement,
-    postDecrement,
-  };
-
-  /// !
-  static const logicalNot = '!';
-
-  /// -
-  static const negative = '-';
-
-  /// ++
-  static const preIncrement = '++';
-
-  /// --
-  static const preDecrement = '--';
-
-  /// prefix operators
-  static const Set<String> unaryPrefixs = {
-    logicalNot,
-    negative,
-    preIncrement,
-    preDecrement,
-    kTypeof,
-  };
+  Set<String> get unaryPostfixs => {
+        nullableMemberGet,
+        memberGet,
+        nullableSubGet,
+        subGetStart,
+        nullableFunctionArgumentCall,
+        functionArgumentStart,
+        postIncrement,
+        postDecrement,
+      };
 
   /// prefix operators that modify the value
-  static const Set<String> unaryPrefixsOnLeftValue = {
-    preIncrement,
-    preDecrement,
-  };
+  Set<String> get unaryPrefixsOnLeftValue => {
+        preIncrement,
+        preDecrement,
+      };
 
-  /// *
-  static const multiply = '*';
+  String get logicalNot;
 
-  /// /
-  static const devide = '/';
+  String get negative;
 
-  /// ~/
-  static const truncatingDevide = '~/';
+  String get preIncrement;
 
-  /// %'
-  static const modulo = '%';
+  String get preDecrement;
 
-  static const Set<String> multiplicatives = {
-    multiply,
-    devide,
-    truncatingDevide,
-    modulo,
-  };
+  Set<String> get unaryPrefixs => {
+        logicalNot,
+        negative,
+        preIncrement,
+        preDecrement,
+        kTypeof,
+      };
 
-  /// +
-  static const add = '+';
+  String get multiply;
 
-  /// -
-  static const subtract = '-';
+  String get devide;
 
-  /// +, -
-  static const Set<String> additives = {
-    add,
-    subtract,
-  };
+  String get truncatingDevide;
 
-  /// >
-  static const greater = '>';
+  String get modulo;
 
-  /// >=
-  static const greaterOrEqual = '>=';
+  Set<String> get multiplicatives => {
+        multiply,
+        devide,
+        truncatingDevide,
+        modulo,
+      };
 
-  /// <
-  static const lesser = '<';
+  String get add;
 
-  /// <=
-  static const lesserOrEqual = '<=';
+  String get subtract;
 
-  /// \>, >=, <, <=
-  static const Set<String> logicalRelationals = {
-    greater,
-    greaterOrEqual,
-    lesser,
-    lesserOrEqual,
-  };
+  Set<String> get additives => {
+        add,
+        subtract,
+      };
 
-  static const Set<String> typeRelationals = {kAs, kIs};
+  String get greater;
 
-  static const Set<String> setRelationals = {kIn};
+  String get greaterOrEqual;
 
-  /// ==
-  static const equal = '==';
+  String get lesser;
 
-  /// !=
-  static const notEqual = '!=';
+  String get lesserOrEqual;
 
-  /// ==, !=
-  static const Set<String> equalitys = {
-    equal,
-    notEqual,
-  };
+  Set<String> get logicalRelationals => {
+        greater,
+        greaterOrEqual,
+        lesser,
+        lesserOrEqual,
+      };
 
-  /// ??
-  static const ifNull = '??';
+  Set<String> get typeRelationals => {kAs, kIs};
 
-  /// ||
-  static const logicalOr = '||';
+  Set<String> get setRelationals => {kIn};
 
-  /// &&
-  static const logicalAnd = '&&';
+  String get equal;
 
-  /// ?
-  static const ternaryThen = '?';
+  String get notEqual;
 
-  /// :
-  static const ternaryElse = ':';
+  Set<String> get equalitys => {
+        equal,
+        notEqual,
+      };
 
-  /// :
-  static const assign = '=';
+  String get ifNull;
 
-  /// +=
-  static const assignAdd = '+=';
+  String get logicalOr;
 
-  /// -=
-  static const assignSubtract = '-=';
+  String get logicalAnd;
 
-  /// *=
-  static const assignMultiply = '*=';
+  String get ternaryThen;
 
-  /// /=
-  static const assignDevide = '/=';
+  String get ternaryElse;
 
-  /// ~/=
-  static const assignTruncatingDevide = '~/=';
+  String get assign;
 
-  /// ??=
-  static const assignIfNull = '??=';
+  String get assignAdd;
+
+  String get assignSubtract;
+
+  String get assignMultiply;
+
+  String get assignDevide;
+
+  String get assignTruncatingDevide;
+
+  String get assignIfNull;
 
   /// assign operators
-  static const Set<String> assignments = {
-    assign,
-    assignAdd,
-    assignSubtract,
-    assignMultiply,
-    assignDevide,
-    assignTruncatingDevide,
-    assignIfNull,
-  };
+  Set<String> get assignments => {
+        assign,
+        assignAdd,
+        assignSubtract,
+        assignMultiply,
+        assignDevide,
+        assignTruncatingDevide,
+        assignIfNull,
+      };
 
-  /// ,
-  static const comma = ',';
+  String get comma;
 
-  /// :
-  static const constructorInitializationListIndicator = ':';
+  String get constructorInitializationListIndicator;
 
-  /// :
-  static const namedArgumentValueIndicator = ':';
+  String get namedArgumentValueIndicator;
 
-  /// :
-  static const typeIndicator = ':';
+  String get typeIndicator;
 
-  /// :
-  static const structValueIndicator = ':';
+  String get structValueIndicator;
 
-  /// ;
-  static const endOfStatementMark = ';';
+  String get endOfStatementMark;
 
-  /// '
-  static const stringStart1 = "'";
+  String get stringStart1;
 
-  /// '
-  static const stringEnd1 = "'";
+  String get stringEnd1;
 
-  /// "
-  static const stringStart2 = '"';
+  String get stringStart2;
 
-  /// "
-  static const stringEnd2 = '"';
+  String get stringEnd2;
 
-  /// `
-  static const identifierStart = '`';
+  String get identifierStart;
 
-  /// `
-  static const identifierEnd = '`';
+  String get identifierEnd;
 
-  /// (
-  static const groupExprStart = '(';
+  String get groupExprStart;
 
-  /// )
-  static const groupExprEnd = ')';
+  String get groupExprEnd;
 
-  /// {
-  static const functionBlockStart = '{';
+  String get functionBlockStart;
 
-  /// }
-  static const functionBlockEnd = '}';
+  String get functionBlockEnd;
 
-  /// {
-  static const declarationBlockStart = '{';
+  String get declarationBlockStart;
 
-  /// }
-  static const declarationBlockEnd = '}';
+  String get declarationBlockEnd;
 
-  /// {
-  static const structStart = '{';
+  String get structStart;
 
-  /// }
-  static const structEnd = '}';
+  String get structEnd;
 
-  /// [
-  static const subGetStart = '[';
+  String get listStart;
 
-  /// ]
-  static const subGetEnd = ']';
+  String get listEnd;
 
-  /// [
-  static const listStart = '[';
+  String get optionalPositionalParameterStart;
 
-  /// ]
-  static const listEnd = ']';
+  String get optionalPositionalParameterEnd;
 
-  /// [
-  static const optionalPositionalParameterStart = '[';
+  String get namedParameterStart;
 
-  /// ]
-  static const optionalPositionalParameterEnd = ']';
+  String get namedParameterEnd;
 
-  /// {
-  static const namedParameterStart = '{';
+  String get externalFunctionTypeDefStart;
 
-  /// }
-  static const namedParameterEnd = '}';
+  String get externalFunctionTypeDefEnd;
 
-  /// [
-  static const externalFunctionTypeDefStart = '[';
+  String get typeParameterStart;
 
-  /// ]
-  static const externalFunctionTypeDefEnd = ']';
+  String get typeParameterEnd;
 
-  /// <
-  static const typeParameterStart = '<';
+  /// Token that are not identifers.
+  List<String> get punctuations => [
+        decimalPoint,
+        variadicArgs,
+        spreadSyntax,
+        functionReturnTypeIndicator,
+        whenBranchIndicator,
+        functionSingleLineBodyIndicator,
+        nullableMemberGet,
+        memberGet,
+        nullableSubGet,
+        subGetStart,
+        subGetEnd,
+        nullableFunctionArgumentCall,
+        functionArgumentStart,
+        functionArgumentEnd,
+        nullableTypePostfix,
+        postIncrement,
+        postDecrement,
+        logicalNot,
+        negative,
+        preIncrement,
+        preDecrement,
+        multiply,
+        devide,
+        truncatingDevide,
+        modulo,
+        add,
+        subtract,
+        greater,
+        greaterOrEqual,
+        lesser,
+        lesserOrEqual,
+        equal,
+        notEqual,
+        ifNull,
+        logicalOr,
+        logicalAnd,
+        ternaryThen,
+        ternaryElse,
+        assign,
+        assignAdd,
+        assignSubtract,
+        assignMultiply,
+        assignDevide,
+        assignTruncatingDevide,
+        assignIfNull,
+        comma,
+        constructorInitializationListIndicator,
+        namedArgumentValueIndicator,
+        typeIndicator,
+        structValueIndicator,
+        endOfStatementMark,
+        stringStart1,
+        stringEnd1,
+        stringStart2,
+        stringEnd2,
+        identifierStart,
+        identifierEnd,
+        groupExprStart,
+        groupExprEnd,
+        functionBlockStart,
+        functionBlockEnd,
+        declarationBlockStart,
+        declarationBlockEnd,
+        structStart,
+        structEnd,
+        listStart,
+        listEnd,
+        optionalPositionalParameterStart,
+        optionalPositionalParameterEnd,
+        namedParameterStart,
+        namedParameterEnd,
+        externalFunctionTypeDefStart,
+        externalFunctionTypeDefEnd,
+        typeParameterStart,
+        typeParameterEnd,
+      ];
 
-  /// >
-  static const typeParameterEnd = '>';
+  /// Marker for group start and end.
+  // Map<String, String> get groupClosings => {
+  //       subGetStart: subGetEnd,
+  //       functionCallArgumentStart: functionCallArgumentEnd,
+  //       groupExprStart: groupExprEnd,
+  //       functionBlockStart: functionBlockEnd,
+  //       declarationBlockStart: declarationBlockEnd,
+  //       structStart: structEnd,
+  //       listStart: listEnd,
+  //       optionalPositionalParameterStart: optionalPositionalParameterEnd,
+  //       namedParameterStart: namedParameterEnd,
+  //       externalFunctionTypeDefStart: externalFunctionTypeDefEnd,
+  //       typeParameterStart: typeParameterEnd,
+  //     };
+
+  /// Print an object to a string.
+  String stringify(dynamic object, {bool asStringLiteral = false});
+
+  String getBaseTypeId(String typeString) {
+    final argsStart = typeString.indexOf(typeParameterStart);
+    if (argsStart != -1) {
+      return typeString.substring(0, argsStart);
+    } else {
+      return typeString;
+    }
+  }
 }

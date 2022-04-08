@@ -21,7 +21,7 @@ import '../type/unresolved_type.dart';
 import '../type/function_type.dart';
 import '../type/nominal_type.dart';
 import '../type/structural_type.dart';
-import '../lexer/lexicon2.dart';
+import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../source/source.dart';

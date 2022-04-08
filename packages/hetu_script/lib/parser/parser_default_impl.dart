@@ -3,7 +3,7 @@ import 'package:path/path.dart' as path;
 
 import 'parser.dart';
 import 'token.dart';
-import '../lexer/lexicon2.dart';
+import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../error/error.dart';
 import '../lexer/lexer.dart';

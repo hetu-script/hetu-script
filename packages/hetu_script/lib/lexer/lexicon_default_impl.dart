@@ -1,4 +1,4 @@
-import 'lexicon2.dart';
+import 'lexicon.dart';
 import '../value/struct/struct.dart';
 import '../types.dart';
 import '../grammar/constant.dart';

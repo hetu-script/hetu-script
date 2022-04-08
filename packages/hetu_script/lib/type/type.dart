@@ -18,16 +18,6 @@ enum PrimitiveTypeCategory {
 /// Type is basically a set of things.
 /// It is used to check errors in code.
 abstract class HTType with HTEntity {
-  // static String parseBaseType(String typeString) {
-  //   final argsStart = typeString.indexOf(HTLexicon.typeParameterStart);
-  //   if (argsStart != -1) {
-  //     final id = typeString.substring(0, argsStart);
-  //     return id;
-  //   } else {
-  //     return typeString;
-  //   }
-  // }
-
   bool get isResolved => true;
 
   HTType resolve(HTDeclarationNamespace namespace) => this;

@@ -1,7 +1,7 @@
 import 'package:hetu_script/parser/parser_default_impl.dart';
 
 import '../ast/ast.dart';
-import '../lexer/lexicon2.dart';
+import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../lexer/lexer.dart';

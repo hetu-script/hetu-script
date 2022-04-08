@@ -1,5 +1,5 @@
 import '../ast/ast.dart';
-import '../lexer/lexicon2.dart';
+import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../analyzer/analysis_error.dart';
 

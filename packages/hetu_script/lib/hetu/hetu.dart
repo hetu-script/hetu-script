@@ -16,7 +16,7 @@ import '../external/external_function.dart';
 import '../external/external_class.dart';
 import '../binding/class_binding.dart';
 import '../binding/hetu_binding.dart';
-import '../lexer/lexicon2.dart';
+import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../parser/parser.dart';
 import '../parser/parser_default_impl.dart';
