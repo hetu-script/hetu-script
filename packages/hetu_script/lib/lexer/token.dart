@@ -40,7 +40,7 @@ class TokenEmptyLine extends Token {
   String get type => Semantic.emptyLine;
 
   const TokenEmptyLine(int line, int column, int offset)
-      : super('', line, column, offset, 0);
+      : super('', line, column, offset, 1);
 }
 
 class TokenIdentifier extends Token {
