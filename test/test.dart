@@ -19,7 +19,9 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   hetu.eval(r'''
-        print('${6*7}')
+      1 + 2
+      33
+      y
   ''');
 
   // final r = hetu.evalFile('eval.hts');
