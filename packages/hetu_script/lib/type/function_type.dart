@@ -38,55 +38,6 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
       this.parameterTypes = const [],
       required this.returnType});
 
-  // @override
-  // String toString() {
-  //   var output = StringBuffer();
-  //   output.write('${HTLexicon.typeFunction} ');
-  //   if (genericTypeParameters.isNotEmpty) {
-  //     output.write(HTLexicon.typeParameterStart);
-  //     for (var i = 0; i < genericTypeParameters.length; ++i) {
-  //       output.write(genericTypeParameters[i]);
-  //       if (i < genericTypeParameters.length - 1) {
-  //         output.write('${HTLexicon.comma} ');
-  //       }
-  //     }
-  //     output.write(HTLexicon.typeParameterEnd);
-  //   }
-
-  //   output.write(HTLexicon.groupExprStart);
-
-  //   var i = 0;
-  //   var optionalStarted = false;
-  //   var namedStarted = false;
-  //   for (final param in parameterTypes) {
-  //     if (param.isVariadic) {
-  //       output.write(HTLexicon.variadicArgs + ' ');
-  //     }
-  //     if (param.isOptional && !optionalStarted) {
-  //       optionalStarted = true;
-  //       output.write(HTLexicon.listStart);
-  //     } else if (param.isNamed && !namedStarted) {
-  //       namedStarted = true;
-  //       output.write(HTLexicon.functionBlockStart);
-  //     }
-  //     output.write(param.toString());
-  //     if (i < parameterTypes.length - 1) {
-  //       output.write('${HTLexicon.comma} ');
-  //     }
-  //     if (optionalStarted) {
-  //       output.write(HTLexicon.listEnd);
-  //     } else if (namedStarted) {
-  //       namedStarted = true;
-  //       output.write(HTLexicon.functionBlockEnd);
-  //     }
-  //     ++i;
-  //   }
-  //   output.write(
-  //       '${HTLexicon.groupExprEnd} ${HTLexicon.functionReturnTypeIndicator} ' +
-  //           returnType.toString());
-  //   return output.toString();
-  // }
-
   @override
   bool operator ==(Object other) {
     return other is HTFunctionType && hashCode == other.hashCode;

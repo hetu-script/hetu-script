@@ -1310,7 +1310,7 @@ class HTDefaultParser extends HTParser with TokenReader {
             column: expr.column,
             offset: expr.offset,
             length: curTok.offset - expr.offset);
-      } else if (op.type == _lexicon.functionCallArgumentStart) {
+      } else if (op.type == _lexicon.functionArgumentStart) {
         var isNullable = false;
         if ((expr is MemberExpr && expr.isNullable) ||
             (expr is SubExpr && expr.isNullable) ||
@@ -1469,7 +1469,7 @@ class HTDefaultParser extends HTParser with TokenReader {
           isMarked: idTok.isMarked, source: _currentSource);
       var positionalArgs = <ASTNode>[];
       var namedArgs = <String, ASTNode>{};
-      if (expect([_lexicon.functionCallArgumentStart], consume: true)) {
+      if (expect([_lexicon.functionArgumentStart], consume: true)) {
         _handleCallArguments(positionalArgs, namedArgs);
       }
       return CallExpr(id,
@@ -1491,9 +1491,8 @@ class HTDefaultParser extends HTParser with TokenReader {
     // a literal function expression
     else if (curTok.type == _lexicon.groupExprStart) {
       final tokenAfterGroupExprStart = curTok.next;
-      final tokenAfterGroupExprEnd = seekGroupClosing({
-        _lexicon.functionCallArgumentStart: _lexicon.functionCallArgumentEnd
-      });
+      final tokenAfterGroupExprEnd = seekGroupClosing(
+          {_lexicon.functionArgumentStart: _lexicon.functionArgumentEnd});
       if ((tokenAfterGroupExprStart?.type == _lexicon.groupExprEnd ||
               (tokenAfterGroupExprStart?.type == Semantic.identifier &&
                   (tokenAfterGroupExprStart?.next?.type ==
@@ -1834,7 +1833,7 @@ class HTDefaultParser extends HTParser with TokenReader {
         positionalArgs.add(positionalArg);
       }
     }
-    match(_lexicon.functionCallArgumentEnd);
+    match(_lexicon.functionArgumentEnd);
   }
 
   ASTNode _parseExprStmt() {

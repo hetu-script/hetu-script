@@ -353,11 +353,11 @@ class HTDefaultLexicon extends HTLexicon {
 
   /// (
   @override
-  String get functionCallArgumentStart => '(';
+  String get functionArgumentStart => '(';
 
   /// )
   @override
-  String get functionCallArgumentEnd => ')';
+  String get functionArgumentEnd => ')';
 
   /// ?
   @override
@@ -731,7 +731,65 @@ class HTDefaultLexicon extends HTLexicon {
   String _stringifyType(HTType type) {
     final output = StringBuffer();
     if (type is HTFunctionType) {
+      output.write('$typeFunction ');
+      if (type.genericTypeParameters.isNotEmpty) {
+        output.write(typeParameterStart);
+        for (var i = 0; i < type.genericTypeParameters.length; ++i) {
+          output.write(type.genericTypeParameters[i]);
+          if (i < type.genericTypeParameters.length - 1) {
+            output.write('$comma ');
+          }
+        }
+        output.write(typeParameterEnd);
+      }
+      output.write(functionArgumentStart);
+      var i = 0;
+      var optionalStarted = false;
+      var namedStarted = false;
+      for (final param in type.parameterTypes) {
+        if (param.isVariadic) {
+          output.write(variadicArgs + ' ');
+        }
+        if (param.isOptional && !optionalStarted) {
+          optionalStarted = true;
+          output.write(optionalPositionalParameterStart);
+        } else if (param.isNamed && !namedStarted) {
+          namedStarted = true;
+          output.write(namedParameterStart);
+        }
+        output.write(param.toString());
+        if (i < type.parameterTypes.length - 1) {
+          output.write('$comma ');
+        }
+        if (optionalStarted) {
+          output.write(optionalPositionalParameterEnd);
+        } else if (namedStarted) {
+          namedStarted = true;
+          output.write(namedParameterEnd);
+        }
+        ++i;
+      }
+      final returnTypeString = _stringifyType(type.returnType);
+      output.write('$functionArgumentEnd $functionReturnTypeIndicator ' +
+          returnTypeString);
     } else if (type is HTStructuralType) {
+      output.write('$kStruct ');
+      if (type.fieldTypes.isEmpty) {
+        output.write('$structStart$structEnd');
+      } else {
+        output.writeln(structStart);
+        for (var i = 0; i < type.fieldTypes.length; ++i) {
+          final key = type.fieldTypes.keys.elementAt(i);
+          output.write('  $key$typeIndicator');
+          final fieldTypeString = type.fieldTypes[key].toString();
+          output.write(' $fieldTypeString');
+          if (i < type.fieldTypes.length - 1) {
+            output.write(comma);
+          }
+          output.writeln();
+        }
+        output.write(structEnd);
+      }
     } else if (type is HTExternalType) {
       output.write('${InternalIdentifier.externalType} ${type.id}');
     } else {

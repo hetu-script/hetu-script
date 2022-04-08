@@ -41,7 +41,7 @@ abstract class HTLexicon {
   /// This is to avoid ambiguity in parser.
   List<String> get autoSemicolonInsertAtStart => [
         functionBlockStart,
-        functionCallArgumentStart,
+        functionArgumentStart,
         subGetStart,
         preIncrement,
         preDecrement,
@@ -290,9 +290,9 @@ abstract class HTLexicon {
 
   String get nullableFunctionArgumentCall;
 
-  String get functionCallArgumentStart;
+  String get functionArgumentStart;
 
-  String get functionCallArgumentEnd;
+  String get functionArgumentEnd;
 
   String get nullableTypePostfix;
 
@@ -307,7 +307,7 @@ abstract class HTLexicon {
         nullableSubGet,
         subGetStart,
         nullableFunctionArgumentCall,
-        functionCallArgumentStart,
+        functionArgumentStart,
         postIncrement,
         postDecrement,
       };
@@ -495,8 +495,8 @@ abstract class HTLexicon {
         subGetStart,
         subGetEnd,
         nullableFunctionArgumentCall,
-        functionCallArgumentStart,
-        functionCallArgumentEnd,
+        functionArgumentStart,
+        functionArgumentEnd,
         nullableTypePostfix,
         postIncrement,
         postDecrement,
