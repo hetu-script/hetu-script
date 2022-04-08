@@ -1,4 +1,3 @@
-import 'token_reader.dart';
 import '../ast/ast.dart';
 import '../source/source.dart';
 import 'token.dart';
@@ -34,7 +33,7 @@ abstract class ParserConfig {}
 class ParserConfigImpl implements ParserConfig {}
 
 /// Convert tokens into [ASTSource] by a certain grammar rules set.
-abstract class HTParser with TokenReader {
+abstract class HTParser {
   /// the identity name of this parser.
   String get name;
 

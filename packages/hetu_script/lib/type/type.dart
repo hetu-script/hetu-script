@@ -1,6 +1,5 @@
 import 'package:quiver/core.dart';
 
-import '../lexicon/lexicon.dart';
 import '../value/entity.dart';
 import '../declaration/namespace/declaration_namespace.dart';
 // import 'unresolved_type.dart';
@@ -19,15 +18,15 @@ enum PrimitiveTypeCategory {
 /// Type is basically a set of things.
 /// It is used to check errors in code.
 abstract class HTType with HTEntity {
-  static String parseBaseType(String typeString) {
-    final argsStart = typeString.indexOf(HTLexicon.typeParameterStart);
-    if (argsStart != -1) {
-      final id = typeString.substring(0, argsStart);
-      return id;
-    } else {
-      return typeString;
-    }
-  }
+  // static String parseBaseType(String typeString) {
+  //   final argsStart = typeString.indexOf(HTLexicon.typeParameterStart);
+  //   if (argsStart != -1) {
+  //     final id = typeString.substring(0, argsStart);
+  //     return id;
+  //   } else {
+  //     return typeString;
+  //   }
+  // }
 
   bool get isResolved => true;
 
@@ -89,26 +88,6 @@ abstract class HTType with HTEntity {
   @override
   bool operator ==(Object other) =>
       other is HTType && hashCode == other.hashCode;
-
-  @override
-  String toString() {
-    var typeString = StringBuffer();
-    typeString.write(id);
-    if (typeArgs.isNotEmpty) {
-      typeString.write(HTLexicon.typeParameterStart);
-      for (var i = 0; i < typeArgs.length; ++i) {
-        typeString.write(typeArgs[i]);
-        if ((typeArgs.length > 1) && (i != typeArgs.length - 1)) {
-          typeString.write('${HTLexicon.comma} ');
-        }
-      }
-      typeString.write(HTLexicon.typeParameterEnd);
-    }
-    if (isNullable) {
-      typeString.write(HTLexicon.nullableTypePostfix);
-    }
-    return typeString.toString();
-  }
 
   /// Wether object of this [HTType] can be assigned to other [HTType]
   bool isA(HTType? other) {

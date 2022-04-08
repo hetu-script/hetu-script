@@ -9,7 +9,6 @@ import '../type/type.dart';
 import '../source/source.dart';
 import '../bytecode/compiler.dart';
 import '../error/error_severity.dart';
-import '../bundler/bundler.dart';
 import '../preincludes/preinclude_functions.dart';
 import '../preincludes/preinclude_module.dart';
 import '../locale/locale.dart';
@@ -17,8 +16,12 @@ import '../external/external_function.dart';
 import '../external/external_class.dart';
 import '../binding/class_binding.dart';
 import '../binding/hetu_binding.dart';
-import '../lexicon/lexicon2.dart';
-import '../lexicon/lexicon_default_impl.dart';
+import '../lexer/lexicon2.dart';
+import '../lexer/lexicon_default_impl.dart';
+import '../parser/parser.dart';
+import '../parser/parser_default_impl.dart';
+import '../resource/resource.dart';
+import '../bundler/bundler.dart';
 
 /// A wrapper class for sourceContext, analyzer, compiler and interpreter to work together.
 class Hetu {
@@ -27,6 +30,12 @@ class Hetu {
   final HTResourceContext<HTSource> sourceContext;
 
   late final HTLexicon lexicon;
+
+  final Map<String, HTParser> _parsers = {};
+
+  late HTParser _currentParser;
+
+  HTParser get parser => _currentParser;
 
   late final HTAnalyzer analyzer;
 
@@ -40,10 +49,14 @@ class Hetu {
   Hetu(
       {InterpreterConfig? config,
       HTResourceContext<HTSource>? sourceContext,
-      HTLexicon? lexicon})
+      HTLexicon? lexicon,
+      String parserName = 'default',
+      HTParser? parser})
       : config = config ?? InterpreterConfig(),
         sourceContext = sourceContext ?? HTOverlayContext(),
-        lexicon = lexicon ?? HTDefaultLexicon() {
+        lexicon = lexicon ?? HTDefaultLexicon(),
+        _currentParser = parser ?? HTDefaultParser() {
+    _parsers[parserName] = _currentParser;
     analyzer =
         HTAnalyzer(config: this.config, sourceContext: this.sourceContext);
     compiler = HTCompiler(config: this.config, lexicon: this.lexicon);
@@ -107,6 +120,11 @@ class Hetu {
     }
     interpreter.invoke('initHetuEnv', positionalArgs: [this]);
     _isInitted = true;
+  }
+
+  void setParser(String name) {
+    assert(_parsers.containsKey(name));
+    _currentParser = _parsers[name]!;
   }
 
   /// Evaluate a string content.
@@ -208,8 +226,9 @@ class Hetu {
       {String? moduleName, CompilerConfig? config, bool errorHandled = false}) {
     try {
       final bundler = HTBundler(sourceContext: sourceContext);
-      final compilation = bundler.bundle(source);
-      final result = analyzer.analyzeCompilation(compilation);
+      final compilation =
+          bundler.bundle(source: source, parser: _currentParser);
+      final result = analyzer.analyzeASTCompilation(compilation);
       if (result.errors.isNotEmpty) {
         for (final error in result.errors) {
           if (error.severity >= ErrorSeverity.error) {

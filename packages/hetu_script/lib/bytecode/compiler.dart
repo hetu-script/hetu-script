@@ -2,8 +2,8 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import '../ast/ast.dart';
-import '../lexicon/lexicon2.dart';
-import '../lexicon/lexicon_default_impl.dart';
+import '../lexer/lexicon2.dart';
+import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../shared/constants.dart';
 import '../constant/global_constant_table.dart';
@@ -312,7 +312,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitCompilationUnit(ASTSource unit) {
+  Uint8List visitSource(ASTSource unit) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.file);
     // if the relativeName is null then it is the entry file of this module.

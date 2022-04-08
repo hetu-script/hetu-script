@@ -17,7 +17,7 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   }
 
   @override
-  void visitCompilationUnit(ASTSource node) {
+  void visitSource(ASTSource node) {
     node.subAccept(this);
   }
 

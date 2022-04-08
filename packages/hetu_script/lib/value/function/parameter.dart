@@ -47,15 +47,15 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
             definitionLine: definitionLine,
             definitionColumn: definitionColumn);
 
-  @override
-  String toString() {
-    final typeString = StringBuffer();
-    if (declType != null) {
-      typeString.write('$id: ');
-      typeString.write(declType.toString());
-    }
-    return typeString.toString();
-  }
+  // @override
+  // String toString() {
+  //   final typeString = StringBuffer();
+  //   if (declType != null) {
+  //     typeString.write('$id: ');
+  //     typeString.write(declType.toString());
+  //   }
+  //   return typeString.toString();
+  // }
 
   @override
   HTParameter clone() {

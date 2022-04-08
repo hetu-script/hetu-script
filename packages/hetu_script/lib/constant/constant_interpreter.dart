@@ -1,6 +1,6 @@
 import '../ast/ast.dart';
-import '../lexicon/lexicon2.dart';
-import '../lexicon/lexicon_default_impl.dart';
+import '../lexer/lexicon2.dart';
+import '../lexer/lexicon_default_impl.dart';
 import '../analyzer/analysis_error.dart';
 
 /// A interpreter that computes the constant value before compilation.
@@ -22,7 +22,7 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
   }
 
   @override
-  void visitCompilationUnit(ASTSource node) {
+  void visitSource(ASTSource node) {
     node.subAccept(this);
   }
 

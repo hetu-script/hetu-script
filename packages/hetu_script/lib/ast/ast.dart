@@ -68,8 +68,7 @@ abstract class ASTNode {
 /// Parse result of a single file
 class ASTSource extends ASTNode {
   @override
-  dynamic accept(AbstractASTVisitor visitor) =>
-      visitor.visitCompilationUnit(this);
+  dynamic accept(AbstractASTVisitor visitor) => visitor.visitSource(this);
 
   @override
   void subAccept(AbstractASTVisitor visitor) {

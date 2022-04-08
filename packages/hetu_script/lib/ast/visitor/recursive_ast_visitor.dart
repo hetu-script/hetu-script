@@ -16,7 +16,7 @@ abstract class RecursiveASTVisitor<T> implements AbstractASTVisitor<T> {
   }
 
   @override
-  T? visitCompilationUnit(ASTSource node) {
+  T? visitSource(ASTSource node) {
     node.subAccept(this);
   }
 

@@ -70,6 +70,9 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
 
   final analyzedDeclarations = <String, HTDeclarationNamespace>{};
 
+  List<HTAnalysisError> _currentErrors = [];
+  Map<String, HTSourceAnalysisResult> _currentAnalysisResults = {};
+
   HTAnalyzer(
       {AnalyzerConfig? config, HTResourceContext<HTSource>? sourceContext})
       : config = config ?? AnalyzerConfig(),
@@ -78,13 +81,13 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
     _currentNamespace = globalNamespace;
   }
 
-  HTModuleAnalysisResult analyzeCompilation(
+  HTModuleAnalysisResult analyzeASTCompilation(
     ASTCompilation compilation, {
     String? moduleName,
     bool globallyImport = false,
   }) {
-    final List<HTAnalysisError> errors = [];
-    final Map<String, HTSourceAnalysisResult> sourceAnalysisResults = {};
+    _currentErrors = [];
+    _currentAnalysisResults = {};
 
     // Resolve namespaces
     for (final parseResult in compilation.sources.values) {
@@ -102,37 +105,15 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
       }
     }
 
-    for (final parseResult in compilation.sources.values) {
-      final sourceErrors = <HTAnalysisError>[];
-      sourceErrors.addAll(
-          parseResult.errors!.map((err) => HTAnalysisError.fromError(err)));
-
-      // the second scan, compute constant values
-      if (config.computeConstantExpressionValue) {
-        final constantInterpreter = HTConstantInterpreter();
-        parseResult.accept(constantInterpreter);
-        sourceErrors.addAll(constantInterpreter.errors);
-      }
-
-      // the third scan, do static analysis
-      if (config.checkTypeErrors) {
-        final analyzer = HTAnalyzerImpl();
-        parseResult.accept(analyzer);
-        sourceErrors.addAll(analyzer.errors);
-      }
-
-      final sourceAnalysisResult = HTSourceAnalysisResult(
-          parseResult: parseResult,
-          analyzer: this,
-          errors: sourceErrors,
-          namespace: _currentNamespace);
-      sourceAnalysisResults[sourceAnalysisResult.fullName] =
+    for (final source in compilation.sources.values) {
+      final sourceAnalysisResult = analyzeASTSource(source);
+      _currentAnalysisResults[sourceAnalysisResult.fullName] =
           sourceAnalysisResult;
-      errors.addAll(sourceErrors);
+      _currentErrors.addAll(sourceAnalysisResult.errors);
     }
 
     if (globallyImport) {
-      globalNamespace.import(sourceAnalysisResults.values.last.namespace);
+      globalNamespace.import(_currentAnalysisResults.values.last.namespace);
     }
     // walk through ast again to resolve each symbol's declaration referrence.
     // final visitor = _OccurrencesVisitor();
@@ -140,22 +121,48 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
     //   node.accept(visitor);
     // }
     return HTModuleAnalysisResult(
-      sourceAnalysisResults: sourceAnalysisResults,
-      errors: errors,
+      sourceAnalysisResults: _currentAnalysisResults,
+      errors: _currentErrors,
       compilation: compilation,
     );
+  }
+
+  HTSourceAnalysisResult analyzeASTSource(ASTSource astSource) {
+    final sourceErrors = <HTAnalysisError>[];
+    sourceErrors
+        .addAll(astSource.errors!.map((err) => HTAnalysisError.fromError(err)));
+
+    // the second scan, compute constant values
+    if (config.computeConstantExpressionValue) {
+      final constantInterpreter = HTConstantInterpreter();
+      astSource.accept(constantInterpreter);
+      sourceErrors.addAll(constantInterpreter.errors);
+    }
+
+    // the third scan, do static analysis
+    if (config.checkTypeErrors) {
+      final analyzer = HTAnalyzerImpl();
+      astSource.accept(analyzer);
+      sourceErrors.addAll(analyzer.errors);
+    }
+
+    return HTSourceAnalysisResult(
+        parseResult: astSource,
+        analyzer: this,
+        errors: sourceErrors,
+        namespace: _currentNamespace);
   }
 
   void analyzeAST(ASTNode node) => node.accept(this);
 
   @override
   void visitCompilation(ASTCompilation node) {
-    throw 'Use evalSource instead of this method.';
+    throw 'Use `analyzeASTCompilation` instead of this method.';
   }
 
   @override
-  void visitCompilationUnit(ASTSource node) {
-    throw 'Use evalSource instead of this method.';
+  void visitSource(ASTSource astSource) {
+    throw 'Use `analyzeASTSource` instead of this method.';
   }
 
   @override

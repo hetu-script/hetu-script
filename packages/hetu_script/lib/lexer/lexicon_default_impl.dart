@@ -1,5 +1,7 @@
 import 'lexicon2.dart';
 import '../value/struct/struct.dart';
+import '../types.dart';
+import '../grammar/constant.dart';
 
 /// Default lexicon implementation used by Hetu.
 class HTDefaultLexicon extends HTLexicon {
@@ -625,30 +627,32 @@ class HTDefaultLexicon extends HTLexicon {
     final output = StringBuffer();
     if (object is String) {
       if (asStringLiteral) {
-        // if (object.contains("'")) {
-        //   final objString = object.replaceAll(r"'", r"\'");
-        //   return "'$objString'";
-        // } else {
         return "'$object'";
-        // }
       } else {
         return object;
       }
-    } else if (object is HTStruct) {
-      if (object.isEmpty) {
-        output.write('$functionBlockStart$functionBlockEnd');
-      } else {
-        output.writeln(functionBlockStart);
-        final structString = stringifyStructMembers(object);
-        output.write(structString);
-        output.write(_curIndent());
-        output.write(functionBlockEnd);
-      }
     } else if (object is Iterable) {
-      final listString = stringifyList(object);
-      output.write(listString);
+      final list = object as List;
+      if (list.isEmpty) {
+        return '$listStart$listEnd';
+      }
+      output.writeln(listStart);
+      ++_curIndentCount;
+      for (var i = 0; i < list.length; ++i) {
+        final item = list.elementAt(i);
+        output.write(_curIndent());
+        final itemString = stringify(item, asStringLiteral: true);
+        output.write(itemString);
+        if (i < list.length - 1) {
+          output.write(comma);
+        }
+        output.writeln();
+      }
+      --_curIndentCount;
+      output.write(_curIndent());
+      output.write(listEnd);
     } else if (object is Map) {
-      output.write(functionBlockStart);
+      output.write(structStart);
       final keys = object.keys.toList();
       for (var i = 0; i < keys.length; ++i) {
         final key = keys[i];
@@ -660,40 +664,26 @@ class HTDefaultLexicon extends HTLexicon {
           output.write('$comma ');
         }
       }
-      output.write(functionBlockEnd);
+      output.write(structEnd);
+    } else if (object is HTStruct) {
+      if (object.isEmpty) {
+        output.write('$structStart$structEnd');
+      } else {
+        final structString = _stringifyStruct(object);
+        output.write(structString);
+      }
+    } else if (object is HTType) {
+      final typeString = _stringifyType(object);
+      output.write(typeString);
     } else {
       output.write(object.toString());
     }
     return output.toString();
   }
 
-  @override
-  String stringifyList(Iterable list) {
-    if (list.isEmpty) {
-      return '$listStart$listEnd';
-    }
+  String _stringifyStruct(HTStruct struct, {HTStruct? from}) {
     final output = StringBuffer();
-    output.writeln(listStart);
-    ++_curIndentCount;
-    for (var i = 0; i < list.length; ++i) {
-      final item = list.elementAt(i);
-      output.write(_curIndent());
-      final itemString = stringify(item, asStringLiteral: true);
-      output.write(itemString);
-      if (i < list.length - 1) {
-        output.write(comma);
-      }
-      output.writeln();
-    }
-    --_curIndentCount;
-    output.write(_curIndent());
-    output.write(listEnd);
-    return output.toString();
-  }
-
-  @override
-  String stringifyStructMembers(HTStruct struct, {HTStruct? from}) {
-    final output = StringBuffer();
+    output.writeln(structStart);
     ++_curIndentCount;
     for (var i = 0; i < struct.length; ++i) {
       final key = struct.keys.elementAt(i);
@@ -712,7 +702,7 @@ class HTDefaultLexicon extends HTLexicon {
         if (value.isEmpty) {
           valueBuffer.write('$functionBlockStart$functionBlockEnd');
         } else {
-          final content = stringifyStructMembers(value, from: from);
+          final content = _stringifyStruct(value, from: from);
           valueBuffer.writeln(functionBlockStart);
           valueBuffer.write(content);
           valueBuffer.write(_curIndent());
@@ -728,11 +718,38 @@ class HTDefaultLexicon extends HTLexicon {
       }
       output.writeln();
     }
-    if (struct.prototype != null && struct.prototype!.id != globalPrototypeId) {
-      final inherits = stringifyStructMembers(struct.prototype!, from: struct);
-      output.write(inherits);
-    }
+    // if (struct.prototype != null && struct.prototype!.id != globalPrototypeId) {
+    //   final inherits = stringifyStructMembers(struct.prototype!, from: struct);
+    //   output.write(inherits);
+    // }
     --_curIndentCount;
+    output.write(_curIndent());
+    output.write(structEnd);
+    return output.toString();
+  }
+
+  String _stringifyType(HTType type) {
+    final output = StringBuffer();
+    if (type is HTFunctionType) {
+    } else if (type is HTStructuralType) {
+    } else if (type is HTExternalType) {
+      output.write('${InternalIdentifier.externalType} ${type.id}');
+    } else {
+      output.write(type.id);
+      if (type.typeArgs.isNotEmpty) {
+        output.write(typeParameterStart);
+        for (var i = 0; i < type.typeArgs.length; ++i) {
+          output.write(type.typeArgs[i]);
+          if ((type.typeArgs.length > 1) && (i != type.typeArgs.length - 1)) {
+            output.write('$comma ');
+          }
+        }
+        output.write(typeParameterEnd);
+      }
+      if (type.isNullable) {
+        output.write(nullableTypePostfix);
+      }
+    }
     return output.toString();
   }
 }

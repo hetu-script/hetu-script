@@ -1,9 +1,10 @@
+import 'package:hetu_script/parser/token_reader.dart';
 import 'package:path/path.dart' as path;
 
 import 'parser.dart';
 import 'token.dart';
-import '../lexicon/lexicon2.dart';
-import '../lexicon/lexicon_default_impl.dart';
+import '../lexer/lexicon2.dart';
+import '../lexer/lexicon_default_impl.dart';
 import '../error/error.dart';
 import '../lexer/lexer.dart';
 import '../resource/resource.dart';
@@ -17,7 +18,7 @@ import '../parser/parser.dart';
 import '../type/type.dart' show PrimitiveTypeCategory;
 
 /// Default parser implementation used by Hetu.
-class HTDefaultParser extends HTParser {
+class HTDefaultParser extends HTParser with TokenReader {
   static var anonymousFunctionIndex = 0;
 
   @override

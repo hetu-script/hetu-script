@@ -1,13 +1,13 @@
 import '../error/error.dart';
-import '../lexicon/lexicon.dart';
+// import '../lexicon/lexicon.dart';
 import '../type/type.dart';
 
 /// The encapsulated null object, used when try to interact with a null value.
 class _HTNull with HTEntity {
   const _HTNull();
 
-  @override
-  String toString() => HTLexicon.kNull;
+  // @override
+  // String toString() => HTLexicon.kNull;
 
   // @override
   // HTType get valueType => const HTTypeNull();

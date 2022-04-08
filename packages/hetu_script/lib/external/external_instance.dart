@@ -7,7 +7,7 @@ import '../error/error.dart';
 import '../value/function/function.dart';
 import '../value/class/class.dart';
 import 'external_class.dart';
-import '../value/external_enum/external_enum.dart';
+// import '../value/external_enum/external_enum.dart';
 import '../interpreter/interpreter.dart';
 import '../declaration/class/class_declaration.dart';
 
@@ -23,13 +23,13 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
 
   HTClassDeclaration? klass;
 
-  HTExternalEnum? enumClass;
+  // HTExternalEnum? enumClass;
 
   /// Create a external class object.
   HTExternalInstance(
       this.externalObject, HTInterpreter interpreter, this.typeString) {
     this.interpreter = interpreter;
-    final id = HTType.parseBaseType(typeString);
+    final id = interpreter.lexicon.getBaseTypeId(typeString);
     if (interpreter.containsExternalClass(id)) {
       externalClass = interpreter.fetchExternalClass(id);
     } else {
@@ -40,9 +40,10 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
         .memberGet(id, recursive: true, error: false);
     if (def is HTClassDeclaration) {
       klass = def;
-    } else if (def is HTExternalEnum) {
-      enumClass = def;
     }
+    // else if (def is HTExternalEnum) {
+    //   enumClass = def;
+    // }
     if (klass != null) {
       valueType = HTNominalType(klass!);
     } else {

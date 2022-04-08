@@ -64,16 +64,16 @@ class HTStruct with HTEntity {
 
   Map<String, dynamic> toJson() => util.jsonifyStruct(this);
 
-  @override
-  String toString() {
-    if (_fields.isNotEmpty) {
-      final content =
-          interpreter.lexicon.stringifyStructMembers(this, from: this);
-      return '${interpreter.lexicon.functionBlockStart}\n$content${interpreter.lexicon.functionBlockEnd}';
-    } else {
-      return '${interpreter.lexicon.functionBlockStart}${interpreter.lexicon.functionBlockEnd}';
-    }
-  }
+  // @override
+  // String toString() {
+  //   if (_fields.isNotEmpty) {
+  //     final content =
+  //         interpreter.lexicon.stringifyStructMembers(this, from: this);
+  //     return '${interpreter.lexicon.functionBlockStart}\n$content${interpreter.lexicon.functionBlockEnd}';
+  //   } else {
+  //     return '${interpreter.lexicon.functionBlockStart}${interpreter.lexicon.functionBlockEnd}';
+  //   }
+  // }
 
   /// Check if this struct has the key in its own _fields
   bool containsKey(String? varName) {

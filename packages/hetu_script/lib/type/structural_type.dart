@@ -1,4 +1,3 @@
-import '../lexicon/lexicon.dart';
 import 'type.dart';
 import '../value/namespace/namespace.dart';
 
@@ -12,29 +11,29 @@ class HTStructuralType extends HTType {
         fieldTypes.map((key, value) => MapEntry(key, value.resolve(closure)));
   }
 
-  @override
-  String toString() {
-    var output = StringBuffer();
-    output.write('${HTLexicon.kStruct} ');
-    if (fieldTypes.isEmpty) {
-      output.write(
-          '${HTLexicon.functionBlockStart}${HTLexicon.functionBlockEnd}');
-    } else {
-      output.writeln(HTLexicon.functionBlockStart);
-      for (var i = 0; i < fieldTypes.length; ++i) {
-        final key = fieldTypes.keys.elementAt(i);
-        output.write('  $key${HTLexicon.typeIndicator}');
-        final fieldTypeString = fieldTypes[key].toString();
-        output.write(' $fieldTypeString');
-        if (i < fieldTypes.length - 1) {
-          output.write(HTLexicon.comma);
-        }
-        output.writeln();
-      }
-      output.write(HTLexicon.functionBlockEnd);
-    }
-    return output.toString();
-  }
+  // @override
+  // String toString() {
+  //   var output = StringBuffer();
+  //   output.write('${HTLexicon.kStruct} ');
+  //   if (fieldTypes.isEmpty) {
+  //     output.write(
+  //         '${HTLexicon.functionBlockStart}${HTLexicon.functionBlockEnd}');
+  //   } else {
+  //     output.writeln(HTLexicon.functionBlockStart);
+  //     for (var i = 0; i < fieldTypes.length; ++i) {
+  //       final key = fieldTypes.keys.elementAt(i);
+  //       output.write('  $key${HTLexicon.typeIndicator}');
+  //       final fieldTypeString = fieldTypes[key].toString();
+  //       output.write(' $fieldTypeString');
+  //       if (i < fieldTypes.length - 1) {
+  //         output.write(HTLexicon.comma);
+  //       }
+  //       output.writeln();
+  //     }
+  //     output.write(HTLexicon.functionBlockEnd);
+  //   }
+  //   return output.toString();
+  // }
 
   @override
   bool isA(HTType? other) {

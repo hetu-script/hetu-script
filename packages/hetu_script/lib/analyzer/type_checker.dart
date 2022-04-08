@@ -5,8 +5,8 @@ import '../ast/ast.dart';
 // import '../grammar/lexicon.dart';
 // import '../shared/stringify.dart';
 import '../type/type.dart';
-import '../lexicon/lexicon2.dart';
-import '../lexicon/lexicon_default_impl.dart';
+import '../lexer/lexicon2.dart';
+import '../lexer/lexicon_default_impl.dart';
 
 /// A interpreter that compute [HTType] out of [ASTNode]
 class HTTypeChecker implements AbstractASTVisitor<HTType> {
@@ -23,7 +23,7 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
   }
 
   @override
-  HTType visitCompilationUnit(ASTSource node) {
+  HTType visitSource(ASTSource node) {
     throw 'Don\'t use this on AstSource.';
   }
 

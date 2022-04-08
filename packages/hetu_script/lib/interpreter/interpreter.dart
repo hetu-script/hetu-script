@@ -21,13 +21,12 @@ import '../type/unresolved_type.dart';
 import '../type/function_type.dart';
 import '../type/nominal_type.dart';
 import '../type/structural_type.dart';
-import '../lexicon/lexicon2.dart';
-import '../lexicon/lexicon_default_impl.dart';
+import '../lexer/lexicon2.dart';
+import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../source/source.dart';
 import '../resource/resource.dart';
 import '../resource/resource_context.dart';
-import '../resource/overlay/overlay_context.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../analyzer/analyzer.dart';
@@ -178,10 +177,9 @@ class HTInterpreter {
   /// A bytecode interpreter.
   HTInterpreter(
       {InterpreterConfig? config,
-      HTResourceContext<HTSource>? sourceContext,
+      required this.sourceContext,
       HTLexicon? lexicon})
       : config = config ?? InterpreterConfig(),
-        sourceContext = sourceContext ?? HTOverlayContext(),
         _lexicon = lexicon ?? HTDefaultLexicon(),
         globalNamespace = HTNamespace(id: Semantic.global) {
     _currentNamespace = globalNamespace;
@@ -477,7 +475,7 @@ class HTInterpreter {
       }
       if (!reflected) {
         typeString = object.runtimeType.toString();
-        typeString = HTType.parseBaseType(typeString);
+        typeString = _lexicon.getBaseTypeId(typeString);
       }
     }
 
@@ -673,6 +671,7 @@ class HTInterpreter {
       _currentFileName = filename;
     }
     if (moduleName != null && (_currentBytecodeModule.id != moduleName)) {
+      assert(_cachedModules.containsKey(moduleName));
       _currentBytecodeModule = _cachedModules[moduleName]!;
       libChanged = true;
     }
@@ -719,6 +718,7 @@ class HTInterpreter {
     }
     if (savedModuleName != null) {
       if (_currentBytecodeModule.id != savedModuleName) {
+        assert(_cachedModules.containsKey(savedModuleName));
         _currentBytecodeModule = _cachedModules[savedModuleName]!;
       }
     }
@@ -772,6 +772,7 @@ class HTInterpreter {
       _currentFileName = filename;
     }
     if (moduleName != null && (_currentBytecodeModule.id != moduleName)) {
+      assert(_cachedModules.containsKey(moduleName));
       _currentBytecodeModule = _cachedModules[moduleName]!;
       libChanged = true;
     }

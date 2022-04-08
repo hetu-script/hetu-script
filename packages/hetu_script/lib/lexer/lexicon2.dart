@@ -1,5 +1,3 @@
-import '../value/struct/struct.dart';
-
 /// Lexicon used by Hetu,
 abstract class HTLexicon {
   /// the identity name of this lexicon.
@@ -580,9 +578,12 @@ abstract class HTLexicon {
   /// Print an object to a string.
   String stringify(dynamic object, {bool asStringLiteral = false});
 
-  /// Print all members of a list object to a string.
-  String stringifyList(Iterable list);
-
-  /// Print all members of a struct object to a string.
-  String stringifyStructMembers(HTStruct struct, {HTStruct? from});
+  String getBaseTypeId(String typeString) {
+    final argsStart = typeString.indexOf(typeParameterStart);
+    if (argsStart != -1) {
+      return typeString.substring(0, argsStart);
+    } else {
+      return typeString;
+    }
+  }
 }

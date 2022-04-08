@@ -1,8 +1,8 @@
 import 'package:hetu_script/parser/parser_default_impl.dart';
 
 import '../ast/ast.dart';
-import '../lexicon/lexicon2.dart';
-import '../lexicon/lexicon_default_impl.dart';
+import '../lexer/lexicon2.dart';
+import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../lexer/lexer.dart';
 import '../parser/parser.dart';
@@ -109,7 +109,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   }
 
   @override
-  String visitCompilationUnit(ASTSource node) {
+  String visitSource(ASTSource node) {
     throw 'Use formatSource instead of this method.';
   }
 

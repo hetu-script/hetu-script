@@ -236,7 +236,7 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
   }
 
   /// Returns true if this object is an error, false if it is a result. Prefer
-  /// [mapResult] instead of checking this flag if [errors] will simply be
+  /// [mapResult] instead of checking this flag if [_currentErrors] will simply be
   /// propagated as-is.
   bool get isError => _which == 1;
 

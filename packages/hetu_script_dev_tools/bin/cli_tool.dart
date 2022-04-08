@@ -5,7 +5,6 @@ import 'package:args/args.dart';
 
 import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script/analyzer.dart';
-
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 var cliHelp = r'''
@@ -32,15 +31,17 @@ const kSeperator = '------------------------------------------------';
 
 final argParser = ArgParser();
 
-late Hetu hetu;
+final hetu = Hetu(sourceContext: sourceContext);
 final sourceContext = HTFileSystemResourceContext(expressionModuleExtensions: [
   HTResource.json,
   HTResource.jsonWithComments,
 ]);
+final analyzer = HTAnalyzer(sourceContext: sourceContext);
+final parser = HTDefaultParser();
+final bundler = HTBundler(sourceContext: sourceContext);
 
 void main(List<String> arguments) {
   try {
-    hetu = Hetu(sourceContext: sourceContext);
     final version = kHetuVersion.toString();
     replInfo = replInfo.replaceAll('{0}', version);
     cliHelp = cliHelp.replaceAll('{0}', version);
@@ -239,11 +240,9 @@ void format(List<String> args, String outPath) {
 }
 
 void analyze(List<String> args) {
-  final analyzer = HTAnalyzer(sourceContext: sourceContext);
-  final bundler = HTBundler(sourceContext: sourceContext);
   final source = sourceContext.getResource(args.first);
-  final compilation = bundler.bundle(source);
-  final result = analyzer.analyzeCompilation(compilation);
+  final compilation = bundler.bundle(source: source, parser: parser);
+  final result = analyzer.analyzeASTCompilation(compilation);
   if (result.errors.isNotEmpty) {
     for (final error in result.errors) {
       if (error.severity >= ErrorSeverity.error) {
@@ -262,12 +261,9 @@ void compile(List<String> args, String? outPath,
   if (args.isEmpty) {
     throw 'Error: Path argument is required for \'compile\' command.';
   }
-
   final source = sourceContext.getResource(args.first);
   stdout.write('Compiling [${source.fullName}] ...');
-
-  final bundler = HTBundler(sourceContext: sourceContext);
-  final module = bundler.bundle(source);
+  final module = bundler.bundle(source: source, parser: parser);
   if (module.errors.isNotEmpty) {
     for (final err in module.errors) {
       print(err);

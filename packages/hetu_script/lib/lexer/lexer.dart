@@ -1,8 +1,8 @@
 import 'package:characters/characters.dart';
 
 import '../parser/token.dart';
-import '../lexicon/lexicon2.dart';
-import '../lexicon/lexicon_default_impl.dart';
+import '../lexer/lexicon2.dart';
+import '../lexer/lexicon_default_impl.dart';
 import '../comment/comment.dart' show CommentType;
 import '../grammar/constant.dart';
 
