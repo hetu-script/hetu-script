@@ -1433,7 +1433,7 @@ class HTDefaultParser extends HTParser {
       final text = token.literal.replaceAllMapped(
           RegExp(_lexicon.stringInterpolationPattern),
           (Match m) =>
-              '${_lexicon.functionBlockStart}${i++}${_lexicon.functionBlockEnd}');
+              '${_lexicon.stringInterpolationStart}${i++}${_lexicon.stringInterpolationEnd}');
       _leftValueLegality = false;
       return ASTStringInterpolation(
           text, token.startMark, token.endMark, interpolations,

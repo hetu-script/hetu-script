@@ -1756,7 +1756,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
           classId: stmt.id.id,
           hasParamDecls: true,
           paramDecls: [],
-          returnType: TypeExpr(id: IdentifierExpr(_lexicon.typeString)),
           definition: toStringDef);
       final toStringBytes = visitFuncDecl(toStringFunc);
       bytesBuilder.add(toStringBytes);

@@ -574,6 +574,7 @@ class HTInterpreter {
       bool errorHandled = false}) {
     try {
       _currentBytecodeModule = HTBytecodeModule(id: moduleName, bytes: bytes);
+      _cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       final signature = _currentBytecodeModule.readUint32();
       if (signature != HTCompiler.hetuSignature) {
         throw HTError.bytecode(
@@ -638,7 +639,6 @@ class HTInterpreter {
           }
         }
       }
-      _cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       if (invokeFunc != null) {
         final result = invoke(invokeFunc,
             positionalArgs: positionalArgs,
@@ -1322,7 +1322,7 @@ class HTInterpreter {
         for (var i = 0; i < interpolationLength; ++i) {
           final value = execute();
           literal = literal.replaceAll(
-              '${_lexicon.functionBlockStart}$i${_lexicon.functionBlockEnd}',
+              '${_lexicon.stringInterpolationStart}$i${_lexicon.stringInterpolationEnd}',
               value.toString());
         }
         _localValue = literal;

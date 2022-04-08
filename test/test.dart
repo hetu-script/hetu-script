@@ -7,7 +7,7 @@ void main() {
     config: InterpreterConfig(
       checkTypeErrors: true,
       computeConstantExpressionValue: true,
-      // showDartStackTrace: true,
+      showDartStackTrace: true,
       // stackTraceDisplayCountLimit: 20,
       allowVariableShadowing: true,
       allowImplicitVariableDeclaration: false,
@@ -19,13 +19,7 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   hetu.eval(r'''
-        enum Race {
-          caucasian,
-          mongolian,
-          african,
-        }
-        var race: Race = Race.african
-        print(race)
+        print('${6*7}')
   ''');
 
   // final r = hetu.evalFile('eval.hts');
