@@ -32,14 +32,16 @@ abstract class ParserConfig {}
 
 class ParserConfigImpl implements ParserConfig {}
 
-/// Convert tokens into [ASTSource] by a certain grammar rules set.
+/// A general parser, with abstract method to parse a token list or string content.
 abstract class HTParser {
   /// the identity name of this parser.
   String get name;
 
-  /// Will use `style` when possible, then `source.sourceType`
+  /// Convert tokens into [ASTSource] by a certain grammar rules set.
+  /// If [style] is not specified, will use [source.sourceType] to determine.
   List<ASTNode> parseToken(Token token,
       {HTSource? source, ParseStyle? style, ParserConfig? config});
 
+  /// Convert string content into [ASTSource] by a certain grammar rules set.
   ASTSource parseSource(HTSource source);
 }

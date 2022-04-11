@@ -21,12 +21,9 @@ abstract class TokenReader {
 
   late Token endOfFile;
 
-  // Token get curTok => peek(0);
-
+  /// Set current tokens.
   void setTokens({required Token token, int? line, int? column}) {
     curTok = firstTok = token;
-    // _tokens.clear();
-    // _tokens.addAll(tokens);
     this.line = line ?? 0;
     this.column = column ?? 0;
 
