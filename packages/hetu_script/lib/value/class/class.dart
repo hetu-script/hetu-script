@@ -81,7 +81,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     if (isExternal) {
       externalClass = interpreter.fetchExternalClass(id!);
     }
-    for (final decl in namespace.declarations.values) {
+    for (final decl in namespace.symbols.values) {
       decl.resolve();
     }
   }
@@ -123,10 +123,10 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
         ? '${InternalIdentifier.namedConstructorPrefix}$varName'
         : InternalIdentifier.defaultConstructor;
 
-    return namespace.declarations.containsKey(varName) ||
-        namespace.declarations.containsKey(getter) ||
-        namespace.declarations.containsKey(setter) ||
-        namespace.declarations.containsKey(constructor);
+    return namespace.symbols.containsKey(varName) ||
+        namespace.symbols.containsKey(getter) ||
+        namespace.symbols.containsKey(setter) ||
+        namespace.symbols.containsKey(constructor);
   }
 
   /// Get a value of a static member from this [HTClass].
@@ -140,8 +140,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     //       externalClass!.memberGet(varName != id ? '$id.$varName' : varName);
     //   return value;
     // } else {
-    if (namespace.declarations.containsKey(varName)) {
-      final decl = namespace.declarations[varName]!;
+    if (namespace.symbols.containsKey(varName)) {
+      final decl = namespace.symbols[varName]!;
       if (decl.isPrivate &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
@@ -156,8 +156,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
           return decl.value;
         }
       }
-    } else if (namespace.declarations.containsKey(getter)) {
-      final decl = namespace.declarations[getter]!;
+    } else if (namespace.symbols.containsKey(getter)) {
+      final decl = namespace.symbols[getter]!;
       if (decl.isPrivate &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
@@ -171,8 +171,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
           return func.call();
         }
       }
-    } else if (namespace.declarations.containsKey(constructor)) {
-      final decl = namespace.declarations[constructor]!.value;
+    } else if (namespace.symbols.containsKey(constructor)) {
+      final decl = namespace.symbols[constructor]!.value;
       if (decl.isPrivate &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
@@ -200,8 +200,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
       externalClass!.memberSet('$id.$varName', varValue);
       return;
     } else {
-      if (namespace.declarations.containsKey(varName)) {
-        final decl = namespace.declarations[varName]!;
+      if (namespace.symbols.containsKey(varName)) {
+        final decl = namespace.symbols[varName]!;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
@@ -211,8 +211,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
           decl.value = varValue;
           return;
         }
-      } else if (namespace.declarations.containsKey(setter)) {
-        final decl = namespace.declarations[setter]!;
+      } else if (namespace.symbols.containsKey(setter)) {
+        final decl = namespace.symbols[setter]!;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {

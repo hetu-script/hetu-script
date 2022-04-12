@@ -27,7 +27,7 @@ abstract class ASTNode {
 
   bool get isConstValue => value != null;
 
-  // for constant expressions, this value is not null
+  /// This value is not null only when this is a constant expressions.
   dynamic value;
 
   final HTSource? source;

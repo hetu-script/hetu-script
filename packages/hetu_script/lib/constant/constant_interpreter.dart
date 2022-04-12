@@ -3,8 +3,8 @@ import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../analyzer/analysis_error.dart';
 
-/// A interpreter that computes the constant value before compilation.
-/// If the AstNode provided is non-constant value, return null.
+/// A interpreter that computes the value of a constant expression before compilation.
+/// If the AstNode provided is non-constant value, do nothing.
 class HTConstantInterpreter implements AbstractASTVisitor<void> {
   late final HTLexicon _lexicon;
 
@@ -30,19 +30,29 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
   void visitEmptyExpr(ASTEmptyLine node) {}
 
   @override
-  void visitNullExpr(ASTLiteralNull node) {}
+  void visitNullExpr(ASTLiteralNull node) {
+    // this value is already handled by parser.
+  }
 
   @override
-  void visitBooleanExpr(ASTLiteralBoolean node) {}
+  void visitBooleanExpr(ASTLiteralBoolean node) {
+    // this value is already handled by parser.
+  }
 
   @override
-  void visitIntLiteralExpr(ASTLiteralInteger node) {}
+  void visitIntLiteralExpr(ASTLiteralInteger node) {
+    // this value is already handled by parser.
+  }
 
   @override
-  void visitFloatLiteralExpr(ASTLiteralFloat node) {}
+  void visitFloatLiteralExpr(ASTLiteralFloat node) {
+    // this value is already handled by parser.
+  }
 
   @override
-  void visitStringLiteralExpr(ASTLiteralString node) {}
+  void visitStringLiteralExpr(ASTLiteralString node) {
+    // this value is already handled by parser.
+  }
 
   @override
   void visitStringInterpolationExpr(ASTStringInterpolation node) {
@@ -211,6 +221,14 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
   @override
   void visitTernaryExpr(TernaryExpr node) {
     node.subAccept(this);
+    if (node.condition.isConstValue && node.value is bool) {
+      bool condition = node.condition.value;
+      if (condition) {
+        node.value = node.thenBranch.value;
+      } else {
+        node.value = node.elseBranch.value;
+      }
+    }
   }
 
   @override

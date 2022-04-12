@@ -43,9 +43,9 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
 
   ErrorHandlerConfig? get errorConfig => null;
 
-  final HTDeclarationNamespace globalNamespace;
+  final HTDeclarationNamespace<ASTNode> _globalNamespace;
 
-  late HTDeclarationNamespace _currentNamespace;
+  late HTDeclarationNamespace<ASTNode> _currentNamespace;
 
   late HTSource _curSource;
 
@@ -58,8 +58,6 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
 
   HTResourceContext<HTSource> sourceContext;
 
-  final analyzedDeclarations = <String, HTDeclarationNamespace>{};
-
   List<HTAnalysisError> _currentErrors = [];
   Map<String, HTSourceAnalysisResult> _currentAnalysisResults = {};
 
@@ -67,8 +65,8 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
       {AnalyzerConfig? config, HTResourceContext<HTSource>? sourceContext})
       : config = config ?? AnalyzerConfig(),
         sourceContext = sourceContext ?? HTOverlayContext(),
-        globalNamespace = HTDeclarationNamespace(id: Semantic.global) {
-    _currentNamespace = globalNamespace;
+        _globalNamespace = HTDeclarationNamespace(id: Semantic.global) {
+    _currentNamespace = _globalNamespace;
   }
 
   HTModuleAnalysisResult analyzeASTCompilation(
@@ -80,17 +78,15 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
     _currentAnalysisResults = {};
 
     // Resolve namespaces
-    for (final parseResult in compilation.sources.values) {
+    for (final source in compilation.sources.values) {
       if (compilation.entryResourceType == HTResourceType.hetuLiteralCode) {
-        _currentNamespace = globalNamespace;
+        _currentNamespace = _globalNamespace;
       } else {
         _currentNamespace = HTDeclarationNamespace(
-            id: parseResult.fullName, closure: globalNamespace);
+            id: source.fullName, closure: _globalNamespace);
       }
-      HTDeclarationNamespace(
-          id: parseResult.fullName, closure: globalNamespace);
       // the first scan, namespaces & declarations are created
-      for (final node in parseResult.nodes) {
+      for (final node in source.nodes) {
         node.accept(this);
       }
     }
@@ -103,7 +99,7 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
     }
 
     if (globallyImport) {
-      globalNamespace.import(_currentAnalysisResults.values.last.namespace);
+      _globalNamespace.import(_currentAnalysisResults.values.last.namespace);
     }
     // walk through ast again to resolve each symbol's declaration referrence.
     // final visitor = _OccurrencesVisitor();
@@ -171,9 +167,7 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
   void visitFloatLiteralExpr(ASTLiteralFloat node) {}
 
   @override
-  void visitStringLiteralExpr(ASTLiteralString node) {
-    node.analysisNamespace = _currentNamespace;
-  }
+  void visitStringLiteralExpr(ASTLiteralString node) {}
 
   @override
   void visitStringInterpolationExpr(ASTStringInterpolation node) {

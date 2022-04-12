@@ -29,8 +29,8 @@ class HTInstanceNamespace extends HTNamespace {
 
     HTInstanceNamespace? curNamespace = this;
     while (curNamespace != null) {
-      if (curNamespace.declarations.containsKey(varName) ||
-          curNamespace.declarations.containsKey(getter)) {
+      if (curNamespace.symbols.containsKey(varName) ||
+          curNamespace.symbols.containsKey(getter)) {
         final value =
             instance.memberGet(varName, from: from, cast: curNamespace.classId);
         if (value is HTFunction) {
@@ -62,8 +62,8 @@ class HTInstanceNamespace extends HTNamespace {
 
     HTInstanceNamespace? curNamespace = this;
     while (curNamespace != null) {
-      if (curNamespace.declarations.containsKey(varName) ||
-          curNamespace.declarations.containsKey(setter)) {
+      if (curNamespace.symbols.containsKey(varName) ||
+          curNamespace.symbols.containsKey(setter)) {
         instance.memberSet(varName, varValue,
             from: from, cast: curNamespace.classId);
         return true;

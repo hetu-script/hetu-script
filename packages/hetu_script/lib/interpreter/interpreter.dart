@@ -507,7 +507,7 @@ class HTInterpreter {
       for (final importDecl in importNamespace.imports.values) {
         _handleNamespaceImport(importNamespace, importDecl);
       }
-      for (final declaration in importNamespace.declarations.values) {
+      for (final declaration in importNamespace.symbols.values) {
         declaration.resolve();
       }
     }
@@ -518,7 +518,7 @@ class HTInterpreter {
             isExported: decl.isExported, showList: decl.showList);
       } else {
         for (final id in decl.showList) {
-          final decl = importNamespace.declarations[id]!;
+          final decl = importNamespace.symbols[id]!;
           nsp.defineImport(id, decl);
         }
       }
@@ -532,7 +532,7 @@ class HTInterpreter {
         final aliasNamespace =
             HTNamespace(id: decl.alias!, closure: globalNamespace);
         for (final id in decl.showList) {
-          final decl = importNamespace.declarations[id]!;
+          final decl = importNamespace.symbols[id]!;
           aliasNamespace.define(id, decl);
         }
         nsp.defineImport(decl.alias!, aliasNamespace);
@@ -613,7 +613,7 @@ class HTInterpreter {
       // resolve each declaration after we get all declarations
       if (!_isModuleEntryScript) {
         for (final namespace in _currentBytecodeModule.namespaces.values) {
-          for (final decl in namespace.declarations.values) {
+          for (final decl in namespace.symbols.values) {
             decl.resolve();
           }
         }

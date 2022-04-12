@@ -53,8 +53,8 @@ class HTInstance with HTEntity, InterpreterRef {
         classId: curKlass.id, closure: klass.namespace);
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
-      for (final key in curKlass.namespace.declarations.keys) {
-        final decl = curKlass.namespace.declarations[key]!;
+      for (final key in curKlass.namespace.symbols.keys) {
+        final decl = curKlass.namespace.symbols[key]!;
         if (decl.isStatic) {
           continue;
         }
@@ -108,8 +108,8 @@ class HTInstance with HTEntity, InterpreterRef {
 
     HTInstanceNamespace? curNamespace = namespace;
     while (curNamespace != null) {
-      for (final id in curNamespace.declarations.keys) {
-        final decl = curNamespace.declarations[id]!;
+      for (final id in curNamespace.symbols.keys) {
+        final decl = curNamespace.symbols[id]!;
         if (jsonObject.containsKey(id)) {
           continue;
         }
@@ -123,11 +123,9 @@ class HTInstance with HTEntity, InterpreterRef {
   @override
   bool contains(String varName) {
     for (final space in _namespaces.values) {
-      if (space.declarations.containsKey(varName) ||
-          space.declarations
-              .containsKey('${InternalIdentifier.getter}$varName') ||
-          space.declarations
-              .containsKey('${InternalIdentifier.setter}$varName')) {
+      if (space.symbols.containsKey(varName) ||
+          space.symbols.containsKey('${InternalIdentifier.getter}$varName') ||
+          space.symbols.containsKey('${InternalIdentifier.setter}$varName')) {
         return true;
       }
     }
@@ -145,8 +143,8 @@ class HTInstance with HTEntity, InterpreterRef {
 
     if (cast == null) {
       for (final space in _namespaces.values) {
-        if (space.declarations.containsKey(varName)) {
-          final decl = space.declarations[varName]!;
+        if (space.symbols.containsKey(varName)) {
+          final decl = space.symbols[varName]!;
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
@@ -157,8 +155,8 @@ class HTInstance with HTEntity, InterpreterRef {
             decl.instance = this;
           }
           return decl.value;
-        } else if (space.declarations.containsKey(getter)) {
-          final func = space.declarations[getter]! as HTFunction;
+        } else if (space.symbols.containsKey(getter)) {
+          final func = space.symbols[getter]! as HTFunction;
           func.namespace = namespace;
           func.instance = this;
           return func.call();
@@ -166,8 +164,8 @@ class HTInstance with HTEntity, InterpreterRef {
       }
     } else {
       final space = _namespaces[cast]!;
-      if (space.declarations.containsKey(varName)) {
-        final decl = space.declarations[varName]!;
+      if (space.symbols.containsKey(varName)) {
+        final decl = space.symbols[varName]!;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
@@ -178,8 +176,8 @@ class HTInstance with HTEntity, InterpreterRef {
           decl.instance = this;
         }
         return decl.value;
-      } else if (space.declarations.containsKey(getter)) {
-        final decl = space.declarations[getter]!;
+      } else if (space.symbols.containsKey(getter)) {
+        final decl = space.symbols[getter]!;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
@@ -208,8 +206,8 @@ class HTInstance with HTEntity, InterpreterRef {
 
     if (cast == null) {
       for (final space in _namespaces.values) {
-        if (space.declarations.containsKey(varName)) {
-          final decl = space.declarations[varName]!;
+        if (space.symbols.containsKey(varName)) {
+          final decl = space.symbols[varName]!;
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
@@ -217,8 +215,8 @@ class HTInstance with HTEntity, InterpreterRef {
           }
           decl.value = varValue;
           return;
-        } else if (space.declarations.containsKey(setter)) {
-          final decl = space.declarations[setter]!;
+        } else if (space.symbols.containsKey(setter)) {
+          final decl = space.symbols[setter]!;
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
@@ -237,8 +235,8 @@ class HTInstance with HTEntity, InterpreterRef {
       }
 
       final space = _namespaces[cast]!;
-      if (space.declarations.containsKey(varName)) {
-        var decl = space.declarations[varName]!;
+      if (space.symbols.containsKey(varName)) {
+        var decl = space.symbols[varName]!;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
@@ -246,8 +244,8 @@ class HTInstance with HTEntity, InterpreterRef {
         }
         decl.value = varValue;
         return;
-      } else if (space.declarations.containsKey(setter)) {
-        final decl = space.declarations[setter]!;
+      } else if (space.symbols.containsKey(setter)) {
+        final decl = space.symbols[setter]!;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {

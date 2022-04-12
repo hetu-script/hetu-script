@@ -16,7 +16,7 @@ void main() {
     ),
     sourceContext: sourceContext,
   );
-  // hetu.init(locale: HTLocaleSimplifiedChinese());
+  hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = hetu.eval(r'''
       1 + 2

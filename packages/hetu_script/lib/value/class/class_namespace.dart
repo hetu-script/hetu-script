@@ -17,20 +17,20 @@ class HTClassNamespace extends HTNamespace {
     final getter = '${InternalIdentifier.getter}$varName';
     final externalStatic = '$id.$varName';
 
-    if (declarations.containsKey(varName)) {
-      final decl = declarations[varName]!;
+    if (symbols.containsKey(varName)) {
+      final decl = symbols[varName]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
       return decl.value;
-    } else if (declarations.containsKey(getter)) {
-      final decl = declarations[getter]!;
+    } else if (symbols.containsKey(getter)) {
+      final decl = symbols[getter]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
       return decl.value;
-    } else if (declarations.containsKey(externalStatic)) {
-      final decl = declarations[externalStatic]!;
+    } else if (symbols.containsKey(externalStatic)) {
+      final decl = symbols[externalStatic]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
@@ -50,15 +50,15 @@ class HTClassNamespace extends HTNamespace {
   bool memberSet(String varName, dynamic varValue,
       {String? from, bool recursive = true, bool error = true}) {
     final setter = '${InternalIdentifier.setter}$varName';
-    if (declarations.containsKey(varName)) {
-      final decl = declarations[varName]!;
+    if (symbols.containsKey(varName)) {
+      final decl = symbols[varName]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
       decl.value = varValue;
       return true;
-    } else if (declarations.containsKey(setter)) {
-      final decl = declarations[setter]!;
+    } else if (symbols.containsKey(setter)) {
+      final decl = symbols[setter]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
