@@ -1,12 +1,9 @@
-import 'lexicon.dart';
-import '../value/struct/struct.dart';
-import '../types.dart';
-import '../grammar/constant.dart';
+import 'package:hetu_script/lexer/lexicon.dart';
 
 /// Default lexicon implementation used by Hetu.
-class HTDefaultLexicon extends HTLexicon {
+class ZhongwenLexicon extends HTLexicon {
   @override
-  String get name => r'default';
+  String get name => r'zhongwen';
 
   @override
   String get identifierStartPattern => r'[_\$\p{L}]';
@@ -71,7 +68,7 @@ class HTDefaultLexicon extends HTLexicon {
 
   /// _
   @override
-  String get privatePrefix => '_';
+  String get privatePrefix => '#';
 
   /// $
   @override
@@ -299,6 +296,14 @@ class HTDefaultLexicon extends HTLexicon {
   @override
   String get kThrow => 'throw';
 
+  String get kCall => '调用';
+
+  @override
+  Set<String> get keywords => {
+        ...super.keywords,
+        kCall,
+      };
+
   @override
   String get indent => '  ';
 
@@ -356,11 +361,11 @@ class HTDefaultLexicon extends HTLexicon {
 
   /// (
   @override
-  String get functionArgumentStart => '(';
+  String get functionArgumentStart => '对';
 
   /// )
   @override
-  String get functionArgumentEnd => ')';
+  String get functionArgumentEnd => '，';
 
   /// ?
   @override
@@ -495,7 +500,7 @@ class HTDefaultLexicon extends HTLexicon {
 
   /// ,
   @override
-  String get comma => ',';
+  String get comma => '、';
 
   /// :
   @override
@@ -515,31 +520,31 @@ class HTDefaultLexicon extends HTLexicon {
 
   /// ;
   @override
-  String get endOfStatementMark => ';';
+  String get endOfStatementMark => '。';
 
   /// '
   @override
-  String get stringStart1 => "'";
+  String get stringStart1 => "“";
 
   /// '
   @override
-  String get stringEnd1 => "'";
+  String get stringEnd1 => "”";
 
   /// "
   @override
-  String get stringStart2 => '"';
+  String get stringStart2 => '“';
 
   /// "
   @override
-  String get stringEnd2 => '"';
+  String get stringEnd2 => '”';
 
   /// "
   @override
-  String get identifierStart => '`';
+  String get identifierStart => '‘';
 
   /// "
   @override
-  String get identifierEnd => '`';
+  String get identifierEnd => '’';
 
   /// (
   @override
@@ -613,17 +618,17 @@ class HTDefaultLexicon extends HTLexicon {
   @override
   String get typeParameterEnd => '>';
 
-  var _curIndentCount = 0;
+  // var _curIndentCount = 0;
 
-  String _curIndent() {
-    final output = StringBuffer();
-    var i = _curIndentCount;
-    while (i > 0) {
-      output.write(indent);
-      --i;
-    }
-    return output.toString();
-  }
+  // String _curIndent() {
+  //   final output = StringBuffer();
+  //   var i = _curIndentCount;
+  //   while (i > 0) {
+  //     output.write(indent);
+  //     --i;
+  //   }
+  //   return output.toString();
+  // }
 
   @override
   String stringify(dynamic object, {bool asStringLiteral = false}) {
@@ -634,182 +639,8 @@ class HTDefaultLexicon extends HTLexicon {
       } else {
         return object;
       }
-    } else if (object is Iterable) {
-      final list = object as List;
-      if (list.isEmpty) {
-        return '$listStart$listEnd';
-      }
-      output.writeln(listStart);
-      ++_curIndentCount;
-      for (var i = 0; i < list.length; ++i) {
-        final item = list.elementAt(i);
-        output.write(_curIndent());
-        final itemString = stringify(item, asStringLiteral: true);
-        output.write(itemString);
-        if (i < list.length - 1) {
-          output.write(comma);
-        }
-        output.writeln();
-      }
-      --_curIndentCount;
-      output.write(_curIndent());
-      output.write(listEnd);
-    } else if (object is Map) {
-      output.write(structStart);
-      final keys = object.keys.toList();
-      for (var i = 0; i < keys.length; ++i) {
-        final key = keys[i];
-        final value = object[key];
-        final keyString = stringify(key);
-        final valueString = stringify(value);
-        output.write('$keyString: $valueString');
-        if (i < keys.length - 1) {
-          output.write('$comma ');
-        }
-      }
-      output.write(structEnd);
-    } else if (object is HTStruct) {
-      if (object.isEmpty) {
-        output.write('$structStart$structEnd');
-      } else {
-        final structString = _stringifyStruct(object);
-        output.write(structString);
-      }
-    } else if (object is HTType) {
-      final typeString = _stringifyType(object);
-      output.write(typeString);
     } else {
       output.write(object.toString());
-    }
-    return output.toString();
-  }
-
-  String _stringifyStruct(HTStruct struct, {HTStruct? from}) {
-    final output = StringBuffer();
-    output.writeln(structStart);
-    ++_curIndentCount;
-    for (var i = 0; i < struct.length; ++i) {
-      final key = struct.keys.elementAt(i);
-      if (key.startsWith(internalPrefix)) {
-        continue;
-      }
-      if (from != null && from != struct) {
-        if (from.contains(key)) {
-          continue;
-        }
-      }
-      output.write(_curIndent());
-      final value = struct[key];
-      final valueBuffer = StringBuffer();
-      if (value is HTStruct) {
-        if (value.isEmpty) {
-          valueBuffer.write('$functionBlockStart$functionBlockEnd');
-        } else {
-          final content = _stringifyStruct(value, from: from);
-          valueBuffer.writeln(functionBlockStart);
-          valueBuffer.write(content);
-          valueBuffer.write(_curIndent());
-          valueBuffer.write(functionBlockEnd);
-        }
-      } else {
-        final valueString = stringify(value, asStringLiteral: true);
-        valueBuffer.write(valueString);
-      }
-      output.write('$key$structValueIndicator $valueBuffer');
-      if (i < struct.length - 1) {
-        output.write(comma);
-      }
-      output.writeln();
-    }
-    // if (struct.prototype != null && struct.prototype!.id != globalPrototypeId) {
-    //   final inherits = stringifyStructMembers(struct.prototype!, from: struct);
-    //   output.write(inherits);
-    // }
-    --_curIndentCount;
-    output.write(_curIndent());
-    output.write(structEnd);
-    return output.toString();
-  }
-
-  String _stringifyType(HTType type) {
-    final output = StringBuffer();
-    if (type is HTFunctionType) {
-      output.write('$typeFunction ');
-      if (type.genericTypeParameters.isNotEmpty) {
-        output.write(typeParameterStart);
-        for (var i = 0; i < type.genericTypeParameters.length; ++i) {
-          output.write(type.genericTypeParameters[i]);
-          if (i < type.genericTypeParameters.length - 1) {
-            output.write('$comma ');
-          }
-        }
-        output.write(typeParameterEnd);
-      }
-      output.write(functionArgumentStart);
-      var i = 0;
-      var optionalStarted = false;
-      var namedStarted = false;
-      for (final param in type.parameterTypes) {
-        if (param.isVariadic) {
-          output.write(variadicArgs + ' ');
-        }
-        if (param.isOptional && !optionalStarted) {
-          optionalStarted = true;
-          output.write(optionalPositionalParameterStart);
-        } else if (param.isNamed && !namedStarted) {
-          namedStarted = true;
-          output.write(namedParameterStart);
-        }
-        output.write(param.toString());
-        if (i < type.parameterTypes.length - 1) {
-          output.write('$comma ');
-        }
-        if (optionalStarted) {
-          output.write(optionalPositionalParameterEnd);
-        } else if (namedStarted) {
-          namedStarted = true;
-          output.write(namedParameterEnd);
-        }
-        ++i;
-      }
-      final returnTypeString = _stringifyType(type.returnType);
-      output.write('$functionArgumentEnd $functionReturnTypeIndicator ' +
-          returnTypeString);
-    } else if (type is HTStructuralType) {
-      output.write('$kStruct ');
-      if (type.fieldTypes.isEmpty) {
-        output.write('$structStart$structEnd');
-      } else {
-        output.writeln(structStart);
-        for (var i = 0; i < type.fieldTypes.length; ++i) {
-          final key = type.fieldTypes.keys.elementAt(i);
-          output.write('  $key$typeIndicator');
-          final fieldTypeString = type.fieldTypes[key].toString();
-          output.write(' $fieldTypeString');
-          if (i < type.fieldTypes.length - 1) {
-            output.write(comma);
-          }
-          output.writeln();
-        }
-        output.write(structEnd);
-      }
-    } else if (type is HTExternalType) {
-      output.write('${InternalIdentifier.externalType} ${type.id}');
-    } else {
-      output.write(type.id);
-      if (type.typeArgs.isNotEmpty) {
-        output.write(typeParameterStart);
-        for (var i = 0; i < type.typeArgs.length; ++i) {
-          output.write(type.typeArgs[i]);
-          if ((type.typeArgs.length > 1) && (i != type.typeArgs.length - 1)) {
-            output.write('$comma ');
-          }
-        }
-        output.write(typeParameterEnd);
-      }
-      if (type.isNullable) {
-        output.write(nullableTypePostfix);
-      }
     }
     return output.toString();
   }

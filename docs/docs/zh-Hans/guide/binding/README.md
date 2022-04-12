@@ -20,7 +20,7 @@ final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isF
 - bool
 - int
 - double (it is called float in the script)
-- String
+- String (it is called str in the script)
 - List\<dynamic\>
 - Set\<dynamic>
 - Map\<dynamic, dynamic\>

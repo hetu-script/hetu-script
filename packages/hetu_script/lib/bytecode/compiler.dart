@@ -29,17 +29,10 @@ class HTRegIdx {
   static const length = 16;
 }
 
-abstract class CompilerConfig {
-  factory CompilerConfig({bool compileWithLineInfo}) = CompilerConfigImpl;
+class CompilerConfig {
+  bool compileWithoutLineInfo;
 
-  bool get compileWithLineInfo;
-}
-
-class CompilerConfigImpl implements CompilerConfig {
-  @override
-  final bool compileWithLineInfo;
-
-  const CompilerConfigImpl({this.compileWithLineInfo = true});
+  CompilerConfig({this.compileWithoutLineInfo = false});
 }
 
 /// Compiles source code into bytecode.
@@ -76,7 +69,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   HTCompiler({
     CompilerConfig? config,
     HTLexicon? lexicon,
-  })  : config = config ?? const CompilerConfigImpl(),
+  })  : config = config ?? CompilerConfig(),
         _lexicon = lexicon ?? HTDefaultLexicon();
 
   Uint8List compile(ASTCompilation compilation) => compilation.accept(this);
@@ -157,7 +150,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   Uint8List _lineInfo(int line, int column) {
     final bytesBuilder = BytesBuilder();
-    if (config.compileWithLineInfo) {
+    if (!config.compileWithoutLineInfo) {
       _curLine = line;
       _curColumn = column;
       bytesBuilder.addByte(HTOpCode.lineInfo);

@@ -20,7 +20,7 @@ For these kind of values, their bindings are pre-included within the interpreter
 - bool
 - int
 - double (it is called float in the script)
-- String
+- String (it is called str in the script)
 - List\<dynamic\>
 - Set\<dynamic>
 - Map\<dynamic, dynamic\>

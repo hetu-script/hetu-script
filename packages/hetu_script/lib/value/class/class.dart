@@ -256,7 +256,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
       if (errorHandled) {
         rethrow;
       } else {
-        interpreter.handleError(error, externalStackTrace: stackTrace);
+        interpreter.handleError(error, stackTrace);
       }
     }
   }

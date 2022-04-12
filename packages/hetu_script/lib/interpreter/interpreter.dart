@@ -29,40 +29,24 @@ import '../resource/resource.dart';
 import '../resource/resource_context.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
-import '../analyzer/analyzer.dart';
 import '../shared/constants.dart';
 import '../bytecode/bytecode_module.dart';
 import '../bytecode/compiler.dart';
 import '../version.dart';
 import '../value/unresolved_import_statement.dart';
 import '../locale/locale.dart';
-import '../parser/parser.dart' show ParserConfig;
 
 /// Mixin for classes that want to hold a ref of a bytecode interpreter
 mixin InterpreterRef {
   late final HTInterpreter interpreter;
 }
 
-class InterpreterConfig
-    implements
-        ParserConfig,
-        AnalyzerConfig,
-        CompilerConfig,
-        ErrorHandlerConfig {
+class InterpreterConfig implements ErrorHandlerConfig {
   @override
-  bool checkTypeErrors;
-
-  @override
-  bool computeConstantExpressionValue;
-
-  @override
-  bool compileWithLineInfo;
+  bool showDartStackTrace;
 
   @override
   bool showHetuStackTrace;
-
-  @override
-  bool showDartStackTrace;
 
   @override
   int stackTraceDisplayCountLimit;
@@ -79,14 +63,11 @@ class InterpreterConfig
   bool allowImplicitEmptyValueToFalseConversion;
 
   InterpreterConfig(
-      {this.checkTypeErrors = false,
-      this.computeConstantExpressionValue = false,
-      this.compileWithLineInfo = true,
-      this.showHetuStackTrace = true,
-      this.showDartStackTrace = false,
+      {this.showDartStackTrace = false,
+      this.showHetuStackTrace = false,
       this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,
-      this.allowVariableShadowing = true,
+      this.allowVariableShadowing = false,
       this.allowImplicitVariableDeclaration = false,
       this.allowImplicitNullToZeroConversion = false,
       this.allowImplicitEmptyValueToFalseConversion = false});
@@ -216,7 +197,7 @@ class HTInterpreter {
   }
 
   /// Catch errors throwed by other code, and wrap them with detailed informations.
-  void handleError(Object error, {Object? externalStackTrace}) {
+  void handleError(Object error, [Object? externalStackTrace]) {
     final sb = StringBuffer();
 
     void handleStackTrace(List<String> stackTrace,
@@ -312,7 +293,7 @@ class HTInterpreter {
       if (errorHandled) {
         rethrow;
       } else {
-        handleError(error, externalStackTrace: stackTrace);
+        handleError(error, stackTrace);
       }
     }
   }
@@ -652,7 +633,7 @@ class HTInterpreter {
       if (errorHandled) {
         rethrow;
       } else {
-        handleError(error, externalStackTrace: stackTrace);
+        handleError(error, stackTrace);
       }
     }
   }

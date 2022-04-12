@@ -22,10 +22,64 @@ import '../parser/parser.dart';
 import '../parser/parser_default_impl.dart';
 import '../resource/resource.dart';
 import '../bundler/bundler.dart';
+import '../error/error_handler.dart';
+
+class HetuConfig
+    implements ParserConfig, AnalyzerConfig, CompilerConfig, InterpreterConfig {
+  @override
+  bool mandatoryEndOfStatementMark;
+
+  @override
+  bool checkTypeErrors;
+
+  @override
+  bool computeConstantExpressionValue;
+
+  @override
+  bool compileWithoutLineInfo;
+
+  @override
+  bool showDartStackTrace;
+
+  @override
+  bool showHetuStackTrace;
+
+  @override
+  int stackTraceDisplayCountLimit;
+
+  @override
+  ErrorHanldeApproach errorHanldeApproach;
+
+  @override
+  bool allowVariableShadowing;
+
+  @override
+  bool allowImplicitVariableDeclaration;
+
+  @override
+  bool allowImplicitNullToZeroConversion;
+
+  @override
+  bool allowImplicitEmptyValueToFalseConversion;
+
+  HetuConfig(
+      {this.mandatoryEndOfStatementMark = false,
+      this.checkTypeErrors = false,
+      this.computeConstantExpressionValue = false,
+      this.compileWithoutLineInfo = false,
+      this.showDartStackTrace = false,
+      this.showHetuStackTrace = false,
+      this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
+      this.errorHanldeApproach = ErrorHanldeApproach.exception,
+      this.allowVariableShadowing = true,
+      this.allowImplicitVariableDeclaration = false,
+      this.allowImplicitNullToZeroConversion = false,
+      this.allowImplicitEmptyValueToFalseConversion = false});
+}
 
 /// A wrapper class for sourceContext, analyzer, compiler and interpreter to work together.
 class Hetu {
-  InterpreterConfig config;
+  HetuConfig config;
 
   final HTResourceContext<HTSource> sourceContext;
 
@@ -47,12 +101,12 @@ class Hetu {
   bool get isInitted => _isInitted;
 
   Hetu(
-      {InterpreterConfig? config,
+      {HetuConfig? config,
       HTResourceContext<HTSource>? sourceContext,
       HTLexicon? lexicon,
       String parserName = 'default',
       HTParser? parser})
-      : config = config ?? InterpreterConfig(),
+      : config = config ?? HetuConfig(),
         sourceContext = sourceContext ?? HTOverlayContext(),
         lexicon = lexicon ?? HTDefaultLexicon(),
         _currentParser = parser ?? HTDefaultParser() {
@@ -107,6 +161,7 @@ class Hetu {
       final coreModule = Uint8List.fromList(hetuCoreModule);
       interpreter.loadBytecode(
           bytes: coreModule, moduleName: 'core', globallyImport: true);
+      interpreter.invoke('initHetuEnv', positionalArgs: [this]);
     }
 
     for (final key in externalFunctions.keys) {
@@ -118,7 +173,6 @@ class Hetu {
     for (final value in externalClasses) {
       interpreter.bindExternalClass(value);
     }
-    interpreter.invoke('initHetuEnv', positionalArgs: [this]);
     _isInitted = true;
   }
 
@@ -243,11 +297,11 @@ class Hetu {
         }
       }
       return compiler.compile(result.compilation);
-    } catch (error) {
+    } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;
       } else {
-        interpreter.handleError(error);
+        interpreter.handleError(error, stackTrace);
         return Uint8List.fromList([]);
       }
     }

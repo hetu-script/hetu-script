@@ -110,7 +110,7 @@ void enterReplMode({String? prompt}) {
   print(kSeperator);
   if (prompt != null) {
     print('Module execution result:\n');
-    print([prompt]);
+    print(hetu.lexicon.stringify(prompt));
     print(kSeperator);
   }
   while (true) {
@@ -124,7 +124,7 @@ void enterReplMode({String? prompt}) {
       }
       try {
         final result = hetu.eval(input, globallyImport: true);
-        print(result);
+        print(hetu.lexicon.stringify(result));
       } catch (e) {
         if (e is HTError) {
           print(e.message);
@@ -212,7 +212,7 @@ void run(List<String> args, {bool enterRepl = false}) {
   if (enterRepl) {
     enterReplMode(prompt: prompt);
   } else {
-    print(prompt);
+    print(hetu.lexicon.stringify(result));
   }
 }
 
@@ -270,7 +270,7 @@ void compile(List<String> args, String? outPath,
     }
     throw 'Syntactic error(s) occurred while parsing.';
   } else {
-    final compileConfig = CompilerConfig(compileWithLineInfo: false);
+    final compileConfig = CompilerConfig(compileWithoutLineInfo: true);
     final compiler = HTCompiler(config: compileConfig);
     final bytes = compiler.compile(module);
 
@@ -293,7 +293,7 @@ void compile(List<String> args, String? outPath,
     if (compileToIntArrayWithName != null) {
       final output = StringBuffer();
       output
-          .writeln('''/// The pre-compiled binary code of [${source.fullName}].
+          .writeln('''/// The pre-compiled binary code of [${source.basename}].
 /// This file has been automatically generated, please do not edit manually.
 final $compileToIntArrayWithName = [''');
       for (var i = 0; i < bytes.length; ++i) {

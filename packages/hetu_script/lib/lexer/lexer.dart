@@ -347,7 +347,7 @@ class HTLexer {
               }
               final lexeme = buffer.toString();
               final token = TokenIdentifier(
-                  lexeme: lexeme,
+                  lexeme: lexeme.substring(1, lexeme.length - 1),
                   line: line,
                   column: column,
                   offset: offset,

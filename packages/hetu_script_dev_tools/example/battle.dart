@@ -6,7 +6,7 @@ void main() {
   final sourceContext = HTFileSystemResourceContext(root: 'example/script');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
-  hetu.interpreter.loadExtensions(['console']);
+  hetu.loadModuleConsole();
 
   hetu.evalFile('battle1.ht', invokeFunc: 'main');
 }

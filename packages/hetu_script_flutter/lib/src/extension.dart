@@ -1,4 +1,8 @@
-part of hetu_script_flutter;
+import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/binding.dart';
+import 'package:hetu_script/value/function/function.dart';
+
+import 'assets_context.dart';
 
 extension HTFlutterExtension on Hetu {
   Future<void> initFlutter({

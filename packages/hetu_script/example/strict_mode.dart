@@ -2,9 +2,7 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() {
   final hetu = Hetu(
-    config: InterpreterConfig(
-      checkTypeErrors: true,
-      computeConstantExpressionValue: true,
+    config: HetuConfig(
       allowVariableShadowing: true,
       allowImplicitVariableDeclaration: true,
       allowImplicitNullToZeroConversion: true,

@@ -1,3 +1,4 @@
+
 // 类的定义
 class Calculator {
   // 成员变量
@@ -25,3 +26,4 @@ class Calculator {
     return x * y
   }
 }
+

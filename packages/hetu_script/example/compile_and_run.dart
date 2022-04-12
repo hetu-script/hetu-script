@@ -10,7 +10,7 @@ void main() {
     }
     ''',
       moduleName: moduleName,
-      config: CompilerConfig(compileWithLineInfo: false));
+      config: CompilerConfig(compileWithoutLineInfo: true));
 
   hetu.interpreter
       .loadBytecode(bytes: bytes, moduleName: moduleName, invokeFunc: 'main');

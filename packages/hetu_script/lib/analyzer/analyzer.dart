@@ -24,22 +24,12 @@ import '../constant/constant_interpreter.dart';
 import 'analyzer_impl.dart';
 // import '../locale/locale.dart';
 
-abstract class AnalyzerConfig {
-  factory AnalyzerConfig({bool computeConstantExpressionValue}) =
-      AnalyzerConfigImpl;
+class AnalyzerConfig {
+  bool checkTypeErrors;
 
-  bool get checkTypeErrors;
+  bool computeConstantExpressionValue;
 
-  bool get computeConstantExpressionValue;
-}
-
-class AnalyzerConfigImpl implements AnalyzerConfig {
-  @override
-  final bool checkTypeErrors;
-  @override
-  final bool computeConstantExpressionValue;
-
-  const AnalyzerConfigImpl(
+  AnalyzerConfig(
       {this.checkTypeErrors = false,
       this.computeConstantExpressionValue = false});
 }
