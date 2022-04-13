@@ -33,6 +33,4 @@ export 'game.ht'
 export { hello } from 'hello.ht'
 ```
 
-If you have at least one export statement that is not export from other sources (export 'path'), you wont' inexplicitly export the members of this namespace.
-
-Otherwise, every top level symbol will be exported by default.
+Every top level symbol will be exported by default if you do not have any export statement.

@@ -1451,6 +1451,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitVarDecl(VarDecl stmt) {
     final bytesBuilder = BytesBuilder();
+    // Only const declaration with a const expression as initializer
+    // can be compiled into a const declaration,
+    // otherwise will be compiled as a normal variable declaration,
+    // with a static warning output.
     if (stmt.isConst &&
         stmt.initializer != null &&
         stmt.initializer!.isConstValue) {

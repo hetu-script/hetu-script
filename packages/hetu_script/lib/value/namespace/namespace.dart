@@ -26,7 +26,10 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
 
   @override
   dynamic memberGet(String varName,
-      {String? from, bool recursive = false, bool error = true}) {
+      {bool isPrivate = false,
+      String? from,
+      bool recursive = false,
+      bool error = true}) {
     if (symbols.containsKey(varName)) {
       final decl = symbols[varName]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {

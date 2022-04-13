@@ -3,13 +3,13 @@ import 'package:hetu_script/analyzer.dart';
 
 void main() {
   final analyzer = HTAnalyzer();
+  final bundler = HTBundler(sourceContext: HTOverlayContext());
   final parser = HTDefaultParser();
   final source = HTSource(r'''
-    var i = 'Hello, world!'
+    i = 'Hello, world!'
   ''', type: HTResourceType.hetuLiteralCode);
-  final ast = parser.parseSource(source);
-  analyzer.resolve(ast);
-  final result = analyzer.analyze(ast);
+  final compilation = bundler.bundle(source: source, parser: parser);
+  final result = analyzer.analyzeCompilation(compilation);
   if (result.errors.isNotEmpty) {
     for (final error in result.errors) {
       if (error.severity >= ErrorSeverity.error) {

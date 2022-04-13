@@ -31,7 +31,13 @@ const kSeperator = '------------------------------------------------';
 
 final argParser = ArgParser();
 
-final hetu = Hetu(sourceContext: sourceContext);
+final hetu = Hetu(
+    config: HetuConfig(
+      compileWithoutLineInfo: true,
+      doStaticAnalysis: true,
+      computeConstantExpression: true,
+    ),
+    sourceContext: sourceContext);
 final sourceContext = HTFileSystemResourceContext(expressionModuleExtensions: [
   HTResource.json,
   HTResource.jsonWithComments,

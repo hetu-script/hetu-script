@@ -62,15 +62,19 @@ class HTAnalysisError implements HTError {
   }
 
   HTAnalysisError.fromError(HTError error,
-      {List<HTDiagnosticMessage> contextMessages = const []})
+      {required String filename,
+      required int line,
+      required int column,
+      int offset = 0,
+      int length = 0,
+      List<HTDiagnosticMessage> contextMessages = const []})
       : this(error.code, error.type,
             message: error.message,
+            extra: error.extra,
             correction: error.correction,
-            filename: error.filename!,
-            line: error.line!,
-            column: error.column!,
-            offset: error.offset!,
-            length: error.length!,
+            filename: filename,
+            line: line,
+            column: column,
             contextMessages: contextMessages);
 
   HTAnalysisError.constValue(

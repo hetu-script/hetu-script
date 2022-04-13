@@ -12,25 +12,62 @@ import '../grammar/constant.dart';
 import '../ast/visitor/recursive_ast_visitor.dart';
 import '../constant/constant_interpreter.dart';
 import 'analyzer_impl.dart';
+import '../lexer/lexicon.dart';
+import '../lexer/lexicon_default_impl.dart';
 
-class AnalyzerConfig {
-  bool checkTypeErrors;
+class AnalyzerImplConfig {
+  bool allowVariableShadowing;
 
-  bool computeConstantExpressionValue;
+  bool allowImplicitVariableDeclaration;
+
+  bool allowImplicitNullToZeroConversion;
+
+  bool allowImplicitEmptyValueToFalseConversion;
+
+  AnalyzerImplConfig({
+    this.allowVariableShadowing = true,
+    this.allowImplicitVariableDeclaration = false,
+    this.allowImplicitNullToZeroConversion = false,
+    this.allowImplicitEmptyValueToFalseConversion = false,
+  });
+}
+
+class AnalyzerConfig implements AnalyzerImplConfig {
+  bool computeConstantExpression;
+
+  bool doStaticAnalysis;
+
+  @override
+  bool allowVariableShadowing;
+
+  @override
+  bool allowImplicitVariableDeclaration;
+
+  @override
+  bool allowImplicitNullToZeroConversion;
+
+  @override
+  bool allowImplicitEmptyValueToFalseConversion;
 
   AnalyzerConfig(
-      {this.checkTypeErrors = false,
-      this.computeConstantExpressionValue = false});
+      {this.computeConstantExpression = false,
+      this.doStaticAnalysis = false,
+      this.allowVariableShadowing = true,
+      this.allowImplicitVariableDeclaration = false,
+      this.allowImplicitNullToZeroConversion = false,
+      this.allowImplicitEmptyValueToFalseConversion = false});
 }
 
 /// A ast visitor that create declarative-only namespaces on all astnode,
-/// for analysis purpose, the true analyzer is a underlying
+/// for analysis purpose, the true analyzer is another class.
 class HTAnalyzer extends RecursiveASTVisitor<void> {
   final errorProcessors = <ErrorProcessor>[];
 
   AnalyzerConfig config;
 
   ErrorHandlerConfig? get errorConfig => null;
+
+  late final HTLexicon _lexicon;
 
   final HTDeclarationNamespace<ASTNode> _globalNamespace;
 
@@ -51,9 +88,12 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
   Map<String, HTSourceAnalysisResult> _currentAnalysisResults = {};
 
   HTAnalyzer(
-      {AnalyzerConfig? config, HTResourceContext<HTSource>? sourceContext})
+      {AnalyzerConfig? config,
+      HTResourceContext<HTSource>? sourceContext,
+      HTLexicon? lexicon})
       : config = config ?? AnalyzerConfig(),
         sourceContext = sourceContext ?? HTOverlayContext(),
+        _lexicon = lexicon ?? HTDefaultLexicon(),
         _globalNamespace = HTDeclarationNamespace(id: Semantic.global) {
     _currentNamespace = _globalNamespace;
   }
@@ -68,14 +108,13 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
     // Resolve namespaces
     for (final source in compilation.sources.values) {
-      // the first scan, namespaces & declarations are created
+      // the first scan, namespaces & declarations are created.
       resolve(source);
     }
 
     for (final source in compilation.sources.values) {
-      // the second scan, compute constant values
-      // the third scan, do static analysis
-      analyze(source);
+      // the second & third scan.
+      _analyze(source);
     }
 
     if (globallyImport) {
@@ -101,23 +140,25 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
           id: source.fullName, closure: _globalNamespace);
     }
     for (final node in source.nodes) {
-      analyzeAST(node);
+      resolveAST(node);
     }
   }
 
-  HTSourceAnalysisResult analyze(ASTSource source) {
+  HTSourceAnalysisResult _analyze(ASTSource source) {
     final sourceErrors = <HTAnalysisError>[];
-    sourceErrors
-        .addAll(source.errors!.map((err) => HTAnalysisError.fromError(err)));
+    // sourceErrors
+    //     .addAll(source.errors!.map((err) => HTAnalysisError.fromError(err)));
 
-    if (config.computeConstantExpressionValue) {
+    // the second scan, compute constant values
+    if (config.computeConstantExpression) {
       final constantInterpreter = HTConstantInterpreter();
       source.accept(constantInterpreter);
       sourceErrors.addAll(constantInterpreter.errors);
     }
 
-    if (config.checkTypeErrors) {
-      final analyzer = HTAnalyzerImpl();
+    // the third scan, do static analysis
+    if (config.doStaticAnalysis) {
+      final analyzer = HTAnalyzerImpl(lexicon: _lexicon);
       source.accept(analyzer);
       sourceErrors.addAll(analyzer.errors);
     }
@@ -135,7 +176,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     return sourceAnalysisResult;
   }
 
-  void analyzeAST(ASTNode node) => node.accept(this);
+  void resolveAST(ASTNode node) => node.accept(this);
 
   @override
   void visitCompilation(ASTCompilation node) {
@@ -143,7 +184,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
   }
 
   @override
-  void visitSource(ASTSource astSource) {
+  void visitSource(ASTSource node) {
     throw 'Use `resolve() & analyzer()` instead of `visitSource`.';
   }
 
@@ -197,16 +238,8 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
   void visitVarDecl(VarDecl node) {
     node.subAccept(this);
     // if (node.isConst && node.initializer)
-    // node.declaration = HTVariableDeclaration(node.id.id,
-    //     classId: node.classId,
-    //     closure: _curNamespace,
-    //     source: _curSource,
-    //     declType: HTType.fromAst(node.declType),
-    //     isExternal: node.isExternal,
-    //     isStatic: node.isStatic,
-    //     isConst: node.isConst,
-    //     isMutable: node.isMutable);
-    // _curNamespace.define(node.id.id, node.declaration!);
+    _currentNamespace.define(node.id.id, node,
+        override: config.allowVariableShadowing);
   }
 
   @override

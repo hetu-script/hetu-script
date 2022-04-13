@@ -1,13 +1,19 @@
 import '../ast/ast.dart';
 import 'analysis_error.dart';
 import 'type_checker.dart';
+import '../error/error.dart';
+import '../lexer/lexicon.dart';
 
 /// A Ast interpreter for static analysis.
 class HTAnalyzerImpl implements AbstractASTVisitor<void> {
+  final HTLexicon _lexicon;
+
   final typeChecker = HTTypeChecker();
 
   /// Errors of a single file
   late List<HTAnalysisError> errors = [];
+
+  HTAnalyzerImpl({required HTLexicon lexicon}) : _lexicon = lexicon;
 
   void analyzeAST(ASTNode node) => node.accept(this);
 
@@ -46,7 +52,22 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
 
   @override
   void visitIdentifierExpr(IdentifierExpr node) {
-    node.subAccept(this);
+    final isPrivate = node.id.startsWith(_lexicon.privatePrefix);
+    try {
+      node.analysisNamespace!.memberGet(node.id,
+          isPrivate: isPrivate,
+          from: node.analysisNamespace!.fullName,
+          recursive: true);
+    } on HTError catch (err) {
+      errors.add(HTAnalysisError.fromError(
+        err,
+        filename: node.source!.fullName,
+        line: node.line,
+        column: node.column,
+        offset: node.offset,
+        length: node.length,
+      ));
+    }
   }
 
   @override

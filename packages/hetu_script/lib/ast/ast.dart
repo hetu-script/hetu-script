@@ -572,7 +572,7 @@ class ParamTypeExpr extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    id?.accept(visitor);
+    // id?.accept(visitor);
     declType.accept(visitor);
   }
 
@@ -718,7 +718,7 @@ class GenericTypeParameterExpr extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    id.accept(visitor);
+    // id.accept(visitor);
     superType?.accept(visitor);
   }
 
@@ -1529,10 +1529,10 @@ class ImportExportDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    alias?.accept(visitor);
-    for (final id in showList) {
-      id.accept(visitor);
-    }
+    // alias?.accept(visitor);
+    // for (final id in showList) {
+    //   id.accept(visitor);
+    // }
   }
 
   final String? fromPath;
@@ -1583,7 +1583,7 @@ class NamespaceDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    id.accept(visitor);
+    // id.accept(visitor);
     definition.accept(visitor);
   }
 
@@ -1626,7 +1626,7 @@ class TypeAliasDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    id.accept(visitor);
+    // id.accept(visitor);
     for (final param in genericTypeParameters) {
       param.accept(visitor);
     }
@@ -1678,7 +1678,7 @@ class TypeAliasDecl extends ASTNode {
 
 //   @override
 //   void subAccept(AbstractAstVisitor visitor) {
-//     id.accept(visitor);
+//     // id.accept(visitor);
 //     declType?.accept(visitor);
 //     constExpr.accept(visitor);
 //   }
@@ -1723,7 +1723,7 @@ class VarDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    id.accept(visitor);
+    // id.accept(visitor);
     declType?.accept(visitor);
     initializer?.accept(visitor);
   }
@@ -1806,7 +1806,7 @@ class DestructuringDecl extends ASTNode {
   @override
   void subAccept(AbstractASTVisitor visitor) {
     for (final id in ids.keys) {
-      id.accept(visitor);
+      // id.accept(visitor);
       final typeExpr = ids[id];
       typeExpr?.accept(visitor);
     }
@@ -1930,7 +1930,7 @@ class FuncDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    id?.accept(visitor);
+    // id?.accept(visitor);
     for (final param in genericTypeParameters) {
       param.accept(visitor);
     }
@@ -2038,7 +2038,7 @@ class ClassDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    id.accept(visitor);
+    // id.accept(visitor);
     for (final param in genericTypeParameters) {
       param.accept(visitor);
     }
@@ -2116,10 +2116,10 @@ class EnumDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    id.accept(visitor);
-    for (final enumItem in enumerations) {
-      enumItem.accept(visitor);
-    }
+    // id.accept(visitor);
+    // for (final enumItem in enumerations) {
+    //   enumItem.accept(visitor);
+    // }
   }
 
   final IdentifierExpr id;
@@ -2163,7 +2163,7 @@ class StructDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    id.accept(visitor);
+    // id.accept(visitor);
     prototypeId?.accept(visitor);
     for (final node in definition) {
       node.accept(visitor);
@@ -2245,7 +2245,7 @@ class StructObjExpr extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    id?.accept(visitor);
+    // id?.accept(visitor);
     prototypeId?.accept(visitor);
     for (final field in fields) {
       field.accept(visitor);

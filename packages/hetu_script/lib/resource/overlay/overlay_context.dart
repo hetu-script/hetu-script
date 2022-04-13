@@ -27,8 +27,7 @@ class HTOverlayContext extends HTResourceContext<HTSource> {
 
   @override
   bool contains(String key) {
-    final normalized = getAbsolutePath(key: key, dirName: root);
-    return path.isWithin(root, normalized);
+    return _cached.containsKey(key);
   }
 
   @override
@@ -40,28 +39,24 @@ class HTOverlayContext extends HTResourceContext<HTSource> {
 
   @override
   void removeResource(String fullName) {
-    final normalized = getAbsolutePath(key: fullName, dirName: root);
-    _cached.remove(normalized);
-    included.remove(normalized);
+    _cached.remove(fullName);
+    included.remove(fullName);
   }
 
   @override
   HTSource getResource(String key, {String? from}) {
-    final normalized = getAbsolutePath(
-        key: key, dirName: from != null ? path.dirname(from) : root);
-    if (_cached.containsKey(normalized)) {
-      return _cached[normalized]!;
+    if (_cached.containsKey(key)) {
+      return _cached[key]!;
     }
-    throw HTError.sourceProviderError(normalized);
+    throw HTError.sourceProviderError(key);
   }
 
   @override
   void updateResource(String fullName, HTSource resource) {
-    final normalized = getAbsolutePath(key: fullName, dirName: root);
-    if (_cached.containsKey(normalized)) {
+    if (_cached.containsKey(fullName)) {
       // final source = _cached[normalized]!;
       // source.content = resource;
-      _cached[normalized] = resource;
+      _cached[fullName] = resource;
       return;
     }
     throw HTError.sourceProviderError(fullName);

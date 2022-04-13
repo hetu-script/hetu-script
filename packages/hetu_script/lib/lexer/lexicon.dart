@@ -272,6 +272,8 @@ abstract class HTLexicon {
 
   String get omittedMark;
 
+  String get everythingMark;
+
   String get functionReturnTypeIndicator;
 
   String get whenBranchIndicator;

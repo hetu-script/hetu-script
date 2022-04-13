@@ -37,9 +37,9 @@ enum ParseStyle {
 }
 
 class ParserConfig {
-  bool mandatoryEndOfStatementMark;
+  bool explicitEndOfStatement;
 
-  ParserConfig({this.mandatoryEndOfStatementMark = false});
+  ParserConfig({this.explicitEndOfStatement = false});
 }
 
 /// A general parser, with abstract method to parse a token list or string content.

@@ -24,7 +24,10 @@ class HTInstanceNamespace extends HTNamespace {
   /// try fetching variable from enclosed namespace.
   @override
   dynamic memberGet(String varName,
-      {String? from, bool recursive = true, bool error = true}) {
+      {bool isPrivate = false,
+      String? from,
+      bool recursive = true,
+      bool error = true}) {
     final getter = '${InternalIdentifier.getter}$varName';
 
     HTInstanceNamespace? curNamespace = this;

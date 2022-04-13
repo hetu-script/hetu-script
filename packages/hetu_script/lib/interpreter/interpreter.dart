@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:path/path.dart' as path;
 
 import '../value/namespace/namespace.dart';
@@ -35,13 +34,14 @@ import '../bytecode/compiler.dart';
 import '../version.dart';
 import '../value/unresolved_import_statement.dart';
 import '../locale/locale.dart';
+import '../analyzer/analyzer.dart' show AnalyzerImplConfig;
 
 /// Mixin for classes that want to hold a ref of a bytecode interpreter
 mixin InterpreterRef {
   late final HTInterpreter interpreter;
 }
 
-class InterpreterConfig implements ErrorHandlerConfig {
+class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
   @override
   bool showDartStackTrace;
 
@@ -54,12 +54,16 @@ class InterpreterConfig implements ErrorHandlerConfig {
   @override
   ErrorHanldeApproach errorHanldeApproach;
 
+  @override
   bool allowVariableShadowing;
 
+  @override
   bool allowImplicitVariableDeclaration;
 
+  @override
   bool allowImplicitNullToZeroConversion;
 
+  @override
   bool allowImplicitEmptyValueToFalseConversion;
 
   InterpreterConfig(
@@ -67,7 +71,7 @@ class InterpreterConfig implements ErrorHandlerConfig {
       this.showHetuStackTrace = false,
       this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
       this.errorHanldeApproach = ErrorHanldeApproach.exception,
-      this.allowVariableShadowing = false,
+      this.allowVariableShadowing = true,
       this.allowImplicitVariableDeclaration = false,
       this.allowImplicitNullToZeroConversion = false,
       this.allowImplicitEmptyValueToFalseConversion = false});
@@ -640,6 +644,22 @@ class HTInterpreter {
       } else {
         handleError(error, stackTrace);
       }
+    }
+  }
+
+  List<String> getExportList({String? sourceName, required String moduleName}) {
+    final module = _cachedModules[moduleName]!;
+    sourceName ??= module.namespaces.values.last.fullName;
+    final namespace = module.namespaces[sourceName]!;
+    if (namespace.willExportAll) {
+      final list = <String>[];
+      for (final symbol in namespace.symbols.keys) {
+        if (symbol.startsWith(_lexicon.privatePrefix)) continue;
+        list.add(symbol);
+      }
+      return list;
+    } else {
+      return namespace.exports;
     }
   }
 
@@ -1884,7 +1904,7 @@ class HTInterpreter {
         index: index,
         classId: classId,
         module: _currentBytecodeModule);
-    _currentNamespace.define(id, decl);
+    _currentNamespace.define(id, decl, override: config.allowVariableShadowing);
     _clearLocals();
   }
 

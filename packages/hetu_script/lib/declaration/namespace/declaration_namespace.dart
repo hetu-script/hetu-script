@@ -4,8 +4,7 @@ import '../../declaration/declaration.dart';
 import '../../value/entity.dart';
 import '../../value/unresolved_import_statement.dart';
 
-/// A semantic namespace that holds declarations for symbol resolving.
-/// will return declaration rather than actual values.
+/// A semantic namespace that holds symbol for resolving.
 class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   late String _fullName;
 
@@ -38,7 +37,8 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   }
 
   @override
-  bool contains(String varName, {String? from, bool recursive = false}) {
+  bool contains(String varName,
+      {bool isPrivate = false, String? from, bool recursive = false}) {
     if (symbols.containsKey(varName)) {
       if (isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
@@ -77,15 +77,19 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   }
 
   /// Fetch a value from this namespace,
-  /// if not found and [recursive] is true, will continue search in super namespaces.
+  /// Return declaration rather than actual values.
+  /// If not found and [recursive] is true, will continue search in super namespaces.
   @override
   dynamic memberGet(String varName,
-      {String? from, bool recursive = false, bool error = true}) {
+      {bool isPrivate = false,
+      String? from,
+      bool recursive = false,
+      bool error = true}) {
     if (symbols.containsKey(varName)) {
       final decl = symbols[varName]!;
-      // if (from != null && !from.startsWith(fullName)) {
-      //   throw HTError.privateMember(varName);
-      // }
+      if (isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
       return decl;
     } else if (importedSymbols.containsKey(varName)) {
       final decl = importedSymbols[varName]!;

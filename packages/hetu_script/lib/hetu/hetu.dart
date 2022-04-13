@@ -27,13 +27,13 @@ import '../error/error_handler.dart';
 class HetuConfig
     implements ParserConfig, AnalyzerConfig, CompilerConfig, InterpreterConfig {
   @override
-  bool mandatoryEndOfStatementMark;
+  bool explicitEndOfStatement;
 
   @override
-  bool checkTypeErrors;
+  bool computeConstantExpression;
 
   @override
-  bool computeConstantExpressionValue;
+  bool doStaticAnalysis;
 
   @override
   bool compileWithoutLineInfo;
@@ -62,19 +62,23 @@ class HetuConfig
   @override
   bool allowImplicitEmptyValueToFalseConversion;
 
-  HetuConfig(
-      {this.mandatoryEndOfStatementMark = false,
-      this.checkTypeErrors = false,
-      this.computeConstantExpressionValue = false,
-      this.compileWithoutLineInfo = false,
-      this.showDartStackTrace = false,
-      this.showHetuStackTrace = false,
-      this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
-      this.errorHanldeApproach = ErrorHanldeApproach.exception,
-      this.allowVariableShadowing = true,
-      this.allowImplicitVariableDeclaration = false,
-      this.allowImplicitNullToZeroConversion = false,
-      this.allowImplicitEmptyValueToFalseConversion = false});
+  bool normalizeImportPath;
+
+  HetuConfig({
+    this.explicitEndOfStatement = false,
+    this.doStaticAnalysis = false,
+    this.computeConstantExpression = false,
+    this.compileWithoutLineInfo = false,
+    this.showDartStackTrace = false,
+    this.showHetuStackTrace = false,
+    this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
+    this.errorHanldeApproach = ErrorHanldeApproach.exception,
+    this.allowVariableShadowing = true,
+    this.allowImplicitVariableDeclaration = false,
+    this.allowImplicitNullToZeroConversion = false,
+    this.allowImplicitEmptyValueToFalseConversion = false,
+    this.normalizeImportPath = true,
+  });
 }
 
 /// A wrapper class for sourceContext, analyzer, compiler and interpreter to work together.
@@ -90,6 +94,8 @@ class Hetu {
   late HTParser _currentParser;
 
   HTParser get parser => _currentParser;
+
+  late final HTBundler bundler;
 
   late final HTAnalyzer analyzer;
 
@@ -107,9 +113,10 @@ class Hetu {
       String parserName = 'default',
       HTParser? parser})
       : config = config ?? HetuConfig(),
-        sourceContext = sourceContext ?? HTOverlayContext(),
         lexicon = lexicon ?? HTDefaultLexicon(),
+        sourceContext = sourceContext ?? HTOverlayContext(),
         _currentParser = parser ?? HTDefaultParser() {
+    bundler = HTBundler(sourceContext: this.sourceContext);
     _parsers[parserName] = _currentParser;
     analyzer =
         HTAnalyzer(config: this.config, sourceContext: this.sourceContext);
@@ -236,11 +243,7 @@ class Hetu {
     if (source.content.isEmpty) {
       return null;
     }
-    final bytes = _compileSource(
-      source,
-      moduleName: moduleName,
-      config: config,
-    );
+    final bytes = _compileSource(source, moduleName: moduleName);
     final result = interpreter.loadBytecode(
         bytes: bytes,
         moduleName: moduleName ?? source.fullName,
@@ -270,33 +273,37 @@ class Hetu {
   Uint8List compileFile(String key,
       {String? moduleName, CompilerConfig? config}) {
     final source = sourceContext.getResource(key);
-    final bytes =
-        _compileSource(source, moduleName: moduleName, config: config);
+    final bytes = _compileSource(source, moduleName: moduleName);
     return bytes;
   }
 
   /// Compile a [HTSource] into bytecode for later use.
   Uint8List _compileSource(HTSource source,
-      {String? moduleName, CompilerConfig? config, bool errorHandled = false}) {
+      {String? moduleName, bool errorHandled = false}) {
     try {
-      final bundler = HTBundler(sourceContext: sourceContext);
-      final compilation =
-          bundler.bundle(source: source, parser: _currentParser);
-      final result = analyzer.analyzeCompilation(compilation);
-      if (result.errors.isNotEmpty) {
-        for (final error in result.errors) {
-          if (error.severity >= ErrorSeverity.error) {
-            if (errorHandled) {
-              throw error;
+      final compilation = bundler.bundle(
+          source: source,
+          parser: _currentParser,
+          normalizePath: config.normalizeImportPath);
+      if (config.doStaticAnalysis) {
+        final result = analyzer.analyzeCompilation(compilation);
+        if (result.errors.isNotEmpty) {
+          for (final error in result.errors) {
+            if (error.severity >= ErrorSeverity.error) {
+              if (errorHandled) {
+                throw error;
+              } else {
+                interpreter.handleError(error);
+              }
             } else {
-              interpreter.handleError(error);
+              print('${error.severity}: $error');
             }
-          } else {
-            print('${error.severity}: $error');
           }
         }
+        return compiler.compile(result.compilation);
+      } else {
+        return compiler.compile(compilation);
       }
-      return compiler.compile(result.compilation);
     } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;

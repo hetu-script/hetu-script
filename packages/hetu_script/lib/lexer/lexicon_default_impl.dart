@@ -315,6 +315,10 @@ class HTDefaultLexicon extends HTLexicon {
   @override
   String get omittedMark => '_';
 
+  /// *
+  @override
+  String get everythingMark => '*';
+
   /// ->
   @override
   String get functionReturnTypeIndicator => '->';

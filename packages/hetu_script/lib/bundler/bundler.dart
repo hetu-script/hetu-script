@@ -17,7 +17,10 @@ class HTBundler {
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  ASTCompilation bundle({required HTSource source, required HTParser parser}) {
+  ASTCompilation bundle(
+      {required HTSource source,
+      required HTParser parser,
+      bool normalizePath = true}) {
     final result = parser.parseSource(source);
     final parserErrors = result.errors!;
     final values = <String, ASTSource>{};
@@ -32,13 +35,17 @@ class HTBundler {
         }
         try {
           late final ASTSource importedSource;
-          final currentDir =
-              result.fullName.startsWith(InternalIdentifier.anonymousScript)
-                  ? sourceContext.root
-                  : path.dirname(result.fullName);
-          final importFullName = sourceContext.getAbsolutePath(
-              key: decl.fromPath!, dirName: currentDir);
-          decl.fullName = importFullName;
+          String importFullName;
+          if (normalizePath) {
+            final currentDir =
+                result.fullName.startsWith(InternalIdentifier.anonymousScript)
+                    ? sourceContext.root
+                    : path.dirname(result.fullName);
+            decl.fullName = importFullName = sourceContext.getAbsolutePath(
+                key: decl.fromPath!, dirName: currentDir);
+          } else {
+            decl.fullName = importFullName = decl.fromPath!;
+          }
           if (_cachedParsingTargets.contains(importFullName)) {
             continue;
           }
