@@ -18,7 +18,6 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
   final int? staticDefinitionIp;
 
   bool _isResolved = false;
-
   @override
   bool get isResolved => _isResolved;
 
@@ -61,7 +60,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
 
   @override
   void resolve() {
-    super.resolve();
+    if (_isResolved) return;
     HTStruct static = interpreter.execute(
         filename: fileName,
         moduleName: moduleName,

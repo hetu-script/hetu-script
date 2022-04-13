@@ -22,18 +22,21 @@ class HTClassNamespace extends HTNamespace {
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
+      decl.resolve();
       return decl.value;
     } else if (symbols.containsKey(getter)) {
       final decl = symbols[getter]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
+      decl.resolve();
       return decl.value;
     } else if (symbols.containsKey(externalStatic)) {
       final decl = symbols[externalStatic]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
+      decl.resolve();
       return decl.value;
     }
 
@@ -55,6 +58,7 @@ class HTClassNamespace extends HTNamespace {
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
+      decl.resolve();
       decl.value = varValue;
       return true;
     } else if (symbols.containsKey(setter)) {
@@ -62,6 +66,7 @@ class HTClassNamespace extends HTNamespace {
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
+      decl.resolve();
       final setterFunc = decl as HTFunction;
       setterFunc.call(positionalArgs: [varValue]);
       return true;

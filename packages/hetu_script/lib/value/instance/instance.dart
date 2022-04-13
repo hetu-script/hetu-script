@@ -150,13 +150,21 @@ class HTInstance with HTEntity, InterpreterRef {
               !from.startsWith(namespace.fullName)) {
             throw HTError.privateMember(varName);
           }
+          decl.resolve();
           if (decl is HTFunction && decl.category != FunctionCategory.literal) {
             decl.namespace = namespace;
             decl.instance = this;
           }
           return decl.value;
         } else if (space.symbols.containsKey(getter)) {
-          final func = space.symbols[getter]! as HTFunction;
+          final decl = space.symbols[getter]!;
+          if (decl.isPrivate &&
+              from != null &&
+              !from.startsWith(namespace.fullName)) {
+            throw HTError.privateMember(varName);
+          }
+          decl.resolve();
+          final func = decl as HTFunction;
           func.namespace = namespace;
           func.instance = this;
           return func.call();
@@ -171,6 +179,7 @@ class HTInstance with HTEntity, InterpreterRef {
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(varName);
         }
+        decl.resolve();
         if (decl is HTFunction && decl.category != FunctionCategory.literal) {
           decl.namespace = _namespaces[classId];
           decl.instance = this;
@@ -183,6 +192,7 @@ class HTInstance with HTEntity, InterpreterRef {
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(varName);
         }
+        decl.resolve();
         final func = decl as HTFunction;
         func.namespace = _namespaces[classId];
         func.instance = this;
@@ -213,6 +223,7 @@ class HTInstance with HTEntity, InterpreterRef {
               !from.startsWith(namespace.fullName)) {
             throw HTError.privateMember(varName);
           }
+          decl.resolve();
           decl.value = varValue;
           return;
         } else if (space.symbols.containsKey(setter)) {
@@ -222,6 +233,7 @@ class HTInstance with HTEntity, InterpreterRef {
               !from.startsWith(namespace.fullName)) {
             throw HTError.privateMember(varName);
           }
+          decl.resolve();
           final method = decl as HTFunction;
           method.namespace = namespace;
           method.instance = this;
@@ -242,6 +254,7 @@ class HTInstance with HTEntity, InterpreterRef {
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(varName);
         }
+        decl.resolve();
         decl.value = varValue;
         return;
       } else if (space.symbols.containsKey(setter)) {
@@ -251,6 +264,7 @@ class HTInstance with HTEntity, InterpreterRef {
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(varName);
         }
+        decl.resolve();
         final method = decl as HTFunction;
         method.namespace = _namespaces[cast];
         method.instance = this;
@@ -270,6 +284,7 @@ class HTInstance with HTEntity, InterpreterRef {
       bool errorHandled = true}) {
     try {
       HTFunction func = memberGet(funcName);
+      func.resolve();
       return func.call(
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,

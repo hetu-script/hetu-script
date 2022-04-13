@@ -282,6 +282,7 @@ class HTInterpreter {
       }
       final func = _currentNamespace.memberGet(funcName);
       if (func is HTFunction) {
+        func.resolve();
         return func.call(
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
@@ -507,9 +508,9 @@ class HTInterpreter {
       for (final importDecl in importNamespace.imports.values) {
         _handleNamespaceImport(importNamespace, importDecl);
       }
-      for (final declaration in importNamespace.symbols.values) {
-        declaration.resolve();
-      }
+      // for (final declaration in importNamespace.declarations.values) {
+      //   declaration.resolve();
+      // }
     }
 
     if (decl.alias == null) {
@@ -611,13 +612,13 @@ class HTInterpreter {
         }
       }
       // resolve each declaration after we get all declarations
-      if (!_isModuleEntryScript) {
-        for (final namespace in _currentBytecodeModule.namespaces.values) {
-          for (final decl in namespace.symbols.values) {
-            decl.resolve();
-          }
-        }
-      }
+      // if (!_isModuleEntryScript) {
+      //   for (final namespace in _currentBytecodeModule.namespaces.values) {
+      //     for (final decl in namespace.declarations.values) {
+      //       decl.resolve();
+      //     }
+      //   }
+      // }
       _cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       dynamic result;
       if (invokeFunc != null) {
@@ -2202,9 +2203,9 @@ class HTInterpreter {
           declType: ctorType);
       klass.namespace.define(InternalIdentifier.defaultConstructor, ctor);
     }
-    if (_isModuleEntryScript || _function != null) {
-      klass.resolve();
-    }
+    // if (_isModuleEntryScript || _function != null) {
+    //   klass.resolve();
+    // }
     _class = savedClass;
     _localValue = klass;
   }
@@ -2242,9 +2243,9 @@ class HTInterpreter {
       staticDefinitionIp: staticDefinitionIp,
       definitionIp: definitionIp,
     );
-    if (_isModuleEntryScript || !lateInitialize) {
-      struct.resolve();
-    }
+    // if (_isModuleEntryScript || !lateInitialize) {
+    //   struct.resolve();
+    // }
     _currentNamespace.define(id, struct);
     _localValue = struct;
   }

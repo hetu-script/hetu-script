@@ -32,6 +32,7 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
+      decl.resolve();
       return decl.value;
     }
     if (importedSymbols.containsKey(varName)) {
@@ -39,6 +40,7 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
+      decl.resolve();
       return decl.value;
     }
     if (recursive && (closure != null)) {
@@ -60,6 +62,7 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
+      decl.resolve();
       decl.value = varValue;
       return true;
     }
@@ -68,6 +71,7 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
+      decl.resolve();
       decl.value = varValue;
       return true;
     }
@@ -79,13 +83,6 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       throw HTError.undefined(varName);
     } else {
       return false;
-    }
-  }
-
-  @override
-  void resolve() {
-    for (final decl in symbols.values) {
-      decl.resolve();
     }
   }
 

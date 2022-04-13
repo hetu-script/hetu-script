@@ -10,6 +10,10 @@ class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
 
   bool get isNested => classId != null;
 
+  bool _isResolved = false;
+  @override
+  bool get isResolved => _isResolved;
+
   HTExternalEnum(
     String id,
     HTInterpreter interpreter, {
@@ -33,8 +37,10 @@ class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
 
   @override
   void resolve() {
+    if (_isResolved) return;
     super.resolve();
     externalClass = interpreter.fetchExternalClass(id!);
+    _isResolved = true;
   }
 
   @override

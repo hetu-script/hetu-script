@@ -113,57 +113,57 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   /// Print function signature to String with function [id] and parameter [id].
-  @override
-  String toString() {
-    var result = StringBuffer();
-    result.write(Semantic.function);
-    if (id != null) {
-      result.write(' $id');
-    }
-    if (declType.typeArgs.isNotEmpty) {
-      result.write(interpreter.lexicon.typeParameterStart);
-      for (var i = 0; i < declType.typeArgs.length; ++i) {
-        result.write(declType.typeArgs[i]);
-        if (i < declType.typeArgs.length - 1) {
-          result.write('${interpreter.lexicon.comma} ');
-        }
-      }
-      result.write(interpreter.lexicon.typeParameterEnd);
-    }
-    result.write(interpreter.lexicon.groupExprStart);
-    var i = 0;
-    var optionalStarted = false;
-    var namedStarted = false;
-    for (final param in paramDecls.values) {
-      if (param.isVariadic) {
-        result.write(interpreter.lexicon.variadicArgs + ' ');
-      }
-      if (param.isOptional && !optionalStarted) {
-        optionalStarted = true;
-        result.write(interpreter.lexicon.optionalPositionalParameterStart);
-      } else if (param.isNamed && !namedStarted) {
-        namedStarted = true;
-        result.write(interpreter.lexicon.functionBlockStart);
-      }
-      result.write(param.id);
-      if (param.declType != null) {
-        result.write('${interpreter.lexicon.typeIndicator} ${param.declType}');
-      }
-      if (i < paramDecls.length - 1) {
-        result.write('${interpreter.lexicon.comma} ');
-      }
-      ++i;
-    }
-    if (optionalStarted) {
-      result.write(interpreter.lexicon.optionalPositionalParameterEnd);
-    } else if (namedStarted) {
-      result.write(interpreter.lexicon.functionBlockEnd);
-    }
-    result.write(
-        '${interpreter.lexicon.groupExprEnd} ${interpreter.lexicon.functionReturnTypeIndicator} ' +
-            returnType.toString());
-    return result.toString();
-  }
+  // @override
+  // String toString() {
+  //   var result = StringBuffer();
+  //   result.write(Semantic.function);
+  //   if (id != null) {
+  //     result.write(' $id');
+  //   }
+  //   if (declType.typeArgs.isNotEmpty) {
+  //     result.write(interpreter.lexicon.typeParameterStart);
+  //     for (var i = 0; i < declType.typeArgs.length; ++i) {
+  //       result.write(declType.typeArgs[i]);
+  //       if (i < declType.typeArgs.length - 1) {
+  //         result.write('${interpreter.lexicon.comma} ');
+  //       }
+  //     }
+  //     result.write(interpreter.lexicon.typeParameterEnd);
+  //   }
+  //   result.write(interpreter.lexicon.groupExprStart);
+  //   var i = 0;
+  //   var optionalStarted = false;
+  //   var namedStarted = false;
+  //   for (final param in paramDecls.values) {
+  //     if (param.isVariadic) {
+  //       result.write(interpreter.lexicon.variadicArgs + ' ');
+  //     }
+  //     if (param.isOptional && !optionalStarted) {
+  //       optionalStarted = true;
+  //       result.write(interpreter.lexicon.optionalPositionalParameterStart);
+  //     } else if (param.isNamed && !namedStarted) {
+  //       namedStarted = true;
+  //       result.write(interpreter.lexicon.functionBlockStart);
+  //     }
+  //     result.write(param.id);
+  //     if (param.declType != null) {
+  //       result.write('${interpreter.lexicon.typeIndicator} ${param.declType}');
+  //     }
+  //     if (i < paramDecls.length - 1) {
+  //       result.write('${interpreter.lexicon.comma} ');
+  //     }
+  //     ++i;
+  //   }
+  //   if (optionalStarted) {
+  //     result.write(interpreter.lexicon.optionalPositionalParameterEnd);
+  //   } else if (namedStarted) {
+  //     result.write(interpreter.lexicon.functionBlockEnd);
+  //   }
+  //   result.write(
+  //       '${interpreter.lexicon.groupExprEnd} ${interpreter.lexicon.functionReturnTypeIndicator} ' +
+  //           returnType.toString());
+  //   return result.toString();
+  // }
 
   @override
   dynamic get value {
