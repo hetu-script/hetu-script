@@ -50,14 +50,14 @@ class HTVariableDeclaration extends HTDeclaration {
 
   @override
   @mustCallSuper
-  void resolve() {
+  void resolve({bool resolveType = true}) {
     if (_isResolved) {
       return;
     }
-    if (closure != null && _declType != null) {
+    if (resolveType && closure != null && _declType != null) {
       _resolvedDeclType = _declType!.resolve(closure!);
-      _isResolved = true;
     }
+    _isResolved = true;
   }
 
   @override

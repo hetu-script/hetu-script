@@ -58,6 +58,11 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
   // }
 
   @override
+  void resolve({bool resolveType = false}) {
+    super.resolve(resolveType: false);
+  }
+
+  @override
   HTParameter clone() {
     return HTParameter(id!,
         interpreter: interpreter,

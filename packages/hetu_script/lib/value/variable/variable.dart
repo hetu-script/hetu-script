@@ -125,6 +125,11 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
     }
   }
 
+  @override
+  void resolve({bool resolveType = false}) {
+    super.resolve(resolveType: false);
+  }
+
   // dynamic _computeValue(dynamic value, HTType type) {
   //   final resolvedType = type.isResolved ? type : type.resolve(interpreter);
   //   if (resolvedType is HTNominalType && value is Map) {

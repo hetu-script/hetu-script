@@ -30,16 +30,6 @@ class HTParameterDeclaration extends HTVariableDeclaration
             isMutable: true);
 
   @override
-  String toString() {
-    final typeString = StringBuffer();
-    if (declType != null) {
-      typeString.write('$id: ');
-      typeString.write(declType.toString());
-    }
-    return typeString.toString();
-  }
-
-  @override
   HTParameterDeclaration clone() {
     return HTParameterDeclaration(id!,
         closure: closure,
