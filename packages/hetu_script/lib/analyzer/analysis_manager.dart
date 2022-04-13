@@ -47,7 +47,7 @@ class HTAnalysisManager {
     final bundler = HTBundler(sourceContext: analyzer.sourceContext);
     final parser = HTDefaultParser();
     final compilation = bundler.bundle(source: source, parser: parser);
-    final result = analyzer.analyzeASTCompilation(compilation);
+    final result = analyzer.analyzeCompilation(compilation);
     _cachedSourceAnalysisResults.addAll(result.sourceAnalysisResults);
     return result.sourceAnalysisResults.values.last;
   }

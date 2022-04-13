@@ -177,7 +177,6 @@ abstract class HTLexicon {
 
   Set<String> get redirectingConstructorCallKeywords => {kThis, kSuper};
 
-  String get kPrivate;
   String get kAbstract;
   String get kOverride;
   String get kExternal;

@@ -242,7 +242,7 @@ void format(List<String> args, String outPath) {
 void analyze(List<String> args) {
   final source = sourceContext.getResource(args.first);
   final compilation = bundler.bundle(source: source, parser: parser);
-  final result = analyzer.analyzeASTCompilation(compilation);
+  final result = analyzer.analyzeCompilation(compilation);
   if (result.errors.isNotEmpty) {
     for (final error in result.errors) {
       if (error.severity >= ErrorSeverity.error) {

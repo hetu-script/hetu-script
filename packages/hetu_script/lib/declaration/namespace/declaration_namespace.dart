@@ -1,5 +1,4 @@
 import '../../error/error.dart';
-import '../../grammar/constant.dart';
 import '../../source/source.dart';
 import '../../declaration/declaration.dart';
 import '../../value/entity.dart';
@@ -8,9 +7,6 @@ import '../../value/unresolved_import_statement.dart';
 /// A semantic namespace that holds declarations for symbol resolving.
 /// will return declaration rather than actual values.
 class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
-  @override
-  String toString() => '${Semantic.namespace} $id';
-
   late String _fullName;
 
   /// The full closure path of this namespace
@@ -18,11 +14,11 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
 
   final symbols = <String, T>{};
 
+  final importedSymbols = <String, T>{};
+
   final imports = <String, UnresolvedImportStatement>{};
 
   final exports = <String>[];
-
-  final importedSymbols = <String, T>{};
 
   bool get willExportAll => exports.isEmpty;
 
@@ -42,15 +38,16 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   }
 
   @override
-  bool contains(String varName, {bool recursive = true}) {
+  bool contains(String varName, {String? from, bool recursive = false}) {
     if (symbols.containsKey(varName)) {
+      if (isPrivate && from != null && !from.startsWith(fullName)) {
+        throw HTError.privateMember(varName);
+      }
       return true;
-    }
-    if (importedSymbols.containsKey(varName)) {
+    } else if (importedSymbols.containsKey(varName)) {
       return true;
-    }
-    if (recursive && (closure != null)) {
-      return closure!.contains(varName, recursive: recursive);
+    } else if (recursive && (closure != null)) {
+      return closure!.contains(varName, from: from, recursive: recursive);
     }
     return false;
   }
@@ -64,7 +61,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
       symbols[varName] = decl;
     } else {
       if (error) {
-        throw HTError.definedRuntime(varName);
+        throw HTError.defined(varName, ErrorType.staticWarning);
       }
     }
   }
@@ -86,15 +83,17 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
       {String? from, bool recursive = false, bool error = true}) {
     if (symbols.containsKey(varName)) {
       final decl = symbols[varName]!;
+      // if (from != null && !from.startsWith(fullName)) {
+      //   throw HTError.privateMember(varName);
+      // }
       return decl;
-    }
-    if (importedSymbols.containsKey(varName)) {
+    } else if (importedSymbols.containsKey(varName)) {
       final decl = importedSymbols[varName]!;
       return decl;
-    }
-    if (recursive && (closure != null)) {
+    } else if (recursive && (closure != null)) {
       return closure!.memberGet(varName, from: from, recursive: recursive);
     }
+
     if (error) {
       throw HTError.undefined(varName);
     }
@@ -112,7 +111,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
     if (!importedSymbols.containsKey(key)) {
       importedSymbols[key] = decl;
     } else {
-      throw HTError.definedRuntime(key);
+      throw HTError.defined(key, ErrorType.runtimeError);
     }
   }
 

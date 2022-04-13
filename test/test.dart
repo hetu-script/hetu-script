@@ -18,26 +18,10 @@ void main() {
   );
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
-  hetu.eval(r'''
-    class A {
-        static fun test(arg: B) {
-            arg.toString();
-        }
-
-        fun toString() => "Hello from A";
-    }
-
-    class B {
-        static fun test(arg: A) {
-            arg.toString();
-        }
-
-        fun toString() => "Hello from B";
-    }
-    
-    print(A.test(B()));
-    print(B.test(A()));
+  final r = hetu.eval(r'''
+    typeof fun(a: str) => 3;
   ''');
 
   // final r = hetu.evalFile('eval.hts');
+  print(hetu.lexicon.stringify(r));
 }

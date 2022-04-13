@@ -1801,7 +1801,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: hasPrototypeId
     }
-    bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
+    // bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
     final staticFields = <StructObjField>[];
     final fields = <StructObjField>[];
     for (final node in stmt.definition) {

@@ -313,7 +313,7 @@ class HTInterpreter {
   void bindExternalClass(HTExternalClass externalClass,
       {bool override = false}) {
     if (externClasses.containsKey(externalClass.id) && !override) {
-      throw HTError.definedRuntime(externalClass.id);
+      throw HTError.defined(externalClass.id, ErrorType.runtimeError);
     }
     externClasses[externalClass.id] = externalClass;
   }
@@ -336,7 +336,7 @@ class HTInterpreter {
   void bindExternalFunction(String id, Function function,
       {bool override = false}) {
     if (externFuncs.containsKey(id) && !override) {
-      throw HTError.definedRuntime(id);
+      throw HTError.defined(id, ErrorType.runtimeError);
     }
     externFuncs[id] = function;
   }
@@ -353,7 +353,7 @@ class HTInterpreter {
   void bindExternalFunctionType(String id, HTExternalFunctionTypedef function,
       {bool override = false}) {
     if (externFuncTypeUnwrappers.containsKey(id) && !override) {
-      throw HTError.definedRuntime(id);
+      throw HTError.defined(id, ErrorType.runtimeError);
     }
     externFuncTypeUnwrappers[id] = function;
   }
@@ -534,6 +534,7 @@ class HTInterpreter {
             HTNamespace(id: decl.alias!, closure: globalNamespace);
         for (final id in decl.showList) {
           final decl = importNamespace.symbols[id]!;
+          assert(!decl.isPrivate);
           aliasNamespace.define(id, decl);
         }
         nsp.defineImport(decl.alias!, aliasNamespace);
@@ -1051,6 +1052,7 @@ class HTInterpreter {
                   moduleName: _currentBytecodeModule.id,
                   closure: _currentNamespace,
                   value: value,
+                  isPrivate: id.startsWith(lexicon.privatePrefix),
                   isMutable: true);
               _currentNamespace.define(id, decl);
             } else {
@@ -2226,7 +2228,7 @@ class HTInterpreter {
     } else if (id != _lexicon.globalPrototypeId) {
       prototypeId = _lexicon.globalPrototypeId;
     }
-    final lateInitialize = _currentBytecodeModule.readBool();
+    // final lateInitialize = _currentBytecodeModule.readBool();
     final staticFieldsLength = _currentBytecodeModule.readUint16();
     final staticDefinitionIp = _currentBytecodeModule.ip;
     _currentBytecodeModule.skip(staticFieldsLength);

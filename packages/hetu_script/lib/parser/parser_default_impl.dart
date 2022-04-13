@@ -181,7 +181,8 @@ class HTDefaultParser extends HTParser {
                   isTopLevel: true);
             }
           } else if (curTok.type == lexicon.kStruct) {
-            stmt = _parseStructDecl(isTopLevel: true, lateInitialize: false);
+            stmt =
+                _parseStructDecl(isTopLevel: true); // , lateInitialize: false);
           } else if (curTok.type == lexicon.kDelete) {
             stmt = _parseDeleteStmt();
           } else if (curTok.type == lexicon.kIf) {
@@ -780,7 +781,7 @@ class HTDefaultParser extends HTParser {
                 category: FunctionCategory.literal, isAsync: true);
           }
         } else if (curTok.type == lexicon.kStruct) {
-          stmt = _parseStructDecl(lateInitialize: false);
+          stmt = _parseStructDecl(); // (lateInitialize: false);
         } else if (curTok.type == lexicon.kDelete) {
           stmt = _parseDeleteStmt();
         } else if (curTok.type == lexicon.kIf) {
@@ -2792,8 +2793,8 @@ class HTDefaultParser extends HTParser {
         length: curTok.offset - keyword.offset);
   }
 
-  StructDecl _parseStructDecl(
-      {bool isTopLevel = false, bool lateInitialize = true}) {
+  StructDecl _parseStructDecl({bool isTopLevel = false}) {
+    //, bool lateInitialize = true}) {
     final keyword = match(lexicon.kStruct);
     final idTok = match(Semantic.identifier);
     final id = IdentifierExpr.fromToken(idTok, source: currentSource);
@@ -2839,7 +2840,7 @@ class HTDefaultParser extends HTParser {
     return StructDecl(id, definition,
         prototypeId: prototypeId,
         isTopLevel: isTopLevel,
-        lateInitialize: lateInitialize,
+        // lateInitialize: lateInitialize,
         source: currentSource,
         line: keyword.line,
         column: keyword.column,

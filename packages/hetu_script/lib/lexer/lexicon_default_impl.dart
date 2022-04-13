@@ -195,9 +195,6 @@ class HTDefaultLexicon extends HTLexicon {
   String get kSuper => 'super';
 
   @override
-  String get kPrivate => 'private';
-
-  @override
   String get kAbstract => 'abstract';
 
   @override
@@ -635,18 +632,17 @@ class HTDefaultLexicon extends HTLexicon {
         return object;
       }
     } else if (object is Iterable) {
-      final list = object as List;
-      if (list.isEmpty) {
+      if (object.isEmpty) {
         return '$listStart$listEnd';
       }
       output.writeln(listStart);
       ++_curIndentCount;
-      for (var i = 0; i < list.length; ++i) {
-        final item = list.elementAt(i);
+      for (var i = 0; i < object.length; ++i) {
+        final item = object.elementAt(i);
         output.write(_curIndent());
         final itemString = stringify(item, asStringLiteral: true);
         output.write(itemString);
-        if (i < list.length - 1) {
+        if (i < object.length - 1) {
           output.write(comma);
         }
         output.writeln();
@@ -760,7 +756,12 @@ class HTDefaultLexicon extends HTLexicon {
           namedStarted = true;
           output.write(namedParameterStart);
         }
-        output.write(param.toString());
+        final declTypeString = _stringifyType(param.declType);
+        if (param.isNamed) {
+          output.write('${param.id}: $declTypeString');
+        } else {
+          output.write(declTypeString);
+        }
         if (i < type.parameterTypes.length - 1) {
           output.write('$comma ');
         }

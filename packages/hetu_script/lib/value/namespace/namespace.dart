@@ -34,16 +34,14 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       }
       decl.resolve();
       return decl.value;
-    }
-    if (importedSymbols.containsKey(varName)) {
+    } else if (importedSymbols.containsKey(varName)) {
       final decl = importedSymbols[varName]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
       decl.resolve();
       return decl.value;
-    }
-    if (recursive && (closure != null)) {
+    } else if (recursive && (closure != null)) {
       return closure!.memberGet(varName, from: from, recursive: recursive);
     }
     if (error) {
@@ -65,8 +63,7 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       decl.resolve();
       decl.value = varValue;
       return true;
-    }
-    if (importedSymbols.containsKey(varName)) {
+    } else if (importedSymbols.containsKey(varName)) {
       final decl = importedSymbols[varName]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
@@ -74,16 +71,16 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       decl.resolve();
       decl.value = varValue;
       return true;
-    }
-    if (recursive && (closure != null)) {
+    } else if (recursive && (closure != null)) {
       return closure!
           .memberSet(varName, varValue, from: from, recursive: recursive);
-    }
-    if (error) {
-      throw HTError.undefined(varName);
     } else {
-      return false;
+      if (error) {
+        throw HTError.undefined(varName);
+      }
     }
+
+    return false;
   }
 
   @override

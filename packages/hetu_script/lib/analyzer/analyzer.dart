@@ -2,27 +2,16 @@ import '../source/source.dart';
 import '../resource/resource.dart';
 import '../resource/resource_context.dart';
 import '../resource/overlay/overlay_context.dart';
-// import '../type/type.dart';
-// import '../declaration/generic/generic_type_parameter.dart';
 import '../declaration/namespace/declaration_namespace.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
 import '../ast/ast.dart';
-// import '../parser/parser.dart';
-// import '../declaration/declaration.dart';
-// import '../declaration/class/class_declaration.dart';
-// import '../declaration/function/function_declaration.dart';
-// import '../declaration/function/parameter_declaration.dart';
 import 'analysis_result.dart';
 import 'analysis_error.dart';
-// import 'type_checker.dart';
 import '../grammar/constant.dart';
-// import '../ast/visitor/recursive_ast_visitor.dart';
-// import '../binding/external_class.dart';
-// import '../binding/external_function.dart';
+import '../ast/visitor/recursive_ast_visitor.dart';
 import '../constant/constant_interpreter.dart';
 import 'analyzer_impl.dart';
-// import '../locale/locale.dart';
 
 class AnalyzerConfig {
   bool checkTypeErrors;
@@ -36,7 +25,7 @@ class AnalyzerConfig {
 
 /// A ast visitor that create declarative-only namespaces on all astnode,
 /// for analysis purpose, the true analyzer is a underlying
-class HTAnalyzer implements AbstractASTVisitor<void> {
+class HTAnalyzer extends RecursiveASTVisitor<void> {
   final errorProcessors = <ErrorProcessor>[];
 
   AnalyzerConfig config;
@@ -69,7 +58,7 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
     _currentNamespace = _globalNamespace;
   }
 
-  HTModuleAnalysisResult analyzeASTCompilation(
+  HTModuleAnalysisResult analyzeCompilation(
     ASTCompilation compilation, {
     String? moduleName,
     bool globallyImport = false,
@@ -79,23 +68,14 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
 
     // Resolve namespaces
     for (final source in compilation.sources.values) {
-      if (compilation.entryResourceType == HTResourceType.hetuLiteralCode) {
-        _currentNamespace = _globalNamespace;
-      } else {
-        _currentNamespace = HTDeclarationNamespace(
-            id: source.fullName, closure: _globalNamespace);
-      }
       // the first scan, namespaces & declarations are created
-      for (final node in source.nodes) {
-        node.accept(this);
-      }
+      resolve(source);
     }
 
     for (final source in compilation.sources.values) {
-      final sourceAnalysisResult = analyzeASTSource(source);
-      _currentAnalysisResults[sourceAnalysisResult.fullName] =
-          sourceAnalysisResult;
-      _currentErrors.addAll(sourceAnalysisResult.errors);
+      // the second scan, compute constant values
+      // the third scan, do static analysis
+      analyze(source);
     }
 
     if (globallyImport) {
@@ -113,66 +93,58 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
     );
   }
 
-  HTSourceAnalysisResult analyzeASTSource(ASTSource astSource) {
+  void resolve(ASTSource source) {
+    if (source.resourceType == HTResourceType.hetuLiteralCode) {
+      _currentNamespace = _globalNamespace;
+    } else {
+      _currentNamespace = HTDeclarationNamespace(
+          id: source.fullName, closure: _globalNamespace);
+    }
+    for (final node in source.nodes) {
+      analyzeAST(node);
+    }
+  }
+
+  HTSourceAnalysisResult analyze(ASTSource source) {
     final sourceErrors = <HTAnalysisError>[];
     sourceErrors
-        .addAll(astSource.errors!.map((err) => HTAnalysisError.fromError(err)));
+        .addAll(source.errors!.map((err) => HTAnalysisError.fromError(err)));
 
-    // the second scan, compute constant values
     if (config.computeConstantExpressionValue) {
       final constantInterpreter = HTConstantInterpreter();
-      astSource.accept(constantInterpreter);
+      source.accept(constantInterpreter);
       sourceErrors.addAll(constantInterpreter.errors);
     }
 
-    // the third scan, do static analysis
     if (config.checkTypeErrors) {
       final analyzer = HTAnalyzerImpl();
-      astSource.accept(analyzer);
+      source.accept(analyzer);
       sourceErrors.addAll(analyzer.errors);
     }
 
-    return HTSourceAnalysisResult(
-        parseResult: astSource,
+    final sourceAnalysisResult = HTSourceAnalysisResult(
+        parseResult: source,
         analyzer: this,
         errors: sourceErrors,
         namespace: _currentNamespace);
+
+    _currentAnalysisResults[sourceAnalysisResult.fullName] =
+        sourceAnalysisResult;
+    _currentErrors.addAll(sourceAnalysisResult.errors);
+
+    return sourceAnalysisResult;
   }
 
   void analyzeAST(ASTNode node) => node.accept(this);
 
   @override
   void visitCompilation(ASTCompilation node) {
-    throw 'Use `analyzeASTCompilation` instead of this method.';
+    throw 'Use `analyzeCompilation()` instead of `visitCompilation()`.';
   }
 
   @override
   void visitSource(ASTSource astSource) {
-    throw 'Use `analyzeASTSource` instead of this method.';
-  }
-
-  @override
-  void visitEmptyExpr(ASTEmptyLine node) {}
-
-  @override
-  void visitNullExpr(ASTLiteralNull node) {}
-
-  @override
-  void visitBooleanExpr(ASTLiteralBoolean node) {}
-
-  @override
-  void visitIntLiteralExpr(ASTLiteralInteger node) {}
-
-  @override
-  void visitFloatLiteralExpr(ASTLiteralFloat node) {}
-
-  @override
-  void visitStringLiteralExpr(ASTLiteralString node) {}
-
-  @override
-  void visitStringInterpolationExpr(ASTStringInterpolation node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
+    throw 'Use `resolve() & analyzer()` instead of `visitSource`.';
   }
 
   @override
@@ -181,227 +153,28 @@ class HTAnalyzer implements AbstractASTVisitor<void> {
   }
 
   @override
-  void visitSpreadExpr(SpreadExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitCommaExpr(CommaExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitListExpr(ListExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitInOfExpr(InOfExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitGroupExpr(GroupExpr node) {
-    node.inner.accept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitTypeExpr(TypeExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitParamTypeExpr(ParamTypeExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitFunctionTypeExpr(FuncTypeExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitFieldTypeExpr(FieldTypeExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitStructuralTypeExpr(StructuralTypeExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitGenericTypeParamExpr(GenericTypeParameterExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitUnaryPrefixExpr(UnaryPrefixExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitUnaryPostfixExpr(UnaryPostfixExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitBinaryExpr(BinaryExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitTernaryExpr(TernaryExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitAssignExpr(AssignExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitMemberExpr(MemberExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitSubExpr(SubExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitCallExpr(CallExpr node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitAssertStmt(AssertStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitThrowStmt(ThrowStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitExprStmt(ExprStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitBlockStmt(BlockStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitReturnStmt(ReturnStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitIf(IfStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitWhileStmt(WhileStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitDoStmt(DoStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitForStmt(ForStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitForRangeStmt(ForRangeStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitWhen(WhenStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitBreakStmt(BreakStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
-  void visitContinueStmt(ContinueStmt node) {
-    node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-  }
-
-  @override
   void visitDeleteStmt(DeleteStmt node) {
     node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
   }
 
   @override
   void visitDeleteMemberStmt(DeleteMemberStmt node) {
     node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
   }
 
   @override
   void visitDeleteSubStmt(DeleteSubStmt node) {
     node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
   }
 
   @override
   void visitImportExportDecl(ImportExportDecl node) {
     node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
-
-    if (node.isPreloadedModule) {}
   }
 
   @override
   void visitNamespaceDecl(NamespaceDecl node) {
     node.subAccept(this);
-    node.analysisNamespace = _currentNamespace;
   }
 
   @override

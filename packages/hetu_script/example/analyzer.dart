@@ -8,7 +8,8 @@ void main() {
     var i = 'Hello, world!'
   ''', type: HTResourceType.hetuLiteralCode);
   final ast = parser.parseSource(source);
-  final result = analyzer.analyzeASTSource(ast);
+  analyzer.resolve(ast);
+  final result = analyzer.analyze(ast);
   if (result.errors.isNotEmpty) {
     for (final error in result.errors) {
       if (error.severity >= ErrorSeverity.error) {

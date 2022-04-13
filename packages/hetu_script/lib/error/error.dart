@@ -674,7 +674,7 @@ class HTError {
             length: length);
 
   /// Error: A same name declaration is already existed.
-  HTError.defined(String id,
+  HTError.defined(String id, ErrorType type,
       {String? extra,
       String? correction,
       String? filename,
@@ -682,7 +682,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.defined, ErrorType.compileTimeError,
+      : this(ErrorCode.defined, type,
             message: HTLocale.current.errorDefined,
             interpolations: [id],
             extra: extra,
@@ -959,26 +959,6 @@ class HTError {
       : this(ErrorCode.undefinedOperator, ErrorType.runtimeError,
             message: HTLocale.current.errorUndefinedOperator,
             interpolations: [id, op],
-            extra: extra,
-            correction: correction,
-            filename: filename,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  /// Error: A same name declaration is already existed.
-  HTError.definedRuntime(String id,
-      {String? extra,
-      String? correction,
-      String? filename,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.defined, ErrorType.runtimeError,
-            message: HTLocale.current.errorDefined,
-            interpolations: [id],
             extra: extra,
             correction: correction,
             filename: filename,

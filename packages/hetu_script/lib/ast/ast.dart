@@ -44,12 +44,6 @@ abstract class ASTNode {
 
   int get end => offset + length;
 
-  /// This value is null untill assigned by an analyzer
-  HTDeclarationNamespace? analysisNamespace;
-
-  /// This value is null untill assigned by an analyzer
-  HTDeclaration? declaration;
-
   /// Visit this node
   dynamic accept(AbstractASTVisitor visitor);
 
@@ -61,8 +55,7 @@ abstract class ASTNode {
       this.line = 0,
       this.column = 0,
       this.offset = 0,
-      this.length = 0,
-      this.analysisNamespace});
+      this.length = 0});
 }
 
 /// Parse result of a single file
@@ -364,6 +357,12 @@ class IdentifierExpr extends ASTNode {
   final bool isMarked;
 
   final bool isLocal;
+
+  /// This value is null untill assigned by an analyzer
+  HTDeclarationNamespace? analysisNamespace;
+
+  /// This value is null untill assigned by an analyzer
+  HTDeclaration? declaration;
 
   IdentifierExpr(this.id,
       {this.isMarked = false,
@@ -2181,7 +2180,7 @@ class StructDecl extends ASTNode {
 
   final bool isTopLevel;
 
-  final bool lateInitialize;
+  // final bool lateInitialize;
 
   @override
   bool get isExpression => false;
@@ -2190,7 +2189,7 @@ class StructDecl extends ASTNode {
       {this.prototypeId,
       this.isPrivate = false,
       this.isTopLevel = false,
-      this.lateInitialize = true,
+      // this.lateInitialize = true,
       HTSource? source,
       int line = 0,
       int column = 0,

@@ -282,7 +282,7 @@ class Hetu {
       final bundler = HTBundler(sourceContext: sourceContext);
       final compilation =
           bundler.bundle(source: source, parser: _currentParser);
-      final result = analyzer.analyzeASTCompilation(compilation);
+      final result = analyzer.analyzeCompilation(compilation);
       if (result.errors.isNotEmpty) {
         for (final error in result.errors) {
           if (error.severity >= ErrorSeverity.error) {
