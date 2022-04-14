@@ -10,30 +10,25 @@ void main() {
       ),
       sourceContext: sourceContext);
   hetu.init();
-  // final source = HTSource(r'''
-  //   var i = 42 * j
-  //   var j = 3
-  // ''', type: HTResourceType.hetuLiteralCode);
-
-  // final compilation = hetu.bundler.bundle(source: source, parser: hetu.parser);
-  // final result = hetu.analyzer.analyzeCompilation(compilation);
-  // if (result.errors.isNotEmpty) {
-  //   for (final error in result.errors) {
-  //     if (error.severity >= ErrorSeverity.error) {
-  //       print('Error: $error');
-  //     } else {
-  //       print('Warning: $error');
-  //     }
-  //   }
-  // } else {
-  //   print('Analyzer found 0 problem.');
-  // }
-
-  hetu.eval(r'''
-      var i = 42 * j
-      var j = 3
-      fun main {
-        print(i)
+  final source = HTSource(r'''
+    fun test {
+      const a = b
+      var b = 23
+    }
+''');
+  final compilation = hetu.bundle(source);
+  final analysisResult = hetu.analyzer.analyzeCompilation(compilation);
+  if (analysisResult.errors.isNotEmpty) {
+    for (final error in analysisResult.errors) {
+      if (error.severity >= ErrorSeverity.error) {
+        print('Error: $error');
+      } else {
+        print('Warning: $error');
       }
-  ''', type: HTResourceType.hetuModule, invokeFunc: 'main');
+    }
+  } else {
+    print('Analyzer found 0 problem.');
+  }
+
+  // hetu.eval(source.content);
 }

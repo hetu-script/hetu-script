@@ -1,11 +1,13 @@
 import '../ast/ast.dart';
+import '../ast/visitor/recursive_ast_visitor.dart';
 import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../analyzer/analysis_error.dart';
+import '../error/error.dart';
 
 /// A interpreter that computes the value of a constant expression before compilation.
 /// If the AstNode provided is non-constant value, do nothing.
-class HTConstantInterpreter implements AbstractASTVisitor<void> {
+class HTConstantInterpreter extends RecursiveASTVisitor<void> {
   late final HTLexicon _lexicon;
 
   HTConstantInterpreter({HTLexicon? lexicon})
@@ -14,45 +16,9 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
   /// Errors of a single file
   late List<HTAnalysisError> errors = [];
 
+  final List<ASTNode> _visitingInitializers = [];
+
   void evalAstNode(ASTNode node) => node.accept(this);
-
-  @override
-  void visitCompilation(ASTCompilation node) {
-    node.subAccept(this);
-  }
-
-  @override
-  void visitSource(ASTSource node) {
-    node.subAccept(this);
-  }
-
-  @override
-  void visitEmptyExpr(ASTEmptyLine node) {}
-
-  @override
-  void visitNullExpr(ASTLiteralNull node) {
-    // this value is already handled by parser.
-  }
-
-  @override
-  void visitBooleanExpr(ASTLiteralBoolean node) {
-    // this value is already handled by parser.
-  }
-
-  @override
-  void visitIntLiteralExpr(ASTLiteralInteger node) {
-    // this value is already handled by parser.
-  }
-
-  @override
-  void visitFloatLiteralExpr(ASTLiteralFloat node) {
-    // this value is already handled by parser.
-  }
-
-  @override
-  void visitStringLiteralExpr(ASTLiteralString node) {
-    // this value is already handled by parser.
-  }
 
   @override
   void visitStringInterpolationExpr(ASTStringInterpolation node) {
@@ -75,7 +41,13 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
 
   @override
   void visitIdentifierExpr(IdentifierExpr node) {
-    node.subAccept(this);
+    final ASTNode? ast = node.analysisNamespace!.memberGet(node.id);
+    if (ast != null) {
+      ast.accept(this);
+      if (ast.isConstValue) {
+        node.value = ast.value;
+      }
+    }
   }
 
   @override
@@ -156,6 +128,8 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
   /// *, /, ~/, %, +, -, <, >, <=, >=, ==, !=, &&, ||
   @override
   void visitBinaryExpr(BinaryExpr node) {
+    node.left.accept(this);
+    node.right.accept(this);
     final left = node.left.value;
     final right = node.right.value;
     if (node.op == _lexicon.multiply) {
@@ -279,6 +253,14 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
   @override
   void visitIf(IfStmt node) {
     node.subAccept(this);
+    if (node.condition.isConstValue && node.condition.value is bool) {
+      bool condition = node.condition.value;
+      if (condition) {
+        node.value = node.thenBranch.value;
+      } else {
+        node.value = node.elseBranch?.value;
+      }
+    }
   }
 
   @override
@@ -353,15 +335,38 @@ class HTConstantInterpreter implements AbstractASTVisitor<void> {
 
   @override
   void visitVarDecl(VarDecl node) {
-    node.subAccept(this);
-    if (node.isConst && !node.initializer!.isConstValue) {
-      final err = HTAnalysisError.constValue(
+    /// Skip if the value is already been computed.
+    if (node.isConstValue) return;
+    if (_visitingInitializers.contains(node)) {
+      final err = HTError.circleInit(node.id.id,
           filename: node.source!.fullName,
-          line: node.initializer!.line,
-          column: node.initializer!.column,
-          offset: node.initializer!.offset,
-          length: node.initializer!.length);
-      errors.add(err);
+          line: node.line,
+          column: node.column,
+          offset: node.offset,
+          length: node.length);
+      errors.add(HTAnalysisError.fromError(err,
+          filename: node.source!.fullName,
+          line: node.line,
+          column: node.column,
+          offset: node.offset,
+          length: node.length));
+    } else {
+      _visitingInitializers.add(node);
+      node.subAccept(this);
+      if (node.isConst) {
+        if (!node.initializer!.isConstValue) {
+          final err = HTAnalysisError.constValue(node.id.id,
+              filename: node.source!.fullName,
+              line: node.initializer!.line,
+              column: node.initializer!.column,
+              offset: node.initializer!.offset,
+              length: node.initializer!.length);
+          errors.add(err);
+        } else {
+          node.value = node.initializer!.value;
+        }
+      }
+      _visitingInitializers.remove(node);
     }
   }
 

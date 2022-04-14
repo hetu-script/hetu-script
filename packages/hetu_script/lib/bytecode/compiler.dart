@@ -242,7 +242,26 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   Uint8List compileAST(ASTNode node, {bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
-    final bytes = node.accept(this);
+    Uint8List bytes;
+    // if (node.isExpression && node.isConstValue) {
+    //   late int type, index;
+    //   if (node.value is bool) {
+    //     type = HTConstantType.boolean.index;
+    //     index = _currentConstantTable.addGlobalConstant<bool>(node.value);
+    //   } else if (node.value is int) {
+    //     type = HTConstantType.integer.index;
+    //     index = _currentConstantTable.addGlobalConstant<int>(node.value);
+    //   } else if (node.value is double) {
+    //     type = HTConstantType.float.index;
+    //     index = _currentConstantTable.addGlobalConstant<double>(node.value);
+    //   } else if (node.value is String) {
+    //     type = HTConstantType.string.index;
+    //     index = _currentConstantTable.addGlobalConstant<String>(node.value);
+    //   }
+    //   bytes = _localConst(type, index, node.line, node.column);
+    // } else {
+    bytes = node.accept(this);
+    // }
     bytesBuilder.add(bytes);
     if (endOfExec) {
       bytesBuilder.addByte(HTOpCode.endOfExec);
@@ -1078,6 +1097,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     final condition = compileAST(stmt.condition);
+    // The else branch of if stmt is optional, so just check stmt.value is not safe,
     bytesBuilder.add(condition);
     bytesBuilder.addByte(HTOpCode.ifStmt);
     final thenBranch = compileAST(stmt.thenBranch);
@@ -1455,10 +1475,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     // can be compiled into a const declaration,
     // otherwise will be compiled as a normal variable declaration,
     // with a static warning output.
-    if (stmt.isConst &&
-        stmt.initializer != null &&
-        stmt.initializer!.isConstValue) {
-      final constValue = stmt.initializer!.value;
+    if (stmt.isConstValue) {
       bytesBuilder.addByte(HTOpCode.constDecl);
       bytesBuilder.add(_parseIdentifier(stmt.id.id));
       if (stmt.classId != null) {
@@ -1468,18 +1485,18 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.addByte(0); // bool: has class id
       }
       late int type, index;
-      if (constValue is bool) {
+      if (stmt.value is bool) {
         type = HTConstantType.boolean.index;
-        index = _currentConstantTable.addGlobalConstant<bool>(constValue);
-      } else if (constValue is int) {
+        index = _currentConstantTable.addGlobalConstant<bool>(stmt.value);
+      } else if (stmt.value is int) {
         type = HTConstantType.integer.index;
-        index = _currentConstantTable.addGlobalConstant<int>(constValue);
-      } else if (constValue is double) {
+        index = _currentConstantTable.addGlobalConstant<int>(stmt.value);
+      } else if (stmt.value is double) {
         type = HTConstantType.float.index;
-        index = _currentConstantTable.addGlobalConstant<double>(constValue);
-      } else if (constValue is String) {
+        index = _currentConstantTable.addGlobalConstant<double>(stmt.value);
+      } else if (stmt.value is String) {
         type = HTConstantType.string.index;
-        index = _currentConstantTable.addGlobalConstant<String>(constValue);
+        index = _currentConstantTable.addGlobalConstant<String>(stmt.value);
       }
       bytesBuilder.addByte(type);
       bytesBuilder.add(_uint16(index));

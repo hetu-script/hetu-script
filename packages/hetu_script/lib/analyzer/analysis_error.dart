@@ -16,8 +16,10 @@ class HTAnalysisError implements HTError {
   @override
   ErrorSeverity get severity => type.severity;
 
+  String? _message;
+
   @override
-  final String? message;
+  String? get message => _message;
 
   @override
   final String? extra;
@@ -43,7 +45,7 @@ class HTAnalysisError implements HTError {
   final List<HTDiagnosticMessage> contextMessages;
 
   HTAnalysisError(this.code, this.type,
-      {this.message,
+      {String? message,
       this.extra,
       List<String> interpolations = const [],
       this.correction,
@@ -52,7 +54,14 @@ class HTAnalysisError implements HTError {
       required this.column,
       this.offset = 0,
       this.length = 0,
-      this.contextMessages = const []});
+      this.contextMessages = const []}) {
+    if (message != null) {
+      for (var i = 0; i < interpolations.length; ++i) {
+        message = message!.replaceAll('{$i}', interpolations[i].toString());
+      }
+      _message = message;
+    }
+  }
 
   @override
   String toString() {
@@ -77,7 +86,7 @@ class HTAnalysisError implements HTError {
             column: column,
             contextMessages: contextMessages);
 
-  HTAnalysisError.constValue(
+  HTAnalysisError.constValue(String id,
       {String? extra,
       String? correction,
       required String filename,
@@ -88,6 +97,7 @@ class HTAnalysisError implements HTError {
       : this(ErrorCode.constValue, ErrorType.staticWarning,
             message: HTLocale.current.errorConstValue,
             extra: extra,
+            interpolations: [id],
             correction: correction,
             filename: filename,
             line: line,

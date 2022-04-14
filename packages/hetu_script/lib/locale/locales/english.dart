@@ -83,7 +83,7 @@ class HTLocaleEnglish implements HTLocale {
   final String errorAbstracted = 'Cannot create instance from abstract class.';
   @override
   final String errorConstValue =
-      'Initializer of const declaration is not constant value.';
+      'Const declaration [{0}]\'s initializer is not a constant expression.';
 
   // runtime errors
   @override
@@ -147,7 +147,7 @@ class HTLocaleEnglish implements HTLocale {
   final String errorBytesSig = 'Unknown bytecode signature.';
   @override
   final String errorCircleInit =
-      'Variable [{0}]\'s initializer depend on itself being initialized.';
+      'Variable [{0}]\'s initializer depend on itself.';
   @override
   final String errorNamedArg = 'Undefined named parameter: [{0}].';
   @override

@@ -72,7 +72,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorAbstracted = '不能从 abstract class 创建实例。';
   @override
-  final String errorConstValue = '常量表达式中包含可变量。';
+  final String errorConstValue = '常量声明 [{0}] 的初始化表达式不是常量表达式。';
 
   // runtime errors
   @override

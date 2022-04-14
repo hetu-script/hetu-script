@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:hetu_script/ast/ast.dart';
+
 import '../analyzer/analyzer.dart';
 import '../interpreter/interpreter.dart';
 import '../resource/resource.dart' show HTResourceType;
@@ -66,9 +68,9 @@ class HetuConfig
 
   HetuConfig({
     this.explicitEndOfStatement = false,
-    this.doStaticAnalysis = false,
-    this.computeConstantExpression = false,
-    this.compileWithoutLineInfo = false,
+    this.doStaticAnalysis = true,
+    this.computeConstantExpression = true,
+    this.compileWithoutLineInfo = true,
     this.showDartStackTrace = false,
     this.showHetuStackTrace = false,
     this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
@@ -81,7 +83,7 @@ class HetuConfig
   });
 }
 
-/// A wrapper class for sourceContext, analyzer, compiler and interpreter to work together.
+/// A wrapper class for sourceContext, lexicon, parser, bundler, analyzer, compiler and interpreter to make them work together.
 class Hetu {
   HetuConfig config;
 
@@ -106,6 +108,7 @@ class Hetu {
   bool _isInitted = false;
   bool get isInitted => _isInitted;
 
+  /// Create a Hetu environment.
   Hetu(
       {HetuConfig? config,
       HTResourceContext<HTSource>? sourceContext,
@@ -265,26 +268,29 @@ class Hetu {
         type: isModuleEntryScript
             ? HTResourceType.hetuScript
             : HTResourceType.hetuModule);
-    final result = _compileSource(source, moduleName: moduleName);
-    return result;
+    return _compileSource(source, moduleName: moduleName);
   }
 
   /// Compile a script content into bytecode for later use.
   Uint8List compileFile(String key,
       {String? moduleName, CompilerConfig? config}) {
     final source = sourceContext.getResource(key);
-    final bytes = _compileSource(source, moduleName: moduleName);
-    return bytes;
+    return _compileSource(source, moduleName: moduleName);
+  }
+
+  ASTCompilation bundle(HTSource source) {
+    final compilation = bundler.bundle(
+        source: source,
+        parser: _currentParser,
+        normalizePath: config.normalizeImportPath);
+    return compilation;
   }
 
   /// Compile a [HTSource] into bytecode for later use.
   Uint8List _compileSource(HTSource source,
       {String? moduleName, bool errorHandled = false}) {
     try {
-      final compilation = bundler.bundle(
-          source: source,
-          parser: _currentParser,
-          normalizePath: config.normalizeImportPath);
+      final compilation = bundle(source);
       if (config.doStaticAnalysis) {
         final result = analyzer.analyzeCompilation(compilation);
         if (result.errors.isNotEmpty) {
@@ -314,22 +320,21 @@ class Hetu {
     }
   }
 
-  dynamic run(
-      {required Uint8List bytes,
-      required String moduleName,
-      bool globallyImport = false,
-      String? invokeFunc,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) {
-    interpreter.loadBytecode(
-        bytes: bytes,
-        moduleName: moduleName,
-        globallyImport: globallyImport,
-        invokeFunc: invokeFunc,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        typeArgs: typeArgs);
-  }
+  /// Load a bytecode module and immediately run a function in it.
+  dynamic loadBytecode(
+          {required Uint8List bytes,
+          required String moduleName,
+          bool globallyImport = false,
+          String? invokeFunc,
+          List<dynamic> positionalArgs = const [],
+          Map<String, dynamic> namedArgs = const {},
+          List<HTType> typeArgs = const []}) =>
+      interpreter.loadBytecode(
+          bytes: bytes,
+          moduleName: moduleName,
+          globallyImport: globallyImport,
+          invokeFunc: invokeFunc,
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs);
 }

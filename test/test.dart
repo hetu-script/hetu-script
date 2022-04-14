@@ -21,23 +21,20 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
 //   final source1 = HTSource(r'''
-//     fun greeting {
-//       return 'hello world!'
-//     }
+//     final text = 'hello world!'
 // ''', fullName: 'source1.ht');
 //   final source2 = HTSource(r'''
 //     export 'source1.ht'
-//     final meaning = 42
-//     export { meaning }
+//     export { greeting }
+//     fun greeting {
+//       print(text)
+//     }
 // ''', fullName: 'source2.ht');
 //   final source3 = HTSource(r'''
 //     import 'source2.ht'
 //     fun main {
-//       print(greeting())
+//       greeting()
 //       print(meaning)
-//       var a = 5
-//       var a = 52
-//       print(a)
 //     }
 // ''', fullName: 'source3.ht');
 //   sourceContext2.addResource(source1.fullName, source1);
@@ -45,12 +42,6 @@ void main() {
 //   sourceContext2.addResource(source3.fullName, source3);
 
 //   final r = hetu.evalFile('source3.ht', invokeFunc: 'main');
-  hetu.eval(r'''
-  var a = 42
-''');
-  hetu.eval(r'''
-  var a = 42
-''');
 
   // final r = hetu.evalFile('eval.hts');
   // print(hetu.lexicon.stringify(r));

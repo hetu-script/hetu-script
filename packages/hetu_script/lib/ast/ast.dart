@@ -25,9 +25,12 @@ abstract class ASTNode {
 
   bool get hasEndOfStmtMark => false;
 
+  /// Wether this value is constantant value,
+  /// i.e. its value can be computed before compile into bytecode.
   bool get isConstValue => value != null;
 
-  /// This value is not null only when this is a constant expressions.
+  /// If this is a constant expressions, the constant interpreter will compute the value
+  /// and assign to this property, otherwise, this peoperty is null.
   dynamic value;
 
   final HTSource? source;
@@ -358,10 +361,10 @@ class IdentifierExpr extends ASTNode {
 
   final bool isLocal;
 
-  /// This value is null untill assigned by an analyzer
-  HTDeclarationNamespace? analysisNamespace;
+  /// This value is null untill assigned by analyzer
+  HTDeclarationNamespace<ASTNode?>? analysisNamespace;
 
-  /// This value is null untill assigned by an analyzer
+  /// This value is null untill assigned by analyzer
   HTDeclaration? declaration;
 
   IdentifierExpr(this.id,
@@ -613,9 +616,9 @@ class FuncTypeExpr extends TypeExpr {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    for (final item in genericTypeParameters) {
-      item.accept(visitor);
-    }
+    // for (final item in genericTypeParameters) {
+    //   item.accept(visitor);
+    // }
     for (final item in paramTypes) {
       item.accept(visitor);
     }
@@ -1627,9 +1630,9 @@ class TypeAliasDecl extends ASTNode {
   @override
   void subAccept(AbstractASTVisitor visitor) {
     // id.accept(visitor);
-    for (final param in genericTypeParameters) {
-      param.accept(visitor);
-    }
+    // for (final param in genericTypeParameters) {
+    //   param.accept(visitor);
+    // }
     typeValue.accept(visitor);
   }
 
@@ -1805,11 +1808,10 @@ class DestructuringDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    for (final id in ids.keys) {
-      // id.accept(visitor);
-      final typeExpr = ids[id];
-      typeExpr?.accept(visitor);
-    }
+    // for (final id in ids.keys) {
+    //   ids[id]!.accept(visitor);
+    // }
+    initializer.subAccept(visitor);
   }
 
   final Map<IdentifierExpr, TypeExpr?> ids;
@@ -1931,9 +1933,9 @@ class FuncDecl extends ASTNode {
   @override
   void subAccept(AbstractASTVisitor visitor) {
     // id?.accept(visitor);
-    for (final param in genericTypeParameters) {
-      param.accept(visitor);
-    }
+    // for (final param in genericTypeParameters) {
+    //   param.accept(visitor);
+    // }
     returnType?.accept(visitor);
     redirectingCtorCallExpr?.accept(visitor);
     for (final param in paramDecls) {
@@ -2039,9 +2041,9 @@ class ClassDecl extends ASTNode {
   @override
   void subAccept(AbstractASTVisitor visitor) {
     // id.accept(visitor);
-    for (final param in genericTypeParameters) {
-      param.accept(visitor);
-    }
+    // for (final param in genericTypeParameters) {
+    //   param.accept(visitor);
+    // }
     superType?.accept(visitor);
     for (final implementsType in implementsTypes) {
       implementsType.accept(visitor);

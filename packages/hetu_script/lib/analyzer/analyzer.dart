@@ -15,6 +15,9 @@ import 'analyzer_impl.dart';
 import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 
+/// Namespace that holds symbols for analyzing, the value is either the declaration AST or null.
+typedef _AnalysisNamespace = HTDeclarationNamespace<ASTNode?>;
+
 class AnalyzerImplConfig {
   bool allowVariableShadowing;
 
@@ -59,7 +62,8 @@ class AnalyzerConfig implements AnalyzerImplConfig {
 }
 
 /// A ast visitor that create declarative-only namespaces on all astnode,
-/// for analysis purpose, the true analyzer is another class.
+/// for analysis purpose, the true analyzer is another class,
+/// albeit its name, this is basically a resolver.
 class HTAnalyzer extends RecursiveASTVisitor<void> {
   final errorProcessors = <ErrorProcessor>[];
 
@@ -69,9 +73,9 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   late final HTLexicon _lexicon;
 
-  final HTDeclarationNamespace<ASTNode> _globalNamespace;
+  final _AnalysisNamespace _globalNamespace;
 
-  late HTDeclarationNamespace<ASTNode> _currentNamespace;
+  late _AnalysisNamespace _currentNamespace;
 
   late HTSource _curSource;
 
@@ -195,7 +199,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   @override
   void visitDeleteStmt(DeleteStmt node) {
-    node.subAccept(this);
+    _currentNamespace.delete(node.symbol);
   }
 
   @override
@@ -220,10 +224,8 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   @override
   void visitTypeAliasDecl(TypeAliasDecl node) {
-    // node.declaration = HTVariableDeclaration(node.id.id,
-    //     classId: node.classId, closure: _currentNamespace, source: _curSource);
-    // _currentNamespace.define(node.id.id, node.declaration!);
     node.subAccept(this);
+    _currentNamespace.define(node.id.id, node);
   }
 
   // @override
@@ -237,7 +239,6 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
   @override
   void visitVarDecl(VarDecl node) {
     node.subAccept(this);
-    // if (node.isConst && node.initializer)
     _currentNamespace.define(node.id.id, node,
         override: config.allowVariableShadowing);
   }
@@ -245,18 +246,15 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
   @override
   void visitDestructuringDecl(DestructuringDecl node) {
     node.subAccept(this);
+    for (final key in node.ids.keys) {
+      _currentNamespace.define(key.id, null,
+          override: config.allowVariableShadowing);
+    }
   }
 
   @override
   void visitParamDecl(ParamDecl node) {
-    // node.declaration = HTParameterDeclaration(node.id.id,
-    //     closure: _curNamespace,
-    //     source: _curSource,
-    //     declType: HTType.fromAst(node.declType),
-    //     isOptional: node.isOptional,
-    //     isNamed: node.isNamed,
-    //     isVariadic: node.isVariadic);
-    // _curNamespace.define(node.id.id, node.declaration!);
+    _currentNamespace.define(node.id.id, node);
     node.subAccept(this);
   }
 
@@ -273,41 +271,14 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     }
     node.returnType?.accept(this);
     node.redirectingCtorCallExpr?.accept(this);
-    // final namespace =
-    //     HTNamespace(id: node.internalName, closure: _curNamespace);
-    // final savedCurNamespace = _curNamespace;
-    // _curNamespace = namespace;
-    // for (final arg in node.paramDecls) {
-    //   visitParamDecl(arg);
-    // }
-    // if (node.definition != null) {
-    //   analyzeAst(node.definition!);
-    // }
-    // _curNamespace = savedCurNamespace;
-    // node.declaration = HTFunctionDeclaration(node.internalName,
-    //     id: node.id?.id,
-    //     classId: node.classId,
-    //     closure: _curNamespace,
-    //     source: _curSource,
-    //     isExternal: node.isExternal,
-    //     isStatic: node.isStatic,
-    //     isConst: node.isConst,
-    //     category: node.category,
-    //     externalTypeId: node.externalTypeId,
-    //     paramDecls: node.paramDecls.asMap().map((key, param) => MapEntry(
-    //         param.id.id,
-    //         HTParameterDeclaration(param.id.id,
-    //             closure: _curNamespace,
-    //             declType: HTType.fromAst(param.declType),
-    //             isOptional: param.isOptional,
-    //             isNamed: param.isNamed,
-    //             isVariadic: param.isVariadic))),
-    //     returnType: HTType.fromAst(node.returnType),
-    //     isVariadic: node.isVariadic,
-    //     minArity: node.minArity,
-    //     maxArity: node.maxArity,
-    //     namespace: namespace);
-    // _curNamespace.define(node.internalName, node.declaration!);
+    final savedCurrrentNamespace = _currentNamespace;
+    _currentNamespace = HTDeclarationNamespace(
+        id: node.internalName, closure: _currentNamespace);
+    for (final param in node.paramDecls) {
+      visitParamDecl(param);
+    }
+    node.definition?.accept(this);
+    _currentNamespace = savedCurrrentNamespace;
   }
 
   @override
@@ -349,7 +320,6 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   @override
   void visitEnumDecl(EnumDecl node) {
-    visitIdentifierExpr(node.id);
     // node.declaration = HTClassDeclaration(
     //     id: node.id.id,
     //     classId: node.classId,
@@ -361,7 +331,6 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   @override
   void visitStructDecl(StructDecl node) {
-    node.id.accept(this);
     // final savedCurNamespace = _curNamespace;
     // _curNamespace = HTNamespace(id: node.id.id, closure: _curNamespace);
     for (final node in node.definition) {

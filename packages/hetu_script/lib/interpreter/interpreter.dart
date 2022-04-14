@@ -633,11 +633,11 @@ class HTInterpreter {
             errorHandled: true);
         return result;
       }
+      stackTraceList.clear();
       if (_isModuleEntryScript) {
         result = _stackFrames.last.first;
+        return result;
       }
-      stackTraceList.clear();
-      return result;
     } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;

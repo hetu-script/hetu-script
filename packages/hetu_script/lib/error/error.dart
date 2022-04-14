@@ -228,7 +228,6 @@ class HTError {
       for (var i = 0; i < interpolations.length; ++i) {
         message = message!.replaceAll('{$i}', interpolations[i].toString());
       }
-      // ignore: prefer_initializing_formals
       _message = message;
     }
   }
