@@ -11,11 +11,12 @@ void main() {
       sourceContext: sourceContext);
   hetu.init();
   final source = HTSource(r'''
-    fun test {
-      const a = b
-      var b = 23
-    }
-''');
+  var person = {
+    familyName: 'Hord',
+    firstName: 'Luk'
+  }
+  person.firstName
+''', type: HTResourceType.hetuScript);
   final compilation = hetu.bundle(source);
   final analysisResult = hetu.analyzer.analyzeCompilation(compilation);
   if (analysisResult.errors.isNotEmpty) {

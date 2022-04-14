@@ -68,8 +68,8 @@ class HetuConfig
 
   HetuConfig({
     this.explicitEndOfStatement = false,
-    this.doStaticAnalysis = true,
-    this.computeConstantExpression = true,
+    this.doStaticAnalysis = false,
+    this.computeConstantExpression = false,
     this.compileWithoutLineInfo = true,
     this.showDartStackTrace = false,
     this.showHetuStackTrace = false,

@@ -254,8 +254,8 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   @override
   void visitParamDecl(ParamDecl node) {
-    _currentNamespace.define(node.id.id, node);
     node.subAccept(this);
+    // _currentNamespace.define(node.id.id, node);
   }
 
   @override
@@ -265,25 +265,23 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   @override
   void visitFuncDecl(FuncDecl node) {
-    node.id?.accept(this);
     for (final param in node.genericTypeParameters) {
       visitGenericTypeParamExpr(param);
     }
     node.returnType?.accept(this);
     node.redirectingCtorCallExpr?.accept(this);
-    final savedCurrrentNamespace = _currentNamespace;
-    _currentNamespace = HTDeclarationNamespace(
-        id: node.internalName, closure: _currentNamespace);
-    for (final param in node.paramDecls) {
-      visitParamDecl(param);
-    }
-    node.definition?.accept(this);
-    _currentNamespace = savedCurrrentNamespace;
+    // final savedCurrrentNamespace = _currentNamespace;
+    // _currentNamespace = HTDeclarationNamespace(
+    //     id: node.internalName, closure: _currentNamespace);
+    // for (final param in node.paramDecls) {
+    //   visitParamDecl(param);
+    // }
+    // node.definition?.accept(this);
+    // _currentNamespace = savedCurrrentNamespace;
   }
 
   @override
   void visitClassDecl(ClassDecl node) {
-    visitIdentifierExpr(node.id);
     for (final param in node.genericTypeParameters) {
       visitGenericTypeParamExpr(param);
     }
@@ -333,9 +331,9 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
   void visitStructDecl(StructDecl node) {
     // final savedCurNamespace = _curNamespace;
     // _curNamespace = HTNamespace(id: node.id.id, closure: _curNamespace);
-    for (final node in node.definition) {
-      node.accept(this);
-    }
+    // for (final node in node.definition) {
+    //   node.accept(this);
+    // }
     // node.declaration = HTStructDeclaration(_curNamespace,
     //     id: node.id.id,
     //     closure: savedCurNamespace,

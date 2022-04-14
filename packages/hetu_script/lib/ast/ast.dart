@@ -2212,7 +2212,7 @@ class StructObjField extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    key?.accept(visitor);
+    // key?.accept(visitor);
     value?.accept(visitor);
   }
 
@@ -2248,9 +2248,9 @@ class StructObjExpr extends ASTNode {
   @override
   void subAccept(AbstractASTVisitor visitor) {
     // id?.accept(visitor);
-    prototypeId?.accept(visitor);
+    // prototypeId?.accept(visitor);
     for (final field in fields) {
-      field.accept(visitor);
+      field.subAccept(visitor);
     }
   }
 
