@@ -1342,7 +1342,7 @@ class HTInterpreter {
           final value = execute();
           literal = literal.replaceAll(
               '${_lexicon.stringInterpolationStart}$i${_lexicon.stringInterpolationEnd}',
-              value.toString());
+              lexicon.stringify(value));
         }
         _localValue = literal;
         break;
@@ -1788,7 +1788,7 @@ class HTInterpreter {
       } else if (callee is HTStruct && callee.declaration != null) {
         handleStructConstructor();
       } else {
-        throw HTError.notNewable(callee.toString(),
+        throw HTError.notNewable(lexicon.stringify(callee),
             filename: _currentFileName, line: _currentLine, column: _column);
       }
     } else {

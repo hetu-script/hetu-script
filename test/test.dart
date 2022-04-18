@@ -48,21 +48,12 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   hetu.eval(r'''
-        class Super1 {
-          var name = 'Super'
-          var age = 1
-          fun addAge() {
-            age = age + 1
+        class A {
+          get typename {
+            return '${typeof this}'
           }
         }
-        class Extend1 extends Super1 {
-          var name = 'Extend'
-          fun addAge() {
-            super.addAge()
-          }
-        }
-        var a = Extend1()
-        a.addAge()
-        print(a.age)
+        final a = A()
+        print(a.typename)
   ''');
 }
