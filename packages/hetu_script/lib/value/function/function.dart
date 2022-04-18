@@ -391,98 +391,117 @@ class HTFunction extends HTFunctionDeclaration
           variadicParam!.value = variadicArg;
         }
 
-        if (category == FunctionCategory.constructor &&
-            redirectingConstructor != null) {
-          final name = redirectingConstructor!.name;
-          final key = redirectingConstructor!.key;
-
-          late final HTFunction constructor;
-          if (klass != null) {
-            if (name == interpreter.lexicon.kSuper) {
-              final superClass = klass!.superClass!;
-              if (key == null) {
-                constructor = superClass.namespace.memberGet(
+        if (category == FunctionCategory.constructor) {
+          if (redirectingConstructor == null) {
+            if (klass != null) {
+              HTClass? superClass = klass!.superClass;
+              while (superClass != null && !superClass.isAbstract) {
+                // TODO: It is an error that super class doesn't have a default constructor, however this error should be handled in the analyzer.
+                final HTFunction constructor = superClass.namespace.memberGet(
                     InternalIdentifier.defaultConstructor,
                     recursive: false);
-              } else {
-                constructor = superClass.namespace.memberGet(
-                    '${InternalIdentifier.namedConstructorPrefix}$key',
-                    recursive: false);
+                // constructor's context is on this newly created instance
+                final instanceNamespace = namespace as HTInstanceNamespace;
+                constructor.namespace = instanceNamespace.next!;
+                constructor.instance = instance;
+                constructor.call(construct: false);
+                superClass = superClass.superClass;
               }
-            } else if (name == interpreter.lexicon.kThis) {
-              if (key == null) {
-                constructor = klass!.namespace.memberGet(
-                    InternalIdentifier.defaultConstructor,
-                    recursive: false);
-              } else {
-                constructor = klass!.namespace.memberGet(
-                    '${InternalIdentifier.namedConstructorPrefix}$key',
-                    recursive: false);
-              }
-            }
-            // constructor's context is on this newly created instance
-            final instanceNamespace = namespace as HTInstanceNamespace;
-            constructor.namespace = instanceNamespace.next!;
-            constructor.instance = instance;
-          } else {
-            if (name == interpreter.lexicon.kThis) {
-              final prototype = (instance as HTStruct);
-              if (key == null) {
-                constructor =
-                    prototype.memberGet(InternalIdentifier.defaultConstructor);
-              } else {
-                constructor = prototype.memberGet(
-                    '${InternalIdentifier.namedConstructorPrefix}$key');
-              }
-              constructor.instance = instance;
-              constructor.namespace = namespace;
-            }
-          }
-
-          final referCtorPosArgs = [];
-          final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
-          for (var i = 0; i < referCtorPosArgIps.length; ++i) {
-            final savedFileName = interpreter.currentFileName;
-            final savedModuleName = interpreter.bytecodeModule.id;
-            final savedNamespace = interpreter.currentNamespace;
-            final savedIp = interpreter.bytecodeModule.ip;
-            interpreter.newStackFrame(
-                filename: fileName,
-                moduleName: moduleName,
-                namespace: callClosure,
-                ip: referCtorPosArgIps[i]);
-            final isSpread = interpreter.bytecodeModule.readBool();
-            if (!isSpread) {
-              final arg = interpreter.execute();
-              referCtorPosArgs.add(arg);
             } else {
-              final List arg = interpreter.execute();
-              referCtorPosArgs.addAll(arg);
+              // struct doesn't have chained constructors for now.
             }
-            interpreter.restoreStackFrame(
-              savedFileName: savedFileName,
-              savedModuleName: savedModuleName,
-              savedNamespace: savedNamespace,
-              savedIp: savedIp,
-            );
-          }
+          } else {
+            final name = redirectingConstructor!.name;
+            final key = redirectingConstructor!.key;
 
-          final referCtorNamedArgs = <String, dynamic>{};
-          final referCtorNamedArgIps = redirectingConstructor!.namedArgsIp;
-          for (final name in referCtorNamedArgIps.keys) {
-            final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
-            final arg = interpreter.execute(
-                filename: fileName,
-                moduleName: moduleName,
-                ip: referCtorNamedArgIp,
-                namespace: callClosure);
-            referCtorNamedArgs[name] = arg;
-          }
+            late final HTFunction constructor;
+            if (klass != null) {
+              if (name == interpreter.lexicon.kSuper) {
+                final superClass = klass!.superClass!;
+                if (key == null) {
+                  constructor = superClass.namespace.memberGet(
+                      InternalIdentifier.defaultConstructor,
+                      recursive: false);
+                } else {
+                  constructor = superClass.namespace.memberGet(
+                      '${InternalIdentifier.namedConstructorPrefix}$key',
+                      recursive: false);
+                }
+              } else if (name == interpreter.lexicon.kThis) {
+                if (key == null) {
+                  constructor = klass!.namespace.memberGet(
+                      InternalIdentifier.defaultConstructor,
+                      recursive: false);
+                } else {
+                  constructor = klass!.namespace.memberGet(
+                      '${InternalIdentifier.namedConstructorPrefix}$key',
+                      recursive: false);
+                }
+              }
+              // constructor's context is on this newly created instance
+              final instanceNamespace = namespace as HTInstanceNamespace;
+              constructor.namespace = instanceNamespace.next!;
+              constructor.instance = instance;
+            } else {
+              if (name == interpreter.lexicon.kThis) {
+                final prototype = (instance as HTStruct);
+                if (key == null) {
+                  constructor = prototype
+                      .memberGet(InternalIdentifier.defaultConstructor);
+                } else {
+                  constructor = prototype.memberGet(
+                      '${InternalIdentifier.namedConstructorPrefix}$key');
+                }
+                constructor.instance = instance;
+                constructor.namespace = namespace;
+              }
+            }
 
-          constructor.call(
-              construct: false,
-              positionalArgs: referCtorPosArgs,
-              namedArgs: referCtorNamedArgs);
+            final referCtorPosArgs = [];
+            final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
+            for (var i = 0; i < referCtorPosArgIps.length; ++i) {
+              final savedFileName = interpreter.currentFileName;
+              final savedModuleName = interpreter.bytecodeModule.id;
+              final savedNamespace = interpreter.currentNamespace;
+              final savedIp = interpreter.bytecodeModule.ip;
+              interpreter.newStackFrame(
+                  filename: fileName,
+                  moduleName: moduleName,
+                  namespace: callClosure,
+                  ip: referCtorPosArgIps[i]);
+              final isSpread = interpreter.bytecodeModule.readBool();
+              if (!isSpread) {
+                final arg = interpreter.execute();
+                referCtorPosArgs.add(arg);
+              } else {
+                final List arg = interpreter.execute();
+                referCtorPosArgs.addAll(arg);
+              }
+              interpreter.restoreStackFrame(
+                savedFileName: savedFileName,
+                savedModuleName: savedModuleName,
+                savedNamespace: savedNamespace,
+                savedIp: savedIp,
+              );
+            }
+
+            final referCtorNamedArgs = <String, dynamic>{};
+            final referCtorNamedArgIps = redirectingConstructor!.namedArgsIp;
+            for (final name in referCtorNamedArgIps.keys) {
+              final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
+              final arg = interpreter.execute(
+                  filename: fileName,
+                  moduleName: moduleName,
+                  ip: referCtorNamedArgIp,
+                  namespace: callClosure);
+              referCtorNamedArgs[name] = arg;
+            }
+
+            constructor.call(
+                construct: false,
+                positionalArgs: referCtorPosArgs,
+                namedArgs: referCtorNamedArgs);
+          }
         }
 
         if (definitionIp == null) {

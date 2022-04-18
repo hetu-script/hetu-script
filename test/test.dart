@@ -48,10 +48,16 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   hetu.eval(r'''
-    var a = "";
-    // d
-    var b = "";
-    // d
-    var c = a();
+    class A {
+      construct {
+        print('constructing A')
+      }
+    }
+    class B extends A {
+      construct {
+        print('constructing B')
+      }
+    }
+    final b = B()
   ''');
 }

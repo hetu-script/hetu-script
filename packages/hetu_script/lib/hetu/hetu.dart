@@ -308,6 +308,19 @@ class Hetu {
         }
         return compiler.compile(result.compilation);
       } else {
+        if (compilation.errors.isNotEmpty) {
+          for (final error in compilation.errors) {
+            if (error.severity >= ErrorSeverity.error) {
+              if (errorHandled) {
+                throw error;
+              } else {
+                interpreter.handleError(error);
+              }
+            } else {
+              print('${error.severity}: $error');
+            }
+          }
+        }
         return compiler.compile(compilation);
       }
     } catch (error, stackTrace) {
