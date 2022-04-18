@@ -50,7 +50,7 @@ class HTLexer {
       lastTokenOfCurrentLine = token;
     }
 
-    void handleEndOfLine([int? lineEnd]) {
+    void handleEndOfLine() {
       if (firstTokenOfCurrentLine != null) {
         if (lexicon.autoSemicolonInsertAtStart
             .contains(firstTokenOfCurrentLine!.type)) {
@@ -92,22 +92,16 @@ class HTLexer {
       lastToken = lastTokenOfCurrentLine;
       firstTokenOfCurrentLine = null;
       lastTokenOfCurrentLine = null;
-      ++line;
-      // empty line counts as a character
-      if (lineEnd == null) {
-        offset += 1;
-      } else {
-        offset = lineEnd + 1;
-      }
     }
 
     void handleLineInfo(String char, {bool handleNewLine = true}) {
       column += char.length;
       offset += char.length;
-      if (handleNewLine) {
-        if (char == _kNewLine || char == _kWindowsNewLine) {
-          column = 1;
-          handleEndOfLine(offset);
+      if (char == _kNewLine || char == _kWindowsNewLine) {
+        ++line;
+        column = 1;
+        if (handleNewLine) {
+          handleEndOfLine();
         }
       }
     }
@@ -143,6 +137,7 @@ class HTLexer {
         if (currentString.startsWith(lexicon.singleLineCommentStart)) {
           do {
             current = iter.current;
+            handleLineInfo(current, handleNewLine: false);
             if (current == _kNewLine || current == _kWindowsNewLine) {
               break;
             } else {
@@ -160,7 +155,6 @@ class HTLexer {
                       ? CommentType.documentation
                       : CommentType.singleLine,
               isTrailing: lastTokenOfCurrentLine != null ? true : false);
-          handleLineInfo(lexeme);
           addToken(token);
           buffer.clear();
         }
@@ -485,7 +479,7 @@ class HTLexer {
     }
 
     if (lastTokenOfCurrentLine != null) {
-      handleEndOfLine(lastTokenOfCurrentLine!.end);
+      handleEndOfLine();
     }
 
     final endOfFile = Token(

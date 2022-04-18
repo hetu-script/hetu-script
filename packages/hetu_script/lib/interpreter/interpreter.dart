@@ -292,7 +292,7 @@ class HTInterpreter {
             namedArgs: namedArgs,
             typeArgs: typeArgs);
       } else {
-        HTError.notCallable(funcName);
+        throw HTError.notCallable(funcName);
       }
     } catch (error, stackTrace) {
       if (errorHandled) {
@@ -1807,8 +1807,11 @@ class HTInterpreter {
       } else if (callee is HTStruct && callee.declaration != null) {
         handleStructConstructor();
       } else {
-        throw HTError.notCallable(callee.toString(),
-            filename: _currentFileName, line: _currentLine, column: _column);
+        throw HTError.notCallable(
+            lexicon.stringify(callee, asStringLiteral: true),
+            filename: _currentFileName,
+            line: _currentLine,
+            column: _column);
       }
     }
   }

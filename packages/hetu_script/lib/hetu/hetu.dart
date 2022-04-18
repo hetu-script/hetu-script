@@ -70,7 +70,7 @@ class HetuConfig
     this.explicitEndOfStatement = false,
     this.doStaticAnalysis = false,
     this.computeConstantExpression = false,
-    this.compileWithoutLineInfo = true,
+    this.compileWithoutLineInfo = false,
     this.showDartStackTrace = false,
     this.showHetuStackTrace = false,
     this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,

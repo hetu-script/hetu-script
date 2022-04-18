@@ -6,6 +6,7 @@ void main() {
   final sourceContext2 = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
+      compileWithoutLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
       showDartStackTrace: true,
@@ -47,7 +48,10 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   hetu.eval(r'''
-    final map = jsonify({name: 'jimmy'})
-    print(map)
+    var a = "";
+    // d
+    var b = "";
+    // d
+    var c = a();
   ''');
 }
