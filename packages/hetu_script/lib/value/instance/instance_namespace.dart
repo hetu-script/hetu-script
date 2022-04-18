@@ -50,7 +50,8 @@ class HTInstanceNamespace extends HTNamespace {
             curNamespace.symbols.containsKey(getter)) {
           final value = instance.memberGet(varName,
               from: from, cast: curNamespace.classId);
-          if (value is HTFunction) {
+          if (value is HTFunction &&
+              value.category != FunctionCategory.literal) {
             value.instance = instance;
             value.namespace = this;
           }
@@ -62,7 +63,7 @@ class HTInstanceNamespace extends HTNamespace {
     } else {
       if (symbols.containsKey(varName)) {
         final value = instance.memberGet(varName, from: from, cast: classId);
-        if (value is HTFunction) {
+        if (value is HTFunction && value.category != FunctionCategory.literal) {
           value.instance = instance;
           value.namespace = this;
         }
