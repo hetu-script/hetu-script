@@ -32,67 +32,86 @@ class HTInstanceNamespace extends HTNamespace {
   }
 
   /// [HTInstanceNamespace] overrided [HTNamespace]'s [memberGet],
-  /// with a new named parameter [recursive].
-  /// If [recursive] is false, then it won't continue to
+  /// with a new named parameter [isRecursive].
+  /// If [isRecursive] is false, then it won't continue to
   /// try fetching variable from enclosed namespace.
   @override
   dynamic memberGet(String varName,
       {bool isPrivate = false,
       String? from,
-      bool recursive = true,
-      bool error = true}) {
+      bool isRecursive = true,
+      bool throws = true}) {
     final getter = '${InternalIdentifier.getter}$varName';
 
-    HTInstanceNamespace? curNamespace = runtimeInstanceNamespace;
-    while (curNamespace != null) {
-      if (curNamespace.symbols.containsKey(varName) ||
-          curNamespace.symbols.containsKey(getter)) {
-        final value =
-            instance.memberGet(varName, from: from, cast: curNamespace.classId);
+    if (isRecursive) {
+      HTInstanceNamespace? curNamespace = runtimeInstanceNamespace;
+      while (curNamespace != null) {
+        if (curNamespace.symbols.containsKey(varName) ||
+            curNamespace.symbols.containsKey(getter)) {
+          final value = instance.memberGet(varName,
+              from: from, cast: curNamespace.classId);
+          if (value is HTFunction) {
+            value.instance = instance;
+            value.namespace = this;
+          }
+          return value;
+        } else {
+          curNamespace = curNamespace.next;
+        }
+      }
+    } else {
+      if (symbols.containsKey(varName)) {
+        final value = instance.memberGet(varName, from: from, cast: classId);
         if (value is HTFunction) {
           value.instance = instance;
+          value.namespace = this;
         }
         return value;
-      } else {
-        curNamespace = curNamespace.next;
       }
     }
 
-    if (recursive && closure != null) {
-      return closure!.memberGet(varName, from: from, recursive: recursive);
+    if (isRecursive && closure != null) {
+      return closure!.memberGet(varName, from: from, isRecursive: isRecursive);
     }
 
-    if (error) {
+    if (throws) {
       throw HTError.undefined(varName);
     }
   }
 
   /// [HTInstanceNamespace] overrided [HTNamespace]'s [memberSet],
-  /// with a new named parameter [recursive].
-  /// If [recursive] is false, then it won't continue to
+  /// with a new named parameter [isRecursive].
+  /// If [isRecursive] is false, then it won't continue to
   /// try assigning variable from enclosed namespace.
   @override
   bool memberSet(String varName, dynamic varValue,
-      {String? from, bool recursive = true, bool error = true}) {
+      {String? from, bool isRecursive = true, bool throws = true}) {
     final setter = '${InternalIdentifier.getter}$varName';
 
-    HTInstanceNamespace? curNamespace = runtimeInstanceNamespace;
-    while (curNamespace != null) {
-      if (curNamespace.symbols.containsKey(varName) ||
-          curNamespace.symbols.containsKey(setter)) {
-        instance.memberSet(varName, varValue,
-            from: from, cast: curNamespace.classId);
+    if (isRecursive) {
+      HTInstanceNamespace? curNamespace = runtimeInstanceNamespace;
+      while (curNamespace != null) {
+        if (curNamespace.symbols.containsKey(varName) ||
+            curNamespace.symbols.containsKey(setter)) {
+          instance.memberSet(varName, varValue,
+              from: from, cast: curNamespace.classId);
+          return true;
+        } else {
+          curNamespace = curNamespace.next;
+        }
+      }
+    } else {
+      if (symbols.containsKey(varName) || symbols.containsKey(setter)) {
+        instance.memberSet(varName, varValue, from: from, cast: classId);
         return true;
-      } else {
-        curNamespace = curNamespace.next;
       }
     }
 
-    if (recursive && closure != null) {
+    if (isRecursive && closure != null) {
       return closure!.memberSet(varName, varValue, from: from);
     }
 
-    if (error) {
+    if (throws) {
       throw HTError.undefined(varName);
     } else {
       return false;

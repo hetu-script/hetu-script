@@ -179,7 +179,7 @@ class HTFunction extends HTFunctionDeclaration
   void resolve() {
     super.resolve();
     if ((closure != null) && (classId != null) && (klass == null)) {
-      klass = closure!.closure!.memberGet(classId!, recursive: true);
+      klass = closure!.closure!.memberGet(classId!, isRecursive: true);
     }
     if (klass != null &&
         klass!.isExternal &&
@@ -399,7 +399,7 @@ class HTFunction extends HTFunctionDeclaration
                 // TODO: It is an error that super class doesn't have a default constructor, however this error should be handled in the analyzer.
                 final HTFunction constructor = superClass.namespace.memberGet(
                     InternalIdentifier.defaultConstructor,
-                    recursive: false);
+                    isRecursive: false);
                 // constructor's context is on this newly created instance
                 final instanceNamespace = namespace as HTInstanceNamespace;
                 constructor.namespace = instanceNamespace.next!;
@@ -421,21 +421,21 @@ class HTFunction extends HTFunctionDeclaration
                 if (key == null) {
                   constructor = superClass.namespace.memberGet(
                       InternalIdentifier.defaultConstructor,
-                      recursive: false);
+                      isRecursive: false);
                 } else {
                   constructor = superClass.namespace.memberGet(
                       '${InternalIdentifier.namedConstructorPrefix}$key',
-                      recursive: false);
+                      isRecursive: false);
                 }
               } else if (name == interpreter.lexicon.kThis) {
                 if (key == null) {
                   constructor = klass!.namespace.memberGet(
                       InternalIdentifier.defaultConstructor,
-                      recursive: false);
+                      isRecursive: false);
                 } else {
                   constructor = klass!.namespace.memberGet(
                       '${InternalIdentifier.namedConstructorPrefix}$key',
-                      recursive: false);
+                      isRecursive: false);
                 }
               }
               // constructor's context is on this newly created instance

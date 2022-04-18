@@ -76,7 +76,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     super.resolve();
     if (superType != null) {
       superClass = namespace.memberGet(superType!.id!,
-          from: namespace.fullName, recursive: true);
+          from: namespace.fullName, isRecursive: true);
     }
     if (isExternal) {
       externalClass = interpreter.fetchExternalClass(id!);
@@ -131,7 +131,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
 
   /// Get a value of a static member from this [HTClass].
   @override
-  dynamic memberGet(String varName, {String? from, bool error = true}) {
+  dynamic memberGet(String varName, {String? from, bool throws = true}) {
     final getter = '${InternalIdentifier.getter}$varName';
     final constructor = '${InternalIdentifier.namedConstructorPrefix}$varName';
 
@@ -187,7 +187,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     }
     // }
 
-    if (error) {
+    if (throws) {
       throw HTError.undefined(varName,
           filename: interpreter.currentFileName,
           line: interpreter.currentLine,

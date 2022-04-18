@@ -15,8 +15,8 @@ class HTClassNamespace extends HTNamespace {
   dynamic memberGet(String varName,
       {bool isPrivate = false,
       String? from,
-      bool recursive = true,
-      bool error = true}) {
+      bool isRecursive = true,
+      bool throws = true}) {
     final getter = '${InternalIdentifier.getter}$varName';
     final externalStatic = '$id.$varName';
 
@@ -43,18 +43,18 @@ class HTClassNamespace extends HTNamespace {
       return decl.value;
     }
 
-    if (recursive && (closure != null)) {
-      return closure!.memberGet(varName, from: from, recursive: recursive);
+    if (isRecursive && (closure != null)) {
+      return closure!.memberGet(varName, from: from, isRecursive: isRecursive);
     }
 
-    if (error) {
+    if (throws) {
       throw HTError.undefined(varName);
     }
   }
 
   @override
   bool memberSet(String varName, dynamic varValue,
-      {String? from, bool recursive = true, bool error = true}) {
+      {String? from, bool isRecursive = true, bool throws = true}) {
     final setter = '${InternalIdentifier.setter}$varName';
     if (symbols.containsKey(varName)) {
       final decl = symbols[varName]!;
@@ -75,11 +75,11 @@ class HTClassNamespace extends HTNamespace {
       return true;
     }
 
-    if (recursive && closure != null) {
+    if (isRecursive && closure != null) {
       return closure!.memberSet(varName, varValue, from: from);
     }
 
-    if (error) {
+    if (throws) {
       throw HTError.undefined(varName);
     } else {
       return false;

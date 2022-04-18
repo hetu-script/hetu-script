@@ -37,7 +37,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
     }
 
     final def = interpreter.currentNamespace
-        .memberGet(id, recursive: true, error: false);
+        .memberGet(id, isRecursive: true, throws: false);
     if (def is HTClassDeclaration) {
       klass = def;
     }
@@ -59,7 +59,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
         HTClass? currentKlass = klass! as HTClass;
         HTFunction? func;
         while (func == null && currentKlass != null) {
-          func = currentKlass.memberGet(varName, error: false);
+          func = currentKlass.memberGet(varName, throws: false);
           currentKlass = currentKlass.superClass;
         }
         if (func != null) {

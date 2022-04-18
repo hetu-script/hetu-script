@@ -105,7 +105,7 @@ class HTStruct with HTEntity {
   }
 
   void define(String id, dynamic value,
-      {bool override = false, bool error = true}) {
+      {bool override = false, bool throws = true}) {
     _fields[id] = value;
   }
 

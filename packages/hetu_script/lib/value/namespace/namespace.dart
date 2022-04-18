@@ -28,8 +28,8 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
   dynamic memberGet(String varName,
       {bool isPrivate = false,
       String? from,
-      bool recursive = false,
-      bool error = true}) {
+      bool isRecursive = false,
+      bool throws = true}) {
     if (symbols.containsKey(varName)) {
       final decl = symbols[varName]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
@@ -44,20 +44,21 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       }
       decl.resolve();
       return decl.value;
-    } else if (recursive && (closure != null)) {
-      return closure!.memberGet(varName, from: from, recursive: recursive);
+    } else if (isRecursive && (closure != null)) {
+      return closure!.memberGet(varName, from: from, isRecursive: true);
     }
-    if (error) {
+    if (throws) {
       throw HTError.undefined(varName);
     }
   }
 
   /// Fetch a declaration from this namespace,
-  /// if not found and [recursive] is true, will continue search in super namespaces,
+  /// if not found and [isRecursive] is true, will continue search in super namespaces,
   /// then assign the value to that declaration.
+  /// If [isRecursive] is true, means this is not a 'memberset operator' search.
   @override
   bool memberSet(String varName, dynamic varValue,
-      {String? from, bool recursive = false, bool error = true}) {
+      {String? from, bool isRecursive = false, bool throws = true}) {
     if (symbols.containsKey(varName)) {
       final decl = symbols[varName]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
@@ -74,11 +75,11 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       decl.resolve();
       decl.value = varValue;
       return true;
-    } else if (recursive && (closure != null)) {
+    } else if (isRecursive && (closure != null)) {
       return closure!
-          .memberSet(varName, varValue, from: from, recursive: recursive);
+          .memberSet(varName, varValue, from: from, isRecursive: true);
     } else {
-      if (error) {
+      if (throws) {
         throw HTError.undefined(varName);
       }
     }

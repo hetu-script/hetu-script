@@ -31,7 +31,7 @@ class HTUnresolvedType extends HTType {
   @override
   HTType resolve(HTDeclarationNamespace namespace) {
     var type =
-        namespace.memberGet(id, from: namespace.fullName, recursive: true);
+        namespace.memberGet(id, from: namespace.fullName, isRecursive: true);
     if (type is HTType && type.isResolved) {
       return type;
     } else if (type is HTAbstractTypeDeclaration) {

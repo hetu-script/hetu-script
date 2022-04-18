@@ -58,7 +58,7 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
         node.analysisNamespace!.memberGet(node.id,
             isPrivate: isPrivate,
             from: node.analysisNamespace!.fullName,
-            recursive: true);
+            isRecursive: true);
       } else {
         // Member of a object.
       }

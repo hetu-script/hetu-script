@@ -478,7 +478,7 @@ class HTInterpreter {
       return list;
     } else if (value is Map) {
       final prototype = _currentNamespace.memberGet(_lexicon.globalPrototypeId,
-          recursive: true);
+          isRecursive: true);
       final struct =
           HTStruct(this, prototype: prototype, closure: currentNamespace);
       for (final key in value.keys) {
@@ -495,8 +495,8 @@ class HTInterpreter {
   }
 
   HTStruct createStructfromJson(Map<dynamic, dynamic> jsonData) {
-    final prototype =
-        globalNamespace.memberGet(_lexicon.globalPrototypeId, recursive: true);
+    final prototype = globalNamespace.memberGet(_lexicon.globalPrototypeId,
+        isRecursive: true);
     final struct =
         HTStruct(this, prototype: prototype, closure: currentNamespace);
     for (final key in jsonData.keys) {
@@ -1063,7 +1063,7 @@ class HTInterpreter {
           final value = _getRegVal(HTRegIdx.assign);
           final id = localSymbol!;
           final result = _currentNamespace.memberSet(id, value,
-              recursive: true, error: false);
+              isRecursive: true, throws: false);
           if (!result) {
             if (config.allowImplicitVariableDeclaration) {
               final decl = HTVariable(id,
@@ -1125,8 +1125,13 @@ class HTInterpreter {
             final key = execute();
             _localSymbol = key;
             final encap = encapsulate(object);
-            _localValue =
-                encap.memberGet(key, from: _currentNamespace.fullName);
+            if (encap is HTNamespace) {
+              _localValue = encap.memberGet(key,
+                  from: _currentNamespace.fullName, isRecursive: false);
+            } else {
+              _localValue =
+                  encap.memberGet(key, from: _currentNamespace.fullName);
+            }
           }
           break;
         case HTOpCode.subGet:
@@ -1187,6 +1192,12 @@ class HTInterpreter {
             final value = execute();
             final encap = encapsulate(object);
             encap.memberSet(key, value);
+            if (encap is HTNamespace) {
+              encap.memberSet(key, value,
+                  from: _currentNamespace.fullName, isRecursive: false);
+            } else {
+              encap.memberSet(key, value, from: _currentNamespace.fullName);
+            }
             _localValue = value;
           }
           break;
@@ -1339,7 +1350,7 @@ class HTInterpreter {
         final symbol = _localSymbol = _currentBytecodeModule.readShortString();
         final isLocal = _currentBytecodeModule.readBool();
         if (isLocal) {
-          _localValue = _currentNamespace.memberGet(symbol, recursive: true);
+          _localValue = _currentNamespace.memberGet(symbol, isRecursive: true);
           // _curLeftValue = _curNamespace;
         } else {
           _localValue = symbol;
@@ -1384,7 +1395,7 @@ class HTInterpreter {
         if (hasPrototypeId) {
           final prototypeId = _currentBytecodeModule.readShortString();
           prototype = _currentNamespace.memberGet(prototypeId,
-              from: _currentNamespace.fullName, recursive: true);
+              from: _currentNamespace.fullName, isRecursive: true);
         }
         final struct = HTStruct(this,
             id: id,

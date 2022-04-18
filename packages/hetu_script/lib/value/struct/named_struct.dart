@@ -68,8 +68,8 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
         namespace: closure != null ? closure as HTNamespace : null);
     if (closure != null) {
       if (prototypeId != null) {
-        static.prototype = closure!
-            .memberGet(prototypeId!, from: closure!.fullName, recursive: true);
+        static.prototype = closure!.memberGet(prototypeId!,
+            from: closure!.fullName, isRecursive: true);
       } else if (id != interpreter.lexicon.globalPrototypeId) {
         static.prototype = interpreter.globalNamespace
             .memberGet(interpreter.lexicon.globalPrototypeId);

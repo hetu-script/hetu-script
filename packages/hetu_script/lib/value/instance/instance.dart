@@ -101,7 +101,7 @@ class HTInstance with HTEntity, InterpreterRef {
 
   @override
   String toString() {
-    final func = memberGet('toString', error: false);
+    final func = memberGet('toString', throws: false);
     if (func is HTFunction) {
       return func.call();
     } else if (func is Function) {
@@ -146,7 +146,7 @@ class HTInstance with HTEntity, InterpreterRef {
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
   dynamic memberGet(String varName,
-      {String? from, String? cast, bool error = true}) {
+      {String? from, String? cast, bool throws = true}) {
     final getter = '${InternalIdentifier.getter}$varName';
 
     if (cast == null) {
@@ -208,7 +208,7 @@ class HTInstance with HTEntity, InterpreterRef {
       }
     }
 
-    if (error) {
+    if (throws) {
       throw HTError.undefined(varName);
     }
   }
@@ -219,7 +219,7 @@ class HTInstance with HTEntity, InterpreterRef {
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
   void memberSet(String varName, dynamic varValue,
-      {String? from, String? cast, bool error = true}) {
+      {String? from, String? cast, bool throws = true}) {
     final setter = '${InternalIdentifier.setter}$varName';
 
     if (cast == null) {

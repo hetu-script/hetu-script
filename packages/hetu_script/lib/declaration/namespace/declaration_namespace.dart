@@ -56,21 +56,21 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   /// the defined id could be different from
   /// declaration's id
   void define(String varName, T decl,
-      {bool override = false, bool error = true}) {
+      {bool override = false, bool throws = true}) {
     if (!symbols.containsKey(varName) || override) {
       symbols[varName] = decl;
     } else {
-      if (error) {
+      if (throws) {
         throw HTError.defined(varName, ErrorType.staticWarning);
       }
     }
   }
 
-  void delete(String varName, {bool error = true}) {
+  void delete(String varName, {bool throws = true}) {
     if (symbols.containsKey(varName)) {
       symbols.remove(varName);
     } else {
-      if (error) {
+      if (throws) {
         throw HTError.undefined(varName);
       }
     }
@@ -78,13 +78,14 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
 
   /// Fetch a value from this namespace,
   /// Return declaration rather than actual values.
-  /// If not found and [recursive] is true, will continue search in super namespaces.
+  /// If not found and [isRecursive] is true, will continue search in super namespaces.
+  /// If [isRecursive] is true, means this is not a 'memberget operator' search.
   @override
   dynamic memberGet(String varName,
       {bool isPrivate = false,
       String? from,
-      bool recursive = false,
-      bool error = true}) {
+      bool isRecursive = false,
+      bool throws = true}) {
     if (symbols.containsKey(varName)) {
       final decl = symbols[varName]!;
       if (isPrivate && from != null && !from.startsWith(fullName)) {
@@ -94,11 +95,11 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
     } else if (importedSymbols.containsKey(varName)) {
       final decl = importedSymbols[varName]!;
       return decl;
-    } else if (recursive && (closure != null)) {
-      return closure!.memberGet(varName, from: from, recursive: recursive);
+    } else if (isRecursive && (closure != null)) {
+      return closure!.memberGet(varName, from: from, isRecursive: true);
     }
 
-    if (error) {
+    if (throws) {
       throw HTError.undefined(varName);
     }
   }
