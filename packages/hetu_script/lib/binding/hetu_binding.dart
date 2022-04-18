@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import '../external/external_class.dart';
 import '../value/entity.dart';
 import '../type/type.dart';
 import '../error/error.dart';
 import '../hetu/hetu.dart';
+import '../../shared/jsonify.dart';
+import '../value/struct/struct.dart';
 
 class HTHetuClassBinding extends HTExternalClass {
   HTHetuClassBinding() : super('Hetu');
@@ -24,6 +28,22 @@ class HTHetuClassBinding extends HTExternalClass {
             List<HTType> typeArgs = const []}) {
           final jsonData = positionalArgs.first as Map<dynamic, dynamic>;
           return hetu.interpreter.createStructfromJson(jsonData);
+        };
+      case 'jsonify':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          final object = positionalArgs.first;
+          if (object is HTStruct) {
+            return jsonifyStruct(object);
+          } else if (object is Iterable) {
+            return jsonifyList(object);
+          } else if (isJsonDataType(object)) {
+            return hetu.lexicon.stringify(object);
+          } else {
+            return jsonEncode(object);
+          }
         };
       case 'eval':
         return (HTEntity entity,

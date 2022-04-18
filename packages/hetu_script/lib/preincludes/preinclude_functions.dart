@@ -1,9 +1,7 @@
-// import 'dart:convert';
 import 'package:quiver/iterables.dart';
 
 import '../../value/entity.dart';
 import '../../type/type.dart';
-// import '../../shared/jsonify.dart';
 import '../../value/struct/struct.dart';
 import '../../value/instance/instance.dart';
 
@@ -14,21 +12,6 @@ final Map<String, Function> preincludeFunctions = {
           Map<String, dynamic> namedArgs = const {},
           List<HTType> typeArgs = const []}) =>
       print(positionalArgs.first),
-  // 'jsonify': (HTEntity entity,
-  //     {List<dynamic> positionalArgs = const [],
-  //     Map<String, dynamic> namedArgs = const {},
-  //     List<HTType> typeArgs = const []}) {
-  //   final object = positionalArgs.first;
-  //   if (object is HTStruct) {
-  //     return jsonifyStruct(object);
-  //   } else if (object is Iterable) {
-  //     return jsonifyList(object);
-  //   } else if (isJsonDataType(object)) {
-  //     return stringify(object);
-  //   } else {
-  //     return jsonEncode(object);
-  //   }
-  // },
   'range': (HTEntity entity,
           {List<dynamic> positionalArgs = const [],
           Map<String, dynamic> namedArgs = const {},

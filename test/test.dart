@@ -45,4 +45,9 @@ void main() {
 
   // final r = hetu.evalFile('eval.hts');
   // print(hetu.lexicon.stringify(r));
+
+  hetu.eval(r'''
+    final map = jsonify({name: 'jimmy'})
+    print(map)
+  ''');
 }
