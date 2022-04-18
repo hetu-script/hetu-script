@@ -48,16 +48,28 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   hetu.eval(r'''
-    class A {
-      construct {
-        print('constructing A')
+      class A {
+          construct() {
+              print("Constructor called");
+              _sayHello();
+              hello();
+          }
+          fun hello() {
+              _sayHello();
+          }
+          fun _sayHello() {
+              print("Hello from class A");
+          }
       }
-    }
-    class B extends A {
-      construct {
-        print('constructing B')
+      class B extends A {
+          fun _sayHello() {
+              print("Hello from class B");
+          }
       }
-    }
-    final b = B()
+      var a = A();
+      a.hello();
+      print("\n");
+      var b = B();
+      b.hello();
   ''');
 }

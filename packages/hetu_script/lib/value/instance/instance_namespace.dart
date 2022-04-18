@@ -12,11 +12,24 @@ import 'instance.dart';
 class HTInstanceNamespace extends HTNamespace {
   final HTInstance instance;
 
+  /// The namespace of the runtime instance.
+  late final HTInstanceNamespace runtimeInstanceNamespace;
+
+  /// The namespace of the child class
+  // late final HTInstanceNamespace? prev;
+
+  /// The namespace of the super class
   late final HTInstanceNamespace? next;
 
-  HTInstanceNamespace(String id, this.instance,
-      {String? classId, HTNamespace? closure})
-      : super(id: id, classId: classId, closure: closure);
+  HTInstanceNamespace(
+      {required String id,
+      required this.instance,
+      HTInstanceNamespace? runtimeInstanceNamespace,
+      String? classId,
+      HTNamespace? closure})
+      : super(id: id, classId: classId, closure: closure) {
+    this.runtimeInstanceNamespace = runtimeInstanceNamespace ?? this;
+  }
 
   /// [HTInstanceNamespace] overrided [HTNamespace]'s [memberGet],
   /// with a new named parameter [recursive].
@@ -30,7 +43,7 @@ class HTInstanceNamespace extends HTNamespace {
       bool error = true}) {
     final getter = '${InternalIdentifier.getter}$varName';
 
-    HTInstanceNamespace? curNamespace = this;
+    HTInstanceNamespace? curNamespace = runtimeInstanceNamespace;
     while (curNamespace != null) {
       if (curNamespace.symbols.containsKey(varName) ||
           curNamespace.symbols.containsKey(getter)) {
@@ -63,7 +76,7 @@ class HTInstanceNamespace extends HTNamespace {
       {String? from, bool recursive = true, bool error = true}) {
     final setter = '${InternalIdentifier.getter}$varName';
 
-    HTInstanceNamespace? curNamespace = this;
+    HTInstanceNamespace? curNamespace = runtimeInstanceNamespace;
     while (curNamespace != null) {
       if (curNamespace.symbols.containsKey(varName) ||
           curNamespace.symbols.containsKey(setter)) {

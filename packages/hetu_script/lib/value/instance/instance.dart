@@ -48,9 +48,12 @@ class HTInstance with HTEntity, InterpreterRef {
 
     HTClass? curKlass = klass;
     // final extended = <HTValueType>[];
-    HTInstanceNamespace? curNamespace = HTInstanceNamespace(
-        InternalIdentifier.instance, this,
-        classId: curKlass.id, closure: klass.namespace);
+    final myNsp = HTInstanceNamespace(
+        id: InternalIdentifier.instance,
+        instance: this,
+        classId: curKlass.id,
+        closure: klass.namespace);
+    HTInstanceNamespace? curNamespace = myNsp;
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
       for (final key in curKlass.namespace.symbols.keys) {
@@ -75,9 +78,14 @@ class HTInstance with HTEntity, InterpreterRef {
       // }
       curKlass = curKlass.superClass;
       if (curKlass != null) {
-        curNamespace.next = HTInstanceNamespace(
-            InternalIdentifier.instance, this,
-            classId: curKlass.id, closure: curKlass.namespace);
+        final next = HTInstanceNamespace(
+            id: InternalIdentifier.instance,
+            instance: this,
+            runtimeInstanceNamespace: myNsp,
+            classId: curKlass.id,
+            closure: curKlass.namespace);
+        curNamespace.next = next;
+        // next.prev = curNamespace;
       } else {
         curNamespace.next = null;
       }
