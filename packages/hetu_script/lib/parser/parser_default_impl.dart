@@ -1725,23 +1725,28 @@ class HTDefaultParser extends HTParser {
     final statements = <ASTNode>[];
     while (curTok.type != lexicon.functionBlockEnd &&
         curTok.type != Semantic.endOfFile) {
+      _handlePrecedingComment();
+      if (curTok.type == lexicon.functionBlockEnd ||
+          curTok.type == Semantic.endOfFile) {
+        break;
+      }
       final stmt = parseStmt(style: sourceType);
       if (stmt != null) {
+        setPrecedingComment(stmt);
         statements.add(stmt);
       }
     }
-    final endTok = match(lexicon.functionBlockEnd);
     if (statements.isEmpty) {
       final empty = ASTEmptyLine(
           source: currentSource,
-          line: endTok.line,
-          column: endTok.column,
-          offset: endTok.offset,
-          length: endTok.offset - startTok.end);
+          line: curTok.line,
+          column: curTok.column,
+          offset: curTok.offset,
+          length: curTok.offset - (curTok.previous?.end ?? startTok.end));
       setPrecedingComment(empty);
       statements.add(empty);
     }
-
+    final endTok = match(lexicon.functionBlockEnd);
     return BlockStmt(statements,
         id: id,
         hasOwnNamespace: hasOwnNamespace,
@@ -1749,7 +1754,7 @@ class HTDefaultParser extends HTParser {
         line: startTok.line,
         column: startTok.column,
         offset: startTok.offset,
-        length: curTok.offset - startTok.offset);
+        length: endTok.offset - startTok.offset);
   }
 
   void _handleCallArguments(

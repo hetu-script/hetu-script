@@ -48,19 +48,7 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   final r = hetu.eval(r'''
-    {
-      // names: {},
-
-      entities: {
-        //fdf
-      }
-    }
-//     [
-//       1
-//       ,//dd
-// //sdfs
-//       3,
-//     ]
+    final a = () {}
   ''');
   print(hetu.lexicon.stringify(r));
 }
