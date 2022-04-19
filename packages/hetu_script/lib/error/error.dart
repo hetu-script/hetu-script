@@ -1520,10 +1520,11 @@ class HTError {
             length: length);
 
   /// Error: Struct member id should be symbol or string.
-  HTError.structMemberId(
+  HTError.structMemberId(String met,
       {String? filename, int? line, int? column, int? offset, int? length})
       : this(ErrorCode.structMemberId, ErrorType.runtimeError,
             message: HTLocale.current.errorStructMemberId,
+            interpolations: [met],
             filename: filename,
             line: line,
             column: column,

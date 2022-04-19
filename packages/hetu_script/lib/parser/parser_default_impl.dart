@@ -2904,14 +2904,18 @@ class HTDefaultParser extends HTParser {
       } else if (curTok is TokenComment) {
         _handlePrecedingComment();
       } else {
-        final errTok = advance();
-        final err = HTError.structMemberId(
-            filename: currrentFileName,
-            line: errTok.line,
-            column: errTok.column,
-            offset: errTok.offset,
-            length: errTok.length);
-        errors?.add(err);
+        if (curTok is TokenEmptyLine) {
+          advance();
+        } else {
+          final errTok = advance();
+          final err = HTError.structMemberId(curTok.type,
+              filename: currrentFileName,
+              line: errTok.line,
+              column: errTok.column,
+              offset: errTok.offset,
+              length: errTok.length);
+          errors?.add(err);
+        }
       }
     }
     if (fields.isEmpty) {

@@ -162,7 +162,7 @@ class HTLocaleEnglish implements HTLocale {
   final String errorNotSuper = '[{0}] is not a super class of [{1}].';
   @override
   final String errorStructMemberId =
-      'Struct member id should be symbol or string.';
+      'Struct member id should be symbol or string, however met id with token type: [{0}].';
   @override
   final String errorUnresolvedNamedStruct =
       'Cannot create struct object from unresolved prototype [{0}].';

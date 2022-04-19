@@ -142,7 +142,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorNotSuper = '[{0}] 不是 [{1}] 的超类。';
   @override
-  final String errorStructMemberId = '对象的 key 只能是字符串或者标识符。';
+  final String errorStructMemberId = '对象的 key 只能是字符串或者标识符，但实际的类型是 [{0}]。';
   @override
   final String errorUnresolvedNamedStruct = '对象原型 [{0}] 尚未被解析。';
   @override

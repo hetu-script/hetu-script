@@ -48,12 +48,11 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   hetu.eval(r'''
-        class A {
-          get typename {
-            return '${typeof this}'
-          }
-        }
-        final a = A()
-        print(a.typename)
+    final game = {
+      entities: {},
+      
+      nations: {},
+    }
+    print(game)
   ''');
 }
