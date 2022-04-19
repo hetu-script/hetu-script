@@ -22,7 +22,7 @@ class HTBundler {
       required HTParser parser,
       bool normalizePath = true}) {
     final result = parser.parseSource(source);
-    final parserErrors = result.errors!;
+    final parserErrors = result.errors;
     final values = <String, ASTSource>{};
     final sources = <String, ASTSource>{};
     final Set _cachedParsingTargets = <String>{};
@@ -57,7 +57,7 @@ class HTBundler {
             importedSource = parser.parseSource(source2);
             // final parser2 = HTParser(sourceContext: sourceContext);
             // importedSource = parser2.parseSource(source2);
-            parserErrors.addAll(importedSource.errors!);
+            parserErrors.addAll(importedSource.errors);
             // _cachedParseResults[importFullName] = importedSource;
           }
           if (importedSource.resourceType == HTResourceType.hetuValue) {

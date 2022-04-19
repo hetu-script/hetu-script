@@ -39,9 +39,6 @@ class Token {
 }
 
 class TokenEmptyLine extends Token {
-  @override
-  String get type => Semantic.emptyLine;
-
   TokenEmptyLine(
       {required int line,
       required int column,
@@ -49,7 +46,7 @@ class TokenEmptyLine extends Token {
       Token? previous,
       Token? next})
       : super(
-            lexeme: '',
+            lexeme: Semantic.emptyLine,
             line: line,
             column: column,
             offset: offset,

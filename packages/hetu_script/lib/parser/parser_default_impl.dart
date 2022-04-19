@@ -31,13 +31,20 @@ class HTDefaultParser extends HTParser {
     return false;
   }
 
+  void _handlePrecedingEmptyLine() {
+    while (curTok is TokenEmptyLine) {
+      advance();
+    }
+  }
+
   bool _handlePrecedingComment() {
     bool handled = false;
+    _handlePrecedingEmptyLine();
     while (curTok is TokenComment) {
       handled = true;
-      final comment = Comment.fromToken(curTok as TokenComment);
+      final comment = Comment.fromToken(advance() as TokenComment);
       currentPrecedingComments.add(comment);
-      advance();
+      _handlePrecedingEmptyLine();
     }
     return handled;
   }
@@ -60,6 +67,7 @@ class HTDefaultParser extends HTParser {
       return null;
     }
 
+    // save preceding comments because those might change during expression parsing.
     final precedingComments = currentPrecedingComments;
     currentPrecedingComments = [];
 
@@ -100,7 +108,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -117,7 +125,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -227,7 +235,7 @@ class HTDefaultParser extends HTParser {
                     column: curTok.column,
                     offset: curTok.offset,
                     length: curTok.length);
-                errors?.add(err);
+                errors.add(err);
                 final errToken = advance();
                 stmt = ASTEmptyLine(
                     source: currentSource,
@@ -252,7 +260,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -267,7 +275,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -303,7 +311,7 @@ class HTDefaultParser extends HTParser {
                 column: curTok.column,
                 offset: curTok.offset,
                 length: curTok.length);
-            errors?.add(err);
+            errors.add(err);
             final errToken = advance();
             stmt = ASTEmptyLine(
                 source: currentSource,
@@ -331,7 +339,7 @@ class HTDefaultParser extends HTParser {
                     column: curTok.column,
                     offset: curTok.offset,
                     length: curTok.length);
-                errors?.add(err);
+                errors.add(err);
                 final errToken = advance();
                 stmt = ASTEmptyLine(
                     source: currentSource,
@@ -355,7 +363,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -370,7 +378,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -405,7 +413,7 @@ class HTDefaultParser extends HTParser {
                 column: curTok.column,
                 offset: curTok.offset,
                 length: curTok.length);
-            errors?.add(err);
+            errors.add(err);
             final errToken = advance();
             stmt = ASTEmptyLine(
                 source: currentSource,
@@ -428,7 +436,7 @@ class HTDefaultParser extends HTParser {
                 column: curTok.column,
                 offset: curTok.offset,
                 length: curTok.length);
-            errors?.add(err);
+            errors.add(err);
             final errToken = advance();
             stmt = ASTEmptyLine(
                 source: currentSource,
@@ -471,7 +479,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -494,7 +502,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -533,7 +541,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -547,7 +555,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -570,7 +578,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -584,7 +592,7 @@ class HTDefaultParser extends HTParser {
                   column: curTok.column,
                   offset: curTok.offset,
                   length: curTok.length);
-              errors?.add(err);
+              errors.add(err);
               final errToken = advance();
               stmt = ASTEmptyLine(
                   source: currentSource,
@@ -607,7 +615,7 @@ class HTDefaultParser extends HTParser {
                 column: curTok.column,
                 offset: curTok.offset,
                 length: curTok.length);
-            errors?.add(err);
+            errors.add(err);
             final errToken = advance();
             stmt = ASTEmptyLine(
                 source: currentSource,
@@ -650,7 +658,7 @@ class HTDefaultParser extends HTParser {
                 column: curTok.column,
                 offset: curTok.offset,
                 length: curTok.length);
-            errors?.add(err);
+            errors.add(err);
             final errToken = advance();
             stmt = ASTEmptyLine(
                 source: currentSource,
@@ -689,7 +697,7 @@ class HTDefaultParser extends HTParser {
                 column: curTok.column,
                 offset: curTok.offset,
                 length: curTok.length);
-            errors?.add(err);
+            errors.add(err);
             final errToken = advance();
             stmt = ASTEmptyLine(
                 source: currentSource,
@@ -703,7 +711,7 @@ class HTDefaultParser extends HTParser {
                 column: curTok.column,
                 offset: curTok.offset,
                 length: curTok.length);
-            errors?.add(err);
+            errors.add(err);
             final errToken = advance();
             stmt = ASTEmptyLine(
                 source: currentSource,
@@ -725,7 +733,7 @@ class HTDefaultParser extends HTParser {
               column: curTok.column,
               offset: curTok.offset,
               length: curTok.length);
-          errors?.add(err);
+          errors.add(err);
           final errToken = advance();
           stmt = ASTEmptyLine(
               source: currentSource,
@@ -838,7 +846,7 @@ class HTDefaultParser extends HTParser {
                 column: curTok.column,
                 offset: curTok.offset,
                 length: curTok.length);
-            errors?.add(err);
+            errors.add(err);
             final errToken = advance();
             stmt = ASTEmptyLine(
                 source: currentSource,
@@ -918,8 +926,7 @@ class HTDefaultParser extends HTParser {
       expr = left;
     }
 
-    expr.precedingComments = currentPrecedingComments;
-    currentPrecedingComments = [];
+    setPrecedingComment(expr);
 
     return expr;
   }
@@ -1122,7 +1129,7 @@ class HTDefaultParser extends HTParser {
               column: value.column,
               offset: value.offset,
               length: value.length);
-          errors?.add(err);
+          errors.add(err);
         }
       }
       return UnaryPrefixExpr(op.lexeme, value,
@@ -1338,7 +1345,7 @@ class HTDefaultParser extends HTParser {
                 column: node.column,
                 offset: node.offset,
                 length: node.length);
-            errors?.add(err);
+            errors.add(err);
             break;
           }
         }
@@ -1422,6 +1429,7 @@ class HTDefaultParser extends HTParser {
       leftValueLegality = false;
       return _parseWhen(isExpression: true);
     }
+
     // a literal function expression
     if (curTok.type == lexicon.functionArgumentStart) {
       final tokenAfterGroupExprStart = curTok.next;
@@ -1461,10 +1469,12 @@ class HTDefaultParser extends HTParser {
       final listExpr = <ASTNode>[];
       while (
           curTok.type != lexicon.listEnd && curTok.type != Semantic.endOfFile) {
+        _handlePrecedingComment();
         ASTNode item;
         if (curTok.type == lexicon.spreadSyntax) {
           final spreadTok = advance();
           item = _parseExpr();
+          setPrecedingComment(item);
           listExpr.add(SpreadExpr(item,
               source: currentSource,
               line: spreadTok.line,
@@ -1521,7 +1531,7 @@ class HTDefaultParser extends HTParser {
         column: curTok.column,
         offset: curTok.offset,
         length: curTok.length);
-    errors?.add(err);
+    errors.add(err);
     final errToken = advance();
     return ASTEmptyLine(
         source: currentSource,
@@ -1533,12 +1543,14 @@ class HTDefaultParser extends HTParser {
   CommaExpr _handleCommaExpr(String endMark, {bool isLocal = true}) {
     final list = <ASTNode>[];
     while (curTok.type != endMark && curTok.type != Semantic.endOfFile) {
-      if (list.isNotEmpty) {
+      _handlePrecedingComment();
+      final item = _parseExpr();
+      setPrecedingComment(item);
+      list.add(item);
+      if (curTok.type != endMark) {
         match(lexicon.comma);
       }
-      final item = _parseExpr();
       _handleTrailingComment(item);
-      list.add(item);
     }
     return CommaExpr(list,
         isLocal: isLocal,
@@ -1570,6 +1582,7 @@ class HTDefaultParser extends HTParser {
       var isVariadic = false;
       while (curTok.type != lexicon.groupExprEnd &&
           curTok.type != Semantic.endOfFile) {
+        _handlePrecedingComment();
         final start = curTok;
         if (!isOptional) {
           isOptional = expect([lexicon.listStart], consume: true);
@@ -1588,6 +1601,7 @@ class HTDefaultParser extends HTParser {
           match(lexicon.typeIndicator);
         }
         paramType = _parseTypeExpr();
+        setPrecedingComment(paramType);
         final param = ParamTypeExpr(paramType,
             isOptional: isOptional,
             isVariadic: isVariadic,
@@ -1676,7 +1690,7 @@ class HTDefaultParser extends HTParser {
               column: curTok.column,
               offset: curTok.offset,
               length: curTok.end - idTok.offset);
-          errors?.add(err);
+          errors.add(err);
         }
         while ((curTok.type != lexicon.typeParameterEnd) &&
             (curTok.type != Semantic.endOfFile)) {
@@ -1724,8 +1738,7 @@ class HTDefaultParser extends HTParser {
           column: endTok.column,
           offset: endTok.offset,
           length: endTok.offset - startTok.end);
-      empty.precedingComments = currentPrecedingComments;
-      currentPrecedingComments = [];
+      setPrecedingComment(empty);
       statements.add(empty);
     }
 
@@ -1744,6 +1757,7 @@ class HTDefaultParser extends HTParser {
     var isNamed = false;
     while ((curTok.type != lexicon.groupExprEnd) &&
         (curTok.type != Semantic.endOfFile)) {
+      _handlePrecedingComment();
       if ((!isNamed &&
               expect([Semantic.identifier, lexicon.namedArgumentValueIndicator],
                   consume: false)) ||
@@ -1752,6 +1766,7 @@ class HTDefaultParser extends HTParser {
         final name = match(Semantic.identifier).lexeme;
         match(lexicon.namedArgumentValueIndicator);
         final namedArg = _parseExpr();
+        setPrecedingComment(namedArg);
         if (curTok.type != lexicon.groupExprEnd) {
           match(lexicon.comma);
         }
@@ -1771,6 +1786,7 @@ class HTDefaultParser extends HTParser {
         } else {
           positionalArg = _parseExpr();
         }
+        setPrecedingComment(positionalArg);
         if (curTok.type != lexicon.groupExprEnd) {
           match(lexicon.comma);
         }
@@ -1844,7 +1860,7 @@ class HTDefaultParser extends HTParser {
               column: curTok.column,
               offset: curTok.offset,
               length: curTok.length);
-          errors?.add(err);
+          errors.add(err);
           node = ASTEmptyLine(
               source: currentSource,
               line: curTok.line,
@@ -1935,7 +1951,7 @@ class HTDefaultParser extends HTParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.length);
-        errors?.add(err);
+        errors.add(err);
       }
       decl = _parseVarDecl(
           // typeInferrence: curTok.type != lexicon.VAR,
@@ -2036,6 +2052,7 @@ class HTDefaultParser extends HTParser {
     if (expect([lexicon.typeParameterStart], consume: true)) {
       while ((curTok.type != lexicon.typeParameterEnd) &&
           (curTok.type != Semantic.endOfFile)) {
+        _handlePrecedingComment();
         final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok, source: currentSource);
         final param = GenericTypeParameterExpr(id,
@@ -2044,6 +2061,7 @@ class HTDefaultParser extends HTParser {
             column: idTok.column,
             offset: idTok.offset,
             length: curTok.offset - idTok.offset);
+        setPrecedingComment(param);
         if (curTok.type != lexicon.typeParameterEnd) {
           match(lexicon.comma);
         }
@@ -2068,13 +2086,14 @@ class HTDefaultParser extends HTParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.end - keyword.offset);
-        errors?.add(err);
+        errors.add(err);
       }
       while (curTok.type != lexicon.functionBlockEnd &&
           curTok.type != Semantic.endOfFile) {
         _handlePrecedingComment();
         final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok, source: currentSource);
+        setPrecedingComment(id);
         if (curTok.type != lexicon.functionBlockEnd) {
           match(lexicon.comma);
         }
@@ -2092,7 +2111,7 @@ class HTDefaultParser extends HTParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.length);
-        errors?.add(err);
+        errors.add(err);
       }
     }
     IdentifierExpr? alias;
@@ -2123,7 +2142,7 @@ class HTDefaultParser extends HTParser {
               column: fromPathTok.column,
               offset: fromPathTok.offset,
               length: fromPathTok.length);
-          errors?.add(err);
+          errors.add(err);
         }
         match(lexicon.kAs);
         _handleAlias();
@@ -2162,6 +2181,7 @@ class HTDefaultParser extends HTParser {
         _handlePrecedingComment();
         final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok, source: currentSource);
+        setPrecedingComment(id);
         if (curTok.type != lexicon.functionBlockEnd) {
           match(lexicon.comma);
         }
@@ -2183,7 +2203,7 @@ class HTDefaultParser extends HTParser {
               column: fromPathTok.column,
               offset: fromPathTok.offset,
               length: fromPathTok.length);
-          errors?.add(err);
+          errors.add(err);
         }
         hasEndOfStmtMark = expect([lexicon.endOfStatementMark], consume: true);
       }
@@ -2261,7 +2281,7 @@ class HTDefaultParser extends HTParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.length);
-        errors?.add(err);
+        errors.add(err);
         final empty = ASTEmptyLine(
             source: currentSource,
             line: keyword.line,
@@ -2337,7 +2357,7 @@ class HTDefaultParser extends HTParser {
       //       column: keyword.column,
       //       offset: curTok.offset,
       //       length: curTok.length);
-      //   errors?.add(err);
+      //   errors.add(err);
       // }
       internalName = '$classId.${idTok.lexeme}';
     }
@@ -2400,6 +2420,7 @@ class HTDefaultParser extends HTParser {
       _handlePrecedingComment();
       final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok, source: currentSource);
+      setPrecedingComment(id);
       TypeExpr? declType;
       if (expect([lexicon.typeIndicator], consume: true)) {
         declType = _parseTypeExpr();
@@ -2407,11 +2428,7 @@ class HTDefaultParser extends HTParser {
       if (curTok.type != endMark) {
         match(lexicon.comma);
       }
-      if (declType == null) {
-        _handleTrailingComment(id);
-      } else {
-        _handleTrailingComment(declType);
-      }
+      _handleTrailingComment(id);
       ids[id] = declType;
     }
     match(endMark);
@@ -2549,7 +2566,7 @@ class HTDefaultParser extends HTParser {
                 column: lastTok.column,
                 offset: lastTok.offset,
                 length: lastTok.length);
-            errors?.add(err);
+            errors.add(err);
           }
         }
         final param = ParamDecl(paramSymbol,
@@ -2563,6 +2580,7 @@ class HTDefaultParser extends HTParser {
             column: paramId.column,
             offset: paramId.offset,
             length: curTok.offset - paramId.offset);
+        setPrecedingComment(param);
         if (curTok.type != lexicon.listEnd &&
             curTok.type != lexicon.functionBlockEnd &&
             curTok.type != lexicon.groupExprEnd) {
@@ -2591,7 +2609,7 @@ class HTDefaultParser extends HTParser {
             column: startTok.column,
             offset: startTok.offset,
             length: endTok.offset + endTok.length - startTok.offset);
-        errors?.add(err);
+        errors.add(err);
       }
     }
 
@@ -2608,7 +2626,7 @@ class HTDefaultParser extends HTParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.length);
-        errors?.add(err);
+        errors.add(err);
       }
       returnType = _parseTypeExpr();
     }
@@ -2626,7 +2644,7 @@ class HTDefaultParser extends HTParser {
             column: curTok.column,
             offset: lastTok.offset,
             length: lastTok.length);
-        errors?.add(err);
+        errors.add(err);
       }
       if (isExternal) {
         final lastTok = peek(-1);
@@ -2636,7 +2654,7 @@ class HTDefaultParser extends HTParser {
             column: curTok.column,
             offset: lastTok.offset,
             length: lastTok.length);
-        errors?.add(err);
+        errors.add(err);
       }
       final ctorCallee = advance();
       if (!lexicon.redirectingConstructorCallKeywords
@@ -2648,7 +2666,7 @@ class HTDefaultParser extends HTParser {
             column: curTok.column,
             offset: ctorCallee.offset,
             length: ctorCallee.length);
-        errors?.add(err);
+        errors.add(err);
       }
       Token? ctorKey;
       if (expect([lexicon.memberGet], consume: true)) {
@@ -2696,7 +2714,7 @@ class HTDefaultParser extends HTParser {
           column: curTok.column,
           offset: curTok.offset,
           length: curTok.length);
-      errors?.add(err);
+      errors.add(err);
     } else {
       if (category != FunctionCategory.constructor &&
           category != FunctionCategory.literal &&
@@ -2708,7 +2726,7 @@ class HTDefaultParser extends HTParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.length);
-        errors?.add(err);
+        errors.add(err);
       }
       if (category != FunctionCategory.literal) {
         expect([lexicon.endOfStatementMark], consume: true);
@@ -2759,7 +2777,7 @@ class HTDefaultParser extends HTParser {
           column: curTok.column,
           offset: keyword.offset,
           length: keyword.length);
-      errors?.add(err);
+      errors.add(err);
     }
     final id = match(Semantic.identifier);
     final genericParameters = _getGenericParams();
@@ -2773,7 +2791,7 @@ class HTDefaultParser extends HTParser {
             column: curTok.column,
             offset: curTok.offset,
             length: curTok.length);
-        errors?.add(err);
+        errors.add(err);
       }
       superClassType = _parseTypeExpr();
     }
@@ -2819,6 +2837,7 @@ class HTDefaultParser extends HTParser {
         final enumIdTok = match(Semantic.identifier);
         final enumId =
             IdentifierExpr.fromToken(enumIdTok, source: currentSource);
+        setPrecedingComment(enumId);
         if (curTok.type != lexicon.functionBlockEnd) {
           match(lexicon.comma);
         }
@@ -2855,7 +2874,7 @@ class HTDefaultParser extends HTParser {
             column: keyword.column,
             offset: keyword.offset,
             length: keyword.length);
-        errors?.add(err);
+        errors.add(err);
       }
       prototypeId =
           IdentifierExpr.fromToken(prototypeIdTok, source: currentSource);
@@ -2905,16 +2924,20 @@ class HTDefaultParser extends HTParser {
       }
     }
     prototypeId ??= IdentifierExpr(lexicon.globalPrototypeId);
-    final structBlockStartTok = match(lexicon.functionBlockStart);
+    final structBlockStartTok = match(lexicon.structStart);
     final fields = <StructObjField>[];
-    while (curTok.type != lexicon.functionBlockEnd &&
-        curTok.type != Semantic.endOfFile) {
+    while (
+        curTok.type != lexicon.structEnd && curTok.type != Semantic.endOfFile) {
+      _handlePrecedingComment();
+      if (curTok.type == lexicon.structEnd ||
+          curTok.type == Semantic.endOfFile) {
+        break;
+      }
       if (curTok.type == Semantic.identifier ||
           curTok.type == Semantic.literalString) {
         final keyTok = advance();
         late final StructObjField field;
-        if (curTok.type == lexicon.comma ||
-            curTok.type == lexicon.functionBlockEnd) {
+        if (curTok.type == lexicon.comma || curTok.type == lexicon.structEnd) {
           final id = IdentifierExpr.fromToken(keyTok, source: currentSource);
           field = StructObjField(
               key: IdentifierExpr.fromToken(
@@ -2937,32 +2960,28 @@ class HTDefaultParser extends HTParser {
         if (curTok.type != lexicon.functionBlockEnd) {
           match(lexicon.comma);
         }
+        setPrecedingComment(field);
         _handleTrailingComment(field);
         fields.add(field);
       } else if (curTok.type == lexicon.spreadSyntax) {
         advance();
         final value = _parseExpr();
         final field = StructObjField(fieldValue: value, isSpread: true);
+        setPrecedingComment(field);
         if (curTok.type != lexicon.functionBlockEnd) {
           match(lexicon.comma);
         }
         _handleTrailingComment(field);
         fields.add(field);
-      } else if (curTok is TokenComment) {
-        _handlePrecedingComment();
       } else {
-        if (curTok is TokenEmptyLine) {
-          advance();
-        } else {
-          final errTok = advance();
-          final err = HTError.structMemberId(curTok.type,
-              filename: currrentFileName,
-              line: errTok.line,
-              column: errTok.column,
-              offset: errTok.offset,
-              length: errTok.length);
-          errors?.add(err);
-        }
+        final errTok = advance();
+        final err = HTError.structMemberId(curTok.type,
+            filename: currrentFileName,
+            line: errTok.line,
+            column: errTok.column,
+            offset: errTok.offset,
+            length: errTok.length);
+        errors.add(err);
       }
     }
     if (fields.isEmpty) {
@@ -2976,7 +2995,7 @@ class HTDefaultParser extends HTParser {
       currentPrecedingComments.clear();
       fields.add(empty);
     }
-    match(lexicon.functionBlockEnd);
+    match(lexicon.structEnd);
     return StructObjExpr(fields,
         prototypeId: prototypeId,
         source: currentSource,

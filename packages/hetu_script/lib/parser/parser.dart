@@ -62,6 +62,11 @@ abstract class HTParser with TokenReader {
 
   List<Comment> currentPrecedingComments = [];
 
+  void setPrecedingComment(ASTNode expr) {
+    expr.precedingComments = currentPrecedingComments;
+    currentPrecedingComments = [];
+  }
+
   HTClassDeclaration? currentClass;
   FunctionCategory? currentFunctionCategory;
   String? currentStructId;
@@ -115,18 +120,16 @@ abstract class HTParser with TokenReader {
           continue;
         }
         nodes.add(stmt);
+      } else {
+        final empty = ASTEmptyLine(
+            source: currentSource,
+            line: curTok.line,
+            column: curTok.column,
+            offset: curTok.offset,
+            length: curTok.end);
+        setPrecedingComment(empty);
+        nodes.add(empty);
       }
-    }
-    if (nodes.isEmpty) {
-      final empty = ASTEmptyLine(
-          source: currentSource,
-          line: curTok.line,
-          column: curTok.column,
-          offset: curTok.offset,
-          length: curTok.end);
-      empty.precedingComments = currentPrecedingComments;
-      currentPrecedingComments = [];
-      nodes.add(empty);
     }
     return nodes;
   }

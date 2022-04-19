@@ -12,7 +12,7 @@ abstract class TokenReader {
   int line = 0;
   int column = 0;
 
-  List<HTError>? errors;
+  List<HTError> errors = [];
 
   /// Get current token.
   late Token curTok;
@@ -102,7 +102,7 @@ abstract class TokenReader {
           column: curTok.column,
           offset: curTok.offset,
           length: curTok.length);
-      errors?.add(err);
+      errors.add(err);
     }
 
     return advance();

@@ -83,7 +83,7 @@ class ASTSource extends ASTNode {
 
   final List<ASTNode> nodes;
 
-  final List<HTError>? errors;
+  final List<HTError> errors;
 
   @override
   bool get isExpression => false;

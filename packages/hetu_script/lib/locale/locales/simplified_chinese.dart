@@ -24,7 +24,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
 
   // syntactic errors
   @override
-  final String errorUnexpectedToken = '预期看到：[{1}]，但遇到了意料之外的字符：[{2}]。';
+  final String errorUnexpectedToken = '预期看到：[{0}]，但遇到了意料之外的字符：[{1}]。';
   @override
   final String errorUnexpected =
       '在处理 [{0}] 类型语句时遇到错误，预期看到：[{1}]，但遇到了意料之外的字符：[{2}]。';

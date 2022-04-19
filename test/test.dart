@@ -48,9 +48,19 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   final r = hetu.eval(r'''
-    final r = range(10).toList()
-    r.sort((t1, t2) => -t1.compareTo(t2))
-    r
+    {
+      // names: {},
+
+      entities: {
+        //fdf
+      }
+    }
+//     [
+//       1
+//       ,//dd
+// //sdfs
+//       3,
+//     ]
   ''');
-  print(r);
+  print(hetu.lexicon.stringify(r));
 }
