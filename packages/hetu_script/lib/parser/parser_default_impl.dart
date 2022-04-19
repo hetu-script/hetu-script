@@ -110,7 +110,8 @@ class HTDefaultParser extends HTParser {
             } else if (curTok.type == lexicon.kFun) {
               stmt = _parseFunction(isExternal: true, isTopLevel: true);
             } else {
-              final err = HTError.unexpected(Semantic.declStmt, curTok.lexeme,
+              final err = HTError.unexpected(
+                  lexicon.kExternal, Semantic.declStmt, curTok.lexeme,
                   filename: currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
@@ -220,7 +221,7 @@ class HTDefaultParser extends HTParser {
               advance();
               if (curTok.type != lexicon.kClass) {
                 final err = HTError.unexpected(
-                    Semantic.classDeclaration, curTok.lexeme,
+                    lexicon.kAbstract, Semantic.classDeclaration, curTok.lexeme,
                     filename: currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
@@ -259,7 +260,8 @@ class HTDefaultParser extends HTParser {
                   column: errToken.column,
                   offset: errToken.offset);
             } else {
-              final err = HTError.unexpected(Semantic.declStmt, curTok.lexeme,
+              final err = HTError.unexpected(
+                  lexicon.kExternal, Semantic.declStmt, curTok.lexeme,
                   filename: currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
@@ -294,7 +296,8 @@ class HTDefaultParser extends HTParser {
           } else if (curTok.type == lexicon.kStruct) {
             stmt = _parseStructDecl(isTopLevel: true);
           } else {
-            final err = HTError.unexpected(Semantic.declStmt, curTok.lexeme,
+            final err = HTError.unexpected(
+                Semantic.declStmt, Semantic.declStmt, curTok.lexeme,
                 filename: currrentFileName,
                 line: curTok.line,
                 column: curTok.column,
@@ -322,7 +325,7 @@ class HTDefaultParser extends HTParser {
               advance();
               if (curTok.type != lexicon.kClass) {
                 final err = HTError.unexpected(
-                    Semantic.classDeclaration, curTok.lexeme,
+                    lexicon.kAbstract, Semantic.classDeclaration, curTok.lexeme,
                     filename: currrentFileName,
                     line: curTok.line,
                     column: curTok.column,
@@ -360,7 +363,8 @@ class HTDefaultParser extends HTParser {
                   column: errToken.column,
                   offset: errToken.offset);
             } else {
-              final err = HTError.unexpected(Semantic.declStmt, curTok.lexeme,
+              final err = HTError.unexpected(
+                  lexicon.kExternal, Semantic.declStmt, curTok.lexeme,
                   filename: currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
@@ -394,7 +398,8 @@ class HTDefaultParser extends HTParser {
           } else if (curTok.type == lexicon.kStruct) {
             stmt = _parseStructDecl();
           } else {
-            final err = HTError.unexpected(Semantic.declStmt, curTok.lexeme,
+            final err = HTError.unexpected(
+                Semantic.declStmt, Semantic.declStmt, curTok.lexeme,
                 filename: currrentFileName,
                 line: curTok.line,
                 column: curTok.column,
@@ -522,7 +527,7 @@ class HTDefaultParser extends HTParser {
           } else if (curTok.type == lexicon.kConstruct) {
             if (isStatic) {
               final err = HTError.unexpected(
-                  Semantic.declStmt, lexicon.kConstruct,
+                  lexicon.kStatic, Semantic.declStmt, lexicon.kConstruct,
                   filename: currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
@@ -559,7 +564,7 @@ class HTDefaultParser extends HTParser {
           } else if (curTok.type == lexicon.kFactory) {
             if (isStatic) {
               final err = HTError.unexpected(
-                  Semantic.declStmt, lexicon.kConstruct,
+                  lexicon.kStatic, Semantic.declStmt, lexicon.kConstruct,
                   filename: currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
@@ -595,7 +600,8 @@ class HTDefaultParser extends HTParser {
               );
             }
           } else {
-            final err = HTError.unexpected(Semantic.declStmt, curTok.lexeme,
+            final err = HTError.unexpected(
+                Semantic.classDefinition, Semantic.declStmt, curTok.lexeme,
                 filename: currrentFileName,
                 line: curTok.line,
                 column: curTok.column,
@@ -677,7 +683,7 @@ class HTDefaultParser extends HTParser {
         } else if (curTok.type == lexicon.kConstruct) {
           if (isStatic) {
             final err = HTError.unexpected(
-                Semantic.declStmt, lexicon.kConstruct,
+                lexicon.kStatic, Semantic.declStmt, lexicon.kConstruct,
                 filename: currrentFileName,
                 line: curTok.line,
                 column: curTok.column,
@@ -712,7 +718,8 @@ class HTDefaultParser extends HTParser {
                 isField: true);
           }
         } else {
-          final err = HTError.unexpected(Semantic.declStmt, curTok.lexeme,
+          final err = HTError.unexpected(
+              Semantic.structDefinition, Semantic.declStmt, curTok.lexeme,
               filename: currrentFileName,
               line: curTok.line,
               column: curTok.column,
@@ -1250,6 +1257,9 @@ class HTDefaultParser extends HTParser {
 
   /// Expression without associativity
   ASTNode _parsePrimaryExpr() {
+    // Don't use if else here because those token types might be same,
+    // for example, functionArgumentStart & groupExprStart are both '('.
+
     if (curTok.type == lexicon.kNull) {
       final token = advance();
       leftValueLegality = false;
@@ -1259,7 +1269,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == Semantic.literalBoolean) {
+    }
+
+    if (curTok.type == Semantic.literalBoolean) {
       final token = match(Semantic.literalBoolean) as TokenBooleanLiteral;
       leftValueLegality = false;
       return ASTLiteralBoolean(token.literal,
@@ -1268,7 +1280,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == Semantic.literalInteger) {
+    }
+
+    if (curTok.type == Semantic.literalInteger) {
       final token = match(Semantic.literalInteger) as TokenIntLiteral;
       leftValueLegality = false;
       return ASTLiteralInteger(token.literal,
@@ -1277,7 +1291,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == Semantic.literalFloat) {
+    }
+
+    if (curTok.type == Semantic.literalFloat) {
       final token = advance() as TokenFloatLiteral;
       leftValueLegality = false;
       return ASTLiteralFloat(token.literal,
@@ -1286,7 +1302,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == Semantic.literalString) {
+    }
+
+    if (curTok.type == Semantic.literalString) {
       final token = advance() as TokenStringLiteral;
       leftValueLegality = false;
       return ASTLiteralString(token.literal, token.startMark, token.endMark,
@@ -1295,7 +1313,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == Semantic.literalStringInterpolation) {
+    }
+
+    if (curTok.type == Semantic.literalStringInterpolation) {
       final token = advance() as TokenStringInterpolation;
       final interpolations = <ASTNode>[];
       final savedCurrent = curTok;
@@ -1347,7 +1367,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == lexicon.kThis) {
+    }
+
+    if (curTok.type == lexicon.kThis) {
       final keyword = advance();
       leftValueLegality = false;
       return IdentifierExpr(keyword.lexeme,
@@ -1356,7 +1378,9 @@ class HTDefaultParser extends HTParser {
           column: keyword.column,
           offset: keyword.offset,
           length: keyword.length);
-    } else if (curTok.type == lexicon.kSuper) {
+    }
+
+    if (curTok.type == lexicon.kSuper) {
       final keyword = advance();
       leftValueLegality = false;
       return IdentifierExpr(keyword.lexeme,
@@ -1365,7 +1389,9 @@ class HTDefaultParser extends HTParser {
           column: keyword.column,
           offset: keyword.offset,
           length: keyword.length);
-    } else if (curTok.type == lexicon.kNew) {
+    }
+
+    if (curTok.type == lexicon.kNew) {
       final keyword = advance();
       leftValueLegality = false;
       final idTok = match(Semantic.identifier) as TokenIdentifier;
@@ -1385,21 +1411,26 @@ class HTDefaultParser extends HTParser {
           column: keyword.column,
           offset: keyword.offset,
           length: curTok.offset - keyword.offset);
-    } else if (curTok.type == lexicon.kIf) {
+    }
+
+    if (curTok.type == lexicon.kIf) {
       leftValueLegality = false;
       return _parseIf(isExpression: true);
-    } else if (curTok.type == lexicon.kWhen) {
+    }
+
+    if (curTok.type == lexicon.kWhen) {
       leftValueLegality = false;
       return _parseWhen(isExpression: true);
     }
     // a literal function expression
-    else if (curTok.type == lexicon.groupExprStart) {
+    if (curTok.type == lexicon.functionArgumentStart) {
       final tokenAfterGroupExprStart = curTok.next;
       final tokenAfterGroupExprEnd = seekGroupClosing(
           {lexicon.functionArgumentStart: lexicon.functionArgumentEnd});
       if ((tokenAfterGroupExprStart?.type == lexicon.groupExprEnd ||
               (tokenAfterGroupExprStart?.type == Semantic.identifier &&
-                  (tokenAfterGroupExprStart?.next?.type ==
+                  (tokenAfterGroupExprStart?.next?.type == lexicon.comma ||
+                      tokenAfterGroupExprStart?.next?.type ==
                           lexicon.typeIndicator ||
                       tokenAfterGroupExprStart?.next?.type ==
                           lexicon.groupExprEnd))) &&
@@ -1410,20 +1441,22 @@ class HTDefaultParser extends HTParser {
         return _parseFunction(
             category: FunctionCategory.literal, hasKeyword: false);
       }
-      // a group expression
-      else {
-        final start = advance();
-        final innerExpr = _parseExpr();
-        final end = match(lexicon.groupExprEnd);
-        leftValueLegality = false;
-        return GroupExpr(innerExpr,
-            source: currentSource,
-            line: start.line,
-            column: start.column,
-            offset: start.offset,
-            length: end.offset + end.length - start.offset);
-      }
-    } else if (curTok.type == lexicon.listStart) {
+    }
+
+    if (curTok.type == lexicon.groupExprStart) {
+      final start = advance();
+      final innerExpr = _parseExpr();
+      final end = match(lexicon.groupExprEnd);
+      leftValueLegality = false;
+      return GroupExpr(innerExpr,
+          source: currentSource,
+          line: start.line,
+          column: start.column,
+          offset: start.offset,
+          length: end.offset + end.length - start.offset);
+    }
+
+    if (curTok.type == lexicon.listStart) {
       final start = advance();
       final listExpr = <ASTNode>[];
       while (
@@ -1455,37 +1488,46 @@ class HTDefaultParser extends HTParser {
           column: start.column,
           offset: start.offset,
           length: end.end - start.offset);
-    } else if (curTok.type == lexicon.functionBlockStart) {
+    }
+
+    if (curTok.type == lexicon.functionBlockStart) {
       leftValueLegality = false;
       return _parseStructObj();
-    } else if (curTok.type == lexicon.kStruct) {
+    }
+
+    if (curTok.type == lexicon.kStruct) {
       leftValueLegality = false;
       return _parseStructObj(hasKeyword: true);
-    } else if (curTok.type == lexicon.kFun) {
+    }
+
+    if (curTok.type == lexicon.kFun) {
       leftValueLegality = false;
       return _parseFunction(category: FunctionCategory.literal);
-    } else if (curTok.type == Semantic.identifier) {
+    }
+
+    if (curTok.type == Semantic.identifier) {
       final id = advance() as TokenIdentifier;
       final isLocal = curTok.type != lexicon.assign;
       // TODO: type arguments
       leftValueLegality = true;
       return IdentifierExpr.fromToken(id,
           isMarked: id.isMarked, isLocal: isLocal, source: currentSource);
-    } else {
-      final err = HTError.unexpected(Semantic.expression, curTok.lexeme,
-          filename: currrentFileName,
-          line: curTok.line,
-          column: curTok.column,
-          offset: curTok.offset,
-          length: curTok.length);
-      errors?.add(err);
-      final errToken = advance();
-      return ASTEmptyLine(
-          source: currentSource,
-          line: errToken.line,
-          column: errToken.column,
-          offset: errToken.offset);
     }
+
+    final err = HTError.unexpected(
+        Semantic.expression, Semantic.expression, curTok.lexeme,
+        filename: currrentFileName,
+        line: curTok.line,
+        column: curTok.column,
+        offset: curTok.offset,
+        length: curTok.length);
+    errors?.add(err);
+    final errToken = advance();
+    return ASTEmptyLine(
+        source: currentSource,
+        line: errToken.line,
+        column: errToken.column,
+        offset: errToken.offset);
   }
 
   CommaExpr _handleCommaExpr(String endMark, {bool isLocal = true}) {
@@ -1795,7 +1837,8 @@ class HTDefaultParser extends HTParser {
         final startTok = curTok;
         var node = parseStmt(style: ParseStyle.functionDefinition);
         if (node == null) {
-          final err = HTError.unexpected(Semantic.expression, curTok.lexeme,
+          final err = HTError.unexpected(
+              Semantic.exprStmt, Semantic.expression, curTok.lexeme,
               filename: currrentFileName,
               line: curTok.line,
               column: curTok.column,
@@ -1886,7 +1929,7 @@ class HTDefaultParser extends HTParser {
     if (forStmtType == lexicon.kIn || forStmtType == lexicon.kOf) {
       if (!lexicon.forDeclarationKeywords.contains(curTok.type)) {
         final err = HTError.unexpected(
-            Semantic.variableDeclaration, curTok.type,
+            Semantic.forStmt, Semantic.variableDeclaration, curTok.type,
             filename: currrentFileName,
             line: curTok.line,
             column: curTok.column,
@@ -2042,7 +2085,8 @@ class HTDefaultParser extends HTParser {
       // check lexeme here because expect() can only deal with token type
       final fromKeyword = advance().lexeme;
       if (fromKeyword != lexicon.kFrom) {
-        final err = HTError.unexpected(lexicon.kFrom, curTok.lexeme,
+        final err = HTError.unexpected(
+            Semantic.importStmt, lexicon.kFrom, curTok.lexeme,
             filename: currrentFileName,
             line: curTok.line,
             column: curTok.column,
@@ -2558,7 +2602,7 @@ class HTDefaultParser extends HTParser {
       if (category == FunctionCategory.constructor ||
           category == FunctionCategory.setter) {
         final err = HTError.unexpected(
-            Semantic.functionDefinition, Semantic.returnType,
+            Semantic.function, Semantic.functionDefinition, Semantic.returnType,
             filename: currrentFileName,
             line: curTok.line,
             column: curTok.column,
@@ -2573,7 +2617,9 @@ class HTDefaultParser extends HTParser {
         consume: true)) {
       if (category != FunctionCategory.constructor) {
         final lastTok = peek(-1);
-        final err = HTError.unexpected(lexicon.functionBlockStart,
+        final err = HTError.unexpected(
+            Semantic.function,
+            lexicon.functionBlockStart,
             lexicon.constructorInitializationListIndicator,
             filename: currrentFileName,
             line: curTok.line,
@@ -2595,7 +2641,8 @@ class HTDefaultParser extends HTParser {
       final ctorCallee = advance();
       if (!lexicon.redirectingConstructorCallKeywords
           .contains(ctorCallee.lexeme)) {
-        final err = HTError.unexpected(Semantic.ctorCallExpr, curTok.lexeme,
+        final err = HTError.unexpected(
+            Semantic.function, Semantic.ctorCallExpr, curTok.lexeme,
             filename: currrentFileName,
             line: curTok.line,
             column: curTok.column,

@@ -13,6 +13,7 @@ enum ErrorCode {
   exportNonHetuSource,
   scriptThrows,
   assertionFailed,
+  unexpectedToken,
   unexpected,
   delete,
   external,
@@ -288,7 +289,27 @@ class HTError {
             length: length);
 
   /// Error: Expected a token while met another.
-  HTError.unexpected(String expected, String met,
+  HTError.unexpectedToken(String expected, String met,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.unexpected, ErrorType.syntacticError,
+            message: HTLocale.current.errorUnexpectedToken,
+            interpolations: [expected, met],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Expected a token while met another.
+  HTError.unexpected(String whileParsing, String expected, String met,
       {String? extra,
       String? correction,
       String? filename,
@@ -298,7 +319,7 @@ class HTError {
       int? length})
       : this(ErrorCode.unexpected, ErrorType.syntacticError,
             message: HTLocale.current.errorUnexpected,
-            interpolations: [expected, met],
+            interpolations: [whileParsing, expected, met],
             extra: extra,
             correction: correction,
             filename: filename,

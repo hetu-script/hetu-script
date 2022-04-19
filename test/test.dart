@@ -47,12 +47,10 @@ void main() {
   // final r = hetu.evalFile('eval.hts');
   // print(hetu.lexicon.stringify(r));
 
-  hetu.eval(r'''
-    final game = {
-      entities: {},
-      
-      nations: {},
-    }
-    print(game)
+  final r = hetu.eval(r'''
+    final r = range(10).toList()
+    r.sort((t1, t2) => -t1.compareTo(t2))
+    r
   ''');
+  print(r);
 }

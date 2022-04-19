@@ -96,7 +96,7 @@ abstract class TokenReader {
   /// and return the original token. If not, generate an error.
   Token match(String type) {
     if (curTok.type != type) {
-      final err = HTError.unexpected(type, curTok.lexeme,
+      final err = HTError.unexpectedToken(type, curTok.lexeme,
           filename: currrentFileName,
           line: curTok.line,
           column: curTok.column,

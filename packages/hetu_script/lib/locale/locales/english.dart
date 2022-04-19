@@ -26,7 +26,10 @@ class HTLocaleEnglish implements HTLocale {
 
   // syntactic errors
   @override
-  final String errorUnexpected = 'Expected [{0}], met [{1}].';
+  final String errorUnexpectedToken = 'Expected [{0}], met [{1}].';
+  @override
+  final String errorUnexpected =
+      'While parsing [{0}], expected [{1}], met [{2}].';
   @override
   final String errorDelete =
       'Can only delete a local variable or a struct member.';

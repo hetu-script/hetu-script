@@ -17,6 +17,7 @@ abstract class HTLocale {
   String get errorExportNonHetuSource;
 
   // syntactic errors
+  String get errorUnexpectedToken;
   String get errorUnexpected;
   String get errorDelete;
   String get errorExternal;
