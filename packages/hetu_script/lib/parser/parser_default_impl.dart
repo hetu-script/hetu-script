@@ -31,20 +31,18 @@ class HTDefaultParser extends HTParser {
     return false;
   }
 
-  void _handlePrecedingEmptyLine() {
-    while (curTok is TokenEmptyLine) {
-      advance();
-    }
-  }
-
-  bool _handlePrecedingComment() {
+  bool _handlePrecedingCommentOrEmptyLine() {
     bool handled = false;
-    _handlePrecedingEmptyLine();
-    while (curTok is TokenComment) {
+    while (curTok is TokenComment || curTok is TokenEmptyLine) {
       handled = true;
-      final comment = Comment.fromToken(advance() as TokenComment);
-      currentPrecedingComments.add(comment);
-      _handlePrecedingEmptyLine();
+      late Comment comment;
+      if (curTok is TokenComment) {
+        comment = Comment.fromCommentToken(advance() as TokenComment);
+      } else if (curTok is TokenEmptyLine) {
+        advance();
+        comment = Comment.emptyLine();
+      }
+      currentPrecedingCommentOrEmptyLine.add(comment);
     }
     return handled;
   }
@@ -54,7 +52,7 @@ class HTDefaultParser extends HTParser {
       final tokenComment = curTok as TokenComment;
       if (tokenComment.isTrailing) {
         advance();
-        expr.trailingComment = Comment.fromToken(tokenComment);
+        expr.trailingComment = Comment.fromCommentToken(tokenComment);
       }
       return true;
     }
@@ -63,13 +61,17 @@ class HTDefaultParser extends HTParser {
 
   @override
   ASTNode? parseStmt({required ParseStyle style}) {
-    if (_handlePrecedingComment()) {
+    if (_handlePrecedingCommentOrEmptyLine()) {
+      return null;
+    }
+
+    if (curTok.type == Semantic.endOfFile) {
       return null;
     }
 
     // save preceding comments because those might change during expression parsing.
-    final precedingComments = currentPrecedingComments;
-    currentPrecedingComments = [];
+    final precedingComments = currentPrecedingCommentOrEmptyLine;
+    currentPrecedingCommentOrEmptyLine = [];
 
     if (curTok is TokenEmptyLine) {
       final empty = advance();
@@ -867,7 +869,7 @@ class HTDefaultParser extends HTParser {
     if (curTok is TokenComment) {
       final token = advance() as TokenComment;
       if (token.isTrailing) {
-        stmt.trailingComment = Comment.fromToken(token);
+        stmt.trailingComment = Comment.fromCommentToken(token);
       }
     }
 
@@ -910,7 +912,7 @@ class HTDefaultParser extends HTParser {
   ///
   /// Assignment operator =, precedence 1, associativity right
   ASTNode _parseExpr() {
-    _handlePrecedingComment();
+    _handlePrecedingCommentOrEmptyLine();
     ASTNode? expr;
     final left = _parserTernaryExpr();
     if (lexicon.assignments.contains(curTok.type)) {
@@ -1469,7 +1471,7 @@ class HTDefaultParser extends HTParser {
       final listExpr = <ASTNode>[];
       while (
           curTok.type != lexicon.listEnd && curTok.type != Semantic.endOfFile) {
-        _handlePrecedingComment();
+        _handlePrecedingCommentOrEmptyLine();
         ASTNode item;
         if (curTok.type == lexicon.spreadSyntax) {
           final spreadTok = advance();
@@ -1543,7 +1545,7 @@ class HTDefaultParser extends HTParser {
   CommaExpr _handleCommaExpr(String endMark, {bool isLocal = true}) {
     final list = <ASTNode>[];
     while (curTok.type != endMark && curTok.type != Semantic.endOfFile) {
-      _handlePrecedingComment();
+      _handlePrecedingCommentOrEmptyLine();
       final item = _parseExpr();
       setPrecedingComment(item);
       list.add(item);
@@ -1582,7 +1584,7 @@ class HTDefaultParser extends HTParser {
       var isVariadic = false;
       while (curTok.type != lexicon.groupExprEnd &&
           curTok.type != Semantic.endOfFile) {
-        _handlePrecedingComment();
+        _handlePrecedingCommentOrEmptyLine();
         final start = curTok;
         if (!isOptional) {
           isOptional = expect([lexicon.listStart], consume: true);
@@ -1645,7 +1647,7 @@ class HTDefaultParser extends HTParser {
       final fieldTypes = <FieldTypeExpr>[];
       while (curTok.type != lexicon.functionBlockEnd &&
           curTok.type != Semantic.endOfFile) {
-        _handlePrecedingComment();
+        _handlePrecedingCommentOrEmptyLine();
         late Token idTok;
         if (curTok.type == Semantic.literalString) {
           idTok = advance();
@@ -1725,7 +1727,7 @@ class HTDefaultParser extends HTParser {
     final statements = <ASTNode>[];
     while (curTok.type != lexicon.functionBlockEnd &&
         curTok.type != Semantic.endOfFile) {
-      _handlePrecedingComment();
+      _handlePrecedingCommentOrEmptyLine();
       if (curTok.type == lexicon.functionBlockEnd ||
           curTok.type == Semantic.endOfFile) {
         break;
@@ -1762,7 +1764,7 @@ class HTDefaultParser extends HTParser {
     var isNamed = false;
     while ((curTok.type != lexicon.groupExprEnd) &&
         (curTok.type != Semantic.endOfFile)) {
-      _handlePrecedingComment();
+      _handlePrecedingCommentOrEmptyLine();
       if ((!isNamed &&
               expect([Semantic.identifier, lexicon.namedArgumentValueIndicator],
                   consume: false)) ||
@@ -1872,8 +1874,8 @@ class HTDefaultParser extends HTParser {
               column: curTok.column,
               offset: curTok.offset,
               length: curTok.offset - startTok.offset);
-          node.precedingComments.addAll(currentPrecedingComments);
-          currentPrecedingComments.clear();
+          node.precedingComments.addAll(currentPrecedingCommentOrEmptyLine);
+          currentPrecedingCommentOrEmptyLine.clear();
         }
         return node;
       }
@@ -1886,7 +1888,7 @@ class HTDefaultParser extends HTParser {
     final condition = _parseExpr();
     match(lexicon.groupExprEnd);
     var thenBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
-    _handlePrecedingComment();
+    _handlePrecedingCommentOrEmptyLine();
     ASTNode? elseBranch;
     if (isExpression) {
       match(lexicon.kElse);
@@ -2018,7 +2020,7 @@ class HTDefaultParser extends HTParser {
     match(lexicon.functionBlockStart);
     while (curTok.type != lexicon.functionBlockEnd &&
         curTok.type != Semantic.endOfFile) {
-      _handlePrecedingComment();
+      _handlePrecedingCommentOrEmptyLine();
       if (curTok.lexeme == lexicon.kElse) {
         advance();
         match(lexicon.whenBranchIndicator);
@@ -2057,7 +2059,7 @@ class HTDefaultParser extends HTParser {
     if (expect([lexicon.typeParameterStart], consume: true)) {
       while ((curTok.type != lexicon.typeParameterEnd) &&
           (curTok.type != Semantic.endOfFile)) {
-        _handlePrecedingComment();
+        _handlePrecedingCommentOrEmptyLine();
         final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok, source: currentSource);
         final param = GenericTypeParameterExpr(id,
@@ -2095,7 +2097,7 @@ class HTDefaultParser extends HTParser {
       }
       while (curTok.type != lexicon.functionBlockEnd &&
           curTok.type != Semantic.endOfFile) {
-        _handlePrecedingComment();
+        _handlePrecedingCommentOrEmptyLine();
         final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok, source: currentSource);
         setPrecedingComment(id);
@@ -2183,7 +2185,7 @@ class HTDefaultParser extends HTParser {
       final showList = <IdentifierExpr>[];
       while (curTok.type != lexicon.functionBlockEnd &&
           curTok.type != Semantic.endOfFile) {
-        _handlePrecedingComment();
+        _handlePrecedingCommentOrEmptyLine();
         final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok, source: currentSource);
         setPrecedingComment(id);
@@ -2422,7 +2424,7 @@ class HTDefaultParser extends HTParser {
       endMark = lexicon.functionBlockEnd;
     }
     while (curTok.type != endMark && curTok.type != Semantic.endOfFile) {
-      _handlePrecedingComment();
+      _handlePrecedingCommentOrEmptyLine();
       final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok, source: currentSource);
       setPrecedingComment(id);
@@ -2532,7 +2534,7 @@ class HTDefaultParser extends HTParser {
           (curTok.type != lexicon.listEnd) &&
           (curTok.type != lexicon.functionBlockEnd) &&
           (curTok.type != Semantic.endOfFile)) {
-        _handlePrecedingComment();
+        _handlePrecedingCommentOrEmptyLine();
         // 可选参数, 根据是否有方括号判断, 一旦开始了可选参数, 则不再增加参数数量arity要求
         if (!isOptional) {
           isOptional = expect([lexicon.listStart], consume: true);
@@ -2836,7 +2838,7 @@ class HTDefaultParser extends HTParser {
     final id = match(Semantic.identifier);
     var enumerations = <IdentifierExpr>[];
     if (expect([lexicon.functionBlockStart], consume: true)) {
-      _handlePrecedingComment();
+      _handlePrecedingCommentOrEmptyLine();
       while (curTok.type != lexicon.functionBlockEnd &&
           curTok.type != Semantic.endOfFile) {
         final enumIdTok = match(Semantic.identifier);
@@ -2903,8 +2905,8 @@ class HTDefaultParser extends HTParser {
           column: endTok.column,
           offset: endTok.offset,
           length: endTok.offset - startTok.end);
-      empty.precedingComments.addAll(currentPrecedingComments);
-      currentPrecedingComments.clear();
+      empty.precedingComments.addAll(currentPrecedingCommentOrEmptyLine);
+      currentPrecedingCommentOrEmptyLine.clear();
       definition.add(empty);
     }
     currentStructId = savedStructId;
@@ -2933,7 +2935,7 @@ class HTDefaultParser extends HTParser {
     final fields = <StructObjField>[];
     while (
         curTok.type != lexicon.structEnd && curTok.type != Semantic.endOfFile) {
-      _handlePrecedingComment();
+      _handlePrecedingCommentOrEmptyLine();
       if (curTok.type == lexicon.structEnd ||
           curTok.type == Semantic.endOfFile) {
         break;
@@ -2996,8 +2998,8 @@ class HTDefaultParser extends HTParser {
           column: curTok.column,
           offset: curTok.offset,
           length: curTok.offset - structBlockStartTok.offset);
-      empty.precedingComments.addAll(currentPrecedingComments);
-      currentPrecedingComments.clear();
+      empty.precedingComments.addAll(currentPrecedingCommentOrEmptyLine);
+      currentPrecedingCommentOrEmptyLine.clear();
       fields.add(empty);
     }
     match(lexicon.structEnd);

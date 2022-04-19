@@ -48,7 +48,10 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   final r = hetu.eval(r'''
-    final a = () {}
+    class Calculator {
+    }
+
+
   ''');
   print(hetu.lexicon.stringify(r));
 }

@@ -60,11 +60,11 @@ abstract class HTParser with TokenReader {
   // All import decl in this list must have non-null [fromPath]
   late List<ImportExportDecl> currentModuleImports;
 
-  List<Comment> currentPrecedingComments = [];
+  List<Comment> currentPrecedingCommentOrEmptyLine = [];
 
   void setPrecedingComment(ASTNode expr) {
-    expr.precedingComments = currentPrecedingComments;
-    currentPrecedingComments = [];
+    expr.precedingComments = currentPrecedingCommentOrEmptyLine;
+    currentPrecedingCommentOrEmptyLine = [];
   }
 
   HTClassDeclaration? currentClass;
