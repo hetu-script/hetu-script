@@ -1,8 +1,10 @@
 ## 0.4.0
 
-- Added support for const expression interpreter and type checker.
+- Add api for dynamically import a source: `final { a, b } = require(path)`
+- Added support for const expression interpreter and static analyzer(WIP).
 - Now suport multiline String literal, syntax is the same to normal string.
-- Now support user-defined lexicon.
+- Now support user-defined lexicon & parser, you can define a language with
+  custom lexicon & grammar that compiles into the bytecode and runs with Hetu.
 
 ## 0.3.12
 

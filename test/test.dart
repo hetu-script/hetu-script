@@ -22,7 +22,8 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final source1 = HTSource(r'''
-    final text = 'hello world!'
+    var name = 'Richard Byson'
+    var age = 42
 ''', fullName: 'source1.ht');
 //   final source2 = HTSource(r'''
 //     export 'source1.ht'
@@ -50,8 +51,8 @@ void main() {
   final r = hetu.eval(r'''
     // import 'source1.ht' as nsp
     // print(typeof nsp)
-    final nsp = require('source1.ht');
-    print(nsp.text)
+    final { name, age } = require('source1.ht');
+    print(name, age)
   ''');
   print(hetu.lexicon.stringify(r));
 }

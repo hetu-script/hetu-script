@@ -49,12 +49,13 @@ var hetu = Hetu(
 );
 hetu.init();
 final source1 = HTSource(r'''
-    final greeting = 'hello world!'
+    var name = 'Richard Byson'
+    var age = 42
 ''', fullName: 'source1.ht');
 sourceContext.addResource(source1.fullName, source1);
 hetu.eval(r'''
-    final nsp = require('source1.ht');
-    print(nsp.greeting)
+    final { name, age } = require('source1.ht');
+    print(name, age)
 ''');
 ```
 
