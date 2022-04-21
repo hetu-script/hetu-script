@@ -5,7 +5,7 @@ import 'package:quiver/core.dart';
 import '../../error/error.dart';
 import '../../grammar/constant.dart';
 import '../../type/type.dart';
-import '../../type/nominal_type.dart';
+import '../../type/nominal.dart';
 import '../function/function.dart';
 import '../class/class.dart';
 import 'cast.dart';

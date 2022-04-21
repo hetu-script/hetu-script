@@ -7,6 +7,8 @@ external class Hetu {
   fun jsonify(obj: any) -> Map
 
   fun eval(code: str) -> any
+
+  fun require(path: str)
 }
 
 var _isInitialized = false
@@ -52,6 +54,13 @@ fun jsonify(obj: any) {
 external fun range(startOrStop: num, [stop: num, step: num]) -> Iterable
 
 fun eval(code: str) {
+  if (!_isInitialized) {
+    throw 'Hetu environment is not initialized!'
+  }
+  return _hetu.eval(code)
+}
+
+fun require(path: str) {
   if (!_isInitialized) {
     throw 'Hetu environment is not initialized!'
   }

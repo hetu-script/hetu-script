@@ -13,27 +13,25 @@ class HTStructuralType extends HTType {
 
   @override
   bool isA(HTType? other) {
-    if (other == null) {
+    if (other == null) return true;
+
+    if (other.isTop) return true;
+
+    if (other is! HTStructuralType) return false;
+
+    if (other.fieldTypes.isEmpty) {
       return true;
-    } else if (other is HTTypeAny) {
-      return true;
-    } else if (other is HTStructuralType) {
-      if (other.fieldTypes.isEmpty) {
-        return true;
-      } else {
-        for (final key in other.fieldTypes.keys) {
-          if (!fieldTypes.containsKey(key)) {
+    } else {
+      for (final key in other.fieldTypes.keys) {
+        if (!fieldTypes.containsKey(key)) {
+          return false;
+        } else {
+          if (fieldTypes[key]!.isNotA(other.fieldTypes[key])) {
             return false;
-          } else {
-            if (fieldTypes[key]!.isNotA(other.fieldTypes[key])) {
-              return false;
-            }
           }
         }
-        return true;
       }
-    } else {
-      return false;
+      return true;
     }
   }
 }

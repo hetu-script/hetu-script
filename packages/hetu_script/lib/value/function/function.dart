@@ -12,7 +12,7 @@ import '../../value/struct/struct.dart';
 import '../../value/namespace/namespace.dart';
 import '../../declaration/function/function_declaration.dart';
 import '../../declaration/generic/generic_type_parameter.dart';
-import '../../type/function_type.dart';
+import '../../type/function.dart';
 import '../entity.dart';
 import 'parameter.dart';
 import '../variable/variable.dart';

@@ -2,7 +2,7 @@ import 'package:meta/meta.dart';
 
 import '../../grammar/constant.dart';
 import '../../type/type.dart';
-import '../../type/function_type.dart';
+import '../../type/function.dart';
 import '../../source/source.dart';
 import '../type/abstract_type_declaration.dart';
 import '../declaration.dart';

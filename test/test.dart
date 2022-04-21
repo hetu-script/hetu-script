@@ -21,9 +21,9 @@ void main() {
   );
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
-//   final source1 = HTSource(r'''
-//     final text = 'hello world!'
-// ''', fullName: 'source1.ht');
+  final source1 = HTSource(r'''
+    final text = 'hello world!'
+''', fullName: 'source1.ht');
 //   final source2 = HTSource(r'''
 //     export 'source1.ht'
 //     export { greeting }
@@ -38,7 +38,7 @@ void main() {
 //       print(meaning)
 //     }
 // ''', fullName: 'source3.ht');
-//   sourceContext2.addResource(source1.fullName, source1);
+  sourceContext2.addResource(source1.fullName, source1);
 //   sourceContext2.addResource(source2.fullName, source2);
 //   sourceContext2.addResource(source3.fullName, source3);
 
@@ -48,10 +48,8 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   final r = hetu.eval(r'''
-    class Calculator {
-    }
-
-
+    import 'source1.ht' as nsp
+    print(typeof nsp)
   ''');
   print(hetu.lexicon.stringify(r));
 }

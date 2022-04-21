@@ -7,7 +7,7 @@ import '../../value/namespace/namespace.dart';
 // import '../../shared/stringify.dart' as util;
 import '../../shared/jsonify.dart' as util;
 import '../../type/type.dart';
-import '../../type/structural_type.dart';
+import '../../type/structural.dart';
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 
@@ -43,7 +43,7 @@ class HTStruct with HTEntity {
       final value = _fields[key];
       final encap = interpreter.encapsulate(value);
       fieldTypes[key] = encap.valueType?.resolve(namespace) ??
-          HTTypeAny(interpreter.lexicon.typeAny);
+          HTTypeIntrinsic.any(interpreter.lexicon.typeAny);
     }
     return HTStructuralType(namespace, fieldTypes: fieldTypes);
   }

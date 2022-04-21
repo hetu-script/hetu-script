@@ -1,8 +1,8 @@
 export 'type/type.dart';
-export 'type/unresolved_type.dart';
-export 'type/nominal_type.dart';
-export 'type/structural_type.dart';
-export 'type/literal_type.dart';
-export 'type/union_type.dart';
-export 'type/function_type.dart';
-export 'type/external_type.dart';
+export 'type/unresolved.dart';
+export 'type/nominal.dart';
+export 'type/structural.dart';
+export 'type/literal.dart';
+export 'type/union.dart';
+export 'type/function.dart';
+export 'type/external.dart';

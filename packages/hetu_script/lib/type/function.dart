@@ -61,38 +61,34 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
 
   @override
   bool isA(HTType? other) {
-    if (other == null) {
-      return true;
-    } else if (other is HTTypeAny) {
-      return true;
-    } else if (other is HTFunctionType) {
-      if (genericTypeParameters.length != other.genericTypeParameters.length) {
-        return false;
-      }
+    if (other == null) return true;
 
-      if (returnType.isNotA(other.returnType)) {
-        return false;
-      }
+    if (other.isTop) return true;
 
-      for (var i = 0; i < parameterTypes.length; ++i) {
-        final param = parameterTypes[i];
-        HTParameterType? otherParam;
-        if (other.parameterTypes.length > i) {
-          otherParam = other.parameterTypes[i];
-        }
-        if (!param.isOptional && !param.isVariadic) {
-          if (otherParam == null ||
-              otherParam.isOptional != param.isOptional ||
-              otherParam.isVariadic != param.isVariadic ||
-              otherParam.isNamed != param.isNamed ||
-              (otherParam.declType.isNotA(param.declType))) {
-            return false;
-          }
-        }
-      }
-      return true;
-    } else {
+    if (other is! HTFunctionType) return false;
+
+    if (genericTypeParameters.length != other.genericTypeParameters.length) {
       return false;
     }
+    if (returnType.isNotA(other.returnType)) {
+      return false;
+    }
+    for (var i = 0; i < parameterTypes.length; ++i) {
+      final param = parameterTypes[i];
+      HTParameterType? otherParam;
+      if (other.parameterTypes.length > i) {
+        otherParam = other.parameterTypes[i];
+      }
+      if (!param.isOptional && !param.isVariadic) {
+        if (otherParam == null ||
+            otherParam.isOptional != param.isOptional ||
+            otherParam.isVariadic != param.isVariadic ||
+            otherParam.isNamed != param.isNamed ||
+            (otherParam.declType.isNotA(param.declType))) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 }

@@ -20,6 +20,10 @@ enum PrimitiveTypeCategory {
 abstract class HTType with HTEntity {
   bool get isResolved => true;
 
+  bool get isTop => false;
+
+  bool get isBottom => false;
+
   HTType resolve(HTDeclarationNamespace namespace) => this;
 
   final String? id;
@@ -51,7 +55,7 @@ abstract class HTType with HTEntity {
   //                   ast.arguments.map((expr) => HTType.fromAST(expr)).toList(),
   //               isNullable: ast.isNullable);
   //         case PrimitiveTypeCategory.any:
-  //           return HTTypeAny(ast.id!.id);
+  //           return HTTypeIntrinsic.any(ast.id!.id);
   //         case PrimitiveTypeCategory.vo1d:
   //           return HTTypeVoid(ast.id!.id);
   //         case PrimitiveTypeCategory.never:
@@ -81,79 +85,93 @@ abstract class HTType with HTEntity {
 
   /// Wether object of this [HTType] can be assigned to other [HTType]
   bool isA(HTType? other) {
-    if (other == null) {
-      return true;
-    } else if (other is HTTypeAny) {
-      return true;
+    if (other == null) return true;
+
+    if (id != other.id) return false;
+    if (isNullable != other.isNullable) return false;
+    if (typeArgs.length != other.typeArgs.length) return false;
+
+    for (final arg in typeArgs) {
+      if (arg.isNotA(other)) return false;
     }
 
-    return false;
+    return true;
   }
 
   /// Wether object of this [HTType] cannot be assigned to other [HTType]
   bool isNotA(HTType? other) => !isA(other);
 }
 
-/// A special type that only used on declaration.
-/// There's no runtime value that has `any` as its type.
-class HTTypeAny extends HTType {
-  const HTTypeAny(String id) : super(id: id);
-}
+class HTTypeIntrinsic extends HTType {
+  @override
+  final bool isTop;
 
-/// A special type that only used on declaration.
-/// There's no runtime value that has `unknown` as its type.
-class HTTypeUnknown extends HTType {
-  const HTTypeUnknown(String id) : super(id: id);
+  @override
+  final bool isBottom;
+
+  const HTTypeIntrinsic(String id,
+      {required this.isTop, required this.isBottom})
+      : super(id: id);
+
+  /// A type is both `top` and `bottom`, only used on declaration for analysis.
+  ///
+  /// There's no runtime value that has `any` as its type.
+  ///
+  /// In analysis, you can do everything with it:
+  ///
+  /// 1, use any operator on it.
+  ///
+  /// 2, call it as a function.
+  ///
+  /// 3, get a member out of it.
+  ///
+  /// 4, get a subscript value out of it.
+  ///
+  /// Every type is assignable to type any, and type any is assignable to every type.
+  ///
+  /// With `any` we lose any protection that is normally given to us by static type system.
+  ///
+  /// Therefore, it should only be used as a last resort
+  /// when we can’t use more specific types or `unknown`.
+  const HTTypeIntrinsic.any(String id) : this(id, isTop: true, isBottom: true);
+
+  /// A `top` type, basically a type-safe version of the type any.
+  ///
+  /// Every type is assignable to type unknown.
+  ///
+  /// Type unknown cannot assign to other types except `any` & `unknown`.
+  ///
+  /// You cannot do anything with it, unless you do an explicit type assertion.
+  const HTTypeIntrinsic.unknown(String id)
+      : this(id, isTop: true, isBottom: false);
+
+  /// A `bottom` type. A function whose return type is never cannot return.
+  /// For example by throwing an error or looping forever.
+  const HTTypeIntrinsic.never(String id)
+      : this(id, isTop: false, isBottom: true);
+
+  /// A `empty` type. A function whose return type is empty.
+  /// It may contain return statement, but cannot return any value.
+  /// And you cannot use the function call result in any operation.
+  const HTTypeIntrinsic.vo1d(String id)
+      : this(id, isTop: false, isBottom: true);
+
+  /// A `zero` type.
+  const HTTypeIntrinsic.nu11(String id)
+      : this(id, isTop: false, isBottom: true);
 
   @override
   bool isA(HTType? other) {
-    if (other == null) {
-      return true;
-    } else if (other is HTTypeAny) {
-      return true;
-    } else if (other is HTTypeUnknown) {
+    if (other == null) return true;
+
+    if (id == other.id) {
       return true;
     }
 
-    return false;
-  }
-}
-
-/// A special type that only used on declaration.
-/// There's no runtime value that has `void` as its type.
-class HTTypeVoid extends HTType {
-  const HTTypeVoid(String id) : super(id: id);
-
-  @override
-  bool isA(HTType? other) {
-    if (other is HTTypeVoid) {
+    if (isTop) {
       return true;
-    }
-
-    return false;
-  }
-}
-
-/// A special type that only used on declaration.
-/// There's no runtime value that has `never` as its type.
-class HTTypeNever extends HTType {
-  const HTTypeNever(String id) : super(id: id);
-
-  @override
-  bool isA(HTType? other) => false;
-}
-
-/// A special type that only used on null value.
-/// Cannot be used on declaration.
-class HTTypeNull extends HTType {
-  const HTTypeNull(String id) : super(id: id);
-
-  @override
-  bool isA(HTType? other) {
-    if (other == null) {
-      return true;
-    } else if (other is HTTypeNull) {
-      return true;
+    } else if (isBottom) {
+      return false;
     }
 
     return false;

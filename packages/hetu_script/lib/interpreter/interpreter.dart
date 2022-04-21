@@ -16,10 +16,10 @@ import '../external/external_class.dart';
 import '../external/external_function.dart';
 import '../external/external_instance.dart';
 import '../type/type.dart';
-import '../type/unresolved_type.dart';
-import '../type/function_type.dart';
-import '../type/nominal_type.dart';
-import '../type/structural_type.dart';
+import '../type/unresolved.dart';
+import '../type/function.dart';
+import '../type/nominal.dart';
+import '../type/structural.dart';
 import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
@@ -87,6 +87,9 @@ class _LoopInfo {
 
 /// A bytecode implementation of Hetu Script interpreter
 class HTInterpreter {
+  static HTClass? rootClass;
+  static HTStruct? rootStruct;
+
   final stackTraceList = <String>[];
 
   final _cachedModules = <String, HTBytecodeModule>{};
@@ -477,8 +480,9 @@ class HTInterpreter {
       }
       return list;
     } else if (value is Map) {
-      final prototype = _currentNamespace.memberGet(_lexicon.globalPrototypeId,
-          isRecursive: true);
+      final HTStruct prototype = rootStruct ??
+          globalNamespace.memberGet(lexicon.globalPrototypeId,
+              isRecursive: true);
       final struct =
           HTStruct(this, prototype: prototype, closure: currentNamespace);
       for (final key in value.keys) {
@@ -495,8 +499,9 @@ class HTInterpreter {
   }
 
   HTStruct createStructfromJson(Map<dynamic, dynamic> jsonData) {
-    final prototype = globalNamespace.memberGet(_lexicon.globalPrototypeId,
-        isRecursive: true);
+    final HTStruct prototype = rootStruct ??
+        globalNamespace.memberGet(_lexicon.globalPrototypeId,
+            isRecursive: true);
     final struct =
         HTStruct(this, prototype: prototype, closure: currentNamespace);
     for (final key in jsonData.keys) {
@@ -508,7 +513,8 @@ class HTInterpreter {
 
   void _handleNamespaceImport(HTNamespace nsp, UnresolvedImportStatement decl) {
     final importNamespace = _currentBytecodeModule.namespaces[decl.fromPath]!;
-    if (_currentFileResourceType == HTResourceType.hetuScript) {
+    if (_currentFileResourceType == HTResourceType.hetuScript ||
+        _currentFileResourceType == HTResourceType.hetuLiteralCode) {
       for (final importDecl in importNamespace.imports.values) {
         _handleNamespaceImport(importNamespace, importDecl);
       }
@@ -1454,12 +1460,13 @@ class HTInterpreter {
         final declType = HTFunctionType(
             parameterTypes: paramDecls.values
                 .map((param) => HTParameterType(
-                    declType: param.declType ?? HTTypeAny(_lexicon.typeAny),
+                    declType:
+                        param.declType ?? HTTypeIntrinsic.any(_lexicon.typeAny),
                     isOptional: param.isOptional,
                     isVariadic: param.isVariadic,
                     id: param.isNamed ? param.id : null))
                 .toList(),
-            returnType: returnType ?? HTTypeAny(_lexicon.typeAny));
+            returnType: returnType ?? HTTypeIntrinsic.any(_lexicon.typeAny));
         int? line, column, definitionIp;
         final hasDefinition = _currentBytecodeModule.readBool();
         if (hasDefinition) {
@@ -1702,7 +1709,12 @@ class HTInterpreter {
         break;
       case HTOpCode.typeOf:
         final encap = encapsulate(object);
-        _localValue = encap.valueType;
+        final type = encap.valueType;
+        if (type == null) {
+          _localValue = HTTypeIntrinsic.unknown(_lexicon.typeUnknown);
+        } else {
+          _localValue = type;
+        }
         break;
     }
   }
@@ -1841,13 +1853,13 @@ class HTInterpreter {
         }
         final isNullable = (_currentBytecodeModule.read() == 0) ? false : true;
         if (typeName == _lexicon.typeAny) {
-          return HTTypeAny(_lexicon.typeAny);
+          return HTTypeIntrinsic.any(_lexicon.typeAny);
         } else if (typeName == _lexicon.typeUnknown) {
-          return HTTypeUnknown(_lexicon.typeUnknown);
+          return HTTypeIntrinsic.unknown(_lexicon.typeUnknown);
         } else if (typeName == _lexicon.typeVoid) {
-          return HTTypeVoid(_lexicon.typeVoid);
+          return HTTypeIntrinsic.vo1d(_lexicon.typeVoid);
         } else if (typeName == _lexicon.typeNever) {
-          return HTTypeNever(_lexicon.typeNever);
+          return HTTypeIntrinsic.never(_lexicon.typeNever);
         } else {
           return HTUnresolvedType(typeName,
               typeArgs: typeArgs, isNullable: isNullable);
@@ -2123,12 +2135,13 @@ class HTInterpreter {
     final declType = HTFunctionType(
         parameterTypes: paramDecls.values
             .map((param) => HTParameterType(
-                declType: param.declType ?? HTTypeAny(_lexicon.typeAny),
+                declType:
+                    param.declType ?? HTTypeIntrinsic.any(_lexicon.typeAny),
                 isOptional: param.isOptional,
                 isVariadic: param.isVariadic,
                 id: param.isNamed ? param.id : null))
             .toList(),
-        returnType: returnType ?? HTTypeAny(_lexicon.typeAny));
+        returnType: returnType ?? HTTypeIntrinsic.any(_lexicon.typeAny));
     RedirectingConstructor? redirCtor;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
@@ -2212,7 +2225,10 @@ class HTInterpreter {
       superType = _handleTypeExpr();
     } else {
       if (!isExternal && (id != _lexicon.globalObjectId)) {
-        superType = HTUnresolvedType(_lexicon.globalObjectId);
+        final HTClass object = rootClass ??
+            globalNamespace.memberGet(lexicon.globalObjectId,
+                isRecursive: true);
+        superType = HTNominalType(object);
       }
     }
     final isEnum = _currentBytecodeModule.readBool();
@@ -2230,7 +2246,8 @@ class HTInterpreter {
     execute(namespace: klass.namespace);
     // Add default constructor if there's none.
     if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
-      final ctorType = HTFunctionType(returnType: HTTypeAny(_lexicon.typeAny));
+      final ctorType =
+          HTFunctionType(returnType: HTTypeIntrinsic.any(_lexicon.typeAny));
       final ctor = HTFunction(InternalIdentifier.defaultConstructor,
           _currentFileName, _currentBytecodeModule.id, this,
           classId: klass.id,

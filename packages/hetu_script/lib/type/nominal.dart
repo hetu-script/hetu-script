@@ -64,11 +64,13 @@ class HTNominalType extends HTType {
 
   @override
   bool isA(HTType? other) {
-    if (other == null) {
-      return true;
-    } else if (other is HTTypeAny) {
-      return true;
-    } else if (this == other) {
+    if (other == null) return true;
+
+    if (other.isTop) return true;
+
+    if (other is! HTNominalType) return false;
+
+    if (this == other) {
       return true;
     } else {
       var curSuperType = klass.superType;

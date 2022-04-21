@@ -3,8 +3,8 @@ import '../declaration/class/class_declaration.dart';
 import '../declaration/namespace/declaration_namespace.dart';
 import '../declaration/type/abstract_type_declaration.dart';
 import '../declaration/type/type_alias_declaration.dart';
-import 'function_type.dart';
-import 'nominal_type.dart';
+import 'function.dart';
+import 'nominal.dart';
 import 'type.dart';
 
 /// A supposed type,

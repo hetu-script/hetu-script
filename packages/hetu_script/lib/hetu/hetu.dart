@@ -172,6 +172,11 @@ class Hetu {
       interpreter.loadBytecode(
           bytes: coreModule, moduleName: 'core', globallyImport: true);
       interpreter.invoke('initHetuEnv', positionalArgs: [this]);
+
+      HTInterpreter.rootClass = interpreter.globalNamespace
+          .memberGet(lexicon.globalObjectId, isRecursive: true);
+      HTInterpreter.rootStruct = interpreter.globalNamespace
+          .memberGet(lexicon.globalPrototypeId, isRecursive: true);
     }
 
     for (final key in externalFunctions.keys) {
