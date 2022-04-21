@@ -800,7 +800,7 @@ class HTDefaultLexicon extends HTLexicon {
       }
     } else if (type is HTExternalType) {
       output.write('${InternalIdentifier.externalType} ${type.id}');
-    } else {
+    } else if (type is HTNominalType) {
       output.write(type.id);
       if (type.typeArgs.isNotEmpty) {
         output.write(typeParameterStart);
@@ -815,6 +815,8 @@ class HTDefaultLexicon extends HTLexicon {
       if (type.isNullable) {
         output.write(nullableTypePostfix);
       }
+    } else {
+      output.write(type.id);
     }
     return output.toString();
   }

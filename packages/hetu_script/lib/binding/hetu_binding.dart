@@ -52,12 +52,12 @@ class HTHetuClassBinding extends HTExternalClass {
             List<HTType> typeArgs = const []}) {
           final code = positionalArgs.first as String;
           final savedFileName = hetu.interpreter.currentFileName;
-          final savedModuleName = hetu.interpreter.bytecodeModule.id;
+          final savedModuleName = hetu.interpreter.currentBytecodeModule.id;
           final savedNamespace = hetu.interpreter.currentNamespace;
-          final savedIp = hetu.interpreter.bytecodeModule.ip;
+          final savedIp = hetu.interpreter.currentBytecodeModule.ip;
           final result = hetu.eval(code);
           hetu.interpreter.restoreStackFrame(
-            clearStack: false,
+            clearStack: true,
             savedFileName: savedFileName,
             savedModuleName: savedModuleName,
             savedNamespace: savedNamespace,
@@ -65,6 +65,12 @@ class HTHetuClassBinding extends HTExternalClass {
           );
           return result;
         };
+      case 'require':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            hetu.require(positionalArgs.first);
       default:
         throw HTError.undefined(varName);
     }

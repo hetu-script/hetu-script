@@ -34,3 +34,34 @@ export { hello } from 'hello.ht'
 ```
 
 Every top level symbol will be exported by default if you do not have any export statement.
+
+## require
+
+After 0.4.0, you can dynamically import a source, use `require` keyword in your functions or script.
+
+```dart
+final sourceContext = HTOverlayContext();
+var hetu = Hetu(
+  config: HetuConfig(
+    normalizeImportPath: false,
+  ),
+  sourceContext: sourceContext,
+);
+hetu.init();
+final source1 = HTSource(r'''
+    final greeting = 'hello world!'
+''', fullName: 'source1.ht');
+sourceContext.addResource(source1.fullName, source1);
+hetu.eval(r'''
+    final nsp = require('source1.ht');
+    print(nsp.greeting)
+''');
+```
+
+You have to use it in the form of a variable declaration, otherwise the importing won't have any effect.
+
+```javascript
+require('source1.ht'); // this won't have any effect!
+```
+
+Because the file is loaded dynamically rather than statically before compile, you have to ensure that the source is loaded in the sourceContext before running the script contains the require keyword.

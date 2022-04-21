@@ -122,7 +122,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
 
   void import(HTDeclarationNamespace other,
       {bool clone = false,
-      bool isExported = false,
+      bool export = false,
       Set<String> showList = const {}}) {
     for (final key in other.symbols.keys) {
       var decl = other.symbols[key]!;
@@ -138,7 +138,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
         decl = decl.clone();
       }
       defineImport(key, decl);
-      if (isExported) {
+      if (export) {
         declareExport(key);
       }
     }
@@ -154,7 +154,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
         decl = decl.clone();
       }
       defineImport(key, decl);
-      if (isExported) {
+      if (export) {
         declareExport(key);
       }
     }

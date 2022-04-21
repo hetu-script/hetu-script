@@ -27,10 +27,8 @@ abstract class HTType with HTEntity {
   HTType resolve(HTDeclarationNamespace namespace) => this;
 
   final String? id;
-  final List<HTType> typeArgs;
-  final bool isNullable;
 
-  const HTType({this.id, this.typeArgs = const [], this.isNullable = false});
+  const HTType([this.id]);
 
   // factory HTType.fromAST(TypeExpr? ast) {
   //   if (ast != null) {
@@ -55,7 +53,7 @@ abstract class HTType with HTEntity {
   //                   ast.arguments.map((expr) => HTType.fromAST(expr)).toList(),
   //               isNullable: ast.isNullable);
   //         case PrimitiveTypeCategory.any:
-  //           return HTTypeIntrinsic.any(ast.id!.id);
+  //           return HTIntrinsicType.any(ast.id!.id);
   //         case PrimitiveTypeCategory.vo1d:
   //           return HTTypeVoid(ast.id!.id);
   //         case PrimitiveTypeCategory.never:
@@ -68,32 +66,17 @@ abstract class HTType with HTEntity {
   // }
 
   @override
-  int get hashCode {
-    final hashList = [];
-    hashList.add(id);
-    hashList.add(isNullable);
-    for (final typeArg in typeArgs) {
-      hashList.add(typeArg);
-    }
-    final hash = hashObjects(hashList);
-    return hash;
-  }
+  int get hashCode => id.hashCode;
 
   @override
   bool operator ==(Object other) =>
       other is HTType && hashCode == other.hashCode;
 
-  /// Wether object of this [HTType] can be assigned to other [HTType]
+  /// Check wether value of this [HTType] can be assigned to other [HTType].
   bool isA(HTType? other) {
     if (other == null) return true;
 
     if (id != other.id) return false;
-    if (isNullable != other.isNullable) return false;
-    if (typeArgs.length != other.typeArgs.length) return false;
-
-    for (final arg in typeArgs) {
-      if (arg.isNotA(other)) return false;
-    }
 
     return true;
   }
@@ -102,16 +85,16 @@ abstract class HTType with HTEntity {
   bool isNotA(HTType? other) => !isA(other);
 }
 
-class HTTypeIntrinsic extends HTType {
+class HTIntrinsicType extends HTType {
   @override
   final bool isTop;
 
   @override
   final bool isBottom;
 
-  const HTTypeIntrinsic(String id,
+  const HTIntrinsicType(String id,
       {required this.isTop, required this.isBottom})
-      : super(id: id);
+      : super(id);
 
   /// A type is both `top` and `bottom`, only used on declaration for analysis.
   ///
@@ -127,52 +110,50 @@ class HTTypeIntrinsic extends HTType {
   ///
   /// 4, get a subscript value out of it.
   ///
-  /// Every type is assignable to type any, and type any is assignable to every type.
+  /// Every type is assignable to type any (the meaning of `top`),
+  /// and type any is assignable to every type (the meaning of `bottom`).
   ///
   /// With `any` we lose any protection that is normally given to us by static type system.
   ///
   /// Therefore, it should only be used as a last resort
   /// when we can’t use more specific types or `unknown`.
-  const HTTypeIntrinsic.any(String id) : this(id, isTop: true, isBottom: true);
+  const HTIntrinsicType.any(String id) : this(id, isTop: true, isBottom: true);
 
   /// A `top` type, basically a type-safe version of the type any.
   ///
-  /// Every type is assignable to type unknown.
+  /// Every type is assignable to type unknown (the meaning of `top`).
   ///
   /// Type unknown cannot assign to other types except `any` & `unknown`.
   ///
   /// You cannot do anything with it, unless you do an explicit type assertion.
-  const HTTypeIntrinsic.unknown(String id)
+  const HTIntrinsicType.unknown(String id)
       : this(id, isTop: true, isBottom: false);
 
   /// A `bottom` type. A function whose return type is never cannot return.
   /// For example by throwing an error or looping forever.
-  const HTTypeIntrinsic.never(String id)
+  const HTIntrinsicType.never(String id)
       : this(id, isTop: false, isBottom: true);
 
   /// A `empty` type. A function whose return type is empty.
   /// It may contain return statement, but cannot return any value.
   /// And you cannot use the function call result in any operation.
-  const HTTypeIntrinsic.vo1d(String id)
+  const HTIntrinsicType.vo1d(String id)
       : this(id, isTop: false, isBottom: true);
 
-  /// A `zero` type.
-  const HTTypeIntrinsic.nu11(String id)
-      : this(id, isTop: false, isBottom: true);
+  /// A `zero` type. It's the type of runtime null value.
+  /// You cannot get this type via expression or declaration.
+  const HTIntrinsicType.nu11(String id)
+      : this(id, isTop: false, isBottom: false);
 
   @override
   bool isA(HTType? other) {
     if (other == null) return true;
 
-    if (id == other.id) {
-      return true;
-    }
+    if (other.isTop) return true;
 
-    if (isTop) {
-      return true;
-    } else if (isBottom) {
-      return false;
-    }
+    if (other.isBottom && isBottom) return true;
+
+    if (id == other.id) return true;
 
     return false;
   }

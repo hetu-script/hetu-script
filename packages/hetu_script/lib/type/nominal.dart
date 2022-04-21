@@ -9,14 +9,14 @@ class HTNominalType extends HTType {
   // late final Iterable<HTType> implemented;
   // late final Iterable<HTType> mixined;
 
-  final String _id;
+  final List<HTType> typeArgs;
+  final bool isNullable;
 
   @override
-  String get id => _id;
+  String get id => super.id!;
 
-  HTNominalType(this.klass, {List<HTType> typeArgs = const []})
-      : _id = klass.id!,
-        super(id: klass.id!, typeArgs: typeArgs);
+  HTNominalType(this.klass, {this.typeArgs = const [], this.isNullable = false})
+      : super(klass.id!);
 
   // HTNominalType.fromClass(HTClass klass,
   //     {Iterable<HTValueType> typeArgs = const [],
@@ -42,10 +42,8 @@ class HTNominalType extends HTType {
   int get hashCode {
     final hashList = [];
     hashList.add(id);
-    // hashList.add(isNullable.hashCode);
-    for (final typeArg in typeArgs) {
-      hashList.add(typeArg);
-    }
+    hashList.add(isNullable);
+    hashList.addAll(typeArgs);
     // if (superType != null) {
     //   hashList.add(superType.hashCode);
     // }
@@ -68,9 +66,17 @@ class HTNominalType extends HTType {
 
     if (other.isTop) return true;
 
+    if (other.isBottom) return false;
+
     if (other is! HTNominalType) return false;
 
-    if (this == other) {
+    if (isNullable != other.isNullable) return false;
+    if (typeArgs.length != other.typeArgs.length) return false;
+    for (final arg in typeArgs) {
+      if (arg.isNotA(other)) return false;
+    }
+
+    if (id == other.id) {
       return true;
     } else {
       var curSuperType = klass.superType;

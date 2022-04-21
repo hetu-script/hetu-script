@@ -1,4 +1,4 @@
-import '../parser/token.dart' show TokenComment, TokenEmptyLine;
+import '../parser/token.dart' show TokenComment;
 
 enum CommentType {
   emptyLine,

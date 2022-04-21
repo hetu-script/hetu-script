@@ -36,3 +36,34 @@ export { hello } from 'hello.ht'
 ```
 
 如果你没有提供任何导出声明。则会默认导出这个代码文件中所有非私有（标识符不是以 '\_' 开头）的顶层的声明。
+
+## 动态导入（require）
+
+河图 0.4.0 版本之后，可以使用类似 node.js 的 require 语句来动态导入一个代码文件。
+
+```dart
+final sourceContext = HTOverlayContext();
+var hetu = Hetu(
+  config: HetuConfig(
+    normalizeImportPath: false,
+  ),
+  sourceContext: sourceContext,
+);
+hetu.init();
+final source1 = HTSource(r'''
+    final greeting = 'hello world!'
+''', fullName: 'source1.ht');
+sourceContext.addResource(source1.fullName, source1);
+hetu.eval(r'''
+    final nsp = require('source1.ht');
+    print(nsp.greeting)
+''');
+```
+
+注意你必须以声明变量并给与其初始化值的方式来导入。单纯使用 require 并没有任何效果。
+
+```javascript
+require('source1.ht'); // 这样写不会有任何效果！
+```
+
+因为这种方式的导入会在运行时导入文件，因此你必须手动保证在代码运行之前，就已经在 sourceContext 中载入了对应路径名的文件。

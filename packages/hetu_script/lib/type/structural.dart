@@ -17,6 +17,8 @@ class HTStructuralType extends HTType {
 
     if (other.isTop) return true;
 
+    if (other.isBottom) return false;
+
     if (other is! HTStructuralType) return false;
 
     if (other.fieldTypes.isEmpty) {

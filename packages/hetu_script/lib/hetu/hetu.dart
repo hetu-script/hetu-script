@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:hetu_script/ast/ast.dart';
+import 'package:hetu_script/declarations.dart';
 
 import '../analyzer/analyzer.dart';
 import '../interpreter/interpreter.dart';
@@ -355,4 +356,46 @@ class Hetu {
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
           typeArgs: typeArgs);
+
+  /// Load a source into current bytecode dynamically.
+  HTNamespace require(String path) {
+    final key = config.normalizeImportPath
+        ? sourceContext.getAbsolutePath(key: path)
+        : path;
+
+    // Search in current module first
+    if (interpreter.currentBytecodeModule.namespaces.containsKey(key)) {
+      return interpreter.currentBytecodeModule.namespaces[key]!;
+    }
+    // Then try to search it in any loaded modules.
+    else {
+      for (final module in interpreter.cachedModules.values) {
+        for (final nsp in module.namespaces.values) {
+          if (nsp.fullName == key) {
+            return nsp;
+          }
+        }
+      }
+    }
+
+    // Then we have to load the source dynamically
+    final source = sourceContext.getResource(key);
+    // Because we are loading it dynamically, it has to be a script rather than a module.
+    source.type = HTResourceType.hetuScript;
+    final bytes = _compileSource(source, moduleName: key);
+    final savedFileName = interpreter.currentFileName;
+    final savedModuleName = interpreter.currentBytecodeModule.id;
+    final savedNamespace = interpreter.currentNamespace;
+    final savedIp = interpreter.currentBytecodeModule.ip;
+    interpreter.loadBytecode(bytes: bytes, moduleName: key);
+    final nsp = interpreter.currentBytecodeModule.namespaces.values.last;
+    interpreter.restoreStackFrame(
+      clearStack: false,
+      savedFileName: savedFileName,
+      savedModuleName: savedModuleName,
+      savedNamespace: savedNamespace,
+      savedIp: savedIp,
+    );
+    return nsp;
+  }
 }

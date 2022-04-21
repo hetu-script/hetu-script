@@ -34,7 +34,8 @@ class HTCast with HTEntity, InterpreterRef {
     // }
     // }
     if (castee.valueType?.isNotA(valueType) ?? true) {
-      throw HTError.typeCast(castee.valueType.toString(), valueType.toString());
+      throw HTError.typeCast(interpreter.lexicon.stringify(castee.valueType),
+          interpreter.lexicon.stringify(valueType));
     }
 
     if (castee is HTInstance) {

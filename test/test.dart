@@ -2,8 +2,8 @@ import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
-  final sourceContext = HTFileSystemResourceContext(root: 'script');
-  final sourceContext2 = HTOverlayContext();
+  final sourceContext = HTOverlayContext();
+  final sourceContext2 = HTFileSystemResourceContext(root: 'script');
   var hetu = Hetu(
     config: HetuConfig(
       compileWithoutLineInfo: false,
@@ -17,7 +17,7 @@ void main() {
       allowImplicitEmptyValueToFalseConversion: true,
       normalizeImportPath: false,
     ),
-    sourceContext: sourceContext2,
+    sourceContext: sourceContext,
   );
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
@@ -38,7 +38,7 @@ void main() {
 //       print(meaning)
 //     }
 // ''', fullName: 'source3.ht');
-  sourceContext2.addResource(source1.fullName, source1);
+  sourceContext.addResource(source1.fullName, source1);
 //   sourceContext2.addResource(source2.fullName, source2);
 //   sourceContext2.addResource(source3.fullName, source3);
 
@@ -48,8 +48,10 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   final r = hetu.eval(r'''
-    import 'source1.ht' as nsp
-    print(typeof nsp)
+    // import 'source1.ht' as nsp
+    // print(typeof nsp)
+    final nsp = require('source1.ht');
+    print(nsp.text)
   ''');
   print(hetu.lexicon.stringify(r));
 }

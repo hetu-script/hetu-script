@@ -92,7 +92,7 @@ class HTInterpreter {
 
   final stackTraceList = <String>[];
 
-  final _cachedModules = <String, HTBytecodeModule>{};
+  final cachedModules = <String, HTBytecodeModule>{};
 
   InterpreterConfig config;
 
@@ -121,7 +121,7 @@ class HTInterpreter {
   late HTResourceType _currentFileResourceType;
 
   late HTBytecodeModule _currentBytecodeModule;
-  HTBytecodeModule get bytecodeModule => _currentBytecodeModule;
+  HTBytecodeModule get currentBytecodeModule => _currentBytecodeModule;
 
   HTClass? _class;
   HTFunction? _function;
@@ -284,7 +284,7 @@ class HTInterpreter {
     try {
       stackTraceList.clear();
       if (moduleName != null) {
-        _currentBytecodeModule = _cachedModules[moduleName]!;
+        _currentBytecodeModule = cachedModules[moduleName]!;
         _currentNamespace = _currentBytecodeModule.namespaces.values.last;
       }
       final func = _currentNamespace.memberGet(funcName);
@@ -375,7 +375,7 @@ class HTInterpreter {
   }
 
   bool switchModule(String id) {
-    if (_cachedModules.containsKey(id)) {
+    if (cachedModules.containsKey(id)) {
       newStackFrame(moduleName: id);
       return true;
     } else {
@@ -384,7 +384,7 @@ class HTInterpreter {
   }
 
   HTBytecodeModule? getBytecode(String moduleName) {
-    return _cachedModules[moduleName];
+    return cachedModules[moduleName];
   }
 
   String stringify(dynamic object) {
@@ -481,7 +481,7 @@ class HTInterpreter {
       return list;
     } else if (value is Map) {
       final HTStruct prototype = rootStruct ??
-          globalNamespace.memberGet(lexicon.globalPrototypeId,
+          globalNamespace.memberGet(_lexicon.globalPrototypeId,
               isRecursive: true);
       final struct =
           HTStruct(this, prototype: prototype, closure: currentNamespace);
@@ -526,7 +526,7 @@ class HTInterpreter {
     if (decl.alias == null) {
       if (decl.showList.isEmpty) {
         nsp.import(importNamespace,
-            isExported: decl.isExported, showList: decl.showList);
+            export: decl.isExported, showList: decl.showList);
       } else {
         for (final id in decl.showList) {
           final decl = importNamespace.symbols[id]!;
@@ -565,7 +565,7 @@ class HTInterpreter {
       bool errorHandled = false}) {
     try {
       _currentBytecodeModule = HTBytecodeModule(id: moduleName, bytes: bytes);
-      _cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
+      cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       final signature = _currentBytecodeModule.readUint32();
       if (signature != HTCompiler.hetuSignature) {
         throw HTError.bytecode(
@@ -630,7 +630,7 @@ class HTInterpreter {
       //     }
       //   }
       // }
-      _cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
+      cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       dynamic result;
       if (invokeFunc != null) {
         result = invoke(invokeFunc,
@@ -654,7 +654,7 @@ class HTInterpreter {
   }
 
   List<String> getExportList({String? sourceName, required String moduleName}) {
-    final module = _cachedModules[moduleName]!;
+    final module = cachedModules[moduleName]!;
     sourceName ??= module.namespaces.values.last.fullName;
     final namespace = module.namespaces[sourceName]!;
     if (namespace.willExportAll) {
@@ -683,8 +683,8 @@ class HTInterpreter {
       _currentFileName = filename;
     }
     if (moduleName != null && (_currentBytecodeModule.id != moduleName)) {
-      assert(_cachedModules.containsKey(moduleName));
-      _currentBytecodeModule = _cachedModules[moduleName]!;
+      assert(cachedModules.containsKey(moduleName));
+      _currentBytecodeModule = cachedModules[moduleName]!;
       libChanged = true;
     }
     if (namespace != null) {
@@ -730,8 +730,8 @@ class HTInterpreter {
     }
     if (savedModuleName != null) {
       if (_currentBytecodeModule.id != savedModuleName) {
-        assert(_cachedModules.containsKey(savedModuleName));
-        _currentBytecodeModule = _cachedModules[savedModuleName]!;
+        assert(cachedModules.containsKey(savedModuleName));
+        _currentBytecodeModule = cachedModules[savedModuleName]!;
       }
     }
     if (savedNamespace != null) {
@@ -784,8 +784,8 @@ class HTInterpreter {
       _currentFileName = filename;
     }
     if (moduleName != null && (_currentBytecodeModule.id != moduleName)) {
-      assert(_cachedModules.containsKey(moduleName));
-      _currentBytecodeModule = _cachedModules[moduleName]!;
+      assert(cachedModules.containsKey(moduleName));
+      _currentBytecodeModule = cachedModules[moduleName]!;
       libChanged = true;
     }
     if (namespace != null) {
@@ -1078,7 +1078,7 @@ class HTInterpreter {
                   moduleName: _currentBytecodeModule.id,
                   closure: _currentNamespace,
                   value: value,
-                  isPrivate: id.startsWith(lexicon.privatePrefix),
+                  isPrivate: id.startsWith(_lexicon.privatePrefix),
                   isMutable: true);
               _currentNamespace.define(id, decl);
             } else {
@@ -1283,7 +1283,7 @@ class HTInterpreter {
     }
     if (isPreloadedModule) {
       assert(fromPath != null);
-      final importedModule = _cachedModules[fromPath]!;
+      final importedModule = cachedModules[fromPath]!;
       final importedNamespace = importedModule.namespaces.values.last;
       _currentNamespace.import(importedNamespace);
     } else {
@@ -1348,7 +1348,7 @@ class HTInterpreter {
           final value = execute();
           literal = literal.replaceAll(
               '${_lexicon.stringInterpolationStart}$i${_lexicon.stringInterpolationEnd}',
-              lexicon.stringify(value));
+              _lexicon.stringify(value));
         }
         _localValue = literal;
         break;
@@ -1461,12 +1461,12 @@ class HTInterpreter {
             parameterTypes: paramDecls.values
                 .map((param) => HTParameterType(
                     declType:
-                        param.declType ?? HTTypeIntrinsic.any(_lexicon.typeAny),
+                        param.declType ?? HTIntrinsicType.any(_lexicon.typeAny),
                     isOptional: param.isOptional,
                     isVariadic: param.isVariadic,
                     id: param.isNamed ? param.id : null))
                 .toList(),
-            returnType: returnType ?? HTTypeIntrinsic.any(_lexicon.typeAny));
+            returnType: returnType ?? HTIntrinsicType.any(_lexicon.typeAny));
         int? line, column, definitionIp;
         final hasDefinition = _currentBytecodeModule.readBool();
         if (hasDefinition) {
@@ -1556,6 +1556,20 @@ class HTInterpreter {
     }
   }
 
+  void _handleTypeCheck([bool isNot = false]) {
+    final object = _getRegVal(HTRegIdx.relationLeft);
+    final type = (_localValue as HTType).resolve(_currentNamespace);
+    HTType valueType;
+    if (object != null) {
+      final encapsulated = encapsulate(object);
+      valueType = encapsulated.valueType!;
+    } else {
+      valueType = HTIntrinsicType.nu11(_lexicon.kNull);
+    }
+    final result = valueType.isA(type);
+    _localValue = isNot ? !result : result;
+  }
+
   void _handleBinaryOp(int opcode) {
     switch (opcode) {
       case HTOpCode.ifNull:
@@ -1626,16 +1640,10 @@ class HTInterpreter {
         _localValue = HTCast(object, klass, this);
         break;
       case HTOpCode.typeIs:
-        final object = _getRegVal(HTRegIdx.relationLeft);
-        final type = (_localValue as HTType).resolve(_currentNamespace);
-        final encapsulated = encapsulate(object);
-        _localValue = encapsulated.valueType?.isA(type) ?? false;
+        _handleTypeCheck();
         break;
       case HTOpCode.typeIsNot:
-        final object = _getRegVal(HTRegIdx.relationLeft);
-        final type = (_localValue as HTType).resolve(_currentNamespace);
-        final encapsulated = encapsulate(object);
-        _localValue = encapsulated.valueType?.isNotA(type) ?? true;
+        _handleTypeCheck();
         break;
       case HTOpCode.add:
         var left = _getRegVal(HTRegIdx.addLeft);
@@ -1711,7 +1719,7 @@ class HTInterpreter {
         final encap = encapsulate(object);
         final type = encap.valueType;
         if (type == null) {
-          _localValue = HTTypeIntrinsic.unknown(_lexicon.typeUnknown);
+          _localValue = HTIntrinsicType.unknown(_lexicon.typeUnknown);
         } else {
           _localValue = type;
         }
@@ -1800,7 +1808,7 @@ class HTInterpreter {
       } else if (callee is HTStruct && callee.declaration != null) {
         handleStructConstructor();
       } else {
-        throw HTError.notNewable(lexicon.stringify(callee),
+        throw HTError.notNewable(_lexicon.stringify(callee),
             filename: _currentFileName, line: _currentLine, column: _column);
       }
     } else {
@@ -1831,7 +1839,7 @@ class HTInterpreter {
         handleStructConstructor();
       } else {
         throw HTError.notCallable(
-            lexicon.stringify(callee, asStringLiteral: true),
+            _lexicon.stringify(callee, asStringLiteral: true),
             filename: _currentFileName,
             line: _currentLine,
             column: _column);
@@ -1853,16 +1861,15 @@ class HTInterpreter {
         }
         final isNullable = (_currentBytecodeModule.read() == 0) ? false : true;
         if (typeName == _lexicon.typeAny) {
-          return HTTypeIntrinsic.any(_lexicon.typeAny);
+          return HTIntrinsicType.any(_lexicon.typeAny);
         } else if (typeName == _lexicon.typeUnknown) {
-          return HTTypeIntrinsic.unknown(_lexicon.typeUnknown);
+          return HTIntrinsicType.unknown(_lexicon.typeUnknown);
         } else if (typeName == _lexicon.typeVoid) {
-          return HTTypeIntrinsic.vo1d(_lexicon.typeVoid);
+          return HTIntrinsicType.vo1d(_lexicon.typeVoid);
         } else if (typeName == _lexicon.typeNever) {
-          return HTTypeIntrinsic.never(_lexicon.typeNever);
+          return HTIntrinsicType.never(_lexicon.typeNever);
         } else {
-          return HTUnresolvedType(typeName,
-              typeArgs: typeArgs, isNullable: isNullable);
+          return HTUnresolvedType(typeName, typeArgs: typeArgs);
         }
       case TypeType.function:
         final paramsLength = _currentBytecodeModule.read();
@@ -2136,12 +2143,12 @@ class HTInterpreter {
         parameterTypes: paramDecls.values
             .map((param) => HTParameterType(
                 declType:
-                    param.declType ?? HTTypeIntrinsic.any(_lexicon.typeAny),
+                    param.declType ?? HTIntrinsicType.any(_lexicon.typeAny),
                 isOptional: param.isOptional,
                 isVariadic: param.isVariadic,
                 id: param.isNamed ? param.id : null))
             .toList(),
-        returnType: returnType ?? HTTypeIntrinsic.any(_lexicon.typeAny));
+        returnType: returnType ?? HTIntrinsicType.any(_lexicon.typeAny));
     RedirectingConstructor? redirCtor;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
@@ -2226,7 +2233,7 @@ class HTInterpreter {
     } else {
       if (!isExternal && (id != _lexicon.globalObjectId)) {
         final HTClass object = rootClass ??
-            globalNamespace.memberGet(lexicon.globalObjectId,
+            globalNamespace.memberGet(_lexicon.globalObjectId,
                 isRecursive: true);
         superType = HTNominalType(object);
       }
@@ -2247,7 +2254,7 @@ class HTInterpreter {
     // Add default constructor if there's none.
     if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
       final ctorType =
-          HTFunctionType(returnType: HTTypeIntrinsic.any(_lexicon.typeAny));
+          HTFunctionType(returnType: HTIntrinsicType.any(_lexicon.typeAny));
       final ctor = HTFunction(InternalIdentifier.defaultConstructor,
           _currentFileName, _currentBytecodeModule.id, this,
           classId: klass.id,

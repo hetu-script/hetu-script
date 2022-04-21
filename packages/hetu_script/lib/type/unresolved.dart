@@ -7,26 +7,25 @@ import 'function.dart';
 import 'nominal.dart';
 import 'type.dart';
 
-/// A supposed type,
-/// the interpreter will later trying to resolved it
+/// A supposed type, could be a type alias or a nominal type.
+///
+/// The interpreter will later trying to resolved it
 /// to a concrete type.
 ///
 /// For types other than nominal type, it will resolve to itself.
-///
-/// For nominal type, it will
 class HTUnresolvedType extends HTType {
   @override
   bool get isResolved => false;
 
-  final String _id;
+  final List<HTType> typeArgs;
+  final bool isNullable;
 
   @override
-  String get id => _id;
+  String get id => super.id!;
 
   const HTUnresolvedType(String id,
-      {List<HTType> typeArgs = const [], bool isNullable = false})
-      : _id = id,
-        super(id: id, typeArgs: typeArgs, isNullable: isNullable);
+      {this.typeArgs = const [], this.isNullable = false})
+      : super(id);
 
   @override
   HTType resolve(HTDeclarationNamespace namespace) {

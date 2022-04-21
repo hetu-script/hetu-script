@@ -64,5 +64,5 @@ fun require(path: str) {
   if (!_isInitialized) {
     throw 'Hetu environment is not initialized!'
   }
-  return _hetu.eval(code)
+  return _hetu.require(path)
 }

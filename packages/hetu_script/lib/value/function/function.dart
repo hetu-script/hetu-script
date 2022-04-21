@@ -461,15 +461,15 @@ class HTFunction extends HTFunctionDeclaration
             final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
             for (var i = 0; i < referCtorPosArgIps.length; ++i) {
               final savedFileName = interpreter.currentFileName;
-              final savedModuleName = interpreter.bytecodeModule.id;
+              final savedModuleName = interpreter.currentBytecodeModule.id;
               final savedNamespace = interpreter.currentNamespace;
-              final savedIp = interpreter.bytecodeModule.ip;
+              final savedIp = interpreter.currentBytecodeModule.ip;
               interpreter.newStackFrame(
                   filename: fileName,
                   moduleName: moduleName,
                   namespace: callClosure,
                   ip: referCtorPosArgIps[i]);
-              final isSpread = interpreter.bytecodeModule.readBool();
+              final isSpread = interpreter.currentBytecodeModule.readBool();
               if (!isSpread) {
                 final arg = interpreter.execute();
                 referCtorPosArgs.add(arg);

@@ -1,5 +1,5 @@
 import 'type.dart';
 
 class HTLiteralType extends HTType {
-  const HTLiteralType() : super();
+  const HTLiteralType() : super('literal');
 }
