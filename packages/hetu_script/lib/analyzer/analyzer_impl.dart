@@ -100,7 +100,12 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   }
 
   @override
-  void visitTypeExpr(TypeExpr node) {
+  void visitIntrinsicTypeExpr(IntrinsicTypeExpr node) {
+    node.subAccept(this);
+  }
+
+  @override
+  void visitNominalTypeExpr(NominalTypeExpr node) {
     node.subAccept(this);
   }
 

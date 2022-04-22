@@ -87,13 +87,16 @@ class ZhongwenLexicon extends HTLexicon {
   String get typeNever => 'never';
 
   @override
-  String get typeFunction => 'function';
+  String get typeNamespace => 'namespace';
 
   @override
   String get typeBoolean => 'bool';
 
   @override
-  String get typeNumber => 'int';
+  String get typeNumber => 'num';
+
+  @override
+  String get typeInteger => 'int';
 
   @override
   String get typeFloat => 'float';
@@ -190,9 +193,6 @@ class ZhongwenLexicon extends HTLexicon {
 
   @override
   String get kSuper => 'super';
-
-  @override
-  String get kPrivate => 'private';
 
   @override
   String get kAbstract => 'abstract';

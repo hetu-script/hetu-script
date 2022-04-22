@@ -7,7 +7,6 @@ import '../../resource/resource.dart' show HTResourceType;
 import '../../source/line_info.dart';
 import '../error/error.dart';
 import '../comment/comment.dart';
-import '../type/type.dart' show PrimitiveTypeCategory;
 
 part 'visitor/abstract_ast_visitor.dart';
 
@@ -527,40 +526,83 @@ class GroupExpr extends ASTNode {
             length: length);
 }
 
-class TypeExpr extends ASTNode {
+abstract class TypeExpr extends ASTNode {
+  bool get isLocal;
+
+  TypeExpr(String exprType,
+      {HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(exprType,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class IntrinsicTypeExpr extends TypeExpr {
   @override
-  dynamic accept(AbstractASTVisitor visitor) => visitor.visitTypeExpr(this);
+  dynamic accept(AbstractASTVisitor visitor) =>
+      visitor.visitIntrinsicTypeExpr(this);
+
+  final IdentifierExpr id;
+
+  final bool isTop;
+
+  final bool isBottom;
 
   @override
-  void subAccept(AbstractASTVisitor visitor) {
-    id?.accept(visitor);
-    for (final item in arguments) {
-      item.accept(visitor);
-    }
-  }
-
-  final IdentifierExpr? id;
-
-  final List<TypeExpr> arguments;
-
-  final bool isNullable;
-
   final bool isLocal;
 
-  final PrimitiveTypeCategory primitiveTypeCategory;
-
-  TypeExpr(
-      {this.id,
-      this.arguments = const [],
-      this.isNullable = false,
+  IntrinsicTypeExpr(
+      {required this.id,
+      this.isTop = false,
+      this.isBottom = false,
       this.isLocal = true,
-      this.primitiveTypeCategory = PrimitiveTypeCategory.none,
       HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(Semantic.typeExpr,
+      : super(Semantic.intrinsicTypeExpr,
+            source: source,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+}
+
+class NominalTypeExpr extends TypeExpr {
+  @override
+  dynamic accept(AbstractASTVisitor visitor) =>
+      visitor.visitNominalTypeExpr(this);
+
+  @override
+  void subAccept(AbstractASTVisitor visitor) {}
+
+  final IdentifierExpr id;
+
+  final List<TypeExpr> arguments;
+
+  final bool isNullable;
+
+  @override
+  final bool isLocal;
+
+  NominalTypeExpr(
+      {required this.id,
+      this.arguments = const [],
+      this.isNullable = false,
+      this.isLocal = true,
+      HTSource? source,
+      int line = 0,
+      int column = 0,
+      int offset = 0,
+      int length = 0})
+      : super(Semantic.nominalTypeExpr,
             source: source,
             line: line,
             column: column,
@@ -575,7 +617,6 @@ class ParamTypeExpr extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // id?.accept(visitor);
     declType.accept(visitor);
   }
 
@@ -616,9 +657,6 @@ class FuncTypeExpr extends TypeExpr {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // for (final item in genericTypeParameters) {
-    //   item.accept(visitor);
-    // }
     for (final item in paramTypes) {
       item.accept(visitor);
     }
@@ -635,19 +673,21 @@ class FuncTypeExpr extends TypeExpr {
 
   final bool hasNamedParam;
 
+  @override
+  final bool isLocal;
+
   FuncTypeExpr(this.returnType,
       {this.genericTypeParameters = const [],
       this.paramTypes = const [],
       this.hasOptionalParam = false,
       this.hasNamedParam = false,
+      this.isLocal = true,
       HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
-      int length = 0,
-      bool isLocal = true})
-      : super(
-            isLocal: isLocal,
+      int length = 0})
+      : super(Semantic.funcTypeExpr,
             source: source,
             line: line,
             column: column,
@@ -697,16 +737,18 @@ class StructuralTypeExpr extends TypeExpr {
 
   final List<FieldTypeExpr> fieldTypes;
 
+  @override
+  final bool isLocal;
+
   StructuralTypeExpr(
       {this.fieldTypes = const [],
-      bool isLocal = true,
+      this.isLocal = true,
       HTSource? source,
       int line = 0,
       int column = 0,
       int offset = 0,
       int length = 0})
-      : super(
-            isLocal: isLocal,
+      : super(Semantic.structuralTypeExpr,
             source: source,
             line: line,
             column: column,
@@ -721,13 +763,12 @@ class GenericTypeParameterExpr extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // id.accept(visitor);
     superType?.accept(visitor);
   }
 
   final IdentifierExpr id;
 
-  final TypeExpr? superType;
+  final NominalTypeExpr? superType;
 
   GenericTypeParameterExpr(this.id,
       {this.superType,
@@ -1531,12 +1572,7 @@ class ImportExportDecl extends ASTNode {
       visitor.visitImportExportDecl(this);
 
   @override
-  void subAccept(AbstractASTVisitor visitor) {
-    // alias?.accept(visitor);
-    // for (final id in showList) {
-    //   id.accept(visitor);
-    // }
-  }
+  void subAccept(AbstractASTVisitor visitor) {}
 
   final String? fromPath;
 
@@ -1546,10 +1582,9 @@ class ImportExportDecl extends ASTNode {
 
   final bool isPreloadedModule;
 
-  /// The normalized absolute path of the imported file.
-  /// It is left as null at the first time of parsing,
-  /// because at this time we don't know yet.
-  String? fullName;
+  final bool isExport;
+
+  bool get willExportAll => isExport && showList.isEmpty;
 
   @override
   bool get isExpression => false;
@@ -1557,15 +1592,18 @@ class ImportExportDecl extends ASTNode {
   @override
   final bool hasEndOfStmtMark;
 
-  final bool isExport;
+  /// The normalized absolute path of the imported file.
+  /// It is left as null at the first time of parsing,
+  /// because at this time we don't know yet.
+  String? fullName;
 
   ImportExportDecl(
       {this.fromPath,
-      this.showList = const [],
       this.alias,
-      this.hasEndOfStmtMark = false,
-      this.isExport = false,
+      this.showList = const [],
       this.isPreloadedModule = false,
+      this.isExport = false,
+      this.hasEndOfStmtMark = false,
       HTSource? source,
       int line = 0,
       int column = 0,
@@ -1586,7 +1624,6 @@ class NamespaceDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // id.accept(visitor);
     definition.accept(visitor);
   }
 
@@ -1629,10 +1666,6 @@ class TypeAliasDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // id.accept(visitor);
-    // for (final param in genericTypeParameters) {
-    //   param.accept(visitor);
-    // }
     typeValue.accept(visitor);
   }
 
@@ -1726,7 +1759,6 @@ class VarDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // id.accept(visitor);
     declType?.accept(visitor);
     initializer?.accept(visitor);
   }
@@ -1747,13 +1779,13 @@ class VarDecl extends ASTNode {
 
   bool get isMember => classId != null;
 
+  final bool isConst;
+
   final bool isField;
 
   final bool isExternal;
 
   final bool isStatic;
-
-  final bool isConst;
 
   final bool isMutable;
 
@@ -1778,10 +1810,10 @@ class VarDecl extends ASTNode {
       this.initializer,
       this.hasEndOfStmtMark = false,
       // this.typeInferrence = false,
+      this.isConst = false,
       this.isField = false,
       this.isExternal = false,
       this.isStatic = false,
-      this.isConst = false,
       this.isMutable = false,
       this.isPrivate = false,
       this.isTopLevel = false,
@@ -1808,9 +1840,6 @@ class DestructuringDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // for (final id in ids.keys) {
-    //   ids[id]!.accept(visitor);
-    // }
     initializer.subAccept(visitor);
   }
 
@@ -1819,6 +1848,8 @@ class DestructuringDecl extends ASTNode {
   ASTNode initializer;
 
   final bool isVector;
+
+  final bool isTopLevel;
 
   final bool isMutable;
 
@@ -1832,8 +1863,9 @@ class DestructuringDecl extends ASTNode {
       {required this.ids,
       required this.isVector,
       required this.initializer,
-      this.hasEndOfStmtMark = false,
+      this.isTopLevel = false,
       this.isMutable = false,
+      this.hasEndOfStmtMark = false,
       HTSource? source,
       int line = 0,
       int column = 0,
@@ -1932,10 +1964,6 @@ class FuncDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // id?.accept(visitor);
-    // for (final param in genericTypeParameters) {
-    //   param.accept(visitor);
-    // }
     returnType?.accept(visitor);
     redirectingCtorCallExpr?.accept(visitor);
     for (final param in paramDecls) {
@@ -2040,10 +2068,6 @@ class ClassDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // id.accept(visitor);
-    // for (final param in genericTypeParameters) {
-    //   param.accept(visitor);
-    // }
     superType?.accept(visitor);
     for (final implementsType in implementsTypes) {
       implementsType.accept(visitor);
@@ -2062,9 +2086,9 @@ class ClassDecl extends ASTNode {
 
   final TypeExpr? superType;
 
-  final List<TypeExpr> implementsTypes;
+  final List<NominalTypeExpr> implementsTypes;
 
-  final List<TypeExpr> withTypes;
+  final List<NominalTypeExpr> withTypes;
 
   bool get isMember => classId != null;
 
@@ -2117,12 +2141,7 @@ class EnumDecl extends ASTNode {
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitEnumDecl(this);
 
   @override
-  void subAccept(AbstractASTVisitor visitor) {
-    // id.accept(visitor);
-    // for (final enumItem in enumerations) {
-    //   enumItem.accept(visitor);
-    // }
-  }
+  void subAccept(AbstractASTVisitor visitor) {}
 
   final IdentifierExpr id;
 
@@ -2165,7 +2184,6 @@ class StructDecl extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // id.accept(visitor);
     prototypeId?.accept(visitor);
     for (final node in definition) {
       node.accept(visitor);
@@ -2212,7 +2230,6 @@ class StructObjField extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // key?.accept(visitor);
     value?.accept(visitor);
   }
 
@@ -2247,8 +2264,6 @@ class StructObjExpr extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    // id?.accept(visitor);
-    // prototypeId?.accept(visitor);
     for (final field in fields) {
       field.subAccept(visitor);
     }

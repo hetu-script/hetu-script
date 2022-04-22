@@ -17,9 +17,9 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
 
   final imports = <String, UnresolvedImportStatement>{};
 
-  final exports = <String>[];
+  final exports = <String>{};
 
-  bool get willExportAll => exports.isEmpty;
+  bool willExportAll = true;
 
   HTDeclarationNamespace(
       {String? id,

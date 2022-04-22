@@ -86,7 +86,12 @@ abstract class RecursiveASTVisitor<T> implements AbstractASTVisitor<T> {
   }
 
   @override
-  T? visitTypeExpr(TypeExpr node) {
+  T? visitIntrinsicTypeExpr(IntrinsicTypeExpr node) {
+    node.subAccept(this);
+  }
+
+  @override
+  T? visitNominalTypeExpr(NominalTypeExpr node) {
     node.subAccept(this);
   }
 

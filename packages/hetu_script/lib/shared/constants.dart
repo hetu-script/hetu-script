@@ -80,16 +80,18 @@ abstract class HTValueTypeCode {
   static const constInt = 2;
   static const constFloat = 3;
   static const constString = 4;
-  static const longString = 5;
+  static const string = 5;
   static const stringInterpolation = 6;
   static const identifier = 7;
-  static const commaExprList = 8;
+  static const tuple = 8;
   static const list = 9;
-  static const range = 10;
-  static const group = 11;
-  static const struct = 12;
-  static const function = 13;
-  static const type = 14;
+  static const group = 10;
+  static const struct = 11;
+  static const function = 12;
+  static const intrinsicType = 13;
+  static const nominalType = 14;
+  static const functionType = 15;
+  static const structuralType = 16;
 }
 
 abstract class StructObjFieldTypeCode {

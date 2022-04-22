@@ -11,7 +11,6 @@ import '../declaration/class/class_declaration.dart';
 import '../ast/ast.dart';
 import '../comment/comment.dart';
 import '../parser/parser.dart';
-import '../type/type.dart' show PrimitiveTypeCategory;
 
 /// Default parser implementation used by Hetu.
 class HTDefaultParser extends HTParser {
@@ -90,7 +89,7 @@ class HTDefaultParser extends HTParser {
         } else if (curTok.lexeme == lexicon.kExport) {
           stmt = _parseExportStmt();
         } else if (curTok.lexeme == lexicon.kType) {
-          stmt = _parseTypeAliasDecl();
+          stmt = _parseTypeAliasDecl(isTopLevel: true);
         } else {
           if (curTok.type == lexicon.kExternal) {
             advance();
@@ -147,13 +146,13 @@ class HTDefaultParser extends HTParser {
             stmt = _parseNamespaceDecl(isTopLevel: true);
           } else if (curTok.type == lexicon.kVar) {
             if (lexicon.destructuringDeclarationMark.contains(peek(1).type)) {
-              stmt = _parseDestructuringDecl(isMutable: true);
+              stmt = _parseDestructuringDecl(isTopLevel: true, isMutable: true);
             } else {
               stmt = _parseVarDecl(isMutable: true, isTopLevel: true);
             }
           } else if (curTok.type == lexicon.kFinal) {
             if (lexicon.destructuringDeclarationMark.contains(peek(1).type)) {
-              stmt = _parseDestructuringDecl();
+              stmt = _parseDestructuringDecl(isTopLevel: true);
             } else {
               stmt = _parseVarDecl(isTopLevel: true);
             }
@@ -745,7 +744,9 @@ class HTDefaultParser extends HTParser {
         }
         break;
       case ParseStyle.functionDefinition:
-        if (curTok.type == lexicon.kNamespace) {
+        if (curTok.lexeme == lexicon.kType) {
+          stmt = _parseTypeAliasDecl();
+        } else if (curTok.type == lexicon.kNamespace) {
           stmt = _parseNamespaceDecl();
         } else if (curTok.type == lexicon.kAbstract) {
           advance();
@@ -1669,53 +1670,92 @@ class HTDefaultParser extends HTParser {
         length: curTok.offset - startTok.offset,
       );
     }
-    // nominal type (class)
+    // intrinsic types & nominal types (class)
     else {
       final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok, source: currentSource);
-      PrimitiveTypeCategory category = PrimitiveTypeCategory.none;
       if (id.id == lexicon.typeAny) {
-        category = PrimitiveTypeCategory.any;
+        return IntrinsicTypeExpr(
+          id: id,
+          isTop: true,
+          isBottom: true,
+          isLocal: isLocal,
+          source: currentSource,
+          line: idTok.line,
+          column: idTok.column,
+          offset: idTok.offset,
+          length: curTok.offset - idTok.offset,
+        );
       } else if (id.id == lexicon.typeUnknown) {
-        category = PrimitiveTypeCategory.unknown;
+        return IntrinsicTypeExpr(
+          id: id,
+          isTop: true,
+          isBottom: false,
+          isLocal: isLocal,
+          source: currentSource,
+          line: idTok.line,
+          column: idTok.column,
+          offset: idTok.offset,
+          length: curTok.offset - idTok.offset,
+        );
       } else if (id.id == lexicon.typeVoid) {
-        category = PrimitiveTypeCategory.vo1d;
+        return IntrinsicTypeExpr(
+          id: id,
+          isTop: false,
+          isBottom: true,
+          isLocal: isLocal,
+          source: currentSource,
+          line: idTok.line,
+          column: idTok.column,
+          offset: idTok.offset,
+          length: curTok.offset - idTok.offset,
+        );
       } else if (id.id == lexicon.typeNever) {
-        category = PrimitiveTypeCategory.never;
-      }
-      final typeArgs = <TypeExpr>[];
-      if (expect([lexicon.typeParameterStart], consume: true)) {
-        if (curTok.type == lexicon.typeParameterEnd) {
-          final err = HTError.emptyTypeArgs(
-              filename: currrentFileName,
-              line: curTok.line,
-              column: curTok.column,
-              offset: curTok.offset,
-              length: curTok.end - idTok.offset);
-          errors.add(err);
+        return IntrinsicTypeExpr(
+          id: id,
+          isTop: false,
+          isBottom: true,
+          isLocal: isLocal,
+          source: currentSource,
+          line: idTok.line,
+          column: idTok.column,
+          offset: idTok.offset,
+          length: curTok.offset - idTok.offset,
+        );
+      } else {
+        final typeArgs = <TypeExpr>[];
+        if (expect([lexicon.typeParameterStart], consume: true)) {
+          if (curTok.type == lexicon.typeParameterEnd) {
+            final err = HTError.emptyTypeArgs(
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.end - idTok.offset);
+            errors.add(err);
+          }
+          while ((curTok.type != lexicon.typeParameterEnd) &&
+              (curTok.type != Semantic.endOfFile)) {
+            final typeArg = _parseTypeExpr();
+            expect([lexicon.comma], consume: true);
+            _handleTrailingComment(typeArg);
+            typeArgs.add(typeArg);
+          }
+          match(lexicon.typeParameterEnd);
         }
-        while ((curTok.type != lexicon.typeParameterEnd) &&
-            (curTok.type != Semantic.endOfFile)) {
-          final typeArg = _parseTypeExpr();
-          expect([lexicon.comma], consume: true);
-          _handleTrailingComment(typeArg);
-          typeArgs.add(typeArg);
-        }
-        match(lexicon.typeParameterEnd);
+        final isNullable = expect([lexicon.nullableTypePostfix], consume: true);
+        return NominalTypeExpr(
+          id: id,
+          arguments: typeArgs,
+          isNullable: isNullable,
+          isLocal: isLocal,
+          source: currentSource,
+          line: idTok.line,
+          column: idTok.column,
+          offset: idTok.offset,
+          length: curTok.offset - idTok.offset,
+        );
       }
-      final isNullable = expect([lexicon.nullableTypePostfix], consume: true);
-      return TypeExpr(
-        id: id,
-        arguments: typeArgs,
-        isNullable: isNullable,
-        isLocal: isLocal,
-        primitiveTypeCategory: category,
-        source: currentSource,
-        line: idTok.line,
-        column: idTok.column,
-        offset: idTok.offset,
-        length: curTok.offset - idTok.offset,
-      );
     }
   }
 
@@ -2180,8 +2220,7 @@ class HTDefaultParser extends HTParser {
     final keyword = advance(); // not a keyword so don't use match
     late final ImportExportDecl stmt;
     // export some of the symbols from this or other source
-    if (curTok.type == lexicon.functionBlockStart) {
-      advance();
+    if (expect([lexicon.functionBlockStart], consume: true)) {
       final showList = <IdentifierExpr>[];
       while (curTok.type != lexicon.functionBlockEnd &&
           curTok.type != Semantic.endOfFile) {
@@ -2227,9 +2266,18 @@ class HTDefaultParser extends HTParser {
       if (fromPath != null) {
         currentModuleImports.add(stmt);
       }
-    }
-    // export all of the symbols from other source
-    else {
+    } else if (expect([lexicon.everythingMark], consume: true)) {
+      final hasEndOfStmtMark =
+          expect([lexicon.endOfStatementMark], consume: true);
+      stmt = ImportExportDecl(
+          hasEndOfStmtMark: hasEndOfStmtMark,
+          isExport: true,
+          source: currentSource,
+          line: keyword.line,
+          column: keyword.column,
+          offset: keyword.offset,
+          length: curTok.offset - keyword.offset);
+    } else {
       final key = match(Semantic.literalString);
       final hasEndOfStmtMark =
           expect([lexicon.endOfStatementMark], consume: true);
@@ -2341,7 +2389,6 @@ class HTDefaultParser extends HTParser {
   VarDecl _parseVarDecl(
       {String? classId,
       bool isField = false,
-      // bool typeInferrence = false,
       bool isOverrided = false,
       bool isExternal = false,
       bool isStatic = false,
@@ -2412,7 +2459,8 @@ class HTDefaultParser extends HTParser {
         length: curTok.offset - keyword.offset);
   }
 
-  DestructuringDecl _parseDestructuringDecl({bool isMutable = false}) {
+  DestructuringDecl _parseDestructuringDecl(
+      {bool isTopLevel = false, bool isMutable = false}) {
     final keyword = advance(2);
     final ids = <IdentifierExpr, TypeExpr?>{};
     bool isVector = false;
@@ -2446,8 +2494,9 @@ class HTDefaultParser extends HTParser {
         ids: ids,
         isVector: isVector,
         initializer: initializer,
-        hasEndOfStmtMark: hasEndOfStmtMark,
+        isTopLevel: isTopLevel,
         isMutable: isMutable,
+        hasEndOfStmtMark: hasEndOfStmtMark,
         source: currentSource,
         line: keyword.line,
         column: keyword.column,

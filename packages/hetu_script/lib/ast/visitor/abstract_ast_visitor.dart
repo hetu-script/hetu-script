@@ -38,7 +38,9 @@ abstract class AbstractASTVisitor<T> {
 
   T? visitGroupExpr(GroupExpr node) {}
 
-  T? visitTypeExpr(TypeExpr node) {}
+  T? visitIntrinsicTypeExpr(IntrinsicTypeExpr node) {}
+
+  T? visitNominalTypeExpr(NominalTypeExpr node) {}
 
   T? visitParamTypeExpr(ParamTypeExpr node) {}
 

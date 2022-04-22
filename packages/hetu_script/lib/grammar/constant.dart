@@ -9,13 +9,6 @@ enum FunctionCategory {
   literal, // function expression with no function name
 }
 
-enum TypeType {
-  normal, // HTTypeid
-  function, // HTFunctionTypeid
-  structural,
-  union,
-}
-
 abstract class InternalIdentifier {
   static const prototype = r'$prototype';
   static const call = r'$call';
@@ -94,7 +87,8 @@ abstract class Semantic {
   static const commaExpr = 'comma_expression';
   static const inExpr = 'in_expression';
 
-  static const typeExpr = 'type_expression';
+  static const intrinsicTypeExpr = 'intrinsic_type_expression';
+  static const nominalTypeExpr = 'nominal_type_expression';
   static const literalTypeExpr = 'literal_type_expression';
   static const unionTypeExpr = 'union_type_expression';
   static const paramTypeExpr = 'parameter_type_expression';

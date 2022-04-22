@@ -171,7 +171,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List _parseCallArguments(
       List<ASTNode> posArgsNodes, Map<String, ASTNode> namedArgsNodes,
       {bool hasLength = false}) {
-    // 这里不判断左括号，已经跳过了
     final bytesBuilder = BytesBuilder();
     final positionalArgBytesList = <Uint8List>[];
     final namedArgBytesList = <String, Uint8List>{};
@@ -223,6 +222,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(0); // bool: isExternal
     bytesBuilder.addByte(0); // bool: isStatic
     bytesBuilder.addByte(isMutable ? 1 : 0); // bool: isMutable
+    bytesBuilder.addByte(0); // bool: isTopLevel
     bytesBuilder.addByte(0); // bool: lateFinalize
     bytesBuilder.addByte(lateInitialize ? 1 : 0); // bool: lateInitialize
     bytesBuilder.addByte(0); // bool: has type decl
@@ -382,7 +382,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (literal.length > constStringLengthLimit) {
       final bytesBuilder = BytesBuilder();
       bytesBuilder.addByte(HTOpCode.local);
-      bytesBuilder.addByte(HTValueTypeCode.longString);
+      bytesBuilder.addByte(HTValueTypeCode.string);
       bytesBuilder.add(_utf8String(literal));
       return bytesBuilder.toBytes();
     } else {
@@ -424,7 +424,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     if (expr.isLocal) {
       bytesBuilder.addByte(HTOpCode.local);
-      bytesBuilder.addByte(HTValueTypeCode.commaExprList);
+      bytesBuilder.addByte(HTValueTypeCode.tuple);
     }
     bytesBuilder.addByte(expr.list.length);
     for (final item in expr.list) {
@@ -548,17 +548,29 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitTypeExpr(TypeExpr expr) {
+  Uint8List visitIntrinsicTypeExpr(IntrinsicTypeExpr expr) {
     final bytesBuilder = BytesBuilder();
     if (expr.isLocal) {
       bytesBuilder.addByte(HTOpCode.local);
-      bytesBuilder.addByte(HTValueTypeCode.type);
     }
-    bytesBuilder.addByte(TypeType.normal.index); // enum: type type
-    bytesBuilder.add(_parseIdentifier(expr.id!.id));
+    bytesBuilder.addByte(HTValueTypeCode.intrinsicType);
+    bytesBuilder.add(_parseIdentifier(expr.id.id));
+    bytesBuilder.addByte(expr.isTop ? 1 : 0);
+    bytesBuilder.addByte(expr.isBottom ? 1 : 0);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
+  Uint8List visitNominalTypeExpr(NominalTypeExpr expr) {
+    final bytesBuilder = BytesBuilder();
+    if (expr.isLocal) {
+      bytesBuilder.addByte(HTOpCode.local);
+    }
+    bytesBuilder.addByte(HTValueTypeCode.nominalType);
+    bytesBuilder.add(_parseIdentifier(expr.id.id));
     bytesBuilder.addByte(expr.arguments.length); // max 255
     for (final expr in expr.arguments) {
-      final typeArg = visitTypeExpr(expr);
+      final typeArg = compileAST(expr); // dont' need end of exec mark here
       bytesBuilder.add(typeArg);
     }
     bytesBuilder.addByte(expr.isNullable ? 1 : 0); // bool isNullable
@@ -587,16 +599,15 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     if (expr.isLocal) {
       bytesBuilder.addByte(HTOpCode.local);
-      bytesBuilder.addByte(HTValueTypeCode.type);
     }
-    bytesBuilder.addByte(TypeType.function.index); // enum: type type
+    bytesBuilder.addByte(HTValueTypeCode.functionType);
     bytesBuilder
         .addByte(expr.paramTypes.length); // uint8: length of param types
     for (final param in expr.paramTypes) {
       final bytes = visitParamTypeExpr(param);
       bytesBuilder.add(bytes);
     }
-    final returnType = visitTypeExpr(expr.returnType);
+    final returnType = compileAST(expr.returnType);
     bytesBuilder.add(returnType);
     return bytesBuilder.toBytes();
   }
@@ -610,7 +621,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (expr.fieldType is FuncTypeExpr) {
       typeBytes = visitFunctionTypeExpr(expr.fieldType as FuncTypeExpr);
     } else {
-      typeBytes = visitTypeExpr(expr.fieldType);
+      typeBytes = compileAST(expr.fieldType);
     }
     bytesBuilder.add(typeBytes);
     return bytesBuilder.toBytes();
@@ -621,9 +632,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     if (expr.isLocal) {
       bytesBuilder.addByte(HTOpCode.local);
-      bytesBuilder.addByte(HTValueTypeCode.type);
     }
-    bytesBuilder.addByte(TypeType.structural.index); // enum: type type
+    bytesBuilder.addByte(HTValueTypeCode.structuralType);
     bytesBuilder
         .add(_uint16(expr.fieldTypes.length)); // uint8: length of param types
     for (final field in expr.fieldTypes) {
@@ -640,7 +650,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.add(idBytes);
     if (expr.superType != null) {
       bytesBuilder.addByte(1); // bool: hasSuperType
-      final superTypeBytes = visitTypeExpr(expr.superType!);
+      final superTypeBytes = visitNominalTypeExpr(expr.superType!);
       bytesBuilder.add(superTypeBytes);
     } else {
       bytesBuilder.addByte(0); // bool: hasSuperType
@@ -1445,6 +1455,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
+    bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     final bytes = visitBlockStmt(stmt.definition);
     bytesBuilder.add(bytes);
     bytesBuilder.addByte(HTOpCode.endOfExec);
@@ -1462,6 +1473,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
+    bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     // do not use visitTypeExpr here because the value could be a function type
     final bytes = compileAST(stmt.typeValue);
     bytesBuilder.add(bytes);
@@ -1484,6 +1496,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else {
         bytesBuilder.addByte(0); // bool: has class id
       }
+      bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
       late int type, index;
       if (stmt.value is bool) {
         type = HTConstantType.boolean.index;
@@ -1513,6 +1526,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
       bytesBuilder.addByte(stmt.isMutable ? 1 : 0);
+      bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
       bytesBuilder.addByte(stmt.lateFinalize ? 1 : 0);
       bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
       if (stmt.declType != null) {
@@ -1545,6 +1559,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitDestructuringDecl(DestructuringDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.destructuringDecl);
+    bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     bytesBuilder.addByte(stmt.ids.length);
     for (final id in stmt.ids.keys) {
       bytesBuilder.add(_parseIdentifier(id.id));
@@ -1645,6 +1660,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(stmt.isField ? 1 : 0);
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
+      bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
       bytesBuilder.addByte(stmt.isConstValue ? 1 : 0);
     } else {
       bytesBuilder.addByte(HTOpCode.local);
@@ -1711,10 +1727,11 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     // TODO: generic param
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
     bytesBuilder.addByte(stmt.isAbstract ? 1 : 0);
+    bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     bytesBuilder.addByte(stmt.hasUserDefinedConstructor ? 1 : 0);
     Uint8List? superType;
     if (stmt.superType != null) {
-      superType = visitTypeExpr(stmt.superType!);
+      superType = compileAST(stmt.superType!);
       bytesBuilder.addByte(1); // bool: has super class
       bytesBuilder.add(superType);
     } else {
@@ -1736,6 +1753,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.add(_parseIdentifier(stmt.id.id));
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(0); // bool: is abstract
+      bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
       bytesBuilder.addByte(1); // bool: has user defined constructor
       bytesBuilder.addByte(0); // bool: has super class
       bytesBuilder.addByte(1); // bool: is enum
@@ -1806,6 +1824,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(HTOpCode.externalEnumDecl);
       bytesBuilder.add(_parseIdentifier(stmt.id.id));
+      bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     }
 
     return bytesBuilder.toBytes();
@@ -1816,6 +1835,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.structDecl);
     bytesBuilder.add(_parseIdentifier(stmt.id.id));
+    bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     if (stmt.prototypeId != null) {
       bytesBuilder.addByte(1); // bool: hasPrototypeId
       bytesBuilder.add(_parseIdentifier(stmt.prototypeId!.id));

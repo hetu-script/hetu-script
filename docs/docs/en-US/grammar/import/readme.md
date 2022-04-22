@@ -19,9 +19,7 @@ fun main {
 
 Use export in a source to specify the symbols you wish to let other source access when they import from you.
 
-If there's no path provided, exported the symbols from the source contains this statement.
-
-You can give a path after the export keyword, to export other source's content.
+You can either export another source, or export the symbols within this source.
 
 ```javascript
 export {
@@ -33,7 +31,13 @@ export 'game.ht'
 export { hello } from 'hello.ht'
 ```
 
-Every top level symbol will be exported by default if you do not have any export statement.
+Use export with a string literal as path, **you will first import the source by that path, then export it. So you can use those symbols of that source just like normal import statement.**
+
+You cannot export symbols of imported namespaces without specify its path.
+
+If no path is provided, there must be a '{}' list to indicate the symbols that you wish to export from this namespace.
+
+By default, every top level symbol will be exported, if you do not have any kind of export statement.
 
 ## require
 

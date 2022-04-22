@@ -103,11 +103,28 @@ abstract class HTLexicon {
   String get typeUnknown;
   String get typeVoid;
   String get typeNever;
-  String get typeFunction;
+  String get typeNamespace;
+
+  Set<String> get builtinIntrinsicTypes => {
+        typeAny,
+        typeUnknown,
+        typeVoid,
+        typeNever,
+      };
+
   String get typeBoolean;
   String get typeNumber;
+  String get typeInteger;
   String get typeFloat;
   String get typeString;
+
+  Set<String> get builtinNominalTypes => {
+        typeBoolean,
+        typeNumber,
+        typeInteger,
+        typeFloat,
+        typeString,
+      };
 
   String get idCollectionValues;
   String get idCollectionContains;

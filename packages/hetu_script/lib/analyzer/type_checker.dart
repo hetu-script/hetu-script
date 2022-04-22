@@ -92,7 +92,12 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
   }
 
   @override
-  HTType visitTypeExpr(TypeExpr node) {
+  HTType visitIntrinsicTypeExpr(IntrinsicTypeExpr node) {
+    return HTIntrinsicType.any(_lexicon.typeAny);
+  }
+
+  @override
+  HTType visitNominalTypeExpr(NominalTypeExpr node) {
     return HTIntrinsicType.any(_lexicon.typeAny);
   }
 

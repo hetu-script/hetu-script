@@ -58,7 +58,7 @@ class HTLocaleEnglish implements HTLocale {
       'Unexpected refer constructor on external constructor.';
   @override
   final String errorSourceProviderError =
-      'Context error: could not load file: [{0}].';
+      'Context error: [{0}]. Could not load resource or resource does not exist.';
   @override
   final String errorNotAbsoluteError =
       'Adding source failed, not a absolute path: [{0}].';

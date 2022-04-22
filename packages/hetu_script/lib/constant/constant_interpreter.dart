@@ -83,7 +83,7 @@ class HTConstantInterpreter extends RecursiveASTVisitor<void> {
   }
 
   @override
-  void visitTypeExpr(TypeExpr node) {
+  void visitNominalTypeExpr(NominalTypeExpr node) {
     node.subAccept(this);
   }
 

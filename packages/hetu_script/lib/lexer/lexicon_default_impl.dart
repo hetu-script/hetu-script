@@ -90,13 +90,16 @@ class HTDefaultLexicon extends HTLexicon {
   String get typeNever => 'never';
 
   @override
-  String get typeFunction => 'function';
+  String get typeNamespace => 'namespace';
 
   @override
   String get typeBoolean => 'bool';
 
   @override
-  String get typeNumber => 'int';
+  String get typeNumber => 'num';
+
+  @override
+  String get typeInteger => 'int';
 
   @override
   String get typeFloat => 'float';
@@ -734,7 +737,7 @@ class HTDefaultLexicon extends HTLexicon {
   String _stringifyType(HTType type) {
     final output = StringBuffer();
     if (type is HTFunctionType) {
-      output.write('$typeFunction ');
+      // output.write('$typeFunction ');
       if (type.genericTypeParameters.isNotEmpty) {
         output.write(typeParameterStart);
         for (var i = 0; i < type.genericTypeParameters.length; ++i) {
@@ -781,7 +784,7 @@ class HTDefaultLexicon extends HTLexicon {
       output.write('$functionArgumentEnd $functionReturnTypeIndicator ' +
           returnTypeString);
     } else if (type is HTStructuralType) {
-      output.write('$kStruct ');
+      // output.write('$kStruct ');
       if (type.fieldTypes.isEmpty) {
         output.write('$structStart$structEnd');
       } else {

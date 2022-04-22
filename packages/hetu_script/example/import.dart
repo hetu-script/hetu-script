@@ -4,6 +4,7 @@ void main() {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
+      compileWithoutLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
       showDartStackTrace: true,
@@ -19,25 +20,37 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final source1 = HTSource(r'''
-    final text = 'hello world!'
+    var name = 'Richard Byson'
+    var age = 42
 ''', fullName: 'source1.ht');
   final source2 = HTSource(r'''
     export 'source1.ht'
-    export { greeting }
+    // export { greeting }
     fun greeting {
-      print(text)
+      print(name)
     }
-''', fullName: 'source2.ht');
-  final source3 = HTSource(r'''
-    import 'source2.ht'
-    fun main {
-      greeting()
-      print(text)
-    }
-''', fullName: 'source3.ht');
+// ''', fullName: 'source2.ht');
+//   final source3 = HTSource(r'''
+//     import 'source2.ht'
+//     fun main {
+//       greeting()
+//       print(meaning)
+//     }
+// ''', fullName: 'source3.ht');
   sourceContext.addResource(source1.fullName, source1);
   sourceContext.addResource(source2.fullName, source2);
-  sourceContext.addResource(source3.fullName, source3);
+//   sourceContext2.addResource(source3.fullName, source3);
 
-  hetu.evalFile('source3.ht', invokeFunc: 'main');
+//   final r = hetu.evalFile('source3.ht', invokeFunc: 'main');
+
+  // final r = hetu.evalFile('eval.hts');
+  // print(hetu.lexicon.stringify(r));
+
+  final r = hetu.eval(r'''
+    // final { name, age } = require('source1.ht');
+    // print(name, age)
+    import 'source2.ht' as nsp
+    nsp.greeting()
+  ''');
+  print(hetu.lexicon.stringify(r));
 }

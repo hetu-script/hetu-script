@@ -35,6 +35,10 @@ if (condition) {
 
 ## 循环语句（while, do, for）
 
+这三个语句的用法和大多数 C++/Java 类的语言保持一致。
+
+在这三种循环中，都可以使用 break 和 continue。
+
 ### while
 
 ```javascript

@@ -287,10 +287,10 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     }
     node.superType?.accept(this);
     for (final implementsType in node.implementsTypes) {
-      visitTypeExpr(implementsType);
+      visitNominalTypeExpr(implementsType);
     }
     for (final withType in node.withTypes) {
-      visitTypeExpr(withType);
+      visitNominalTypeExpr(withType);
     }
     // final decl = HTClassDeclaration(
     //     id: node.id.id,

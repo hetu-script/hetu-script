@@ -35,6 +35,10 @@ if (condition) {
 
 ## Loop
 
+Syntax for loop statement is the same to most C++/Java like languages.
+
+You can use break and continue within them.
+
 ### While
 
 ```javascript

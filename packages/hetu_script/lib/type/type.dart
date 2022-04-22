@@ -1,19 +1,5 @@
-import 'package:quiver/core.dart';
-
 import '../value/entity.dart';
 import '../declaration/namespace/declaration_namespace.dart';
-// import 'unresolved_type.dart';
-// import '../ast/ast.dart' show TypeExpr, FuncTypeExpr;
-// import 'function_type.dart';
-// import '../declaration/generic/generic_type_parameter.dart';
-
-enum PrimitiveTypeCategory {
-  none,
-  any,
-  unknown,
-  vo1d,
-  never,
-}
 
 /// Type is basically a set of things.
 /// It is used to check errors in code.
@@ -29,41 +15,6 @@ abstract class HTType with HTEntity {
   final String? id;
 
   const HTType([this.id]);
-
-  // factory HTType.fromAST(TypeExpr? ast) {
-  //   if (ast != null) {
-  //     if (ast is FuncTypeExpr) {
-  //       return HTFunctionType(
-  //           genericTypeParameters: ast.genericTypeParameters
-  //               .map((param) => HTGenericTypeParameter(param.id.id,
-  //                   superType: HTType.fromAST(param.superType)))
-  //               .toList(),
-  //           parameterTypes: ast.paramTypes
-  //               .map((param) => HTParameterType(HTType.fromAST(param.declType),
-  //                   isOptional: param.isOptional,
-  //                   isVariadic: param.isVariadic,
-  //                   id: param.id?.id))
-  //               .toList(),
-  //           returnType: HTType.fromAST(ast.returnType));
-  //     } else {
-  //       switch (ast.primitiveTypeCategory) {
-  //         case PrimitiveTypeCategory.none:
-  //           return HTUnresolvedType(ast.id!.id,
-  //               typeArgs:
-  //                   ast.arguments.map((expr) => HTType.fromAST(expr)).toList(),
-  //               isNullable: ast.isNullable);
-  //         case PrimitiveTypeCategory.any:
-  //           return HTIntrinsicType.any(ast.id!.id);
-  //         case PrimitiveTypeCategory.vo1d:
-  //           return HTTypeVoid(ast.id!.id);
-  //         case PrimitiveTypeCategory.never:
-  //           return HTTypeNever(ast.id!.id);
-  //       }
-  //     }
-  //   } else {
-  //     return HTType.any;
-  //   }
-  // }
 
   @override
   int get hashCode => id.hashCode;

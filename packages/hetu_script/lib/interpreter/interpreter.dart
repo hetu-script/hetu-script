@@ -402,7 +402,7 @@ class HTInterpreter {
     if (object is bool) {
       typeString = _lexicon.typeBoolean;
     } else if (object is int) {
-      typeString = _lexicon.typeNumber;
+      typeString = _lexicon.typeInteger;
     } else if (object is double) {
       typeString = _lexicon.typeFloat;
     } else if (object is String) {
@@ -513,6 +513,8 @@ class HTInterpreter {
 
   void _handleNamespaceImport(HTNamespace nsp, UnresolvedImportStatement decl) {
     final importNamespace = _currentBytecodeModule.namespaces[decl.fromPath]!;
+
+    // for script and literal code, namespaces are resolved immediately.
     if (_currentFileResourceType == HTResourceType.hetuScript ||
         _currentFileResourceType == HTResourceType.hetuLiteralCode) {
       for (final importDecl in importNamespace.imports.values) {
@@ -653,12 +655,12 @@ class HTInterpreter {
     }
   }
 
-  List<String> getExportList({String? sourceName, required String moduleName}) {
+  Set<String> getExportList({String? sourceName, required String moduleName}) {
     final module = cachedModules[moduleName]!;
     sourceName ??= module.namespaces.values.last.fullName;
     final namespace = module.namespaces[sourceName]!;
     if (namespace.willExportAll) {
-      final list = <String>[];
+      final list = <String>{};
       for (final symbol in namespace.symbols.keys) {
         if (symbol.startsWith(_lexicon.privatePrefix)) continue;
         list.add(symbol);
@@ -1310,6 +1312,17 @@ class HTInterpreter {
             _handleNamespaceImport(_currentNamespace, decl);
           }
         }
+      } else {
+        // If it's an export statement regarding this namespace self,
+        // It will be handled immediately since it does not needed resolve.
+        assert(isExported);
+        if (showList.isNotEmpty) {
+          _currentNamespace.willExportAll = false;
+          _currentNamespace.exports.addAll(showList);
+        }
+        // If the namespace will export all,
+        // a declared id will be add to the list
+        // when the declaration statement is handled.
       }
     }
     _clearLocals();
@@ -1338,7 +1351,7 @@ class HTInterpreter {
         final index = _currentBytecodeModule.readUint16();
         _localValue = _currentBytecodeModule.getGlobalConstant(String, index);
         break;
-      case HTValueTypeCode.longString:
+      case HTValueTypeCode.string:
         _localValue = _currentBytecodeModule.readLongString();
         break;
       case HTValueTypeCode.stringInterpolation:
@@ -1498,8 +1511,17 @@ class HTInterpreter {
           _localValue = externalFunc;
         }
         break;
-      case HTValueTypeCode.type:
-        _localValue = _handleTypeExpr();
+      case HTValueTypeCode.intrinsicType:
+        _localValue = _handleIntrinsicType();
+        break;
+      case HTValueTypeCode.nominalType:
+        _localValue = _handleNominalType();
+        break;
+      case HTValueTypeCode.functionType:
+        _localValue = _handleFunctionType();
+        break;
+      case HTValueTypeCode.structuralType:
+        _localValue = _handleStructuralType();
         break;
       default:
         throw HTError.unkownValueType(valueType,
@@ -1847,63 +1869,76 @@ class HTInterpreter {
     }
   }
 
+  HTIntrinsicType _handleIntrinsicType() {
+    final typeName = _currentBytecodeModule.readShortString();
+    final isTop = _currentBytecodeModule.readBool();
+    final isBottom = _currentBytecodeModule.readBool();
+    return HTIntrinsicType(typeName, isTop: isTop, isBottom: isBottom);
+  }
+
+  HTUnresolvedType _handleNominalType() {
+    final typeName = _currentBytecodeModule.readShortString();
+    final typeArgsLength = _currentBytecodeModule.read();
+    final typeArgs = <HTUnresolvedType>[];
+    for (var i = 0; i < typeArgsLength; ++i) {
+      final typearg = _handleTypeExpr() as HTUnresolvedType;
+      typeArgs.add(typearg);
+    }
+    final isNullable = (_currentBytecodeModule.read() == 0) ? false : true;
+    return HTUnresolvedType(typeName,
+        typeArgs: typeArgs, isNullable: isNullable);
+  }
+
+  HTFunctionType _handleFunctionType() {
+    final paramsLength = _currentBytecodeModule.read();
+    final parameterTypes = <HTParameterType>[];
+    for (var i = 0; i < paramsLength; ++i) {
+      final declType = _handleTypeExpr();
+      final isOptional = _currentBytecodeModule.read() == 0 ? false : true;
+      final isVariadic = _currentBytecodeModule.read() == 0 ? false : true;
+      final isNamed = _currentBytecodeModule.read() == 0 ? false : true;
+      String? paramId;
+      if (isNamed) {
+        paramId = _currentBytecodeModule.readShortString();
+      }
+      final decl = HTParameterType(
+          id: paramId,
+          declType: declType,
+          isOptional: isOptional,
+          isVariadic: isVariadic);
+      parameterTypes.add(decl);
+    }
+    final returnType = _handleTypeExpr();
+    return HTFunctionType(
+        parameterTypes: parameterTypes, returnType: returnType);
+  }
+
+  HTStructuralType _handleStructuralType() {
+    final fieldsLength = _currentBytecodeModule.readUint16();
+    final fieldTypes = <String, HTType>{};
+    for (var i = 0; i < fieldsLength; ++i) {
+      final id = _currentBytecodeModule.readShortString();
+      final typeExpr = _handleTypeExpr();
+      fieldTypes[id] = typeExpr;
+    }
+    return HTStructuralType(currentNamespace, fieldTypes: fieldTypes);
+  }
+
   HTType _handleTypeExpr() {
-    final index = _currentBytecodeModule.read();
-    final typeType = TypeType.values.elementAt(index);
+    final typeType = _currentBytecodeModule.read();
     switch (typeType) {
-      case TypeType.normal:
-        final typeName = _currentBytecodeModule.readShortString();
-        final typeArgsLength = _currentBytecodeModule.read();
-        final typeArgs = <HTUnresolvedType>[];
-        for (var i = 0; i < typeArgsLength; ++i) {
-          final typearg = _handleTypeExpr() as HTUnresolvedType;
-          typeArgs.add(typearg);
-        }
-        final isNullable = (_currentBytecodeModule.read() == 0) ? false : true;
-        if (typeName == _lexicon.typeAny) {
-          return HTIntrinsicType.any(_lexicon.typeAny);
-        } else if (typeName == _lexicon.typeUnknown) {
-          return HTIntrinsicType.unknown(_lexicon.typeUnknown);
-        } else if (typeName == _lexicon.typeVoid) {
-          return HTIntrinsicType.vo1d(_lexicon.typeVoid);
-        } else if (typeName == _lexicon.typeNever) {
-          return HTIntrinsicType.never(_lexicon.typeNever);
-        } else {
-          return HTUnresolvedType(typeName, typeArgs: typeArgs);
-        }
-      case TypeType.function:
-        final paramsLength = _currentBytecodeModule.read();
-        final parameterTypes = <HTParameterType>[];
-        for (var i = 0; i < paramsLength; ++i) {
-          final declType = _handleTypeExpr();
-          final isOptional = _currentBytecodeModule.read() == 0 ? false : true;
-          final isVariadic = _currentBytecodeModule.read() == 0 ? false : true;
-          final isNamed = _currentBytecodeModule.read() == 0 ? false : true;
-          String? paramId;
-          if (isNamed) {
-            paramId = _currentBytecodeModule.readShortString();
-          }
-          final decl = HTParameterType(
-              id: paramId,
-              declType: declType,
-              isOptional: isOptional,
-              isVariadic: isVariadic);
-          parameterTypes.add(decl);
-        }
-        final returnType = _handleTypeExpr();
-        return HTFunctionType(
-            parameterTypes: parameterTypes, returnType: returnType);
-      case TypeType.structural:
-        final fieldsLength = _currentBytecodeModule.readUint16();
-        final fieldTypes = <String, HTType>{};
-        for (var i = 0; i < fieldsLength; ++i) {
-          final id = _currentBytecodeModule.readShortString();
-          final typeExpr = _handleTypeExpr();
-          fieldTypes[id] = typeExpr;
-        }
-        return HTStructuralType(currentNamespace, fieldTypes: fieldTypes);
-      case TypeType.union:
-        throw 'Union Type is not implemented yet in this version of Hetu.';
+      case HTValueTypeCode.intrinsicType:
+        return _handleIntrinsicType();
+      case HTValueTypeCode.nominalType:
+        return _handleNominalType();
+      case HTValueTypeCode.functionType:
+        return _handleFunctionType();
+      case HTValueTypeCode.structuralType:
+        return _handleStructuralType();
+      default:
+        // This should never happens.
+        throw HTError.unknownOpCode(typeType,
+            filename: _currentFileName, line: _currentLine, column: _column);
     }
   }
 
@@ -1914,11 +1949,15 @@ class HTInterpreter {
     if (hasClassId) {
       classId = _currentBytecodeModule.readShortString();
     }
+    final isTopLevel = _currentBytecodeModule.readBool();
+    if (isTopLevel && _currentNamespace.willExportAll) {
+      _currentNamespace.declareExport(id);
+    }
     final value = _handleTypeExpr();
     final decl = HTVariable(id,
         classId: classId, closure: _currentNamespace, value: value);
     _currentNamespace.define(id, decl);
-    _clearLocals();
+    _localValue = value;
   }
 
   void _handleConstDecl() {
@@ -1927,6 +1966,10 @@ class HTInterpreter {
     final hasClassId = _currentBytecodeModule.readBool();
     if (hasClassId) {
       classId = _currentBytecodeModule.readShortString();
+    }
+    final isTopLevel = _currentBytecodeModule.readBool();
+    if (isTopLevel && _currentNamespace.willExportAll) {
+      _currentNamespace.declareExport(id);
     }
     final typeIndex = _currentBytecodeModule.read();
     final type = HTConstantType.values.elementAt(typeIndex);
@@ -1938,7 +1981,7 @@ class HTInterpreter {
         classId: classId,
         module: _currentBytecodeModule);
     _currentNamespace.define(id, decl, override: config.allowVariableShadowing);
-    _clearLocals();
+    // _localValue = _currentBytecodeModule.getGlobalConstant(type, index);
   }
 
   void _handleVarDecl() {
@@ -1952,6 +1995,10 @@ class HTInterpreter {
     final isExternal = _currentBytecodeModule.readBool();
     final isStatic = _currentBytecodeModule.readBool();
     final isMutable = _currentBytecodeModule.readBool();
+    final isTopLevel = _currentBytecodeModule.readBool();
+    if (isTopLevel && _currentNamespace.willExportAll) {
+      _currentNamespace.declareExport(id);
+    }
     final lateFinalize = _currentBytecodeModule.readBool();
     final lateInitialize = _currentBytecodeModule.readBool();
     HTType? declType;
@@ -2017,6 +2064,7 @@ class HTInterpreter {
   }
 
   void _handleDestructuringDecl() {
+    final isTopLevel = _currentBytecodeModule.readBool();
     final idCount = _currentBytecodeModule.read();
     final ids = <String, HTType?>{};
     final omittedPrefix = '##';
@@ -2026,6 +2074,10 @@ class HTInterpreter {
       // omit '_' symbols
       if (id == _lexicon.omittedMark) {
         id = omittedPrefix + (omittedIndex++).toString();
+      } else {
+        if (isTopLevel && _currentNamespace.willExportAll) {
+          _currentNamespace.declareExport(id);
+        }
       }
       HTType? declType;
       final hasTypeDecl = _currentBytecodeModule.readBool();
@@ -2127,6 +2179,12 @@ class HTInterpreter {
     final isField = _currentBytecodeModule.readBool();
     final isExternal = _currentBytecodeModule.readBool();
     final isStatic = _currentBytecodeModule.readBool();
+    final isTopLevel = _currentBytecodeModule.readBool();
+    if (isTopLevel && _currentNamespace.willExportAll) {
+      if (id != null) {
+        _currentNamespace.declareExport(id);
+      }
+    }
     final isConst = _currentBytecodeModule.readBool();
     final hasParamDecls = _currentBytecodeModule.readBool();
     final isVariadic = _currentBytecodeModule.readBool();
@@ -2225,6 +2283,10 @@ class HTInterpreter {
     final id = _currentBytecodeModule.readShortString();
     final isExternal = _currentBytecodeModule.readBool();
     final isAbstract = _currentBytecodeModule.readBool();
+    final isTopLevel = _currentBytecodeModule.readBool();
+    if (isTopLevel && _currentNamespace.willExportAll) {
+      _currentNamespace.declareExport(id);
+    }
     final hasUserDefinedConstructor = _currentBytecodeModule.readBool();
     HTType? superType;
     final hasSuperClass = _currentBytecodeModule.readBool();
@@ -2272,6 +2334,10 @@ class HTInterpreter {
 
   void _handleExternalEnumDecl() {
     final id = _currentBytecodeModule.readShortString();
+    final isTopLevel = _currentBytecodeModule.readBool();
+    if (isTopLevel && _currentNamespace.willExportAll) {
+      _currentNamespace.declareExport(id);
+    }
     final enumClass = HTExternalEnum(id, this);
     _currentNamespace.define(id, enumClass);
     _localValue = enumClass;
@@ -2279,6 +2345,10 @@ class HTInterpreter {
 
   void _handleStructDecl() {
     final id = _currentBytecodeModule.readShortString();
+    final isTopLevel = _currentBytecodeModule.readBool();
+    if (isTopLevel && _currentNamespace.willExportAll) {
+      _currentNamespace.declareExport(id);
+    }
     String? prototypeId;
     final hasPrototypeId = _currentBytecodeModule.readBool();
     if (hasPrototypeId) {

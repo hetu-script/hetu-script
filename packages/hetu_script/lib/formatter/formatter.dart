@@ -229,13 +229,18 @@ class HTFormatter implements AbstractASTVisitor<String> {
   }
 
   @override
-  String visitTypeExpr(TypeExpr expr) {
+  String visitIntrinsicTypeExpr(IntrinsicTypeExpr expr) {
+    return expr.id.id;
+  }
+
+  @override
+  String visitNominalTypeExpr(NominalTypeExpr expr) {
     final output = StringBuffer();
     output.write(expr.id);
     if (expr.arguments.isNotEmpty) {
       output.write(_lexicon.typeParameterStart);
       for (final type in expr.arguments) {
-        final typeString = visitTypeExpr(type);
+        final typeString = formatAST(type);
         output.write(typeString);
       }
       output.write(_lexicon.typeParameterEnd);
@@ -262,7 +267,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
       isOptional = true;
       output.write(_lexicon.optionalPositionalParameterStart);
     }
-    final typeString = visitTypeExpr(expr.declType);
+    final typeString = formatAST(expr.declType);
     output.write(typeString);
     return output.toString();
   }
@@ -281,7 +286,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
     }
     output.write(
         '${_lexicon.groupExprEnd} ${_lexicon.functionReturnTypeIndicator} ');
-    final returnTypeString = visitTypeExpr(expr.returnType);
+    final returnTypeString = formatAST(expr.returnType);
     output.write(returnTypeString);
     return output.toString();
   }
@@ -290,7 +295,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   String visitFieldTypeExpr(FieldTypeExpr expr) {
     final output = StringBuffer();
     output.write(expr.id);
-    final typeString = visitTypeExpr(expr.fieldType);
+    final typeString = formatAST(expr.fieldType);
     output.write('${_lexicon.typeIndicator} $typeString');
     return output.toString();
   }
@@ -755,7 +760,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
       output.write(id.id);
       final typeExpr = stmt.ids[id];
       if (typeExpr != null) {
-        final typeString = visitTypeExpr(typeExpr);
+        final typeString = formatAST(typeExpr);
         output.write('${_lexicon.typeIndicator} $typeString');
       }
       if (i < stmt.ids.length - 1) {
@@ -873,7 +878,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
     output.write('$paramDeclString ');
     if (stmt.returnType != null) {
       output.write('${_lexicon.functionReturnTypeIndicator} ');
-      final returnTypeString = visitTypeExpr(stmt.returnType!);
+      final returnTypeString = formatAST(stmt.returnType!);
       output.write('$returnTypeString ');
     } else if (stmt.redirectingCtorCallExpr != null) {
       output.write('${_lexicon.constructorInitializationListIndicator} ');
@@ -899,7 +904,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
     }
     output.write('${_lexicon.kClass} ${stmt.id.id} ');
     if (stmt.superType != null) {
-      final superClassTypeString = visitTypeExpr(stmt.superType!);
+      final superClassTypeString = formatAST(stmt.superType!);
       output.write('${_lexicon.kExtends} $superClassTypeString ');
     }
     final blockString = visitBlockStmt(stmt.definition);
