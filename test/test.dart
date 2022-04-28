@@ -20,7 +20,11 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = hetu.eval(r'''
-    42 is int
-  ''', type: HTResourceType.hetuModule);
+        var ht = {
+          name: 'Hetu',
+          age: 1
+        }
+        ht.containsKey('toJson') // false
+  ''');
   print(hetu.lexicon.stringify(r));
 }

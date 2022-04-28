@@ -178,16 +178,24 @@ class HTFunction extends HTFunctionDeclaration
   @override
   void resolve() {
     super.resolve();
-    if ((closure != null) && (classId != null) && (klass == null)) {
+    if (closure != null && classId != null && klass == null && !isField) {
       klass = closure!.closure!.memberGet(classId!, isRecursive: true);
     }
-    if (klass != null &&
-        klass!.isExternal &&
-        (isStatic || category == FunctionCategory.constructor) &&
-        category != FunctionCategory.getter &&
-        category != FunctionCategory.setter) {
-      final funcName = id != null ? '$classId.$id' : classId!;
-      externalFunc = klass!.externalClass!.memberGet(funcName);
+    if (klass != null) {
+      if (klass!.isExternal &&
+          category != FunctionCategory.getter &&
+          category != FunctionCategory.setter) {
+        if (isStatic || category == FunctionCategory.constructor) {
+          final funcName = id != null ? '$classId.$id' : classId!;
+          externalFunc = klass!.externalClass!.memberGet(funcName);
+        } else {
+          // for instance members, are handled within HTExternalInstance class.
+        }
+      }
+    } else if (isExternal) {
+      // free external function & external struct method are handled here.
+      final funcName = classId != null ? '$classId.$id' : id!;
+      externalFunc = interpreter.fetchExternalFunction(funcName);
     }
   }
 
@@ -624,8 +632,8 @@ class HTFunction extends HTFunctionDeclaration
           }
           // a external method in a normal class
           else {
-            final func = externalFunc ??
-                interpreter.fetchExternalFunction('$classId.$id');
+            assert(externalFunc != null);
+            final func = externalFunc!;
             if (func is HTExternalFunction) {
               if (isStatic || category == FunctionCategory.constructor) {
                 result = func(interpreter.currentNamespace,
@@ -649,7 +657,6 @@ class HTFunction extends HTFunctionDeclaration
         }
         // a external method of a struct
         else if (classId != null) {
-          externalFunc ??= interpreter.fetchExternalFunction('$classId.$id');
           assert(externalFunc != null);
           final func = externalFunc!;
           if (func is HTExternalFunction) {
@@ -674,7 +681,6 @@ class HTFunction extends HTFunctionDeclaration
         }
         // a toplevel external function
         else {
-          externalFunc ??= interpreter.fetchExternalFunction(id!);
           assert(externalFunc != null);
           final func = externalFunc!;
           if (func is HTExternalFunction) {

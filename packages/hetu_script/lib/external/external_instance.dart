@@ -57,21 +57,20 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
       final member = externalClass!.instanceMemberGet(externalObject, varName);
       if (member is Function && klass != null) {
         HTClass? currentKlass = klass! as HTClass;
-        HTFunction? func;
-        while (func == null && currentKlass != null) {
-          func = currentKlass.memberGet(varName, throws: false);
+        HTFunction? decl;
+        while (decl == null && currentKlass != null) {
+          decl = currentKlass.memberGet(varName, throws: false);
           currentKlass = currentKlass.superClass;
         }
-        if (func != null) {
-          func.resolve();
-          // func.externalFunc = member;
-          return func;
+        if (decl != null) {
+          // Assign the value as if we are doing decl.resolve() here.
+          decl.externalFunc = member;
+          return decl;
         }
       } else {
         return member;
       }
     }
-
     throw HTError.undefined(varName);
   }
 

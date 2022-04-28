@@ -10,6 +10,7 @@ import '../../type/type.dart';
 import '../../type/structural.dart';
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
+import '../../declaration/declaration.dart';
 
 /// A prototype based dynamic object.
 /// You can define and delete members in runtime.
@@ -179,6 +180,10 @@ class HTStruct with HTEntity {
       value = _fields[constructor]!;
     } else if (prototype != null) {
       value = prototype!.memberGet(varName, from: from, isRecursivelyGet: true);
+    }
+
+    if (value is HTDeclaration) {
+      value.resolve();
     }
     // assign the original struct as instance, not the prototype object
     if (!isRecursivelyGet) {
