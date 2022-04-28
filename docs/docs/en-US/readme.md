@@ -26,7 +26,7 @@ footer: <div>
   src="https://vsmarketplacebadge.apphb.com/version/hetu-script.hetuscript.svg"
   />
   </a>
-  <a href="https://discord.gg/sTF73qcS">
+  <a href="https://discord.gg/aJedwcRPr8">
   <img src="https://img.shields.io/discord/829269197727989760" />
   </a>
   </div>
