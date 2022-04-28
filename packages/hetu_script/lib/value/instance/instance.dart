@@ -288,8 +288,7 @@ class HTInstance with HTEntity, InterpreterRef {
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = true}) {
+      List<HTType> typeArgs = const []}) {
     try {
       HTFunction func = memberGet(funcName);
       func.resolve();
@@ -298,10 +297,10 @@ class HTInstance with HTEntity, InterpreterRef {
           namedArgs: namedArgs,
           typeArgs: typeArgs);
     } catch (error, stackTrace) {
-      if (errorHandled) {
-        rethrow;
+      if (interpreter.config.processError) {
+        interpreter.processError(error, stackTrace);
       } else {
-        interpreter.handleError(error, stackTrace);
+        rethrow;
       }
     }
   }

@@ -21,6 +21,6 @@ void main() {
 
   final r = hetu.eval(r'''
     42 is int
-  ''');
+  ''', type: HTResourceType.hetuModule);
   print(hetu.lexicon.stringify(r));
 }

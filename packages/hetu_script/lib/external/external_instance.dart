@@ -63,7 +63,8 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
           currentKlass = currentKlass.superClass;
         }
         if (func != null) {
-          func.externalFunc = member;
+          func.resolve();
+          // func.externalFunc = member;
           return func;
         }
       } else {

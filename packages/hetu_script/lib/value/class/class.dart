@@ -165,12 +165,13 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
-      decl.resolve();
       final func = decl as HTFunction;
       if (isExternal) {
+        decl.resolve();
         return func.call();
       } else {
         if (decl.isStatic) {
+          decl.resolve();
           return func.call();
         }
       }
@@ -244,8 +245,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   dynamic invoke(String funcName,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = true}) {
+      List<HTType> typeArgs = const []}) {
     try {
       final func = memberGet(funcName);
 
@@ -262,10 +262,10 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
             column: interpreter.currentColumn);
       }
     } catch (error, stackTrace) {
-      if (errorHandled) {
-        rethrow;
+      if (interpreter.config.processError) {
+        interpreter.processError(error, stackTrace);
       } else {
-        interpreter.handleError(error, stackTrace);
+        rethrow;
       }
     }
   }

@@ -52,7 +52,7 @@ class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
   int stackTraceDisplayCountLimit;
 
   @override
-  ErrorHanldeApproach errorHanldeApproach;
+  bool processError;
 
   @override
   bool allowVariableShadowing;
@@ -70,7 +70,7 @@ class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
       {this.showDartStackTrace = false,
       this.showHetuStackTrace = false,
       this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
-      this.errorHanldeApproach = ErrorHanldeApproach.exception,
+      this.processError = true,
       this.allowVariableShadowing = true,
       this.allowImplicitVariableDeclaration = false,
       this.allowImplicitNullToZeroConversion = false,
@@ -204,7 +204,7 @@ class HTInterpreter {
   }
 
   /// Catch errors throwed by other code, and wrap them with detailed informations.
-  void handleError(Object error, [Object? externalStackTrace]) {
+  void processError(Object error, [Object? externalStackTrace]) {
     final sb = StringBuffer();
 
     void handleStackTrace(List<String> stackTrace,
@@ -279,8 +279,7 @@ class HTInterpreter {
       {String? moduleName,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) {
+      List<HTType> typeArgs = const []}) {
     try {
       stackTraceList.clear();
       if (moduleName != null) {
@@ -298,10 +297,10 @@ class HTInterpreter {
         throw HTError.notCallable(funcName);
       }
     } catch (error, stackTrace) {
-      if (errorHandled) {
-        rethrow;
+      if (config.processError) {
+        processError(error, stackTrace);
       } else {
-        handleError(error, stackTrace);
+        rethrow;
       }
     }
   }
@@ -563,8 +562,7 @@ class HTInterpreter {
       String? invokeFunc,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool errorHandled = false}) {
+      List<HTType> typeArgs = const []}) {
     try {
       _currentBytecodeModule = HTBytecodeModule(id: moduleName, bytes: bytes);
       cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
@@ -636,9 +634,7 @@ class HTInterpreter {
       dynamic result;
       if (invokeFunc != null) {
         result = invoke(invokeFunc,
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            errorHandled: true);
+            positionalArgs: positionalArgs, namedArgs: namedArgs);
         return result;
       }
       stackTraceList.clear();
@@ -647,10 +643,10 @@ class HTInterpreter {
         return result;
       }
     } catch (error, stackTrace) {
-      if (errorHandled) {
-        rethrow;
+      if (config.processError) {
+        processError(error, stackTrace);
       } else {
-        handleError(error, stackTrace);
+        rethrow;
       }
     }
   }

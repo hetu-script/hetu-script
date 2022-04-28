@@ -51,7 +51,7 @@ class HetuConfig
   int stackTraceDisplayCountLimit;
 
   @override
-  ErrorHanldeApproach errorHanldeApproach;
+  bool processError;
 
   @override
   bool allowVariableShadowing;
@@ -75,7 +75,7 @@ class HetuConfig
     this.showDartStackTrace = false,
     this.showHetuStackTrace = false,
     this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
-    this.errorHanldeApproach = ErrorHanldeApproach.exception,
+    this.processError = true,
     this.allowVariableShadowing = true,
     this.allowImplicitVariableDeclaration = false,
     this.allowImplicitNullToZeroConversion = false,
@@ -305,7 +305,7 @@ class Hetu {
               if (errorHandled) {
                 throw error;
               } else {
-                interpreter.handleError(error);
+                interpreter.processError(error);
               }
             } else {
               print('${error.severity}: $error');
@@ -320,7 +320,7 @@ class Hetu {
               if (errorHandled) {
                 throw error;
               } else {
-                interpreter.handleError(error);
+                interpreter.processError(error);
               }
             } else {
               print('${error.severity}: $error');
@@ -333,7 +333,7 @@ class Hetu {
       if (errorHandled) {
         rethrow;
       } else {
-        interpreter.handleError(error, stackTrace);
+        interpreter.processError(error, stackTrace);
         return Uint8List.fromList([]);
       }
     }

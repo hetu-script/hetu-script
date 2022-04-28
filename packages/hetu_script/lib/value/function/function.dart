@@ -287,8 +287,7 @@ class HTFunction extends HTFunctionDeclaration
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool construct = true,
-      bool errorHandled = true}) {
+      bool construct = true}) {
     try {
       interpreter.stackTraceList.insert(0,
           '$internalName (${interpreter.currentFileName}:${interpreter.currentLine}:${interpreter.currentColumn})');
@@ -605,6 +604,7 @@ class HTFunction extends HTFunctionDeclaration
           // a external class method
           if (klass!.isExternal) {
             if (category != FunctionCategory.getter) {
+              assert(externalFunc != null);
               final func = externalFunc!;
               if (func is HTExternalFunction) {
                 result = func(interpreter.currentNamespace,
@@ -650,6 +650,7 @@ class HTFunction extends HTFunctionDeclaration
         // a external method of a struct
         else if (classId != null) {
           externalFunc ??= interpreter.fetchExternalFunction('$classId.$id');
+          assert(externalFunc != null);
           final func = externalFunc!;
           if (func is HTExternalFunction) {
             if (isStatic || category == FunctionCategory.constructor) {
@@ -674,6 +675,7 @@ class HTFunction extends HTFunctionDeclaration
         // a toplevel external function
         else {
           externalFunc ??= interpreter.fetchExternalFunction(id!);
+          assert(externalFunc != null);
           final func = externalFunc!;
           if (func is HTExternalFunction) {
             result = func(interpreter.currentNamespace,
@@ -707,10 +709,10 @@ class HTFunction extends HTFunctionDeclaration
 
       return result;
     } catch (error, stackTrace) {
-      if (errorHandled) {
-        rethrow;
+      if (interpreter.config.processError) {
+        interpreter.processError(error, stackTrace);
       } else {
-        interpreter.handleError(error, stackTrace);
+        rethrow;
       }
     }
   }

@@ -1,10 +1,3 @@
-enum ErrorHanldeApproach {
-  ingore,
-  stdout,
-  exception,
-  log,
-}
-
 const kStackTraceDisplayCountLimit = 5;
 
 class ErrorHandlerConfig {
@@ -14,13 +7,14 @@ class ErrorHandlerConfig {
 
   int stackTraceDisplayCountLimit;
 
-  ErrorHanldeApproach errorHanldeApproach;
+  /// Wether fill in errors with detailed information, e.g. line & column info.
+  bool processError;
 
   ErrorHandlerConfig(
       {this.showDartStackTrace = false,
       this.showHetuStackTrace = false,
       this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
-      this.errorHanldeApproach = ErrorHanldeApproach.exception});
+      this.processError = true});
 }
 
 typedef HTErrorHandlerCallback = void Function(Object error,
@@ -30,7 +24,7 @@ typedef HTErrorHandlerCallback = void Function(Object error,
 abstract class HTErrorHandler {
   ErrorHandlerConfig? get errorConfig;
 
-  void handleError(Object error, [Object? externalStackTrace]);
+  // void handleError(Object error, [Object? externalStackTrace]);
 }
 
 /// Default error handler implementation
@@ -42,20 +36,4 @@ class HTErrorHandlerImpl implements HTErrorHandler {
 
   HTErrorHandlerImpl({ErrorHandlerConfig? config})
       : errorConfig = config ?? ErrorHandlerConfig();
-
-  @override
-  void handleError(Object error, [Object? externalStackTrace]) {
-    switch (errorConfig.errorHanldeApproach) {
-      case ErrorHanldeApproach.ingore:
-        break;
-      case ErrorHanldeApproach.stdout:
-        print(error);
-        break;
-      case ErrorHanldeApproach.exception:
-        throw (error);
-      case ErrorHanldeApproach.log:
-        errors.add(error);
-        break;
-    }
-  }
 }
