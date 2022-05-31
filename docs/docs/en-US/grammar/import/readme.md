@@ -63,7 +63,7 @@ hetu.eval(r'''
 ''');
 ```
 
-You have to use it in the form of a variable declaration, otherwise the importing won't have any effect.
+You have to use it in the form of a variable declaration, otherwise the importing won't have any effect. This is to say, you have to explicitly list all symbols that you wish to import, or to give a alias name to the imported namespace when using this statement.
 
 ```javascript
 require('source1.ht'); // this won't have any effect!

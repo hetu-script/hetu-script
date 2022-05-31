@@ -2163,7 +2163,9 @@ class HTDefaultParser extends HTParser {
     }
     IdentifierExpr? alias;
     late bool hasEndOfStmtMark;
+
     void _handleAlias() {
+      match(lexicon.kAs);
       final aliasId = match(Semantic.identifier);
       alias = IdentifierExpr.fromToken(aliasId, source: currentSource);
       hasEndOfStmtMark = expect([lexicon.endOfStatementMark], consume: true);
@@ -2177,7 +2179,7 @@ class HTDefaultParser extends HTParser {
       isPreloadedModule = true;
       fromPath = fromPathRaw
           .substring(HTResourceContext.hetuPreloadedModulesPrefix.length);
-      hasEndOfStmtMark = expect([lexicon.endOfStatementMark], consume: true);
+      _handleAlias();
     } else {
       fromPath = fromPathRaw;
       final ext = path.extension(fromPathTok.lexeme);
@@ -2191,15 +2193,17 @@ class HTDefaultParser extends HTParser {
               length: fromPathTok.length);
           errors.add(err);
         }
-        match(lexicon.kAs);
         _handleAlias();
       } else {
-        hasEndOfStmtMark = expect([lexicon.endOfStatementMark], consume: true);
-        if (!hasEndOfStmtMark && expect([lexicon.kAs], consume: true)) {
+        if (curTok.type == lexicon.kAs) {
           _handleAlias();
+        } else {
+          hasEndOfStmtMark =
+              expect([lexicon.endOfStatementMark], consume: true);
         }
       }
     }
+
     final stmt = ImportExportDecl(
         fromPath: fromPath,
         showList: showList,
@@ -2212,7 +2216,6 @@ class HTDefaultParser extends HTParser {
         offset: keyword.offset,
         length: curTok.offset - keyword.offset);
     currentModuleImports.add(stmt);
-    expect([lexicon.endOfStatementMark], consume: true);
     return stmt;
   }
 
