@@ -1,3 +1,0 @@
-language: dart
-script:
-  - dart run test
