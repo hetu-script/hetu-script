@@ -142,6 +142,7 @@ class Hetu {
     List<HTExternalClass> externalClasses = const [],
   }) {
     if (_isInitted) return;
+
     if (locale != null) {
       HTLocale.current = locale;
     }
@@ -172,6 +173,11 @@ class Hetu {
       final coreModule = Uint8List.fromList(hetuCoreModule);
       interpreter.loadBytecode(
           bytes: coreModule, moduleName: 'core', globallyImport: true);
+      if (interpreter.currentBytecodeModule.namespaces.isNotEmpty) {
+        analyzer.globalNamespace.import(
+            interpreter.currentBytecodeModule.namespaces.values.last,
+            idOnly: true);
+      }
       interpreter.invoke('initHetuEnv', positionalArgs: [this]);
 
       HTInterpreter.rootClass = interpreter.globalNamespace

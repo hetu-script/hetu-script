@@ -73,7 +73,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   late final HTLexicon _lexicon;
 
-  final _AnalysisNamespace _globalNamespace;
+  final _AnalysisNamespace globalNamespace;
 
   late _AnalysisNamespace _currentNamespace;
 
@@ -98,8 +98,8 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
       : config = config ?? AnalyzerConfig(),
         sourceContext = sourceContext ?? HTOverlayContext(),
         _lexicon = lexicon ?? HTDefaultLexicon(),
-        _globalNamespace = HTDeclarationNamespace(id: Semantic.global) {
-    _currentNamespace = _globalNamespace;
+        globalNamespace = HTDeclarationNamespace(id: Semantic.global) {
+    _currentNamespace = globalNamespace;
   }
 
   HTModuleAnalysisResult analyzeCompilation(
@@ -122,7 +122,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     }
 
     if (globallyImport) {
-      _globalNamespace.import(_currentAnalysisResults.values.last.namespace);
+      globalNamespace.import(_currentAnalysisResults.values.last.namespace);
     }
     // walk through ast again to resolve each symbol's declaration referrence.
     // final visitor = _OccurrencesVisitor();
@@ -138,10 +138,10 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   void resolve(ASTSource source) {
     if (source.resourceType == HTResourceType.hetuLiteralCode) {
-      _currentNamespace = _globalNamespace;
+      _currentNamespace = globalNamespace;
     } else {
-      _currentNamespace = HTDeclarationNamespace(
-          id: source.fullName, closure: _globalNamespace);
+      _currentNamespace =
+          HTDeclarationNamespace(id: source.fullName, closure: globalNamespace);
     }
     for (final node in source.nodes) {
       resolveAST(node);

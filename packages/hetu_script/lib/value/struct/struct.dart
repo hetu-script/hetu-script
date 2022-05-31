@@ -158,21 +158,21 @@ class HTStruct with HTEntity {
         : InternalIdentifier.defaultConstructor;
 
     if (_fields.containsKey(varName)) {
-      if (varName.startsWith(interpreter.lexicon.privatePrefix) &&
+      if (interpreter.lexicon.isPrivate(varName) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
       value = _fields[varName];
     } else if (_fields.containsKey(getter)) {
-      if (varName.startsWith(interpreter.lexicon.privatePrefix) &&
+      if (interpreter.lexicon.isPrivate(varName) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
       }
       value = _fields[getter]!;
     } else if (_fields.containsKey(constructor)) {
-      if (varName.startsWith(interpreter.lexicon.privatePrefix) &&
+      if (interpreter.lexicon.isPrivate(varName) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
@@ -217,7 +217,7 @@ class HTStruct with HTEntity {
 
     final setter = '${InternalIdentifier.setter}$varName';
     if (_fields.containsKey(varName)) {
-      if (varName.startsWith(interpreter.lexicon.privatePrefix) &&
+      if (interpreter.lexicon.isPrivate(varName) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);
@@ -225,7 +225,7 @@ class HTStruct with HTEntity {
       _fields[varName] = varValue;
       return true;
     } else if (_fields.containsKey(setter)) {
-      if (varName.startsWith(interpreter.lexicon.privatePrefix) &&
+      if (interpreter.lexicon.isPrivate(varName) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(varName);

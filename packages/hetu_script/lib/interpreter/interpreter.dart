@@ -658,7 +658,7 @@ class HTInterpreter {
     if (namespace.willExportAll) {
       final list = <String>{};
       for (final symbol in namespace.symbols.keys) {
-        if (symbol.startsWith(_lexicon.privatePrefix)) continue;
+        if (_lexicon.isPrivate(symbol)) continue;
         list.add(symbol);
       }
       return list;

@@ -605,4 +605,6 @@ abstract class HTLexicon {
       return typeString;
     }
   }
+
+  bool isPrivate(String id) => id.startsWith(privatePrefix);
 }

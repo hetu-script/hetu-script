@@ -24,7 +24,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   HTDeclarationNamespace(
       {String? id,
       String? classId,
-      HTDeclarationNamespace? closure,
+      HTDeclarationNamespace<dynamic>? closure,
       HTSource? source})
       : super(id: id, classId: classId, closure: closure, source: source) {
     // calculate the full name of this namespace
@@ -87,13 +87,13 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
       bool isRecursive = false,
       bool throws = true}) {
     if (symbols.containsKey(varName)) {
-      final decl = symbols[varName]!;
+      final decl = symbols[varName];
       if (isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
       return decl;
     } else if (importedSymbols.containsKey(varName)) {
-      final decl = importedSymbols[varName]!;
+      final decl = importedSymbols[varName];
       return decl;
     } else if (isRecursive && (closure != null)) {
       return closure!.memberGet(varName, from: from, isRecursive: true);
@@ -120,40 +120,53 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
     }
   }
 
-  void import(HTDeclarationNamespace other,
+  void import(HTDeclarationNamespace<dynamic> other,
       {bool clone = false,
       bool export = false,
-      Set<String> showList = const {}}) {
+      Set<String> showList = const {},
+      bool idOnly = false}) {
     for (final key in other.symbols.keys) {
       var decl = other.symbols[key]!;
-      if (decl.isPrivate) {
-        continue;
-      }
       if (!other.willExportAll) {
         if (!other.exports.contains(decl.id)) {
           continue;
         }
       }
-      if (clone) {
-        decl = decl.clone();
+      if (decl is HTDeclaration) {
+        if (decl.isPrivate) {
+          continue;
+        }
+        if (clone) {
+          decl = decl.clone();
+        }
       }
-      defineImport(key, decl);
+      if (idOnly) {
+        defineImport(key, null as T);
+      } else {
+        defineImport(key, decl);
+      }
       if (export) {
         declareExport(key);
       }
     }
     for (final key in other.importedSymbols.keys) {
       var decl = other.importedSymbols[key]!;
-      if (decl.isPrivate) {
-        continue;
-      }
       if (!other.exports.contains(decl.id)) {
         continue;
       }
-      if (clone) {
-        decl = decl.clone();
+      if (decl is HTDeclaration) {
+        if (decl.isPrivate) {
+          continue;
+        }
+        if (clone) {
+          decl = decl.clone();
+        }
       }
-      defineImport(key, decl);
+      if (idOnly) {
+        defineImport(key, null as T);
+      } else {
+        defineImport(key, decl);
+      }
       if (export) {
         declareExport(key);
       }
@@ -161,8 +174,8 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   }
 
   @override
-  HTDeclarationNamespace clone() {
-    final cloned = HTDeclarationNamespace(
+  HTDeclarationNamespace<T> clone() {
+    final cloned = HTDeclarationNamespace<T>(
         id: id, classId: classId, closure: closure, source: source);
     cloned.symbols.addAll(symbols);
     cloned.imports.addAll(imports);
