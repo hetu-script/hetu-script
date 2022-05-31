@@ -47,12 +47,12 @@ void main() {
 }
 ```
 
-然后你可以在代码中使用 import 加上 'module:' 开头的路径来导入它：
+然后你可以在代码中使用 import 加上 'module:' 开头的路径来导入它。注意，出于错误检查的目的，此时你**必须**为引入的 module 提供一个命名空间别名。
 
 ```dart
-import 'module:calculate';
+import 'module:calculate' as calculate;
 
-final result = calculate()
+final result = calculate.calculate()
 ```
 
 ## 导入 JSON 文件

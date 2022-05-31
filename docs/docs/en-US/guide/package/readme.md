@@ -26,12 +26,12 @@ When using **evalFile** method on the interpreter, the source type is inferred f
 
 ## Import a pre-compiled binary module
 
-You can [pre-compiled a hetu script package](../command_line_tool/readme.md#compile) into a binary module for better performance. If you have a such module. You can import it by using special prefix in import path:
+You can [pre-compiled a hetu script package](../command_line_tool/readme.md#compile) into a binary module for better performance. If you have a such module. You can import it by using special prefix in import path. Note that for anlysis purpose, you **have to** provide a alias name for this imported module.
 
 ```dart
-import 'module:calculate';
+import 'module:calculate' as calculate;
 
-final result = calculate()
+final result = calculate.calculate()
 ```
 
 However, to do so, you have to load the bytecode before you can import it in your script. This is a example to pre-load a pre-compiled binary file:
