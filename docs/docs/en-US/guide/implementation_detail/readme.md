@@ -2,12 +2,6 @@
 
 Hetu's bytecode implementation has some inexplicit rules. Normally they won't affect language users. We listed them here in case you are interested or encountered some bytecode issues.
 
-## String interpolation
-
-The string iterpolation's underlying implementation is kind of like C#'s String.format() or python's str.format(). The compiler will replaces those '${expression}' into '${0}', '${1}' forms.
-
-The interpreter will replace those with actual values in runtime. So you should avoid having literal '${0}', '${1}' sub strings in a String interpolation, it might cause unintended effects.
-
 ## Enum
 
 The enum is compiled into class, so there's no 'enum' object exists in runtime.

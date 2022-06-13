@@ -511,13 +511,13 @@ class HTInterpreter {
   }
 
   void _handleNamespaceImport(HTNamespace nsp, UnresolvedImportStatement decl) {
-    final importNamespace = _currentBytecodeModule.namespaces[decl.fromPath]!;
+    final importedNamespace = _currentBytecodeModule.namespaces[decl.fromPath]!;
 
     // for script and literal code, namespaces are resolved immediately.
     if (_currentFileResourceType == HTResourceType.hetuScript ||
         _currentFileResourceType == HTResourceType.hetuLiteralCode) {
-      for (final importDecl in importNamespace.imports.values) {
-        _handleNamespaceImport(importNamespace, importDecl);
+      for (final importDecl in importedNamespace.imports.values) {
+        _handleNamespaceImport(importedNamespace, importDecl);
       }
       // for (final declaration in importNamespace.declarations.values) {
       //   declaration.resolve();
@@ -526,11 +526,11 @@ class HTInterpreter {
 
     if (decl.alias == null) {
       if (decl.showList.isEmpty) {
-        nsp.import(importNamespace,
+        nsp.import(importedNamespace,
             export: decl.isExported, showList: decl.showList);
       } else {
         for (final id in decl.showList) {
-          final decl = importNamespace.symbols[id]!;
+          final decl = importedNamespace.symbols[id]!;
           nsp.defineImport(id, decl);
         }
       }
@@ -538,13 +538,13 @@ class HTInterpreter {
       if (decl.showList.isEmpty) {
         final aliasNamespace =
             HTNamespace(id: decl.alias!, closure: globalNamespace);
-        aliasNamespace.import(importNamespace);
+        aliasNamespace.import(importedNamespace);
         nsp.defineImport(decl.alias!, aliasNamespace);
       } else {
         final aliasNamespace =
             HTNamespace(id: decl.alias!, closure: globalNamespace);
         for (final id in decl.showList) {
-          final decl = importNamespace.symbols[id]!;
+          final decl = importedNamespace.symbols[id]!;
           assert(!decl.isPrivate);
           aliasNamespace.define(id, decl);
         }
@@ -658,7 +658,7 @@ class HTInterpreter {
     if (namespace.willExportAll) {
       final list = <String>{};
       for (final symbol in namespace.symbols.keys) {
-        if (symbol.startsWith(_lexicon.privatePrefix)) continue;
+        if (_lexicon.isPrivate(symbol)) continue;
         list.add(symbol);
       }
       return list;
@@ -1283,7 +1283,21 @@ class HTInterpreter {
       assert(fromPath != null);
       final importedModule = cachedModules[fromPath]!;
       final importedNamespace = importedModule.namespaces.values.last;
-      _currentNamespace.import(importedNamespace);
+      if (showList.isEmpty) {
+        final aliasNamespace =
+            HTNamespace(id: alias!, closure: globalNamespace);
+        aliasNamespace.import(importedNamespace);
+        _currentNamespace.defineImport(alias, aliasNamespace);
+      } else {
+        final aliasNamespace =
+            HTNamespace(id: alias!, closure: globalNamespace);
+        for (final id in showList) {
+          final decl = importedNamespace.symbols[id]!;
+          assert(!decl.isPrivate);
+          aliasNamespace.define(id, decl);
+        }
+        _currentNamespace.defineImport(alias, aliasNamespace);
+      }
     } else {
       if (fromPath != null) {
         final ext = path.extension(fromPath);
@@ -1296,12 +1310,8 @@ class HTInterpreter {
             _currentNamespace.declareExport(alias);
           }
         } else {
-          final decl = UnresolvedImportStatement(
-            fromPath,
-            alias: alias,
-            showList: showList,
-            isExported: isExported,
-          );
+          final decl = UnresolvedImportStatement(fromPath,
+              alias: alias, showList: showList, isExported: isExported);
           if (_currentFileResourceType == HTResourceType.hetuModule) {
             _currentNamespace.declareImport(decl);
           } else {

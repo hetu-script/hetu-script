@@ -88,8 +88,8 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
   }
 
   @override
-  HTDeclarationNamespace clone() {
-    final cloned = HTDeclarationNamespace(
+  HTDeclarationNamespace<HTDeclaration> clone() {
+    final cloned = HTDeclarationNamespace<HTDeclaration>(
         id: id, classId: classId, closure: closure, source: source);
     for (final decl in symbols.values) {
       cloned.symbols[decl.id!] = decl.clone();

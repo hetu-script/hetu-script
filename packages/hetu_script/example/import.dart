@@ -30,16 +30,14 @@ void main() {
       print(name)
     }
 // ''', fullName: 'source2.ht');
-//   final source3 = HTSource(r'''
-//     import 'source2.ht'
-//     fun main {
-//       greeting()
-//       print(meaning)
-//     }
-// ''', fullName: 'source3.ht');
+  final source3 = HTSource(r'''
+    fun tutorial {
+      print('a guide to use Hetu')
+    }
+''', fullName: 'source3.ht');
   sourceContext.addResource(source1.fullName, source1);
   sourceContext.addResource(source2.fullName, source2);
-//   sourceContext2.addResource(source3.fullName, source3);
+  sourceContext.addResource(source3.fullName, source3);
 
 //   final r = hetu.evalFile('source3.ht', invokeFunc: 'main');
 
@@ -51,6 +49,10 @@ void main() {
     // print(name, age)
     import 'source2.ht' as nsp
     nsp.greeting()
+
+    final s3 = require('source3.ht')
+    s3.tutorial()
   ''');
+
   print(hetu.lexicon.stringify(r));
 }

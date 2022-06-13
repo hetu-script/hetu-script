@@ -52,15 +52,15 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
 
   @override
   void visitIdentifierExpr(IdentifierExpr node) {
-    final isPrivate = node.id.startsWith(_lexicon.privatePrefix);
     try {
       if (node.isLocal) {
+        // Symbol of current namespace.
         node.analysisNamespace!.memberGet(node.id,
-            isPrivate: isPrivate,
+            isPrivate: _lexicon.isPrivate(node.id),
             from: node.analysisNamespace!.fullName,
             isRecursive: true);
       } else {
-        // Member of a object.
+        // Member id of an object.
       }
     } on HTError catch (err) {
       errors.add(HTAnalysisError.fromError(

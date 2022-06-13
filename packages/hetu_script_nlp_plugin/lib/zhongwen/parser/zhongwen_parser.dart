@@ -10,5 +10,7 @@ class ZhongwenParser extends HTParser {
   ZhongwenParser({required HTLexicon lexicon}) : super(lexicon: lexicon);
 
   @override
-  ASTNode? parseStmt({required ParseStyle style}) {}
+  ASTNode? parseStmt({required ParseStyle style}) {
+    return null;
+  }
 }

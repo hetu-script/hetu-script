@@ -15,7 +15,7 @@ void main() {
     familyName: 'Hord',
     firstName: 'Luk'
   }
-  person.firstName
+  print(person.firstName)
 ''', type: HTResourceType.hetuScript);
   final compilation = hetu.bundle(source);
   final analysisResult = hetu.analyzer.analyzeCompilation(compilation);
