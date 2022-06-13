@@ -22,9 +22,11 @@ void main() {
   final r = hetu.eval(r'''
         var ht = {
           name: 'Hetu',
-          age: 1
+          age: 1,
+          profile: {
+            isPerson: true
+          }
         }
-        ht.containsKey('toJson') // false
   ''');
   print(hetu.lexicon.stringify(r));
 }

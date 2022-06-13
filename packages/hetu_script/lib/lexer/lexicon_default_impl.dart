@@ -709,10 +709,10 @@ class HTDefaultLexicon extends HTLexicon {
           valueBuffer.write('$functionBlockStart$functionBlockEnd');
         } else {
           final content = _stringifyStruct(value, from: from);
-          valueBuffer.writeln(functionBlockStart);
+          // valueBuffer.writeln(functionBlockStart);
           valueBuffer.write(content);
-          valueBuffer.write(_curIndent());
-          valueBuffer.write(functionBlockEnd);
+          // valueBuffer.write(_curIndent());
+          // valueBuffer.write(functionBlockEnd);
         }
       } else {
         final valueString = stringify(value, asStringLiteral: true);
