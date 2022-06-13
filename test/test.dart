@@ -20,13 +20,8 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = hetu.eval(r'''
-        var ht = {
-          name: 'Hetu',
-          age: 1,
-          profile: {
-            isPerson: true
-          }
-        }
+        var a
+        print(1 + a + 3)
   ''');
   print(hetu.lexicon.stringify(r));
 }

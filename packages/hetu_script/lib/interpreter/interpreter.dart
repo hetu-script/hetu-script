@@ -176,9 +176,9 @@ class HTInterpreter {
   /// inexpicit type conversion for zero or null values
   bool _isZero(dynamic condition) {
     if (config.allowImplicitNullToZeroConversion) {
-      return condition == 0;
-    } else {
       return condition == 0 || condition == null;
+    } else {
+      return condition == 0;
     }
   }
 
