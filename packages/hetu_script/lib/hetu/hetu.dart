@@ -171,13 +171,8 @@ class Hetu {
       interpreter.bindExternalClass(HTHetuClassBinding());
       // load precompiled core module.
       final coreModule = Uint8List.fromList(hetuCoreModule);
-      interpreter.loadBytecode(
-          bytes: coreModule, moduleName: 'core', globallyImport: true);
-      if (interpreter.currentBytecodeModule.namespaces.isNotEmpty) {
-        analyzer.globalNamespace.import(
-            interpreter.currentBytecodeModule.namespaces.values.last,
-            idOnly: true);
-      }
+      loadBytecode(bytes: coreModule, moduleName: 'core', globallyImport: true);
+
       interpreter.invoke('initHetuEnv', positionalArgs: [this]);
 
       HTInterpreter.rootClass = interpreter.globalNamespace
@@ -347,21 +342,27 @@ class Hetu {
 
   /// Load a bytecode module and immediately run a function in it.
   dynamic loadBytecode(
-          {required Uint8List bytes,
-          required String moduleName,
-          bool globallyImport = false,
-          String? invokeFunc,
-          List<dynamic> positionalArgs = const [],
-          Map<String, dynamic> namedArgs = const {},
-          List<HTType> typeArgs = const []}) =>
-      interpreter.loadBytecode(
-          bytes: bytes,
-          moduleName: moduleName,
-          globallyImport: globallyImport,
-          invokeFunc: invokeFunc,
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs);
+      {required Uint8List bytes,
+      required String moduleName,
+      bool globallyImport = false,
+      String? invokeFunc,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    interpreter.loadBytecode(
+        bytes: bytes,
+        moduleName: moduleName,
+        globallyImport: globallyImport,
+        invokeFunc: invokeFunc,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs);
+    if (interpreter.currentBytecodeModule.namespaces.isNotEmpty) {
+      analyzer.globalNamespace.import(
+          interpreter.currentBytecodeModule.namespaces.values.last,
+          idOnly: true);
+    }
+  }
 
   /// Load a source into current bytecode dynamically.
   HTNamespace require(String path) {

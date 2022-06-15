@@ -270,14 +270,14 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     }
     node.returnType?.accept(this);
     node.redirectingCtorCallExpr?.accept(this);
-    // final savedCurrrentNamespace = _currentNamespace;
-    // _currentNamespace = HTDeclarationNamespace(
-    //     id: node.internalName, closure: _currentNamespace);
-    // for (final param in node.paramDecls) {
-    //   visitParamDecl(param);
-    // }
-    // node.definition?.accept(this);
-    // _currentNamespace = savedCurrrentNamespace;
+    final savedCurrrentNamespace = _currentNamespace;
+    _currentNamespace = HTDeclarationNamespace(
+        id: node.internalName, closure: _currentNamespace);
+    for (final param in node.paramDecls) {
+      visitParamDecl(param);
+    }
+    node.definition?.accept(this);
+    _currentNamespace = savedCurrrentNamespace;
   }
 
   @override

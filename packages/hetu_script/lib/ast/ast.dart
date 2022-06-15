@@ -351,9 +351,6 @@ class IdentifierExpr extends ASTNode {
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitIdentifierExpr(this);
 
-  @override
-  void subAccept(AbstractASTVisitor visitor) {}
-
   final String id;
 
   final bool isMarked;
@@ -579,9 +576,6 @@ class NominalTypeExpr extends TypeExpr {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitNominalTypeExpr(this);
-
-  @override
-  void subAccept(AbstractASTVisitor visitor) {}
 
   final IdentifierExpr id;
 
@@ -1075,9 +1069,6 @@ class ThrowStmt extends ASTNode {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitThrowStmt(this);
 
-  @override
-  void subAccept(AbstractASTVisitor visitor) {}
-
   final ASTNode message;
 
   @override
@@ -1483,9 +1474,6 @@ class DeleteStmt extends ASTNode {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitDeleteStmt(this);
 
-  @override
-  void subAccept(AbstractASTVisitor visitor) {}
-
   final String symbol;
 
   @override
@@ -1510,9 +1498,6 @@ class DeleteMemberStmt extends ASTNode {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitDeleteMemberStmt(this);
-
-  @override
-  void subAccept(AbstractASTVisitor visitor) {}
 
   final ASTNode object;
 
@@ -1540,9 +1525,6 @@ class DeleteSubStmt extends ASTNode {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitDeleteSubStmt(this);
-
-  @override
-  void subAccept(AbstractASTVisitor visitor) {}
 
   final ASTNode object;
 
@@ -1572,7 +1554,9 @@ class ImportExportDecl extends ASTNode {
       visitor.visitImportExportDecl(this);
 
   @override
-  void subAccept(AbstractASTVisitor visitor) {}
+  void subAccept(AbstractASTVisitor visitor) {
+    alias?.accept(visitor);
+  }
 
   final String? fromPath;
 
@@ -2139,9 +2123,6 @@ class ClassDecl extends ASTNode {
 class EnumDecl extends ASTNode {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitEnumDecl(this);
-
-  @override
-  void subAccept(AbstractASTVisitor visitor) {}
 
   final IdentifierExpr id;
 

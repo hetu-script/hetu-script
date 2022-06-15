@@ -34,8 +34,10 @@ final argParser = ArgParser();
 final hetu = Hetu(
     config: HetuConfig(
       compileWithoutLineInfo: true,
-      doStaticAnalysis: true,
-      computeConstantExpression: true,
+      // doStaticAnalysis: true,
+      // computeConstantExpression: true,
+      // showDartStackTrace: true,
+      // showHetuStackTrace: true,
       allowImplicitNullToZeroConversion: true,
       allowImplicitEmptyValueToFalseConversion: true,
     ),

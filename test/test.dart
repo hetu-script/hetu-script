@@ -5,8 +5,8 @@ void main() {
   var hetu = Hetu(
     config: HetuConfig(
       compileWithoutLineInfo: false,
-      // doStaticAnalysis: true,
-      // computeConstantExpression: true,
+      doStaticAnalysis: true,
+      computeConstantExpression: true,
       showDartStackTrace: true,
       // stackTraceDisplayCountLimit: 20,
       allowVariableShadowing: true,
