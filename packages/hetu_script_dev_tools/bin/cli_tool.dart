@@ -34,8 +34,10 @@ final argParser = ArgParser();
 final hetu = Hetu(
     config: HetuConfig(
       compileWithoutLineInfo: true,
-      doStaticAnalysis: false,
+      doStaticAnalysis: true,
       computeConstantExpression: true,
+      allowImplicitNullToZeroConversion: true,
+      allowImplicitEmptyValueToFalseConversion: true,
     ),
     sourceContext: sourceContext);
 final sourceContext = HTFileSystemResourceContext(expressionModuleExtensions: [
