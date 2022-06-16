@@ -5,8 +5,8 @@ void main() {
   var hetu = Hetu(
     config: HetuConfig(
       compileWithoutLineInfo: false,
-      doStaticAnalysis: true,
-      computeConstantExpression: true,
+      // doStaticAnalysis: true,
+      // computeConstantExpression: true,
       showDartStackTrace: true,
       // stackTraceDisplayCountLimit: 20,
       allowVariableShadowing: true,
@@ -20,8 +20,7 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = hetu.eval(r'''
-        var a
-        print(1 + a + 3)
+      0.234234234.toDoubleAsFixed(2)
   ''');
   print(hetu.lexicon.stringify(r));
 }

@@ -275,19 +275,21 @@ class HTMathClassBinding extends HTExternalClass {
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            radiusToSigma(positionalArgs.first);
+            radiusToSigma(positionalArgs.first.toDouble());
       case 'Math.gaussianNoise':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            gaussianNoise(positionalArgs[0], positionalArgs[1]);
+            gaussianNoise(
+                positionalArgs[0].toDouble(), positionalArgs[1].toDouble());
       case 'Math.perlinNoise':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            perlinNoise(positionalArgs[0], positionalArgs[1]);
+            perlinNoise(
+                positionalArgs[0].toDouble(), positionalArgs[1].toDouble());
       case 'Math.min':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],

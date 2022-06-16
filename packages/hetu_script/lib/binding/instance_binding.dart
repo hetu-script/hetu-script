@@ -275,6 +275,12 @@ extension BigIntBinding on BigInt {
 extension DoubleBinding on double {
   dynamic htFetch(String varName) {
     switch (varName) {
+      case 'toDoubleAsFixed':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            double.parse(toStringAsFixed(positionalArgs.first));
       default:
         // ignore: unnecessary_cast
         return (this as num).htFetch(varName);

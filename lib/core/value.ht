@@ -187,6 +187,8 @@ external class BigInt {
 }
 
 external class float extends num {
+  
+  fun toDoubleAsFixed(digits: int) -> float
 
   fun toString() -> str
 
