@@ -61,6 +61,9 @@ class TokenIdentifier extends Token {
   /// whether this identifier is marked by grave accent marks.
   final bool isMarked;
 
+  @override
+  final String literal;
+
   TokenIdentifier(
       {required String lexeme,
       required int line,
@@ -69,7 +72,8 @@ class TokenIdentifier extends Token {
       Token? previous,
       Token? next,
       this.isMarked = false})
-      : super(
+      : literal = isMarked ? lexeme.substring(1, lexeme.length - 1) : lexeme,
+        super(
             lexeme: lexeme,
             line: line,
             column: column,
@@ -154,6 +158,9 @@ class TokenStringLiteral extends Token {
   @override
   String get type => Semantic.literalString;
 
+  @override
+  final String literal;
+
   final String startMark;
 
   final String endMark;
@@ -167,7 +174,8 @@ class TokenStringLiteral extends Token {
       Token? next,
       required this.startMark,
       required this.endMark})
-      : super(
+      : literal = lexeme.substring(1, lexeme.length - 1),
+        super(
             lexeme: lexeme,
             line: line,
             column: column,
@@ -179,6 +187,9 @@ class TokenStringLiteral extends Token {
 class TokenStringInterpolation extends TokenStringLiteral {
   @override
   String get type => Semantic.literalStringInterpolation;
+
+  @override
+  final String literal;
 
   final List<Token> interpolations;
 
@@ -192,7 +203,8 @@ class TokenStringInterpolation extends TokenStringLiteral {
       required String startMark,
       required String endMark,
       required this.interpolations})
-      : super(
+      : literal = lexeme.substring(1, lexeme.length - 1),
+        super(
             lexeme: lexeme,
             line: line,
             column: column,

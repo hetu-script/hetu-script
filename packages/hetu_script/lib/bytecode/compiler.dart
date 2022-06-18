@@ -1041,8 +1041,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.assertion);
-    final source = stmt.source!;
-    final text = source.content.substring(stmt.expr.offset, stmt.expr.end);
+    final content = stmt.source!.content;
+    final text = content.substring(stmt.expr.offset, stmt.expr.end);
     bytesBuilder.add(_parseIdentifier(text.trim()));
     final bytes = compileAST(stmt.expr, endOfExec: true);
     bytesBuilder.add(bytes);

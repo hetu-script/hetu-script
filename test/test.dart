@@ -20,7 +20,7 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = hetu.eval(r'''
-      0.234234234.toDoubleAsFixed(2)
+      assert(1 > 2)
   ''');
   print(hetu.lexicon.stringify(r));
 }

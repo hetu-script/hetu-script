@@ -249,8 +249,7 @@ class HTLexer {
                   }
                 }
               }
-              final literal = buffer.toString();
-              final lexeme = literal.substring(1, literal.length - 1);
+              final lexeme = buffer.toString();
               buffer.clear();
               Token token;
               if (interpolations.isEmpty) {
@@ -304,8 +303,7 @@ class HTLexer {
                   }
                 }
               }
-              final literal = buffer.toString();
-              final lexeme = literal.substring(1, literal.length - 1);
+              final lexeme = buffer.toString();
               buffer.clear();
               Token token;
               if (interpolations.isEmpty) {
@@ -341,7 +339,7 @@ class HTLexer {
               }
               final lexeme = buffer.toString();
               final token = TokenIdentifier(
-                  lexeme: lexeme.substring(1, lexeme.length - 1),
+                  lexeme: lexeme,
                   line: line,
                   column: column,
                   offset: offset,

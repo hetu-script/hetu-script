@@ -2182,7 +2182,7 @@ class HTDefaultParser extends HTParser {
       _handleAlias();
     } else {
       fromPath = fromPathRaw;
-      final ext = path.extension(fromPathTok.lexeme);
+      final ext = path.extension(fromPathTok.literal);
       if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
         if (showList.isNotEmpty) {
           final err = HTError.importListOnNonHetuSource(

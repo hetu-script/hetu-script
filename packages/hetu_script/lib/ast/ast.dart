@@ -380,7 +380,7 @@ class IdentifierExpr extends ASTNode {
 
   IdentifierExpr.fromToken(Token idTok,
       {bool isMarked = false, bool isLocal = true, HTSource? source})
-      : this(idTok.lexeme,
+      : this(idTok.literal,
             isLocal: isLocal,
             source: source,
             line: idTok.line,

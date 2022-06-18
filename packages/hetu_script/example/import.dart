@@ -5,8 +5,8 @@ void main() {
   var hetu = Hetu(
     config: HetuConfig(
       compileWithoutLineInfo: false,
-      doStaticAnalysis: true,
-      computeConstantExpression: true,
+      // doStaticAnalysis: true,
+      // computeConstantExpression: true,
       showDartStackTrace: true,
       // stackTraceDisplayCountLimit: 20,
       allowVariableShadowing: true,
@@ -25,8 +25,9 @@ void main() {
 ''', fullName: 'source1.ht');
   final source2 = HTSource(r'''
     export 'source1.ht'
-    // export { greeting }
+    export { greeting }
     fun greeting {
+      // assert(name == null)
       print(name)
     }
 // ''', fullName: 'source2.ht');
