@@ -18,6 +18,8 @@ abstract class ASTNode {
 
   Comment? trailingComment;
 
+  List<Comment> succeedingComments = [];
+
   bool get isExpression => true;
 
   bool get isStatement => !isExpression;

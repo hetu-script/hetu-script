@@ -20,9 +20,13 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = hetu.eval(r'''
-      for (final i in range(30)) {
-        print(Math.gaussianNoise(0, 1, min: -1, max: 1))
+      fun test({
+        name,
+        //age
+      }) {
+        print(name)
       }
+      test(name: 'jimmy')
   ''');
   print(hetu.lexicon.stringify(r));
 }
