@@ -26,8 +26,10 @@ void main() {
   final source2 = HTSource(r'''
     export 'source1.ht'
     export { greeting }
-    fun greeting {
-      // assert(name == null)
+    fun greeting(a, b) {
+      if (a?.aaa == null) {
+        assert(name == null)
+      }
       print(name)
     }
 // ''', fullName: 'source2.ht');
