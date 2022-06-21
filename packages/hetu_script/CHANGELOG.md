@@ -1,5 +1,6 @@
 ## 0.4.0
 
+- UPGRADE to Dart 2.17.
 - Add api for dynamically import a source: `final { a, b } = require(path)`
 - Added support for const expression interpreter and static analyzer(WIP).
 - Now suport multiline String literal, syntax is the same to normal string.

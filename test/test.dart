@@ -1,6 +1,6 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() {
+void main() async {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
@@ -19,15 +19,9 @@ void main() {
   );
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
-  final r = hetu.eval(r'''
-      final a = {
-      }
-
-      for (final obj of a) {
-        obj.type = 'array_member'
-      }
-
-      print(a)
+  final r = await hetu.eval(r'''
+      Future(()=>print(42))
+      print(23)
   ''');
   print(hetu.lexicon.stringify(r));
 }

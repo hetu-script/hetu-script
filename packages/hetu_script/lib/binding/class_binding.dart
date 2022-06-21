@@ -10,6 +10,7 @@ import '../shared/perlin_noise.dart';
 import '../shared/math.dart';
 import '../shared/uid.dart';
 import '../shared/crc32b.dart';
+import '../value/function/function.dart';
 
 class HTNumberClassBinding extends HTExternalClass {
   HTNumberClassBinding() : super('num');
@@ -518,6 +519,22 @@ class HTSystemClassBinding extends HTExternalClass {
 
 class HTFutureClassBinding extends HTExternalClass {
   HTFutureClassBinding() : super('Future');
+
+  @override
+  dynamic memberGet(String varName, {String? from}) {
+    switch (varName) {
+      case 'Future':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          final HTFunction func = positionalArgs.first;
+          return Future(() => func.call());
+        };
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
 
   @override
   dynamic instanceMemberGet(dynamic object, String varName) =>

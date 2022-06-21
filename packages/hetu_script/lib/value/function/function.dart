@@ -273,11 +273,34 @@ class HTFunction extends HTFunctionDeclaration
   /// ```
   /// function(posArg1, ...posArg2)
   /// ```
+  ///
+  /// If [createInstance] == true, will create new instance and its namespace.
   dynamic call(
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const [],
-      bool construct = true}) {
+      bool createInstance = true}) {
+    // if (isAsync) {
+    //   return Future(() => call(
+    //       positionalArgs: positionalArgs,
+    //       namedArgs: namedArgs,
+    //       typeArgs: typeArgs,
+    //       createInstance: createInstance));
+    // } else {
+    return _call(
+      positionalArgs: positionalArgs,
+      namedArgs: namedArgs,
+      typeArgs: typeArgs,
+      createInstance: createInstance,
+    );
+    // }
+  }
+
+  dynamic _call(
+      {List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const [],
+      bool createInstance = true}) {
     try {
       interpreter.stackTraceList.insert(0,
           '$internalName (${interpreter.currentFileName}:${interpreter.currentLine}:${interpreter.currentColumn})');
@@ -304,7 +327,7 @@ class HTFunction extends HTFunctionDeclaration
         //   }
         // }
 
-        if (category == FunctionCategory.constructor && construct) {
+        if (category == FunctionCategory.constructor && createInstance) {
           // a class method
           if (klass != null) {
             result =
@@ -393,7 +416,7 @@ class HTFunction extends HTFunctionDeclaration
                 final instanceNamespace = namespace as HTInstanceNamespace;
                 constructor.namespace = instanceNamespace.next!;
                 constructor.instance = instance;
-                constructor.call(construct: false);
+                constructor.call(createInstance: false);
                 superClass = superClass.superClass;
               }
             } else {
@@ -487,7 +510,7 @@ class HTFunction extends HTFunctionDeclaration
             }
 
             constructor.call(
-                construct: false,
+                createInstance: false,
                 positionalArgs: referCtorPosArgs,
                 namedArgs: referCtorNamedArgs);
           }
