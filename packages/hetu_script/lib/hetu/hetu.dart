@@ -405,4 +405,17 @@ class Hetu {
     );
     return nsp;
   }
+
+  dynamic invoke(String funcName,
+          {String? moduleName,
+          List<dynamic> positionalArgs = const [],
+          Map<String, dynamic> namedArgs = const {},
+          List<HTType> typeArgs = const []}) =>
+      interpreter.invoke(
+        funcName,
+        moduleName: moduleName,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs,
+      );
 }

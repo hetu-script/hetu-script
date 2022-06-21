@@ -1,4 +1,4 @@
-import '../../source/source.dart';
+// import '../../source/source.dart';
 import '../../declaration/declaration.dart';
 import '../../value/namespace/namespace.dart';
 import 'struct.dart';
@@ -22,17 +22,17 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
   bool get isResolved => _isResolved;
 
   HTNamedStruct({
-    required String id,
+    required super.id,
     required HTInterpreter interpreter,
     required String fileName,
     required String moduleName,
-    HTNamespace? closure,
+    super.closure,
     this.prototypeId,
-    HTSource? source,
-    bool isTopLevel = false,
+    super.source,
+    super.isTopLevel = false,
     this.staticDefinitionIp,
     int? definitionIp,
-  }) : super(id: id, closure: closure, source: source, isTopLevel: isTopLevel) {
+  }) {
     this.interpreter = interpreter;
     this.fileName = fileName;
     this.moduleName = moduleName;

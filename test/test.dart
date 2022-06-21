@@ -20,13 +20,14 @@ void main() {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = hetu.eval(r'''
-      fun test({
-        name,
-        //age
-      }) {
-        print(name)
+      final a = {
       }
-      test(name: 'jimmy')
+
+      for (final obj of a) {
+        obj.type = 'array_member'
+      }
+
+      print(a)
   ''');
   print(hetu.lexicon.stringify(r));
 }

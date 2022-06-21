@@ -47,6 +47,8 @@ class HTFunctionDeclaration extends HTDeclaration
 
   final HTFunctionType declType;
 
+  final bool isAsync;
+
   final bool isField;
 
   final bool isAbstract;
@@ -65,8 +67,9 @@ class HTFunctionDeclaration extends HTDeclaration
   @override
   bool get isResolved => _isResolved;
 
-  HTFunctionDeclaration(this.internalName,
-      {String? id,
+  HTFunctionDeclaration(
+      {required this.internalName,
+      String? id,
       String? classId,
       HTDeclarationNamespace? closure,
       HTSource? source,
@@ -80,6 +83,7 @@ class HTFunctionDeclaration extends HTDeclaration
       this.hasParamDecls = true,
       Map<String, HTAbstractParameter> paramDecls = const {},
       required this.declType,
+      this.isAsync = false,
       this.isField = false,
       this.isAbstract = false,
       this.isVariadic = false,
@@ -110,7 +114,8 @@ class HTFunctionDeclaration extends HTDeclaration
   }
 
   @override
-  HTFunctionDeclaration clone() => HTFunctionDeclaration(internalName,
+  HTFunctionDeclaration clone() => HTFunctionDeclaration(
+      internalName: internalName,
       id: id,
       classId: classId,
       closure: closure,

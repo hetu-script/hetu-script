@@ -1,7 +1,9 @@
+import 'package:hetu_script/declaration/function/abstract_parameter.dart';
+
 import '../../external/external_function.dart';
 import '../../error/error.dart';
 import '../../grammar/constant.dart';
-import '../../source/source.dart';
+// import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
 import '../../type/type.dart';
@@ -11,10 +13,10 @@ import '../../value/instance/instance.dart';
 import '../../value/struct/struct.dart';
 import '../../value/namespace/namespace.dart';
 import '../../declaration/function/function_declaration.dart';
-import '../../declaration/generic/generic_type_parameter.dart';
+// import '../../declaration/generic/generic_type_parameter.dart';
 import '../../type/function.dart';
 import '../entity.dart';
-import 'parameter.dart';
+// import 'parameter.dart';
 import '../variable/variable.dart';
 
 class RedirectingConstructor {
@@ -41,8 +43,8 @@ class HTFunction extends HTFunctionDeclaration
     with HTEntity, InterpreterRef, GotoInfo {
   HTClass? klass;
 
-  @override
-  final Map<String, HTParameter> paramDecls;
+  // @override
+  // final Map<String, HTParameter> paramDecls;
 
   final RedirectingConstructor? redirectingConstructor;
 
@@ -55,55 +57,35 @@ class HTFunction extends HTFunctionDeclaration
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTFunction(String internalName, String fileName, String moduleName,
-      HTInterpreter interpreter,
-      {String? id,
-      String? classId,
-      HTNamespace? closure,
-      HTSource? source,
-      bool isExternal = false,
-      bool isStatic = false,
-      bool isConst = false,
-      bool isTopLevel = false,
-      FunctionCategory category = FunctionCategory.normal,
-      String? externalTypeId,
-      List<HTGenericTypeParameter> genericTypeParameters = const [],
-      bool hasParamDecls = true,
-      this.paramDecls = const {},
-      required HTFunctionType declType,
-      bool isField = false,
-      bool isAbstract = false,
-      bool isVariadic = false,
-      int minArity = 0,
-      int maxArity = 0,
+  HTFunction(String fileName, String moduleName, HTInterpreter interpreter,
+      {required super.internalName,
+      super.id,
+      super.classId,
+      super.closure,
+      super.source,
+      super.isExternal = false,
+      super.isStatic = false,
+      super.isConst = false,
+      super.isTopLevel = false,
+      super.category = FunctionCategory.normal,
+      super.externalTypeId,
+      super.genericTypeParameters = const [],
+      super.hasParamDecls = true,
+      super.paramDecls = const {},
+      required super.declType,
+      super.isAsync = false,
+      super.isField = false,
+      super.isAbstract = false,
+      super.isVariadic = false,
+      super.minArity = 0,
+      super.maxArity = 0,
+      super.namespace,
       this.externalFunc,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn,
-      HTNamespace? namespace,
       this.redirectingConstructor,
-      this.klass})
-      : super(internalName,
-            id: id,
-            classId: classId,
-            closure: closure,
-            source: source,
-            isExternal: isExternal,
-            isStatic: isStatic,
-            isConst: isConst,
-            isTopLevel: isTopLevel,
-            category: category,
-            externalTypeId: externalTypeId,
-            genericTypeParameters: genericTypeParameters,
-            hasParamDecls: hasParamDecls,
-            paramDecls: paramDecls,
-            declType: declType,
-            isField: isField,
-            isAbstract: isAbstract,
-            isVariadic: isVariadic,
-            minArity: minArity,
-            maxArity: maxArity,
-            namespace: namespace) {
+      this.klass}) {
     this.interpreter = interpreter;
     this.fileName = fileName;
     this.moduleName = moduleName;
@@ -200,33 +182,33 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  HTFunction clone() =>
-      HTFunction(internalName, fileName, moduleName, interpreter,
-          id: id,
-          classId: classId,
-          closure: closure != null ? closure as HTNamespace : null,
-          source: source,
-          isExternal: isExternal,
-          isStatic: isStatic,
-          isConst: isConst,
-          isTopLevel: isTopLevel,
-          category: category,
-          externalTypeId: externalTypeId,
-          genericTypeParameters: genericTypeParameters,
-          hasParamDecls: hasParamDecls,
-          paramDecls: paramDecls,
-          declType: declType,
-          isAbstract: isAbstract,
-          isVariadic: isVariadic,
-          minArity: minArity,
-          maxArity: maxArity,
-          externalFunc: externalFunc,
-          definitionIp: definitionIp,
-          definitionLine: definitionLine,
-          definitionColumn: definitionColumn,
-          namespace: namespace != null ? namespace as HTNamespace : null,
-          redirectingConstructor: redirectingConstructor,
-          klass: klass);
+  HTFunction clone() => HTFunction(fileName, moduleName, interpreter,
+      internalName: internalName,
+      id: id,
+      classId: classId,
+      closure: closure != null ? closure as HTNamespace : null,
+      source: source,
+      isExternal: isExternal,
+      isStatic: isStatic,
+      isConst: isConst,
+      isTopLevel: isTopLevel,
+      category: category,
+      externalTypeId: externalTypeId,
+      genericTypeParameters: genericTypeParameters,
+      hasParamDecls: hasParamDecls,
+      paramDecls: paramDecls,
+      declType: declType,
+      isAbstract: isAbstract,
+      isVariadic: isVariadic,
+      minArity: minArity,
+      maxArity: maxArity,
+      externalFunc: externalFunc,
+      definitionIp: definitionIp,
+      definitionLine: definitionLine,
+      definitionColumn: definitionColumn,
+      namespace: namespace != null ? namespace as HTNamespace : null,
+      redirectingConstructor: redirectingConstructor,
+      klass: klass);
 
   HTFunction bind(HTStruct struct) {
     if (category == FunctionCategory.literal) {
@@ -359,7 +341,7 @@ class HTFunction extends HTFunctionDeclaration
         }
 
         var variadicStart = -1;
-        HTParameter? variadicParam;
+        HTAbstractParameter? variadicParam;
         for (var i = 0; i < paramDecls.length; ++i) {
           var decl = paramDecls.values.elementAt(i).clone();
           final paramId = paramDecls.keys.elementAt(i);

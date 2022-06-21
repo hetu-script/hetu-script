@@ -91,19 +91,14 @@ class ASTSource extends ASTNode {
 
   ASTSource(
       {required this.nodes,
-      required HTSource source,
+      required super.source,
       this.imports = const [],
       this.errors = const [],
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.source,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length) {
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.source) {
     for (final decl in imports) {
       decl.parent = this;
     }
@@ -147,17 +142,12 @@ class ASTCompilation extends ASTNode {
       required this.entryResourceName,
       required this.entryResourceType,
       required this.errors,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.compilation,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length) {
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.compilation) {
     for (final decl in values.values) {
       decl.parent = this;
     }
@@ -179,17 +169,12 @@ class ASTEmptyLine extends ASTNode {
 
   ASTEmptyLine(
       {this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.empty,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.empty);
 }
 
 class ASTLiteralNull extends ASTNode {
@@ -197,17 +182,12 @@ class ASTLiteralNull extends ASTNode {
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitNullExpr(this);
 
   ASTLiteralNull(
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.literalNull,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.literalNull);
 }
 
 class ASTLiteralBoolean extends ASTNode {
@@ -220,17 +200,12 @@ class ASTLiteralBoolean extends ASTNode {
   bool get value => _value;
 
   ASTLiteralBoolean(this._value,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.literalBoolean,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.literalBoolean);
 }
 
 class ASTLiteralInteger extends ASTNode {
@@ -244,17 +219,12 @@ class ASTLiteralInteger extends ASTNode {
   int get value => _value;
 
   ASTLiteralInteger(this._value,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.literalInteger,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.literalInteger);
 }
 
 class ASTLiteralFloat extends ASTNode {
@@ -268,17 +238,12 @@ class ASTLiteralFloat extends ASTNode {
   double get value => _value;
 
   ASTLiteralFloat(this._value,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.literalFloat,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.literalFloat);
 }
 
 class ASTLiteralString extends ASTNode {
@@ -296,17 +261,12 @@ class ASTLiteralString extends ASTNode {
   final String quotationRight;
 
   ASTLiteralString(this._value, this.quotationLeft, this.quotationRight,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.literalString,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.literalString);
 }
 
 class ASTStringInterpolation extends ASTNode {
@@ -331,17 +291,12 @@ class ASTStringInterpolation extends ASTNode {
 
   ASTStringInterpolation(
       this.text, this.quotationLeft, this.quotationRight, this.interpolations,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.literalStringInterpolation,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length) {
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.literalStringInterpolation) {
     for (final ast in interpolations) {
       ast.parent = this;
     }
@@ -368,17 +323,12 @@ class IdentifierExpr extends ASTNode {
   IdentifierExpr(this.id,
       {this.isMarked = false,
       this.isLocal = true,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.identifierExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.identifierExpr);
 
   IdentifierExpr.fromToken(Token idTok,
       {bool isMarked = false, bool isLocal = true, HTSource? source})
@@ -403,17 +353,12 @@ class SpreadExpr extends ASTNode {
   final ASTNode collection;
 
   SpreadExpr(this.collection,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.spreadExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.spreadExpr);
 }
 
 class CommaExpr extends ASTNode {
@@ -433,17 +378,12 @@ class CommaExpr extends ASTNode {
 
   CommaExpr(this.list,
       {this.isLocal = true,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.commaExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.commaExpr);
 }
 
 class ListExpr extends ASTNode {
@@ -461,16 +401,11 @@ class ListExpr extends ASTNode {
 
   ListExpr(this.list,
       {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.literalList,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.literalList);
 }
 
 class InOfExpr extends ASTNode {
@@ -487,17 +422,12 @@ class InOfExpr extends ASTNode {
   final bool valueOf;
 
   InOfExpr(this.collection, this.valueOf,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.inExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.inExpr);
 }
 
 class GroupExpr extends ASTNode {
@@ -512,34 +442,24 @@ class GroupExpr extends ASTNode {
   final ASTNode inner;
 
   GroupExpr(this.inner,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.groupExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.groupExpr);
 }
 
 abstract class TypeExpr extends ASTNode {
   bool get isLocal;
 
   TypeExpr(String exprType,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(exprType,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(exprType);
 }
 
 class IntrinsicTypeExpr extends TypeExpr {
@@ -561,17 +481,12 @@ class IntrinsicTypeExpr extends TypeExpr {
       this.isTop = false,
       this.isBottom = false,
       this.isLocal = true,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.intrinsicTypeExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.intrinsicTypeExpr);
 }
 
 class NominalTypeExpr extends TypeExpr {
@@ -593,17 +508,12 @@ class NominalTypeExpr extends TypeExpr {
       this.arguments = const [],
       this.isNullable = false,
       this.isLocal = true,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.nominalTypeExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.nominalTypeExpr);
 }
 
 class ParamTypeExpr extends ASTNode {
@@ -633,17 +543,12 @@ class ParamTypeExpr extends ASTNode {
       {this.id,
       required this.isOptional,
       required this.isVariadic,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.paramTypeExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.paramTypeExpr);
 }
 
 class FuncTypeExpr extends TypeExpr {
@@ -678,17 +583,12 @@ class FuncTypeExpr extends TypeExpr {
       this.hasOptionalParam = false,
       this.hasNamedParam = false,
       this.isLocal = true,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.funcTypeExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.funcTypeExpr);
 }
 
 class FieldTypeExpr extends ASTNode {
@@ -706,17 +606,12 @@ class FieldTypeExpr extends ASTNode {
   final TypeExpr fieldType;
 
   FieldTypeExpr(this.id, this.fieldType,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.fieldTypeExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.fieldTypeExpr);
 }
 
 class StructuralTypeExpr extends TypeExpr {
@@ -739,17 +634,12 @@ class StructuralTypeExpr extends TypeExpr {
   StructuralTypeExpr(
       {this.fieldTypes = const [],
       this.isLocal = true,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.structuralTypeExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.structuralTypeExpr);
 }
 
 class GenericTypeParameterExpr extends ASTNode {
@@ -768,17 +658,12 @@ class GenericTypeParameterExpr extends ASTNode {
 
   GenericTypeParameterExpr(this.id,
       {this.superType,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.genericTypeParamExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.genericTypeParamExpr);
 }
 
 /// -e, !e，++e, --e
@@ -797,17 +682,12 @@ class UnaryPrefixExpr extends ASTNode {
   final ASTNode object;
 
   UnaryPrefixExpr(this.op, this.object,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.unaryExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.unaryExpr);
 }
 
 /// e++, e--
@@ -826,17 +706,12 @@ class UnaryPostfixExpr extends ASTNode {
   final String op;
 
   UnaryPostfixExpr(this.object, this.op,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.unaryExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.unaryExpr);
 }
 
 class BinaryExpr extends ASTNode {
@@ -856,17 +731,12 @@ class BinaryExpr extends ASTNode {
   final ASTNode right;
 
   BinaryExpr(this.left, this.op, this.right,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.binaryExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.binaryExpr);
 }
 
 class TernaryExpr extends ASTNode {
@@ -887,17 +757,12 @@ class TernaryExpr extends ASTNode {
   final ASTNode elseBranch;
 
   TernaryExpr(this.condition, this.thenBranch, this.elseBranch,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.binaryExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.binaryExpr);
 }
 
 class AssignExpr extends ASTNode {
@@ -917,17 +782,12 @@ class AssignExpr extends ASTNode {
   final ASTNode right;
 
   AssignExpr(this.left, this.op, this.right,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.assignExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.assignExpr);
 }
 
 class MemberExpr extends ASTNode {
@@ -948,17 +808,12 @@ class MemberExpr extends ASTNode {
 
   MemberExpr(this.object, this.key,
       {this.isNullable = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.memberGetExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.memberGetExpr);
 }
 
 class SubExpr extends ASTNode {
@@ -979,17 +834,12 @@ class SubExpr extends ASTNode {
 
   SubExpr(this.object, this.key,
       {this.isNullable = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.subGetExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.subGetExpr);
 }
 
 class CallExpr extends ASTNode {
@@ -1022,17 +872,12 @@ class CallExpr extends ASTNode {
       this.namedArgs = const {},
       this.isNullable = false,
       this.hasNewOperator = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.callExpr,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.callExpr);
 }
 
 class AssertStmt extends ASTNode {
@@ -1054,17 +899,12 @@ class AssertStmt extends ASTNode {
 
   AssertStmt(this.expr,
       {this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.assertStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.assertStmt);
 }
 
 class ThrowStmt extends ASTNode {
@@ -1081,17 +921,12 @@ class ThrowStmt extends ASTNode {
 
   ThrowStmt(this.message,
       {this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.throwStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.throwStmt);
 }
 
 class ExprStmt extends ASTNode {
@@ -1113,17 +948,12 @@ class ExprStmt extends ASTNode {
 
   ExprStmt(this.expr,
       {this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.exprStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.exprStmt);
 }
 
 class BlockStmt extends ASTNode {
@@ -1149,17 +979,12 @@ class BlockStmt extends ASTNode {
   BlockStmt(this.statements,
       {this.hasOwnNamespace = true,
       this.id,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.blockStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.blockStmt);
 }
 
 class ReturnStmt extends ASTNode {
@@ -1184,17 +1009,12 @@ class ReturnStmt extends ASTNode {
   ReturnStmt(this.keyword,
       {this.returnValue,
       this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.returnStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.returnStmt);
 }
 
 class IfStmt extends ASTNode {
@@ -1220,17 +1040,12 @@ class IfStmt extends ASTNode {
   IfStmt(this.condition, this.thenBranch,
       {this.elseBranch,
       this.isExpression = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.ifStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.ifStmt);
 }
 
 class WhileStmt extends ASTNode {
@@ -1251,17 +1066,12 @@ class WhileStmt extends ASTNode {
   bool get isExpression => false;
 
   WhileStmt(this.condition, this.loop,
-      {HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.whileStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      {super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.whileStmt);
 }
 
 class DoStmt extends ASTNode {
@@ -1286,17 +1096,12 @@ class DoStmt extends ASTNode {
 
   DoStmt(this.loop, this.condition,
       {this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.doStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.doStmt);
 }
 
 class ForStmt extends ASTNode {
@@ -1326,17 +1131,12 @@ class ForStmt extends ASTNode {
 
   ForStmt(this.init, this.condition, this.increment, this.loop,
       {this.hasBracket = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.forStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.forStmt);
 }
 
 class ForRangeStmt extends ASTNode {
@@ -1366,17 +1166,12 @@ class ForRangeStmt extends ASTNode {
   ForRangeStmt(this.iterator, this.collection, this.loop,
       {this.hasBracket = false,
       this.iterateValue = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.forInStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.forInStmt);
 }
 
 class WhenStmt extends ASTNode {
@@ -1405,17 +1200,12 @@ class WhenStmt extends ASTNode {
 
   WhenStmt(this.cases, this.elseBranch, this.condition,
       {this.isExpression = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.whenStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.whenStmt);
 }
 
 class BreakStmt extends ASTNode {
@@ -1432,17 +1222,12 @@ class BreakStmt extends ASTNode {
 
   BreakStmt(this.keyword,
       {this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.breakStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.breakStmt);
 }
 
 class ContinueStmt extends ASTNode {
@@ -1459,17 +1244,12 @@ class ContinueStmt extends ASTNode {
 
   ContinueStmt(this.keyword,
       {this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.continueStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.continueStmt);
 }
 
 class DeleteStmt extends ASTNode {
@@ -1483,17 +1263,12 @@ class DeleteStmt extends ASTNode {
 
   DeleteStmt(this.symbol,
       {this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.deleteStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.deleteStmt);
 }
 
 class DeleteMemberStmt extends ASTNode {
@@ -1510,17 +1285,12 @@ class DeleteMemberStmt extends ASTNode {
 
   DeleteMemberStmt(this.object, this.key,
       {this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.deleteMemberStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.deleteMemberStmt);
 }
 
 class DeleteSubStmt extends ASTNode {
@@ -1537,17 +1307,12 @@ class DeleteSubStmt extends ASTNode {
 
   DeleteSubStmt(this.object, this.key,
       {this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.deleteSubMemberStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.deleteSubMemberStmt);
 }
 
 class ImportExportDecl extends ASTNode {
@@ -1590,17 +1355,12 @@ class ImportExportDecl extends ASTNode {
       this.isPreloadedModule = false,
       this.isExport = false,
       this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(isExport ? Semantic.exportStmt : Semantic.importStmt,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(isExport ? Semantic.exportStmt : Semantic.importStmt);
 }
 
 class NamespaceDecl extends ASTNode {
@@ -1632,17 +1392,12 @@ class NamespaceDecl extends ASTNode {
       {this.classId,
       this.isPrivate = false,
       this.isTopLevel = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.namespaceDeclaration,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.namespaceDeclaration);
 }
 
 class TypeAliasDecl extends ASTNode {
@@ -1681,17 +1436,12 @@ class TypeAliasDecl extends ASTNode {
       this.hasEndOfStmtMark = false,
       this.isPrivate = false,
       this.isTopLevel = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.typeAliasDeclaration,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.typeAliasDeclaration);
 }
 
 // class ConstDecl extends AstNode {
@@ -1805,18 +1555,13 @@ class VarDecl extends ASTNode {
       this.isTopLevel = false,
       this.lateFinalize = false,
       this.lateInitialize = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
       : _internalName = internalName,
-        super(Semantic.variableDeclaration,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+        super(Semantic.variableDeclaration);
 }
 
 class DestructuringDecl extends ASTNode {
@@ -1852,17 +1597,12 @@ class DestructuringDecl extends ASTNode {
       this.isTopLevel = false,
       this.isMutable = false,
       this.hasEndOfStmtMark = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.destructuringDeclaration,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.destructuringDeclaration);
 }
 
 class ParamDecl extends VarDecl {
@@ -1887,20 +1627,13 @@ class ParamDecl extends VarDecl {
       this.isVariadic = false,
       this.isOptional = false,
       this.isNamed = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
       : super(id,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length,
-            declType: declType,
-            initializer: initializer,
-            isMutable: true);
+            declType: declType, initializer: initializer, isMutable: true);
 }
 
 class RedirectingConstructorCallExpr extends ASTNode {
@@ -1931,17 +1664,12 @@ class RedirectingConstructorCallExpr extends ASTNode {
   RedirectingConstructorCallExpr(
       this.callee, this.positionalArgs, this.namedArgs,
       {this.key,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.redirectingConstructorCallExpression,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.redirectingConstructorCallExpression);
 }
 
 class FuncDecl extends ASTNode {
@@ -2035,17 +1763,12 @@ class FuncDecl extends ASTNode {
       this.isPrivate = false,
       this.isTopLevel = false,
       this.category = FunctionCategory.normal,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.functionDeclaration,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.functionDeclaration);
 }
 
 class ClassDecl extends ASTNode {
@@ -2109,17 +1832,12 @@ class ClassDecl extends ASTNode {
       this.isTopLevel = false,
       this.hasUserDefinedConstructor = false,
       this.lateResolve = true,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.classDeclaration,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.classDeclaration);
 }
 
 class EnumDecl extends ASTNode {
@@ -2148,17 +1866,12 @@ class EnumDecl extends ASTNode {
       this.isExternal = false,
       this.isPrivate = false,
       this.isTopLevel = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.enumDeclaration,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.enumDeclaration);
 }
 
 class StructDecl extends ASTNode {
@@ -2193,17 +1906,12 @@ class StructDecl extends ASTNode {
       this.isPrivate = false,
       this.isTopLevel = false,
       // this.lateInitialize = true,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.structDeclaration,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.structDeclaration);
 }
 
 class StructObjField extends ASTNode {
@@ -2227,17 +1935,12 @@ class StructObjField extends ASTNode {
       {this.key,
       this.fieldValue,
       this.isSpread = false,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.literalStructField,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.literalStructField);
 }
 
 class StructObjExpr extends ASTNode {
@@ -2263,15 +1966,10 @@ class StructObjExpr extends ASTNode {
       this.fields,
       {this.id,
       this.prototypeId,
-      HTSource? source,
-      int line = 0,
-      int column = 0,
-      int offset = 0,
-      int length = 0})
-      : super(Semantic.literalStruct,
-            source: source,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
+      super.source,
+      super.line = 0,
+      super.column = 0,
+      super.offset = 0,
+      super.length = 0})
+      : super(Semantic.literalStruct);
 }

@@ -7,7 +7,7 @@ class ZhongwenParser extends HTParser {
   @override
   String get name => 'wenyan-lang';
 
-  ZhongwenParser({required HTLexicon lexicon}) : super(lexicon: lexicon);
+  ZhongwenParser({required super.lexicon}) ;
 
   @override
   ASTNode? parseStmt({required ParseStyle style}) {

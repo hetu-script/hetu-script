@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class BorderedIconButton extends StatelessWidget {
   const BorderedIconButton({
-    Key? key,
+    super.key,
     this.iconSize = 24.0,
     required this.icon,
     this.tooltip,
     this.onPressed,
-  }) : super(key: key);
+  }) ;
 
   final double iconSize;
 

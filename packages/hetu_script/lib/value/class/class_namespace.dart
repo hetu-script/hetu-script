@@ -1,15 +1,18 @@
 import '../../error/error.dart';
 import '../../grammar/constant.dart';
-import '../../source/source.dart';
+// import '../../source/source.dart';
 import '../function/function.dart';
 import '../namespace/namespace.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within static methods.
 class HTClassNamespace extends HTNamespace {
-  HTClassNamespace(
-      {String? id, String? classId, HTNamespace? closure, HTSource? source})
-      : super(id: id, closure: closure, source: source);
+  HTClassNamespace({
+    super.id,
+    super.classId,
+    super.closure,
+    super.source,
+  });
 
   @override
   dynamic memberGet(String varName,

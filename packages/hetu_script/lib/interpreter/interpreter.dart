@@ -1496,7 +1496,10 @@ class HTInterpreter {
           _currentBytecodeModule.skip(length);
         }
         final func = HTFunction(
-            internalName, _currentFileName, _currentBytecodeModule.id, this,
+            internalName: internalName,
+            _currentFileName,
+            _currentBytecodeModule.id,
+            this,
             closure: _currentNamespace,
             category: FunctionCategory.literal,
             externalTypeId: externalTypedef,
@@ -2182,6 +2185,7 @@ class HTInterpreter {
       externalTypeId = _currentBytecodeModule.readShortString();
     }
     final category = FunctionCategory.values[_currentBytecodeModule.read()];
+    final isAsync = _currentBytecodeModule.readBool();
     final isField = _currentBytecodeModule.readBool();
     final isExternal = _currentBytecodeModule.readBool();
     final isStatic = _currentBytecodeModule.readBool();
@@ -2253,11 +2257,12 @@ class HTInterpreter {
       definitionIp = _currentBytecodeModule.ip;
       _currentBytecodeModule.skip(length);
     }
-    final func = HTFunction(
-        internalName, _currentFileName, _currentBytecodeModule.id, this,
+    final func = HTFunction(_currentFileName, _currentBytecodeModule.id, this,
+        internalName: internalName,
         id: id,
         classId: classId,
         closure: _currentNamespace,
+        isAsync: isAsync,
         isField: isField,
         isExternal: isExternal,
         isStatic: isStatic,
@@ -2323,8 +2328,8 @@ class HTInterpreter {
     if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
       final ctorType =
           HTFunctionType(returnType: HTIntrinsicType.any(_lexicon.typeAny));
-      final ctor = HTFunction(InternalIdentifier.defaultConstructor,
-          _currentFileName, _currentBytecodeModule.id, this,
+      final ctor = HTFunction(_currentFileName, _currentBytecodeModule.id, this,
+          internalName: InternalIdentifier.defaultConstructor,
           classId: klass.id,
           closure: klass.namespace,
           category: FunctionCategory.constructor,
@@ -2344,7 +2349,7 @@ class HTInterpreter {
     if (isTopLevel && _currentNamespace.willExportAll) {
       _currentNamespace.declareExport(id);
     }
-    final enumClass = HTExternalEnum(id, this);
+    final enumClass = HTExternalEnum(this, id: id);
     _currentNamespace.define(id, enumClass);
     _localValue = enumClass;
   }

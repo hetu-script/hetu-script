@@ -14,15 +14,14 @@ class CodeEditor extends StatefulWidget {
       r'''range(10).map((value) => print('hello, ${value}'))''';
 
   const CodeEditor(
-      {required this.interpreter, this.initialValue = _helloWorld, Key? key})
-      : super(key: key);
+      {required this.interpreter, this.initialValue = _helloWorld, super.key});
 
   final Hetu interpreter;
 
   final String initialValue;
 
   @override
-  _CodeEditorState createState() => _CodeEditorState();
+  State<CodeEditor> createState() => _CodeEditorState();
 }
 
 class _CodeEditorState extends State<CodeEditor> {

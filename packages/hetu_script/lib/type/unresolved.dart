@@ -23,9 +23,8 @@ class HTUnresolvedType extends HTType {
   @override
   String get id => super.id!;
 
-  const HTUnresolvedType(String id,
-      {this.typeArgs = const [], this.isNullable = false})
-      : super(id);
+  const HTUnresolvedType(super.id,
+      {this.typeArgs = const [], this.isNullable = false});
 
   @override
   HTType resolve(HTDeclarationNamespace namespace) {

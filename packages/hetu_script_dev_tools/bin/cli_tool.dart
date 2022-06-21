@@ -130,7 +130,7 @@ void enterReplMode({String? prompt}) {
       break;
     } else {
       if (input!.endsWith('\\')) {
-        input += '\n' + stdin.readLineSync()!;
+        input += '\n${stdin.readLineSync()!}';
       }
       try {
         final result = hetu.eval(input, globallyImport: true);

@@ -17,4 +17,6 @@ abstract class HTAbstractParameter implements HTDeclaration {
 
   @override
   HTAbstractParameter clone();
+
+  void initialize();
 }

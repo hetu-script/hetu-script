@@ -1531,6 +1531,11 @@ class HTDefaultParser extends HTParser {
       return _parseFunction(category: FunctionCategory.literal);
     }
 
+    if (curTok.type == lexicon.kAsync) {
+      leftValueLegality = false;
+      return _parseFunction(category: FunctionCategory.literal, isAsync: true);
+    }
+
     if (curTok.type == Semantic.identifier) {
       final id = advance() as TokenIdentifier;
       final isLocal = curTok.type != lexicon.assign;
@@ -2953,6 +2958,7 @@ class HTDefaultParser extends HTParser {
         isExpressionBody: isExpressionBody,
         hasEndOfStmtMark: hasEndOfStmtMark,
         definition: definition,
+        isAsync: isAsync,
         isField: isField,
         isExternal: isExternal,
         isStatic: isStatic,

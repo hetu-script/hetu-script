@@ -25,9 +25,9 @@ class HTBundler {
     final parserErrors = result.errors;
     final values = <String, ASTSource>{};
     final sources = <String, ASTSource>{};
-    final Set _cachedParsingTargets = <String>{};
+    final Set cachedParsingTargets = <String>{};
     void handleImport(ASTSource result) {
-      _cachedParsingTargets.add(result.fullName);
+      cachedParsingTargets.add(result.fullName);
       for (final decl in result.imports) {
         if (decl.isPreloadedModule) {
           decl.fullName = decl.fromPath;
@@ -46,7 +46,7 @@ class HTBundler {
           } else {
             decl.fullName = importFullName = decl.fromPath!;
           }
-          if (_cachedParsingTargets.contains(importFullName)) {
+          if (cachedParsingTargets.contains(importFullName)) {
             continue;
           }
           // else if (_cachedParseResults.containsKey(importFullName)) {
@@ -76,7 +76,7 @@ class HTBundler {
           parserErrors.add(convertedError);
         }
       }
-      _cachedParsingTargets.remove(result.fullName);
+      cachedParsingTargets.remove(result.fullName);
     }
 
     if (result.resourceType == HTResourceType.hetuValue) {

@@ -1657,6 +1657,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.addByte(0); // bool: hasExternalTypedef
       }
       bytesBuilder.addByte(stmt.category.index);
+      bytesBuilder.addByte(stmt.isAsync ? 1 : 0);
       bytesBuilder.addByte(stmt.isField ? 1 : 0);
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(stmt.isStatic ? 1 : 0);

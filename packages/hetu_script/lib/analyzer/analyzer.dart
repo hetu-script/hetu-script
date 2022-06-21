@@ -16,7 +16,7 @@ import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 
 /// Namespace that holds symbols for analyzing, the value is either the declaration AST or null.
-typedef _AnalysisNamespace = HTDeclarationNamespace<ASTNode?>;
+typedef AnalysisNamespace = HTDeclarationNamespace<ASTNode?>;
 
 class AnalyzerImplConfig {
   bool allowVariableShadowing;
@@ -73,9 +73,9 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   late final HTLexicon _lexicon;
 
-  final _AnalysisNamespace globalNamespace;
+  final AnalysisNamespace globalNamespace;
 
-  late _AnalysisNamespace _currentNamespace;
+  late AnalysisNamespace _currentNamespace;
 
   late HTSource _curSource;
 

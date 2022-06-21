@@ -2,8 +2,8 @@ import '../../declaration/declaration.dart';
 import '../../external/external_class.dart';
 import '../../interpreter/interpreter.dart';
 import '../entity.dart';
-import '../../value/namespace/namespace.dart';
-import '../../source/source.dart';
+// import '../../value/namespace/namespace.dart';
+// import '../../source/source.dart';
 
 class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
   HTExternalClass? externalClass;
@@ -15,17 +15,12 @@ class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
   bool get isResolved => _isResolved;
 
   HTExternalEnum(
-    String id,
     HTInterpreter interpreter, {
-    String? classId,
-    HTNamespace? closure,
-    HTSource? source,
-  }) : super(
-            id: id,
-            classId: classId,
-            closure: closure,
-            source: source,
-            isExternal: true) {
+    required super.id,
+    super.classId,
+    super.closure,
+    super.source,
+  }) : super(isExternal: true) {
     this.interpreter = interpreter;
   }
 
@@ -44,5 +39,5 @@ class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
   }
 
   @override
-  HTExternalEnum clone() => HTExternalEnum(id!, interpreter);
+  HTExternalEnum clone() => HTExternalEnum(interpreter, id: id!);
 }

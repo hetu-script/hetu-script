@@ -1,6 +1,6 @@
-import '../../type/type.dart';
-import '../../source/source.dart';
-import '../namespace/declaration_namespace.dart';
+// import '../../type/type.dart';
+// import '../../source/source.dart';
+// import '../namespace/declaration_namespace.dart';
 import '../variable/variable_declaration.dart';
 import 'abstract_parameter.dart';
 
@@ -16,18 +16,17 @@ class HTParameterDeclaration extends HTVariableDeclaration
   final bool isVariadic;
 
   /// Create a standard [HTParameter].
-  HTParameterDeclaration(String id,
-      {HTDeclarationNamespace? closure,
-      HTSource? source,
-      HTType? declType,
+  HTParameterDeclaration(super.id,
+      {super.closure,
+      super.source,
+      super.declType,
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(id,
-            closure: closure,
-            source: source,
-            declType: declType,
-            isMutable: true);
+      : super(isMutable: true);
+
+  @override
+  void initialize() {}
 
   @override
   HTParameterDeclaration clone() {

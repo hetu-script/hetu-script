@@ -40,18 +40,12 @@ class Token {
 
 class TokenEmptyLine extends Token {
   TokenEmptyLine(
-      {required int line,
-      required int column,
-      required int offset,
-      Token? previous,
-      Token? next})
-      : super(
-            lexeme: Semantic.emptyLine,
-            line: line,
-            column: column,
-            offset: offset,
-            previous: previous,
-            next: next);
+      {required super.line,
+      required super.column,
+      required super.offset,
+      super.previous,
+      super.next})
+      : super(lexeme: Semantic.emptyLine);
 }
 
 class TokenIdentifier extends Token {
@@ -65,21 +59,14 @@ class TokenIdentifier extends Token {
   final String literal;
 
   TokenIdentifier(
-      {required String lexeme,
-      required int line,
-      required int column,
-      required int offset,
-      Token? previous,
-      Token? next,
+      {required super.lexeme,
+      required super.line,
+      required super.column,
+      required super.offset,
+      super.previous,
+      super.next,
       this.isMarked = false})
-      : literal = isMarked ? lexeme.substring(1, lexeme.length - 1) : lexeme,
-        super(
-            lexeme: lexeme,
-            line: line,
-            column: column,
-            offset: offset,
-            previous: previous,
-            next: next);
+      : literal = isMarked ? lexeme.substring(1, lexeme.length - 1) : lexeme;
 }
 
 class TokenBooleanLiteral extends Token {
@@ -90,20 +77,13 @@ class TokenBooleanLiteral extends Token {
   final bool literal;
 
   TokenBooleanLiteral(
-      {required String lexeme,
-      required int line,
-      required int column,
-      required int offset,
-      Token? previous,
-      Token? next,
-      required this.literal})
-      : super(
-            lexeme: lexeme,
-            line: line,
-            column: column,
-            offset: offset,
-            previous: previous,
-            next: next);
+      {required super.lexeme,
+      required super.line,
+      required super.column,
+      required super.offset,
+      super.previous,
+      super.next,
+      required this.literal});
 }
 
 class TokenIntLiteral extends Token {
@@ -114,20 +94,13 @@ class TokenIntLiteral extends Token {
   final int literal;
 
   TokenIntLiteral(
-      {required String lexeme,
-      required int line,
-      required int column,
-      required int offset,
-      Token? previous,
-      Token? next,
-      required this.literal})
-      : super(
-            lexeme: lexeme,
-            line: line,
-            column: column,
-            offset: offset,
-            previous: previous,
-            next: next);
+      {required super.lexeme,
+      required super.line,
+      required super.column,
+      required super.offset,
+      super.previous,
+      super.next,
+      required this.literal});
 }
 
 class TokenFloatLiteral extends Token {
@@ -138,81 +111,56 @@ class TokenFloatLiteral extends Token {
   final double literal;
 
   TokenFloatLiteral(
-      {required String lexeme,
-      required int line,
-      required int column,
-      required int offset,
-      Token? previous,
-      Token? next,
-      required this.literal})
-      : super(
-            lexeme: lexeme,
-            line: line,
-            column: column,
-            offset: offset,
-            previous: previous,
-            next: next);
+      {required super.lexeme,
+      required super.line,
+      required super.column,
+      required super.offset,
+      super.previous,
+      super.next,
+      required this.literal});
 }
 
 class TokenStringLiteral extends Token {
   @override
   String get type => Semantic.literalString;
 
+  final String _literal;
+
   @override
-  final String literal;
+  String get literal => _literal;
 
   final String startMark;
 
   final String endMark;
 
   TokenStringLiteral(
-      {required String lexeme,
-      required int line,
-      required int column,
-      required int offset,
-      Token? previous,
-      Token? next,
+      {required super.lexeme,
+      required super.line,
+      required super.column,
+      required super.offset,
+      super.previous,
+      super.next,
       required this.startMark,
       required this.endMark})
-      : literal = lexeme.substring(1, lexeme.length - 1),
-        super(
-            lexeme: lexeme,
-            line: line,
-            column: column,
-            offset: offset,
-            previous: previous,
-            next: next);
+      : _literal = lexeme.substring(1, lexeme.length - 1);
 }
 
 class TokenStringInterpolation extends TokenStringLiteral {
   @override
   String get type => Semantic.literalStringInterpolation;
 
-  @override
-  final String literal;
-
   final List<Token> interpolations;
 
   TokenStringInterpolation(
-      {required String lexeme,
-      required int line,
-      required int column,
-      required int offset,
-      Token? previous,
-      Token? next,
-      required String startMark,
-      required String endMark,
-      required this.interpolations})
-      : literal = lexeme.substring(1, lexeme.length - 1),
-        super(
-            lexeme: lexeme,
-            line: line,
-            column: column,
-            offset: offset,
-            previous: previous,
-            next: next,
-            startMark: startMark,
-            endMark: endMark);
+      {required super.lexeme,
+      required super.line,
+      required super.column,
+      required super.offset,
+      super.previous,
+      super.next,
+      required super.startMark,
+      required super.endMark,
+      required this.interpolations});
 }
 
 class TokenComment extends Token {
@@ -224,19 +172,12 @@ class TokenComment extends Token {
   final bool isTrailing;
 
   TokenComment(
-      {required String lexeme,
-      required int line,
-      required int column,
-      required int offset,
-      Token? previous,
-      Token? next,
+      {required super.lexeme,
+      required super.line,
+      required super.column,
+      required super.offset,
+      super.previous,
+      super.next,
       required this.commentType,
-      this.isTrailing = false})
-      : super(
-            lexeme: lexeme,
-            line: line,
-            column: column,
-            offset: offset,
-            previous: previous,
-            next: next);
+      this.isTrailing = false});
 }

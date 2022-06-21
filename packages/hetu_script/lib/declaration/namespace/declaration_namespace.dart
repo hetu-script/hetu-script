@@ -1,5 +1,5 @@
 import '../../error/error.dart';
-import '../../source/source.dart';
+// import '../../source/source.dart';
 import '../../declaration/declaration.dart';
 import '../../value/entity.dart';
 import '../../value/unresolved_import_statement.dart';
@@ -22,11 +22,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   bool willExportAll = true;
 
   HTDeclarationNamespace(
-      {String? id,
-      String? classId,
-      HTDeclarationNamespace<dynamic>? closure,
-      HTSource? source})
-      : super(id: id, classId: classId, closure: closure, source: source) {
+      {super.id, super.classId, super.closure, super.source}) {
     // calculate the full name of this namespace
     _fullName = displayName;
     var curSpace = closure;

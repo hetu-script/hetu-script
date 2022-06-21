@@ -754,7 +754,7 @@ class HTDefaultLexicon extends HTLexicon {
       var namedStarted = false;
       for (final param in type.parameterTypes) {
         if (param.isVariadic) {
-          output.write(variadicArgs + ' ');
+          output.write('$variadicArgs ');
         }
         if (param.isOptional && !optionalStarted) {
           optionalStarted = true;
@@ -781,8 +781,8 @@ class HTDefaultLexicon extends HTLexicon {
         ++i;
       }
       final returnTypeString = _stringifyType(type.returnType);
-      output.write('$functionArgumentEnd $functionReturnTypeIndicator ' +
-          returnTypeString);
+      output.write(
+          '$functionArgumentEnd $functionReturnTypeIndicator $returnTypeString');
     } else if (type is HTStructuralType) {
       // output.write('$kStruct ');
       if (type.fieldTypes.isEmpty) {
