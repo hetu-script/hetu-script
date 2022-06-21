@@ -1481,6 +1481,10 @@ class HTDefaultParser extends HTParser {
               .addAll(currentPrecedingCommentOrEmptyLine);
           break;
         }
+        if ((curTok.type == lexicon.listEnd) ||
+            (curTok.type == Semantic.endOfFile)) {
+          break;
+        }
         isPreviousItemEndedWithComma = false;
         ASTNode item;
         if (curTok.type == lexicon.spreadSyntax) {
@@ -1611,6 +1615,10 @@ class HTDefaultParser extends HTParser {
               .addAll(currentPrecedingCommentOrEmptyLine);
           break;
         }
+        if ((curTok.type == lexicon.groupExprEnd) ||
+            (curTok.type == Semantic.endOfFile)) {
+          break;
+        }
         isPreviousItemEndedWithComma = false;
         final start = curTok;
         if (!isOptional) {
@@ -1685,6 +1693,10 @@ class HTDefaultParser extends HTParser {
             fieldTypes.isNotEmpty) {
           fieldTypes.last.succeedingComments
               .addAll(currentPrecedingCommentOrEmptyLine);
+          break;
+        }
+        if ((curTok.type == lexicon.functionBlockEnd) ||
+            (curTok.type == Semantic.endOfFile)) {
           break;
         }
         isPreviousItemEndedWithComma = false;
@@ -1792,6 +1804,10 @@ class HTDefaultParser extends HTParser {
                   .addAll(currentPrecedingCommentOrEmptyLine);
               break;
             }
+            if ((curTok.type == lexicon.typeParameterEnd) ||
+                (curTok.type == Semantic.endOfFile)) {
+              break;
+            }
             isPreviousItemEndedWithComma = false;
             final typeArg = _parseTypeExpr();
             typeArgs.add(typeArg);
@@ -1883,6 +1899,10 @@ class HTDefaultParser extends HTParser {
               .addAll(currentPrecedingCommentOrEmptyLine);
           break;
         }
+      }
+      if ((curTok.type == lexicon.groupExprEnd) ||
+          (curTok.type == Semantic.endOfFile)) {
+        break;
       }
       isPreviousItemEndedWithComma = false;
       if ((!isNamed &&
@@ -2194,6 +2214,10 @@ class HTDefaultParser extends HTParser {
               .addAll(currentPrecedingCommentOrEmptyLine);
           break;
         }
+        if ((curTok.type == lexicon.typeParameterEnd) ||
+            (curTok.type == Semantic.endOfFile)) {
+          break;
+        }
         isPreviousItemEndedWithComma = false;
         final idTok = match(Semantic.identifier);
         final id = IdentifierExpr.fromToken(idTok, source: currentSource);
@@ -2227,9 +2251,9 @@ class HTDefaultParser extends HTParser {
     // TODO: duplicate import and self import error.
     final keyword = advance(); // not a keyword so don't use match
     final showList = <IdentifierExpr>[];
-    if (curTok.type == lexicon.functionBlockStart) {
+    if (curTok.type == lexicon.declarationBlockStart) {
       advance();
-      if (curTok.type == lexicon.functionBlockEnd) {
+      if (curTok.type == lexicon.declarationBlockEnd) {
         final err = HTError.emptyImportList(
             filename: currrentFileName,
             line: curTok.line,
@@ -2239,7 +2263,7 @@ class HTDefaultParser extends HTParser {
         errors.add(err);
       }
       bool isPreviousItemEndedWithComma = false;
-      while (curTok.type != lexicon.functionBlockEnd &&
+      while (curTok.type != lexicon.declarationBlockEnd &&
           curTok.type != Semantic.endOfFile) {
         final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
         if (hasPrecedingComments &&
@@ -2247,6 +2271,10 @@ class HTDefaultParser extends HTParser {
             showList.isNotEmpty) {
           showList.last.succeedingComments
               .addAll(currentPrecedingCommentOrEmptyLine);
+          break;
+        }
+        if ((curTok.type == lexicon.declarationBlockEnd) ||
+            (curTok.type == Semantic.endOfFile)) {
           break;
         }
         isPreviousItemEndedWithComma = false;
@@ -2338,10 +2366,10 @@ class HTDefaultParser extends HTParser {
     final keyword = advance(); // not a keyword so don't use match
     late final ImportExportDecl stmt;
     // export some of the symbols from this or other source
-    if (expect([lexicon.functionBlockStart], consume: true)) {
+    if (expect([lexicon.declarationBlockStart], consume: true)) {
       final showList = <IdentifierExpr>[];
       bool isPreviousItemEndedWithComma = false;
-      while (curTok.type != lexicon.functionBlockEnd &&
+      while (curTok.type != lexicon.declarationBlockEnd &&
           curTok.type != Semantic.endOfFile) {
         final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
         if (hasPrecedingComments &&
@@ -2349,6 +2377,10 @@ class HTDefaultParser extends HTParser {
             showList.isNotEmpty) {
           showList.last.succeedingComments
               .addAll(currentPrecedingCommentOrEmptyLine);
+          break;
+        }
+        if ((curTok.type == lexicon.declarationBlockEnd) ||
+            (curTok.type == Semantic.endOfFile)) {
           break;
         }
         isPreviousItemEndedWithComma = false;
@@ -2613,6 +2645,9 @@ class HTDefaultParser extends HTParser {
             .addAll(currentPrecedingCommentOrEmptyLine);
         break;
       }
+      if ((curTok.type == endMark) || (curTok.type == Semantic.endOfFile)) {
+        break;
+      }
       isPreviousItemEndedWithComma = false;
       final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok, source: currentSource);
@@ -2717,16 +2752,16 @@ class HTDefaultParser extends HTParser {
     var paramDecls = <ParamDecl>[];
     var hasParamDecls = false;
     if (category != FunctionCategory.getter &&
-        expect([lexicon.groupExprStart], consume: true)) {
+        expect([lexicon.functionArgumentStart], consume: true)) {
       final startTok = curTok;
       hasParamDecls = true;
       var isOptional = false;
       var isNamed = false;
       var isVariadic = false;
       var isPreviousItemEndedWithComma = false;
-      while ((curTok.type != lexicon.groupExprEnd) &&
-          (curTok.type != lexicon.listEnd) &&
-          (curTok.type != lexicon.functionBlockEnd) &&
+      while ((curTok.type != lexicon.functionArgumentEnd) &&
+          (curTok.type != lexicon.optionalPositionalParameterEnd) &&
+          (curTok.type != lexicon.namedParameterEnd) &&
           (curTok.type != Semantic.endOfFile)) {
         final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
         if (hasPrecedingComments &&
@@ -2736,12 +2771,19 @@ class HTDefaultParser extends HTParser {
               .addAll(currentPrecedingCommentOrEmptyLine);
           break;
         }
+        if ((curTok.type == lexicon.functionArgumentEnd) ||
+            (curTok.type == lexicon.optionalPositionalParameterEnd) ||
+            (curTok.type == lexicon.namedParameterEnd) ||
+            (curTok.type == Semantic.endOfFile)) {
+          break;
+        }
         // 可选参数, 根据是否有方括号判断, 一旦开始了可选参数, 则不再增加参数数量arity要求
         if (!isOptional) {
-          isOptional = expect([lexicon.listStart], consume: true);
+          isOptional =
+              expect([lexicon.optionalPositionalParameterStart], consume: true);
           if (!isOptional && !isNamed) {
             //检查命名参数, 根据是否有花括号判断
-            isNamed = expect([lexicon.functionBlockStart], consume: true);
+            isNamed = expect([lexicon.namedParameterStart], consume: true);
           }
         }
         if (!isNamed) {
@@ -3041,8 +3083,8 @@ class HTDefaultParser extends HTParser {
     final id = match(Semantic.identifier);
     var enumerations = <IdentifierExpr>[];
     bool isPreviousItemEndedWithComma = false;
-    if (expect([lexicon.functionBlockStart], consume: true)) {
-      while (curTok.type != lexicon.functionBlockEnd &&
+    if (expect([lexicon.declarationBlockStart], consume: true)) {
+      while (curTok.type != lexicon.declarationBlockEnd &&
           curTok.type != Semantic.endOfFile) {
         final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
         if (hasPrecedingComments &&
@@ -3050,6 +3092,10 @@ class HTDefaultParser extends HTParser {
             enumerations.isNotEmpty) {
           enumerations.last.succeedingComments
               .addAll(currentPrecedingCommentOrEmptyLine);
+          break;
+        }
+        if ((curTok.type == lexicon.declarationBlockEnd) ||
+            (curTok.type == Semantic.endOfFile)) {
           break;
         }
         isPreviousItemEndedWithComma = false;
