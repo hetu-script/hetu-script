@@ -451,9 +451,12 @@ extension IterableBinding on Iterable {
   dynamic htFetch(String varName) {
     switch (varName) {
       case 'random':
-        assert(isNotEmpty);
-        final index = math.Random().nextInt(length);
-        return elementAt(index);
+        if (isNotEmpty) {
+          final index = math.Random().nextInt(length);
+          return elementAt(index);
+        } else {
+          return null;
+        }
       case 'toJson':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
