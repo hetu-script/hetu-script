@@ -2,6 +2,7 @@ import '../../declaration/namespace/declaration_namespace.dart';
 import '../../declaration/declaration.dart';
 import '../../source/source.dart';
 import '../../error/error.dart';
+import '';
 
 /// A namespace that will return the actual value of the declaration.
 class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {

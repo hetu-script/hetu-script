@@ -20,8 +20,10 @@ void main() async {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = await hetu.eval(r'''
-      Future(()=>print(42))
-      print(23)
+      namespace asdf {
+
+      }
+      print(asdf is namespace)
   ''');
   print(hetu.lexicon.stringify(r));
 }

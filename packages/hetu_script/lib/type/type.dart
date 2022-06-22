@@ -46,55 +46,6 @@ class HTIntrinsicType extends HTType {
   const HTIntrinsicType(super.id,
       {required this.isTop, required this.isBottom});
 
-  /// A type is both `top` and `bottom`, only used on declaration for analysis.
-  ///
-  /// There's no runtime value that has `any` as its type.
-  ///
-  /// In analysis, you can do everything with it:
-  ///
-  /// 1, use any operator on it.
-  ///
-  /// 2, call it as a function.
-  ///
-  /// 3, get a member out of it.
-  ///
-  /// 4, get a subscript value out of it.
-  ///
-  /// Every type is assignable to type any (the meaning of `top`),
-  /// and type any is assignable to every type (the meaning of `bottom`).
-  ///
-  /// With `any` we lose any protection that is normally given to us by static type system.
-  ///
-  /// Therefore, it should only be used as a last resort
-  /// when we can’t use more specific types or `unknown`.
-  const HTIntrinsicType.any(String id) : this(id, isTop: true, isBottom: true);
-
-  /// A `top` type, basically a type-safe version of the type any.
-  ///
-  /// Every type is assignable to type unknown (the meaning of `top`).
-  ///
-  /// Type unknown cannot assign to other types except `any` & `unknown`.
-  ///
-  /// You cannot do anything with it, unless you do an explicit type assertion.
-  const HTIntrinsicType.unknown(String id)
-      : this(id, isTop: true, isBottom: false);
-
-  /// A `bottom` type. A function whose return type is never cannot return.
-  /// For example by throwing an error or looping forever.
-  const HTIntrinsicType.never(String id)
-      : this(id, isTop: false, isBottom: true);
-
-  /// A `empty` type. A function whose return type is empty.
-  /// It may contain return statement, but cannot return any value.
-  /// And you cannot use the function call result in any operation.
-  const HTIntrinsicType.vo1d(String id)
-      : this(id, isTop: false, isBottom: true);
-
-  /// A `zero` type. It's the type of runtime null value.
-  /// You cannot get this type via expression or declaration.
-  const HTIntrinsicType.nu11(String id)
-      : this(id, isTop: false, isBottom: false);
-
   @override
   bool isA(HTType? other) {
     if (other == null) return true;
@@ -107,4 +58,67 @@ class HTIntrinsicType extends HTType {
 
     return false;
   }
+}
+
+/// A type is both `top` and `bottom`, only used on declaration for analysis.
+///
+/// There's no runtime value that has `any` as its type.
+///
+/// In analysis, you can do everything with it:
+///
+/// 1, use any operator on it.
+///
+/// 2, call it as a function.
+///
+/// 3, get a member out of it.
+///
+/// 4, get a subscript value out of it.
+///
+/// Every type is assignable to type any (the meaning of `top`),
+/// and type any is assignable to every type (the meaning of `bottom`).
+///
+/// With `any` we lose any protection that is normally given to us by static type system.
+///
+/// Therefore, it should only be used as a last resort
+/// when we can’t use more specific types or `unknown`.
+class HTTypeAny extends HTIntrinsicType {
+  const HTTypeAny(String id) : super(id, isTop: true, isBottom: true);
+}
+
+/// A `top` type, basically a type-safe version of the type any.
+///
+/// Every type is assignable to type unknown (the meaning of `top`).
+///
+/// Type unknown cannot assign to other types except `any` & `unknown`.
+///
+/// You cannot do anything with it, unless you do an explicit type assertion.
+class HTTypeUnknown extends HTIntrinsicType {
+  const HTTypeUnknown(String id) : super(id, isTop: true, isBottom: false);
+}
+
+/// A `bottom` type. A function whose return type is never cannot return.
+/// For example by throwing an error or looping forever.
+class HTTypeNever extends HTIntrinsicType {
+  const HTTypeNever(String id) : super(id, isTop: false, isBottom: true);
+}
+
+/// A `empty` type. A function whose return type is empty.
+/// It may contain return statement, but cannot return any value.
+/// And you cannot use the function call result in any operation.
+class HTTypeVoid extends HTIntrinsicType {
+  const HTTypeVoid(String id) : super(id, isTop: false, isBottom: true);
+}
+
+/// A `zero` type. It's the type of runtime null value.
+/// You cannot get this type via expression or declaration.
+class HTTypeNull extends HTIntrinsicType {
+  const HTTypeNull(String id) : super(id, isTop: false, isBottom: false);
+}
+
+class HTTypeFunction extends HTIntrinsicType {
+  const HTTypeFunction(String id) : super(id, isTop: false, isBottom: false);
+}
+
+class HTTypeNamespace extends HTIntrinsicType {
+  const HTTypeNamespace(String id) : super(id, isTop: false, isBottom: false);
 }

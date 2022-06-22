@@ -90,128 +90,126 @@ class HTDefaultParser extends HTParser {
           stmt = _parseExportStmt();
         } else if (curTok.lexeme == lexicon.kType) {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
-        } else {
-          if (curTok.type == lexicon.kExternal) {
-            advance();
-            if (curTok.type == lexicon.kAbstract) {
-              advance();
-              stmt = _parseClassDecl(
-                  isAbstract: true, isExternal: true, isTopLevel: true);
-            } else if (curTok.type == lexicon.kClass) {
-              stmt = _parseClassDecl(isExternal: true, isTopLevel: true);
-            } else if (curTok.type == lexicon.kEnum) {
-              stmt = _parseEnumDecl(isExternal: true, isTopLevel: true);
-            } else if (lexicon.variableDeclarationKeywords
-                .contains(curTok.type)) {
-              final err = HTError.externalVar(
-                  filename: currrentFileName,
-                  line: curTok.line,
-                  column: curTok.column,
-                  offset: curTok.offset,
-                  length: curTok.length);
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                  source: currentSource,
-                  line: errToken.line,
-                  column: errToken.column,
-                  offset: errToken.offset);
-            } else if (curTok.type == lexicon.kFun) {
-              stmt = _parseFunction(isExternal: true, isTopLevel: true);
-            } else {
-              final err = HTError.unexpected(
-                  lexicon.kExternal, Semantic.declStmt, curTok.lexeme,
-                  filename: currrentFileName,
-                  line: curTok.line,
-                  column: curTok.column,
-                  offset: curTok.offset,
-                  length: curTok.length);
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                  source: currentSource,
-                  line: errToken.line,
-                  column: errToken.column,
-                  offset: errToken.offset);
-            }
-          } else if (curTok.type == lexicon.kAbstract) {
+        } else if (curTok.lexeme == lexicon.kNamespace) {
+          stmt = _parseNamespaceDecl(isTopLevel: true);
+        } else if (curTok.type == lexicon.kExternal) {
+          advance();
+          if (curTok.type == lexicon.kAbstract) {
             advance();
             stmt = _parseClassDecl(
-                isAbstract: true, isTopLevel: true, lateResolve: false);
+                isAbstract: true, isExternal: true, isTopLevel: true);
           } else if (curTok.type == lexicon.kClass) {
-            stmt = _parseClassDecl(isTopLevel: true, lateResolve: false);
+            stmt = _parseClassDecl(isExternal: true, isTopLevel: true);
           } else if (curTok.type == lexicon.kEnum) {
-            stmt = _parseEnumDecl(isTopLevel: true);
-          } else if (curTok.type == lexicon.kNamespace) {
-            stmt = _parseNamespaceDecl(isTopLevel: true);
-          } else if (curTok.type == lexicon.kVar) {
-            if (lexicon.destructuringDeclarationMark.contains(peek(1).type)) {
-              stmt = _parseDestructuringDecl(isTopLevel: true, isMutable: true);
-            } else {
-              stmt = _parseVarDecl(isMutable: true, isTopLevel: true);
-            }
-          } else if (curTok.type == lexicon.kFinal) {
-            if (lexicon.destructuringDeclarationMark.contains(peek(1).type)) {
-              stmt = _parseDestructuringDecl(isTopLevel: true);
-            } else {
-              stmt = _parseVarDecl(isTopLevel: true);
-            }
-          } else if (curTok.type == lexicon.kLate) {
-            stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
-          } else if (curTok.type == lexicon.kConst) {
-            stmt = _parseVarDecl(isConst: true, isTopLevel: true);
+            stmt = _parseEnumDecl(isExternal: true, isTopLevel: true);
+          } else if (lexicon.variableDeclarationKeywords
+              .contains(curTok.type)) {
+            final err = HTError.externalVar(
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
           } else if (curTok.type == lexicon.kFun) {
-            if (expect([lexicon.kFun, Semantic.identifier]) ||
-                expect([
-                  lexicon.kFun,
-                  lexicon.externalFunctionTypeDefStart,
-                  Semantic.identifier,
-                  lexicon.externalFunctionTypeDefEnd,
-                  Semantic.identifier
-                ])) {
-              stmt = _parseFunction(isTopLevel: true);
-            } else {
-              stmt = _parseFunction(
-                  category: FunctionCategory.literal, isTopLevel: true);
-            }
-          } else if (curTok.type == lexicon.kAsync) {
-            if (expect([lexicon.kAsync, Semantic.identifier]) ||
-                expect([
-                  lexicon.kFun,
-                  lexicon.externalFunctionTypeDefStart,
-                  Semantic.identifier,
-                  lexicon.externalFunctionTypeDefEnd,
-                  Semantic.identifier
-                ])) {
-              stmt = _parseFunction(isAsync: true, isTopLevel: true);
-            } else {
-              stmt = _parseFunction(
-                  category: FunctionCategory.literal,
-                  isAsync: true,
-                  isTopLevel: true);
-            }
-          } else if (curTok.type == lexicon.kStruct) {
-            stmt =
-                _parseStructDecl(isTopLevel: true); // , lateInitialize: false);
-          } else if (curTok.type == lexicon.kDelete) {
-            stmt = _parseDeleteStmt();
-          } else if (curTok.type == lexicon.kIf) {
-            stmt = _parseIf();
-          } else if (curTok.type == lexicon.kWhile) {
-            stmt = _parseWhileStmt();
-          } else if (curTok.type == lexicon.kDo) {
-            stmt = _parseDoStmt();
-          } else if (curTok.type == lexicon.kFor) {
-            stmt = _parseForStmt();
-          } else if (curTok.type == lexicon.kWhen) {
-            stmt = _parseWhen();
-          } else if (curTok.type == lexicon.kAssert) {
-            stmt = _parseAssertStmt();
-          } else if (curTok.type == lexicon.kThrow) {
-            stmt = _parseThrowStmt();
+            stmt = _parseFunction(isExternal: true, isTopLevel: true);
           } else {
-            stmt = _parseExprStmt();
+            final err = HTError.unexpected(
+                lexicon.kExternal, Semantic.declStmt, curTok.lexeme,
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
           }
+        } else if (curTok.type == lexicon.kAbstract) {
+          advance();
+          stmt = _parseClassDecl(
+              isAbstract: true, isTopLevel: true, lateResolve: false);
+        } else if (curTok.type == lexicon.kClass) {
+          stmt = _parseClassDecl(isTopLevel: true, lateResolve: false);
+        } else if (curTok.type == lexicon.kEnum) {
+          stmt = _parseEnumDecl(isTopLevel: true);
+        } else if (curTok.type == lexicon.kVar) {
+          if (lexicon.destructuringDeclarationMark.contains(peek(1).type)) {
+            stmt = _parseDestructuringDecl(isTopLevel: true, isMutable: true);
+          } else {
+            stmt = _parseVarDecl(isMutable: true, isTopLevel: true);
+          }
+        } else if (curTok.type == lexicon.kFinal) {
+          if (lexicon.destructuringDeclarationMark.contains(peek(1).type)) {
+            stmt = _parseDestructuringDecl(isTopLevel: true);
+          } else {
+            stmt = _parseVarDecl(isTopLevel: true);
+          }
+        } else if (curTok.type == lexicon.kLate) {
+          stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
+        } else if (curTok.type == lexicon.kConst) {
+          stmt = _parseVarDecl(isConst: true, isTopLevel: true);
+        } else if (curTok.type == lexicon.kFun) {
+          if (expect([lexicon.kFun, Semantic.identifier]) ||
+              expect([
+                lexicon.kFun,
+                lexicon.externalFunctionTypeDefStart,
+                Semantic.identifier,
+                lexicon.externalFunctionTypeDefEnd,
+                Semantic.identifier
+              ])) {
+            stmt = _parseFunction(isTopLevel: true);
+          } else {
+            stmt = _parseFunction(
+                category: FunctionCategory.literal, isTopLevel: true);
+          }
+        } else if (curTok.type == lexicon.kAsync) {
+          if (expect([lexicon.kAsync, Semantic.identifier]) ||
+              expect([
+                lexicon.kFun,
+                lexicon.externalFunctionTypeDefStart,
+                Semantic.identifier,
+                lexicon.externalFunctionTypeDefEnd,
+                Semantic.identifier
+              ])) {
+            stmt = _parseFunction(isAsync: true, isTopLevel: true);
+          } else {
+            stmt = _parseFunction(
+                category: FunctionCategory.literal,
+                isAsync: true,
+                isTopLevel: true);
+          }
+        } else if (curTok.type == lexicon.kStruct) {
+          stmt =
+              _parseStructDecl(isTopLevel: true); // , lateInitialize: false);
+        } else if (curTok.type == lexicon.kDelete) {
+          stmt = _parseDeleteStmt();
+        } else if (curTok.type == lexicon.kIf) {
+          stmt = _parseIf();
+        } else if (curTok.type == lexicon.kWhile) {
+          stmt = _parseWhileStmt();
+        } else if (curTok.type == lexicon.kDo) {
+          stmt = _parseDoStmt();
+        } else if (curTok.type == lexicon.kFor) {
+          stmt = _parseForStmt();
+        } else if (curTok.type == lexicon.kWhen) {
+          stmt = _parseWhen();
+        } else if (curTok.type == lexicon.kAssert) {
+          stmt = _parseAssertStmt();
+        } else if (curTok.type == lexicon.kThrow) {
+          stmt = _parseThrowStmt();
+        } else {
+          stmt = _parseExprStmt();
         }
         break;
       case ParseStyle.module:
@@ -221,41 +219,15 @@ class HTDefaultParser extends HTParser {
           stmt = _parseExportStmt();
         } else if (curTok.lexeme == lexicon.kType) {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
-        } else {
-          if (curTok.type == lexicon.kNamespace) {
-            stmt = _parseNamespaceDecl(isTopLevel: true);
-          } else if (curTok.type == lexicon.kExternal) {
+        } else if (curTok.lexeme == lexicon.kNamespace) {
+          stmt = _parseNamespaceDecl(isTopLevel: true);
+        } else if (curTok.type == lexicon.kExternal) {
+          advance();
+          if (curTok.type == lexicon.kAbstract) {
             advance();
-            if (curTok.type == lexicon.kAbstract) {
-              advance();
-              if (curTok.type != lexicon.kClass) {
-                final err = HTError.unexpected(
-                    lexicon.kAbstract, Semantic.classDeclaration, curTok.lexeme,
-                    filename: currrentFileName,
-                    line: curTok.line,
-                    column: curTok.column,
-                    offset: curTok.offset,
-                    length: curTok.length);
-                errors.add(err);
-                final errToken = advance();
-                stmt = ASTEmptyLine(
-                    source: currentSource,
-                    line: errToken.line,
-                    column: errToken.column,
-                    offset: errToken.offset);
-              } else {
-                stmt = _parseClassDecl(
-                    isAbstract: true, isExternal: true, isTopLevel: true);
-              }
-            } else if (curTok.type == lexicon.kClass) {
-              stmt = _parseClassDecl(isExternal: true, isTopLevel: true);
-            } else if (curTok.type == lexicon.kEnum) {
-              stmt = _parseEnumDecl(isExternal: true, isTopLevel: true);
-            } else if (curTok.type == lexicon.kFun) {
-              stmt = _parseFunction(isExternal: true, isTopLevel: true);
-            } else if (lexicon.variableDeclarationKeywords
-                .contains(curTok.type)) {
-              final err = HTError.externalVar(
+            if (curTok.type != lexicon.kClass) {
+              final err = HTError.unexpected(
+                  lexicon.kAbstract, Semantic.classDeclaration, curTok.lexeme,
                   filename: currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
@@ -269,44 +241,33 @@ class HTDefaultParser extends HTParser {
                   column: errToken.column,
                   offset: errToken.offset);
             } else {
-              final err = HTError.unexpected(
-                  lexicon.kExternal, Semantic.declStmt, curTok.lexeme,
-                  filename: currrentFileName,
-                  line: curTok.line,
-                  column: curTok.column,
-                  offset: curTok.offset,
-                  length: curTok.length);
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                  source: currentSource,
-                  line: errToken.line,
-                  column: errToken.column,
-                  offset: errToken.offset);
+              stmt = _parseClassDecl(
+                  isAbstract: true, isExternal: true, isTopLevel: true);
             }
-          } else if (curTok.type == lexicon.kAbstract) {
-            advance();
-            stmt = _parseClassDecl(isAbstract: true, isTopLevel: true);
           } else if (curTok.type == lexicon.kClass) {
-            stmt = _parseClassDecl(isTopLevel: true);
+            stmt = _parseClassDecl(isExternal: true, isTopLevel: true);
           } else if (curTok.type == lexicon.kEnum) {
-            stmt = _parseEnumDecl(isTopLevel: true);
-          } else if (curTok.type == lexicon.kVar) {
-            stmt = _parseVarDecl(
-                isMutable: true, isTopLevel: true, lateInitialize: true);
-          } else if (curTok.type == lexicon.kFinal) {
-            stmt = _parseVarDecl(lateInitialize: true, isTopLevel: true);
-          } else if (curTok.type == lexicon.kLate) {
-            stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
-          } else if (curTok.type == lexicon.kConst) {
-            stmt = _parseVarDecl(isConst: true, isTopLevel: true);
+            stmt = _parseEnumDecl(isExternal: true, isTopLevel: true);
           } else if (curTok.type == lexicon.kFun) {
-            stmt = _parseFunction(isTopLevel: true);
-          } else if (curTok.type == lexicon.kStruct) {
-            stmt = _parseStructDecl(isTopLevel: true);
+            stmt = _parseFunction(isExternal: true, isTopLevel: true);
+          } else if (lexicon.variableDeclarationKeywords
+              .contains(curTok.type)) {
+            final err = HTError.externalVar(
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
           } else {
             final err = HTError.unexpected(
-                Semantic.declStmt, Semantic.declStmt, curTok.lexeme,
+                lexicon.kExternal, Semantic.declStmt, curTok.lexeme,
                 filename: currrentFileName,
                 line: curTok.line,
                 column: curTok.column,
@@ -320,45 +281,55 @@ class HTDefaultParser extends HTParser {
                 column: errToken.column,
                 offset: errToken.offset);
           }
+        } else if (curTok.type == lexicon.kAbstract) {
+          advance();
+          stmt = _parseClassDecl(isAbstract: true, isTopLevel: true);
+        } else if (curTok.type == lexicon.kClass) {
+          stmt = _parseClassDecl(isTopLevel: true);
+        } else if (curTok.type == lexicon.kEnum) {
+          stmt = _parseEnumDecl(isTopLevel: true);
+        } else if (curTok.type == lexicon.kVar) {
+          stmt = _parseVarDecl(
+              isMutable: true, isTopLevel: true, lateInitialize: true);
+        } else if (curTok.type == lexicon.kFinal) {
+          stmt = _parseVarDecl(lateInitialize: true, isTopLevel: true);
+        } else if (curTok.type == lexicon.kLate) {
+          stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
+        } else if (curTok.type == lexicon.kConst) {
+          stmt = _parseVarDecl(isConst: true, isTopLevel: true);
+        } else if (curTok.type == lexicon.kFun) {
+          stmt = _parseFunction(isTopLevel: true);
+        } else if (curTok.type == lexicon.kStruct) {
+          stmt = _parseStructDecl(isTopLevel: true);
+        } else {
+          final err = HTError.unexpected(
+              Semantic.declStmt, Semantic.declStmt, curTok.lexeme,
+              filename: currrentFileName,
+              line: curTok.line,
+              column: curTok.column,
+              offset: curTok.offset,
+              length: curTok.length);
+          errors.add(err);
+          final errToken = advance();
+          stmt = ASTEmptyLine(
+              source: currentSource,
+              line: errToken.line,
+              column: errToken.column,
+              offset: errToken.offset);
         }
         break;
       case ParseStyle.namespace:
         if (curTok.lexeme == lexicon.kType) {
           stmt = _parseTypeAliasDecl();
-        } else {
-          if (curTok.type == lexicon.kNamespace) {
-            stmt = _parseNamespaceDecl();
-          } else if (curTok.type == lexicon.kExternal) {
+        } else if (curTok.lexeme == lexicon.kNamespace) {
+          stmt = _parseNamespaceDecl();
+        } else if (curTok.type == lexicon.kExternal) {
+          advance();
+          if (curTok.type == lexicon.kAbstract) {
             advance();
-            if (curTok.type == lexicon.kAbstract) {
-              advance();
-              if (curTok.type != lexicon.kClass) {
-                final err = HTError.unexpected(
-                    lexicon.kAbstract, Semantic.classDeclaration, curTok.lexeme,
-                    filename: currrentFileName,
-                    line: curTok.line,
-                    column: curTok.column,
-                    offset: curTok.offset,
-                    length: curTok.length);
-                errors.add(err);
-                final errToken = advance();
-                stmt = ASTEmptyLine(
-                    source: currentSource,
-                    line: errToken.line,
-                    column: errToken.column,
-                    offset: errToken.offset);
-              } else {
-                stmt = _parseClassDecl(isAbstract: true, isExternal: true);
-              }
-            } else if (curTok.type == lexicon.kClass) {
-              stmt = _parseClassDecl(isExternal: true);
-            } else if (curTok.type == lexicon.kEnum) {
-              stmt = _parseEnumDecl(isExternal: true);
-            } else if (curTok.type == lexicon.kFun) {
-              stmt = _parseFunction(isExternal: true);
-            } else if (lexicon.variableDeclarationKeywords
-                .contains(curTok.type)) {
-              final err = HTError.externalVar(
+            if (curTok.type != lexicon.kClass) {
+              final err = HTError.unexpected(
+                  lexicon.kAbstract, Semantic.classDeclaration, curTok.lexeme,
                   filename: currrentFileName,
                   line: curTok.line,
                   column: curTok.column,
@@ -372,43 +343,32 @@ class HTDefaultParser extends HTParser {
                   column: errToken.column,
                   offset: errToken.offset);
             } else {
-              final err = HTError.unexpected(
-                  lexicon.kExternal, Semantic.declStmt, curTok.lexeme,
-                  filename: currrentFileName,
-                  line: curTok.line,
-                  column: curTok.column,
-                  offset: curTok.offset,
-                  length: curTok.length);
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                  source: currentSource,
-                  line: errToken.line,
-                  column: errToken.column,
-                  offset: errToken.offset);
+              stmt = _parseClassDecl(isAbstract: true, isExternal: true);
             }
-          } else if (curTok.type == lexicon.kAbstract) {
-            advance();
-            stmt = _parseClassDecl(
-                isAbstract: true, lateResolve: _isWithinModuleNamespace);
           } else if (curTok.type == lexicon.kClass) {
-            stmt = _parseClassDecl(lateResolve: _isWithinModuleNamespace);
+            stmt = _parseClassDecl(isExternal: true);
           } else if (curTok.type == lexicon.kEnum) {
-            stmt = _parseEnumDecl();
-          } else if (curTok.type == lexicon.kVar) {
-            stmt = _parseVarDecl(
-                isMutable: true, lateInitialize: _isWithinModuleNamespace);
-          } else if (curTok.type == lexicon.kFinal) {
-            stmt = _parseVarDecl(lateInitialize: _isWithinModuleNamespace);
-          } else if (curTok.type == lexicon.kConst) {
-            stmt = _parseVarDecl(isConst: true);
+            stmt = _parseEnumDecl(isExternal: true);
           } else if (curTok.type == lexicon.kFun) {
-            stmt = _parseFunction();
-          } else if (curTok.type == lexicon.kStruct) {
-            stmt = _parseStructDecl();
+            stmt = _parseFunction(isExternal: true);
+          } else if (lexicon.variableDeclarationKeywords
+              .contains(curTok.type)) {
+            final err = HTError.externalVar(
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
           } else {
             final err = HTError.unexpected(
-                Semantic.declStmt, Semantic.declStmt, curTok.lexeme,
+                lexicon.kExternal, Semantic.declStmt, curTok.lexeme,
                 filename: currrentFileName,
                 line: curTok.line,
                 column: curTok.column,
@@ -422,6 +382,40 @@ class HTDefaultParser extends HTParser {
                 column: errToken.column,
                 offset: errToken.offset);
           }
+        } else if (curTok.type == lexicon.kAbstract) {
+          advance();
+          stmt = _parseClassDecl(
+              isAbstract: true, lateResolve: _isWithinModuleNamespace);
+        } else if (curTok.type == lexicon.kClass) {
+          stmt = _parseClassDecl(lateResolve: _isWithinModuleNamespace);
+        } else if (curTok.type == lexicon.kEnum) {
+          stmt = _parseEnumDecl();
+        } else if (curTok.type == lexicon.kVar) {
+          stmt = _parseVarDecl(
+              isMutable: true, lateInitialize: _isWithinModuleNamespace);
+        } else if (curTok.type == lexicon.kFinal) {
+          stmt = _parseVarDecl(lateInitialize: _isWithinModuleNamespace);
+        } else if (curTok.type == lexicon.kConst) {
+          stmt = _parseVarDecl(isConst: true);
+        } else if (curTok.type == lexicon.kFun) {
+          stmt = _parseFunction();
+        } else if (curTok.type == lexicon.kStruct) {
+          stmt = _parseStructDecl();
+        } else {
+          final err = HTError.unexpected(
+              Semantic.declStmt, Semantic.declStmt, curTok.lexeme,
+              filename: currrentFileName,
+              line: curTok.line,
+              column: curTok.column,
+              offset: curTok.offset,
+              length: curTok.length);
+          errors.add(err);
+          final errToken = advance();
+          stmt = ASTEmptyLine(
+              source: currentSource,
+              line: errToken.line,
+              column: errToken.column,
+              offset: errToken.offset);
         }
         break;
       case ParseStyle.classDefinition:
@@ -746,7 +740,7 @@ class HTDefaultParser extends HTParser {
       case ParseStyle.functionDefinition:
         if (curTok.lexeme == lexicon.kType) {
           stmt = _parseTypeAliasDecl();
-        } else if (curTok.type == lexicon.kNamespace) {
+        } else if (curTok.lexeme == lexicon.kNamespace) {
           stmt = _parseNamespaceDecl();
         } else if (curTok.type == lexicon.kAbstract) {
           advance();
@@ -1781,6 +1775,30 @@ class HTDefaultParser extends HTParser {
           offset: idTok.offset,
           length: curTok.offset - idTok.offset,
         );
+      } else if (id.id == lexicon.typeFunction) {
+        return IntrinsicTypeExpr(
+          id: id,
+          isTop: false,
+          isBottom: false,
+          isLocal: isLocal,
+          source: currentSource,
+          line: idTok.line,
+          column: idTok.column,
+          offset: idTok.offset,
+          length: curTok.offset - idTok.offset,
+        );
+      } else if (id.id == lexicon.typeNamespace) {
+        return IntrinsicTypeExpr(
+          id: id,
+          isTop: false,
+          isBottom: false,
+          isLocal: isLocal,
+          source: currentSource,
+          line: idTok.line,
+          column: idTok.column,
+          offset: idTok.offset,
+          length: curTok.offset - idTok.offset,
+        );
       } else {
         final typeArgs = <TypeExpr>[];
         if (expect([lexicon.typeParameterStart], consume: true)) {
@@ -2511,7 +2529,7 @@ class HTDefaultParser extends HTParser {
   }
 
   NamespaceDecl _parseNamespaceDecl({bool isTopLevel = false}) {
-    final keyword = match(lexicon.kNamespace);
+    final keyword = advance();
     final idTok = match(Semantic.identifier);
     final id = IdentifierExpr.fromToken(idTok, source: currentSource);
     final definition = _parseBlockStmt(

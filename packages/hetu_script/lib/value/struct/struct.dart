@@ -44,7 +44,7 @@ class HTStruct with HTEntity {
       final value = _fields[key];
       final encap = interpreter.encapsulate(value);
       fieldTypes[key] = encap.valueType?.resolve(namespace) ??
-          HTIntrinsicType.any(interpreter.lexicon.typeAny);
+          HTTypeAny(interpreter.lexicon.typeAny);
     }
     return HTStructuralType(namespace, fieldTypes: fieldTypes);
   }

@@ -1000,8 +1000,13 @@ class HTInterpreter {
           if (hasClassId) {
             classId = _currentBytecodeModule.readShortString();
           }
+          final isTopLevel = _currentBytecodeModule.readBool();
           final namespace = HTNamespace(
-              id: internalName, classId: classId, closure: _currentNamespace);
+            id: internalName,
+            classId: classId,
+            closure: _currentNamespace,
+            isTopLevel: isTopLevel,
+          );
           execute(namespace: namespace);
           _currentNamespace.define(internalName, namespace);
           _localValue = namespace;
@@ -1485,13 +1490,12 @@ class HTInterpreter {
         final declType = HTFunctionType(
             parameterTypes: paramDecls.values
                 .map((param) => HTParameterType(
-                    declType:
-                        param.declType ?? HTIntrinsicType.any(_lexicon.typeAny),
+                    declType: param.declType ?? HTTypeAny(_lexicon.typeAny),
                     isOptional: param.isOptional,
                     isVariadic: param.isVariadic,
                     id: param.isNamed ? param.id : null))
                 .toList(),
-            returnType: returnType ?? HTIntrinsicType.any(_lexicon.typeAny));
+            returnType: returnType ?? HTTypeAny(_lexicon.typeAny));
         int? line, column, definitionIp;
         final hasDefinition = _currentBytecodeModule.readBool();
         if (hasDefinition) {
@@ -1599,9 +1603,13 @@ class HTInterpreter {
     HTType valueType;
     if (object != null) {
       final encapsulated = encapsulate(object);
-      valueType = encapsulated.valueType!;
+      if (encapsulated is HTNamespace) {
+        valueType = HTTypeNamespace(_lexicon.kNamespace);
+      } else {
+        valueType = encapsulated.valueType!;
+      }
     } else {
-      valueType = HTIntrinsicType.nu11(_lexicon.kNull);
+      valueType = HTTypeNull(_lexicon.kNull);
     }
     final result = valueType.isA(type);
     _localValue = isNot ? !result : result;
@@ -1755,10 +1763,14 @@ class HTInterpreter {
       case HTOpCode.typeOf:
         final encap = encapsulate(object);
         final type = encap.valueType;
-        if (type == null) {
-          _localValue = HTIntrinsicType.unknown(_lexicon.typeUnknown);
-        } else {
+        if (type != null) {
           _localValue = type;
+        } else {
+          if (encap is HTNamespace) {
+            _localValue = HTTypeNamespace(_lexicon.typeNamespace);
+          } else {
+            _localValue = HTTypeUnknown(_lexicon.typeUnknown);
+          }
         }
         break;
     }
@@ -1888,6 +1900,25 @@ class HTInterpreter {
     final typeName = _currentBytecodeModule.readShortString();
     final isTop = _currentBytecodeModule.readBool();
     final isBottom = _currentBytecodeModule.readBool();
+    if (typeName == _lexicon.typeAny) {
+      return HTTypeAny(typeName);
+    }
+    if (typeName == _lexicon.typeUnknown) {
+      return HTTypeUnknown(typeName);
+    }
+    if (typeName == _lexicon.typeVoid) {
+      return HTTypeVoid(typeName);
+    }
+    if (typeName == _lexicon.typeNever) {
+      return HTTypeNever(typeName);
+    }
+    if (typeName == _lexicon.typeFunction) {
+      return HTTypeFunction(typeName);
+    }
+    if (typeName == _lexicon.typeNamespace) {
+      return HTTypeNamespace(typeName);
+    }
+    // fallsafe measure, however this should not happen
     return HTIntrinsicType(typeName, isTop: isTop, isBottom: isBottom);
   }
 
@@ -2216,13 +2247,12 @@ class HTInterpreter {
     final declType = HTFunctionType(
         parameterTypes: paramDecls.values
             .map((param) => HTParameterType(
-                declType:
-                    param.declType ?? HTIntrinsicType.any(_lexicon.typeAny),
+                declType: param.declType ?? HTTypeAny(_lexicon.typeAny),
                 isOptional: param.isOptional,
                 isVariadic: param.isVariadic,
                 id: param.isNamed ? param.id : null))
             .toList(),
-        returnType: returnType ?? HTIntrinsicType.any(_lexicon.typeAny));
+        returnType: returnType ?? HTTypeAny(_lexicon.typeAny));
     RedirectingConstructor? redirCtor;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
@@ -2332,8 +2362,7 @@ class HTInterpreter {
     execute(namespace: klass.namespace);
     // Add default constructor if there's none.
     if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
-      final ctorType =
-          HTFunctionType(returnType: HTIntrinsicType.any(_lexicon.typeAny));
+      final ctorType = HTFunctionType(returnType: HTTypeAny(_lexicon.typeAny));
       final ctor = HTFunction(_currentFileName, _currentBytecodeModule.id, this,
           internalName: InternalIdentifier.defaultConstructor,
           classId: klass.id,

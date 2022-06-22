@@ -103,6 +103,7 @@ abstract class HTLexicon {
   String get typeUnknown;
   String get typeVoid;
   String get typeNever;
+  String get typeFunction;
   String get typeNamespace;
 
   Set<String> get builtinIntrinsicTypes => {
@@ -242,7 +243,7 @@ abstract class HTLexicon {
         kDelete,
         kAssert,
         kTypeof,
-        kNamespace,
+        // kNamespace,
         kClass,
         kEnum,
         kFun,

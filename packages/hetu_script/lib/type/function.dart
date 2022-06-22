@@ -67,6 +67,8 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
 
     if (other.isBottom) return false;
 
+    if (other is HTTypeFunction) return true;
+
     if (other is! HTFunctionType) return false;
 
     if (genericTypeParameters.length != other.genericTypeParameters.length) {

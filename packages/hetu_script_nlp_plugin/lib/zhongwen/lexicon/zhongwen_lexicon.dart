@@ -87,6 +87,9 @@ class ZhongwenLexicon extends HTLexicon {
   String get typeNever => 'never';
 
   @override
+  String get typeFunction => 'function';
+
+  @override
   String get typeNamespace => 'namespace';
 
   @override
