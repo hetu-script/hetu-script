@@ -530,6 +530,9 @@ class HTInterpreter {
             export: decl.isExported, showList: decl.showList);
       } else {
         for (final id in decl.showList) {
+          if (!importedNamespace.symbols.containsKey(id)) {
+            throw HTError.undefined(id);
+          }
           final decl = importedNamespace.symbols[id]!;
           nsp.defineImport(id, decl);
         }
@@ -544,6 +547,9 @@ class HTInterpreter {
         final aliasNamespace =
             HTNamespace(id: decl.alias!, closure: globalNamespace);
         for (final id in decl.showList) {
+          if (!importedNamespace.symbols.containsKey(id)) {
+            throw HTError.undefined(id);
+          }
           final decl = importedNamespace.symbols[id]!;
           assert(!decl.isPrivate);
           aliasNamespace.define(id, decl);
