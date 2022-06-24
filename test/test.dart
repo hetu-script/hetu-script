@@ -7,7 +7,7 @@ void main() async {
       compileWithoutLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
-      showDartStackTrace: true,
+      showHetuStackTrace: true,
       // stackTraceDisplayCountLimit: 20,
       allowVariableShadowing: true,
       allowImplicitVariableDeclaration: false,
@@ -20,7 +20,7 @@ void main() async {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = await hetu.eval(r'''
-      [1,2,3].toJson()
+      throw 'error!'
   ''');
   print(hetu.lexicon.stringify(r));
 }

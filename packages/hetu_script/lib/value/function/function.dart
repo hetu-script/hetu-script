@@ -519,6 +519,7 @@ class HTFunction extends HTFunctionDeclaration
         }
 
         if (definitionIp == null) {
+          interpreter.stackTraceList.removeLast();
           return result;
         }
 
