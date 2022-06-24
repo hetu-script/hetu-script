@@ -3,9 +3,12 @@ import '../../error/error.dart';
 import '../../declaration/declaration.dart';
 import '../../value/entity.dart';
 import '../../value/unresolved_import_statement.dart';
+import '../../lexer/lexicon.dart';
 
 /// A semantic namespace that holds symbol for resolving.
 class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
+  final HTLexicon lexicon;
+
   late String _fullName;
 
   /// The full closure path of this namespace
@@ -21,8 +24,13 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
 
   bool willExportAll = true;
 
-  HTDeclarationNamespace(
-      {super.id, super.classId, super.closure, super.source}) {
+  HTDeclarationNamespace({
+    super.id,
+    super.classId,
+    super.closure,
+    super.source,
+    required this.lexicon,
+  }) {
     // calculate the full name of this namespace
     _fullName = displayName;
     var curSpace = closure;
@@ -128,10 +136,10 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
           continue;
         }
       }
+      if (lexicon.isPrivate(key)) {
+        continue;
+      }
       if (decl is HTDeclaration) {
-        if (decl.isPrivate) {
-          continue;
-        }
         if (clone) {
           decl = decl.clone();
         }
@@ -150,10 +158,10 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
       if (!other.exports.contains(decl.id)) {
         continue;
       }
+      if (lexicon.isPrivate(key)) {
+        continue;
+      }
       if (decl is HTDeclaration) {
-        if (decl.isPrivate) {
-          continue;
-        }
         if (clone) {
           decl = decl.clone();
         }
@@ -172,7 +180,11 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   @override
   HTDeclarationNamespace<T> clone() {
     final cloned = HTDeclarationNamespace<T>(
-        id: id, classId: classId, closure: closure, source: source);
+        lexicon: lexicon,
+        id: id,
+        classId: classId,
+        closure: closure,
+        source: source);
     cloned.symbols.addAll(symbols);
     cloned.imports.addAll(imports);
     cloned.exports.addAll(exports);

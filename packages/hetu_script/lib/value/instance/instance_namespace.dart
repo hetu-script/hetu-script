@@ -22,11 +22,13 @@ class HTInstanceNamespace extends HTNamespace {
   late final HTInstanceNamespace? next;
 
   HTInstanceNamespace(
-      {required super.id,
+      {required super.lexicon,
+      required String id,
       required this.instance,
       HTInstanceNamespace? runtimeInstanceNamespace,
       super.classId,
-      super.closure}) {
+      super.closure})
+      : super(id: id) {
     this.runtimeInstanceNamespace = runtimeInstanceNamespace ?? this;
   }
 

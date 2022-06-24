@@ -344,6 +344,7 @@ class HTFunction extends HTFunctionDeclaration
 
         // callClosure is a temporary closure created everytime a function is called
         final HTNamespace callClosure = HTNamespace(
+            lexicon: interpreter.lexicon,
             id: internalName,
             closure: namespace != null
                 ? namespace as HTNamespace
@@ -356,11 +357,12 @@ class HTFunction extends HTFunctionDeclaration
           if (namespace is HTInstanceNamespace) {
             callClosure.define(
                 interpreter.lexicon.kSuper,
-                HTVariable(interpreter.lexicon.kSuper,
+                HTVariable(
+                    id: interpreter.lexicon.kSuper,
                     value: (namespace as HTInstanceNamespace).next));
           }
           callClosure.define(interpreter.lexicon.kThis,
-              HTVariable(interpreter.lexicon.kThis, value: instance));
+              HTVariable(id: interpreter.lexicon.kThis, value: instance));
         }
 
         var variadicStart = -1;

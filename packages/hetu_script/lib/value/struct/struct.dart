@@ -58,9 +58,10 @@ class HTStruct with HTEntity {
       : id = id ??
             '${InternalIdentifier.anonymousStruct}${structLiteralIndex++}',
         _fields = fields ?? {} {
-    namespace = HTNamespace(id: this.id, closure: closure);
+    namespace = HTNamespace(
+        lexicon: interpreter.lexicon, id: this.id, closure: closure);
     namespace.define(interpreter.lexicon.kThis,
-        HTVariable(interpreter.lexicon.kThis, value: this));
+        HTVariable(id: interpreter.lexicon.kThis, value: this));
   }
 
   Map<String, dynamic> toJson() => util.jsonifyStruct(this);

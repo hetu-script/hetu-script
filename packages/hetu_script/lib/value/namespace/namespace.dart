@@ -1,29 +1,27 @@
 import '../../declaration/namespace/declaration_namespace.dart';
 import '../../declaration/declaration.dart';
-import '../../source/source.dart';
 import '../../error/error.dart';
-import '';
+import '../../type/type.dart';
 
 /// A namespace that will return the actual value of the declaration.
 class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
+  @override
+  HTType? get valueType => HTTypeNamespace(lexicon.kNamespace);
+
   final HTNamespace? _closure;
 
   @override
   HTNamespace? get closure => _closure;
 
   HTNamespace(
-      {String? id,
-      String? classId,
+      {required super.lexicon,
+      super.id,
+      super.classId,
       HTNamespace? closure,
-      HTSource? source,
+      super.source,
       bool isTopLevel = false})
       : _closure = closure,
-        super(
-          id: id,
-          classId: classId,
-          closure: closure,
-          source: source,
-        );
+        super(closure: closure);
 
   @override
   dynamic memberGet(String varName,
@@ -91,7 +89,12 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
   @override
   HTDeclarationNamespace<HTDeclaration> clone() {
     final cloned = HTDeclarationNamespace<HTDeclaration>(
-        id: id, classId: classId, closure: closure, source: source);
+      lexicon: lexicon,
+      id: id,
+      classId: classId,
+      closure: closure,
+      source: source,
+    );
     for (final decl in symbols.values) {
       cloned.symbols[decl.id!] = decl.clone();
     }

@@ -20,10 +20,7 @@ void main() async {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = await hetu.eval(r'''
-      namespace asdf {
-
-      }
-      print(asdf is namespace)
+      [1,2,3].toJson()
   ''');
   print(hetu.lexicon.stringify(r));
 }

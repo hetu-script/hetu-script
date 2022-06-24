@@ -3,7 +3,6 @@ import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
 import '../../value/namespace/namespace.dart';
-import '../../type/type.dart';
 import '../../declaration/variable/variable_declaration.dart';
 
 /// Variable is a binding between an symbol and a value
@@ -28,36 +27,27 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
   /// If it has initializer code, it will
   /// have to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be acessed within a script.
-  HTVariable(String id,
-      {HTInterpreter? interpreter,
+  HTVariable(
+      {required String id,
+      HTInterpreter? interpreter,
       String? fileName,
       String? moduleName,
-      String? classId,
+      super.classId,
       HTNamespace? closure,
-      HTType? declType,
+      super.declType,
       dynamic value,
-      bool isPrivate = false,
-      bool isExternal = false,
-      bool isStatic = false,
-      bool isConst = false,
-      bool isMutable = false,
-      bool isTopLevel = false,
-      bool lateFinalize = false,
+      super.isPrivate = false,
+      super.isExternal = false,
+      super.isStatic = false,
+      super.isConst = false,
+      super.isMutable = false,
+      super.isTopLevel = false,
+      super.lateFinalize = false,
       int? definitionIp,
       int? definitionLine,
       int? definitionColumn})
       : _closure = closure,
-        super(id,
-            classId: classId,
-            closure: closure,
-            declType: declType,
-            isPrivate: isPrivate,
-            isExternal: isExternal,
-            isStatic: isStatic,
-            isConst: isConst,
-            isMutable: isMutable,
-            isTopLevel: isTopLevel,
-            lateFinalize: lateFinalize) {
+        super(id: id, closure: closure) {
     if (interpreter != null) {
       this.interpreter = interpreter;
     }
@@ -171,7 +161,8 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
   // }
 
   @override
-  HTVariable clone() => HTVariable(id!,
+  HTVariable clone() => HTVariable(
+      id: id!,
       interpreter: interpreter,
       fileName: fileName,
       moduleName: moduleName,

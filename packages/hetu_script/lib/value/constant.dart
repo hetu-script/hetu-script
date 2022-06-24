@@ -12,13 +12,13 @@ class HTConstantValue extends HTDeclaration {
   final HTGlobalConstantTable module;
 
   HTConstantValue({
-    required super.id,
+    required String id,
     required this.type,
     required this.index,
     super.classId,
     super.isTopLevel = false,
     required this.module,
-  });
+  }) : super(id: id);
 
   @override
   void resolve() {}

@@ -21,14 +21,15 @@ void main() {
 
   final source1 = HTSource(r'''
     var name = 'Richard Byson'
-    var age = 42
+    var _age = 42
 ''', fullName: 'source1.ht');
   final source2 = HTSource(r'''
     export 'source1.ht'
     export { greeting }
+    var _age = 42
     fun greeting(a, b) {
       if (a?.aaa == null) {
-        assert(name == null)
+        // assert(name == null)
       }
       print(name)
     }

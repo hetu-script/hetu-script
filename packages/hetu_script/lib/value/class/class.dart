@@ -1,7 +1,6 @@
 import '../../external/external_class.dart';
 import '../../grammar/constant.dart';
 import '../../error/error.dart';
-import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
 // import '../declaration.dart';
@@ -10,7 +9,6 @@ import '../function/function.dart';
 import '../../value/instance/instance.dart';
 import '../../declaration/class/class_declaration.dart';
 import '../entity.dart';
-import '../../declaration/generic/generic_type_parameter.dart';
 import 'class_namespace.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
@@ -42,32 +40,26 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
 
   /// Create a default [HTClass] instance.
   HTClass(HTInterpreter interpreter,
-      {String? id,
-      String? classId,
+      {super.id,
+      super.classId,
       HTNamespace? closure,
-      HTSource? source,
-      List<HTGenericTypeParameter> genericTypeParameters = const [],
-      HTType? superType,
-      Iterable<HTType> withTypes = const [],
-      Iterable<HTType> implementsTypes = const [],
-      bool isExternal = false,
-      bool isAbstract = false,
-      bool isEnum = false,
+      super.source,
+      super.genericTypeParameters = const [],
+      super.superType,
+      super.withTypes = const [],
+      super.implementsTypes = const [],
+      super.isExternal = false,
+      super.isAbstract = false,
+      super.isEnum = false,
       this.superClass})
       : namespace = HTClassNamespace(
-            id: id, classId: classId, closure: closure, source: source),
-        super(
-            id: id,
-            classId: classId,
-            closure: closure,
-            source: source,
-            genericTypeParameters: genericTypeParameters,
-            superType: superType,
-            withTypes: withTypes,
-            implementsTypes: implementsTypes,
-            isExternal: isExternal,
-            isAbstract: isAbstract,
-            isEnum: isEnum) {
+          lexicon: interpreter.lexicon,
+          id: id,
+          classId: classId,
+          closure: closure,
+          source: source,
+        ),
+        super(closure: closure) {
     this.interpreter = interpreter;
   }
 

@@ -3,7 +3,7 @@ import 'package:path/path.dart' as path;
 import '../error/error.dart';
 import 'resource_context.dart';
 
-typedef _RootUpdatedCallback = void Function();
+typedef RootUpdatedCallback = void Function();
 
 /// Manage a set of resources.
 /// A resource could be hetu source, yaml, json... etc.
@@ -21,7 +21,7 @@ abstract class HTSourceManager<RT, CT extends HTResourceContext<RT>> {
   Map<String, RT> get cachedSources => _cachedSources;
 
   /// Set up a callback for root updated event.
-  _RootUpdatedCallback? onRootsUpdated;
+  RootUpdatedCallback? onRootsUpdated;
 
   CT createContext(String root);
 

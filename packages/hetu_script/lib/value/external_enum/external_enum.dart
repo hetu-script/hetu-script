@@ -16,11 +16,11 @@ class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
 
   HTExternalEnum(
     HTInterpreter interpreter, {
-    required super.id,
+    required String id,
     super.classId,
     super.closure,
     super.source,
-  }) : super(isExternal: true) {
+  }) : super(id: id, isExternal: true) {
     this.interpreter = interpreter;
   }
 

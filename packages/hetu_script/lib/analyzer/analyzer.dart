@@ -73,7 +73,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   late final HTLexicon _lexicon;
 
-  final AnalysisNamespace globalNamespace;
+  late final AnalysisNamespace globalNamespace;
 
   late AnalysisNamespace _currentNamespace;
 
@@ -97,8 +97,9 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
       HTLexicon? lexicon})
       : config = config ?? AnalyzerConfig(),
         sourceContext = sourceContext ?? HTOverlayContext(),
-        _lexicon = lexicon ?? HTDefaultLexicon(),
-        globalNamespace = HTDeclarationNamespace(id: Semantic.global) {
+        _lexicon = lexicon ?? HTDefaultLexicon() {
+    globalNamespace =
+        HTDeclarationNamespace(lexicon: _lexicon, id: Semantic.global);
     _currentNamespace = globalNamespace;
   }
 
@@ -140,8 +141,8 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     if (source.resourceType == HTResourceType.hetuLiteralCode) {
       _currentNamespace = globalNamespace;
     } else {
-      _currentNamespace =
-          HTDeclarationNamespace(id: source.fullName, closure: globalNamespace);
+      _currentNamespace = HTDeclarationNamespace(
+          lexicon: _lexicon, id: source.fullName, closure: globalNamespace);
     }
     for (final node in source.nodes) {
       resolveAST(node);
@@ -272,7 +273,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     node.redirectingCtorCallExpr?.accept(this);
     final savedCurrrentNamespace = _currentNamespace;
     _currentNamespace = HTDeclarationNamespace(
-        id: node.internalName, closure: _currentNamespace);
+        lexicon: _lexicon, id: node.internalName, closure: _currentNamespace);
     for (final param in node.paramDecls) {
       visitParamDecl(param);
     }

@@ -8,6 +8,7 @@ import '../namespace/namespace.dart';
 /// For interpreter searching for symbols within static methods.
 class HTClassNamespace extends HTNamespace {
   HTClassNamespace({
+    required super.lexicon,
     super.id,
     super.classId,
     super.closure,

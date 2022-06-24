@@ -49,6 +49,7 @@ class HTInstance with HTEntity, InterpreterRef {
     HTClass? curKlass = klass;
     // final extended = <HTValueType>[];
     final myNsp = HTInstanceNamespace(
+        lexicon: interpreter.lexicon,
         id: InternalIdentifier.instance,
         instance: this,
         classId: curKlass.id,
@@ -79,6 +80,7 @@ class HTInstance with HTEntity, InterpreterRef {
       curKlass = curKlass.superClass;
       if (curKlass != null) {
         final next = HTInstanceNamespace(
+            lexicon: interpreter.lexicon,
             id: InternalIdentifier.instance,
             instance: this,
             runtimeInstanceNamespace: myNsp,

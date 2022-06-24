@@ -36,7 +36,8 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
       this.isNamed = false,
       this.isVariadic = false})
       : _closure = closure,
-        super(id,
+        super(
+            id: id,
             interpreter: interpreter,
             fileName: fileName,
             moduleName: moduleName,

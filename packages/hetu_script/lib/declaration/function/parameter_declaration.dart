@@ -16,21 +16,23 @@ class HTParameterDeclaration extends HTVariableDeclaration
   final bool isVariadic;
 
   /// Create a standard [HTParameter].
-  HTParameterDeclaration(super.id,
-      {super.closure,
+  HTParameterDeclaration(
+      {required String id,
+      super.closure,
       super.source,
       super.declType,
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(isMutable: true);
+      : super(id: id, isMutable: true);
 
   @override
   void initialize() {}
 
   @override
   HTParameterDeclaration clone() {
-    return HTParameterDeclaration(id!,
+    return HTParameterDeclaration(
+        id: id!,
         closure: closure,
         declType: declType,
         isOptional: isOptional,

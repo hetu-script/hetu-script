@@ -22,7 +22,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
   bool get isResolved => _isResolved;
 
   HTNamedStruct({
-    required super.id,
+    required String id,
     required HTInterpreter interpreter,
     required String fileName,
     required String moduleName,
@@ -32,7 +32,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
     super.isTopLevel = false,
     this.staticDefinitionIp,
     int? definitionIp,
-  }) {
+  }) : super(id: id) {
     this.interpreter = interpreter;
     this.fileName = fileName;
     this.moduleName = moduleName;
