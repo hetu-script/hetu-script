@@ -272,9 +272,97 @@ class HTInterpreter {
     }
   }
 
+  dynamic _call(dynamic callee,
+      {bool isConstructorCall = false,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    dynamic handleClassConstructor(dynamic callee) {
+      late HTClass klass;
+      if (callee is HTType) {
+        final resolvedType = callee.resolve(_currentNamespace) as HTNominalType;
+        // if (resolvedType is! HTNominalType) {
+        //   throw HTError.notCallable(callee.toString(),
+        //       filename: _fileName, line: _line, column: _column);
+        // }
+        klass = resolvedType.klass as HTClass;
+      } else {
+        klass = callee;
+      }
+      if (klass.isAbstract) {
+        throw HTError.abstracted(
+            filename: _currentFileName, line: _currentLine, column: _column);
+      }
+      if (klass.contains(InternalIdentifier.defaultConstructor)) {
+        final constructor = klass
+            .memberGet(InternalIdentifier.defaultConstructor) as HTFunction;
+        return constructor.call(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs);
+      } else {
+        throw HTError.notCallable(klass.id!,
+            filename: _currentFileName, line: _currentLine, column: _column);
+      }
+    }
+
+    dynamic handleStructConstructor(HTStruct callee) {
+      HTNamedStruct def = callee.declaration!;
+      return def.createObject(
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+      );
+    }
+
+    if (isConstructorCall) {
+      if ((callee is HTClass) || (callee is HTType)) {
+        return handleClassConstructor(callee);
+      } else if (callee is HTStruct && callee.declaration != null) {
+        return handleStructConstructor(callee);
+      } else {
+        throw HTError.notNewable(_lexicon.stringify(callee),
+            filename: _currentFileName, line: _currentLine, column: _column);
+      }
+    } else {
+      // calle is a script function
+      if (callee is HTFunction) {
+        return callee.call(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs);
+      }
+      // calle is a dart function
+      else if (callee is Function) {
+        if (callee is HTExternalFunction) {
+          return callee(_currentNamespace,
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
+              typeArgs: typeArgs);
+        } else {
+          return Function.apply(
+              callee,
+              positionalArgs,
+              namedArgs.map<Symbol, dynamic>(
+                  (key, value) => MapEntry(Symbol(key), value)));
+        }
+      } else if ((callee is HTClass) || (callee is HTType)) {
+        return handleClassConstructor(callee);
+      } else if (callee is HTStruct && callee.declaration != null) {
+        return handleStructConstructor(callee);
+      } else {
+        throw HTError.notCallable(
+            _lexicon.stringify(callee, asStringLiteral: true),
+            filename: _currentFileName,
+            line: _currentLine,
+            column: _column);
+      }
+    }
+  }
+
   /// Call a function within current [HTNamespace].
   dynamic invoke(String funcName,
       {String? moduleName,
+      bool isConstructorCall = false,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -284,16 +372,13 @@ class HTInterpreter {
         _currentBytecodeModule = cachedModules[moduleName]!;
         _currentNamespace = _currentBytecodeModule.namespaces.values.last;
       }
-      final func = _currentNamespace.memberGet(funcName);
-      if (func is HTFunction) {
-        func.resolve();
-        return func.call(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
-      } else {
-        throw HTError.notCallable(funcName);
-      }
+      final callee = _currentNamespace.memberGet(funcName);
+      return _call(
+        callee,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs,
+      );
     } catch (error, stackTrace) {
       if (config.processError) {
         processError(error, stackTrace);
@@ -1809,86 +1894,13 @@ class HTInterpreter {
     }
     final typeArgs = _localTypeArgs;
 
-    void handleCLassConstructor() {
-      late HTClass klass;
-      if (callee is HTType) {
-        final resolvedType = callee.resolve(_currentNamespace) as HTNominalType;
-        // if (resolvedType is! HTNominalType) {
-        //   throw HTError.notCallable(callee.toString(),
-        //       filename: _fileName, line: _line, column: _column);
-        // }
-        klass = resolvedType.klass as HTClass;
-      } else {
-        klass = callee;
-      }
-      if (klass.isAbstract) {
-        throw HTError.abstracted(
-            filename: _currentFileName, line: _currentLine, column: _column);
-      }
-      if (klass.contains(InternalIdentifier.defaultConstructor)) {
-        final constructor = klass
-            .memberGet(InternalIdentifier.defaultConstructor) as HTFunction;
-        _localValue = constructor.call(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
-      } else {
-        throw HTError.notCallable(klass.id!,
-            filename: _currentFileName, line: _currentLine, column: _column);
-      }
-    }
-
-    void handleStructConstructor() {
-      HTNamedStruct def = callee.declaration!;
-      _localValue = def.createObject(
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-      );
-    }
-
-    if (hasNewOperator) {
-      if ((callee is HTClass) || (callee is HTType)) {
-        handleCLassConstructor();
-      } else if (callee is HTStruct && callee.declaration != null) {
-        handleStructConstructor();
-      } else {
-        throw HTError.notNewable(_lexicon.stringify(callee),
-            filename: _currentFileName, line: _currentLine, column: _column);
-      }
-    } else {
-      // calle is a script function
-      if (callee is HTFunction) {
-        _localValue = callee.call(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
-      }
-      // calle is a dart function
-      else if (callee is Function) {
-        if (callee is HTExternalFunction) {
-          _localValue = callee(_currentNamespace,
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
-        } else {
-          _localValue = Function.apply(
-              callee,
-              positionalArgs,
-              namedArgs.map<Symbol, dynamic>(
-                  (key, value) => MapEntry(Symbol(key), value)));
-        }
-      } else if ((callee is HTClass) || (callee is HTType)) {
-        handleCLassConstructor();
-      } else if (callee is HTStruct && callee.declaration != null) {
-        handleStructConstructor();
-      } else {
-        throw HTError.notCallable(
-            _lexicon.stringify(callee, asStringLiteral: true),
-            filename: _currentFileName,
-            line: _currentLine,
-            column: _column);
-      }
-    }
+    _localValue = _call(
+      callee,
+      isConstructorCall: hasNewOperator,
+      positionalArgs: positionalArgs,
+      namedArgs: namedArgs,
+      typeArgs: typeArgs,
+    );
   }
 
   HTIntrinsicType _handleIntrinsicType() {

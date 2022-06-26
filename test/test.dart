@@ -20,9 +20,11 @@ void main() async {
   );
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
-  final r = await hetu.eval(r'''
-'${1 + 2}'
-assert('23' is num)
+  hetu.eval(r'''
+    struct Test {
+      var name = 'text struct'
+    }
 ''');
+  final r = hetu.invoke('Test');
   print(hetu.lexicon.stringify(r));
 }
