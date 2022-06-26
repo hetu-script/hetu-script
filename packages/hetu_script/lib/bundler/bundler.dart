@@ -67,13 +67,17 @@ class HTBundler {
             sources[importFullName] = importedSource;
           }
         } catch (error) {
-          final convertedError = HTError.sourceProviderError(decl.fromPath!,
-              filename: source.fullName,
-              line: decl.line,
-              column: decl.column,
-              offset: decl.offset,
-              length: decl.length);
-          parserErrors.add(convertedError);
+          if (error is HTError) {
+            parserErrors.add(error);
+          } else {
+            final convertedError = HTError.sourceProviderError(decl.fromPath!,
+                filename: source.fullName,
+                line: decl.line,
+                column: decl.column,
+                offset: decl.offset,
+                length: decl.length);
+            parserErrors.add(convertedError);
+          }
         }
       }
       cachedParsingTargets.remove(result.fullName);
