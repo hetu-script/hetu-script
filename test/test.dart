@@ -8,6 +8,7 @@ void main() async {
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
       showHetuStackTrace: true,
+      showDartStackTrace: true,
       // stackTraceDisplayCountLimit: 20,
       allowVariableShadowing: true,
       allowImplicitVariableDeclaration: false,
@@ -20,7 +21,8 @@ void main() async {
   hetu.init(locale: HTLocaleSimplifiedChinese());
 
   final r = await hetu.eval(r'''
-      throw 'error!'
-  ''');
+'${1 + 2}'
+assert('23' is num)
+''');
   print(hetu.lexicon.stringify(r));
 }

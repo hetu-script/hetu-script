@@ -119,7 +119,6 @@ class HTLexer {
       while (iter.moveNext()) {
         current = iter.current;
         buffer.write(current);
-        handleLineInfo(current, handleNewLine: false);
         if (current == lexicon.stringInterpolationEnd) {
           break;
         } else {
@@ -127,6 +126,61 @@ class HTLexer {
         }
       }
       return buffer2.toString();
+    }
+
+    void hanldeStringLiteral(String startMark, String endMark) {
+      bool escappingCharacter = false;
+      List<Token> interpolations = [];
+      while (iter.moveNext()) {
+        current = iter.current;
+        final charNext =
+            iter.charactersAfter.isNotEmpty ? iter.charactersAfter.first : '';
+        final concact = current + charNext;
+        if (concact == lexicon.stringInterpolationStart &&
+            iter.charactersAfter.contains(lexicon.stringInterpolationEnd)) {
+          final inner = handleStringInterpolation();
+          final innerOffset = offset +
+              startMark.length +
+              lexicon.stringInterpolationStart.length;
+          final token =
+              lex(inner, line: line, column: column, offset: innerOffset);
+          interpolations.add(token);
+        } else {
+          buffer.write(current);
+          if (current == lexicon.escapeCharacterStart &&
+              escappingCharacter == false) {
+            escappingCharacter = true;
+          } else if (escappingCharacter) {
+            escappingCharacter = false;
+          } else if (current == startMark && !escappingCharacter) {
+            escappingCharacter = false;
+            break;
+          }
+        }
+      }
+      final lexeme = buffer.toString();
+      buffer.clear();
+      Token token;
+      if (interpolations.isEmpty) {
+        token = TokenStringLiteral(
+            lexeme: lexeme,
+            line: line,
+            column: column,
+            offset: offset,
+            startMark: startMark,
+            endMark: endMark);
+      } else {
+        token = TokenStringInterpolation(
+            lexeme: lexeme,
+            line: line,
+            column: column,
+            offset: offset,
+            startMark: startMark,
+            endMark: endMark,
+            interpolations: interpolations);
+      }
+      handleLineInfo(lexeme);
+      addToken(token);
     }
 
     while (iter.moveNext()) {
@@ -219,113 +273,11 @@ class HTLexer {
           else if (lexicon.punctuations.contains(current)) {
             // string literal
             if (current == lexicon.stringStart1) {
-              bool escappingCharacter = false;
               buffer.write(current);
-              List<Token> interpolations = [];
-              while (iter.moveNext()) {
-                current = iter.current;
-                final charNext = iter.charactersAfter.isNotEmpty
-                    ? iter.charactersAfter.first
-                    : '';
-                final concact = current + charNext;
-                if (concact == lexicon.stringInterpolationStart &&
-                    iter.charactersAfter
-                        .contains(lexicon.stringInterpolationEnd)) {
-                  final inner = handleStringInterpolation();
-                  final token =
-                      lex(inner, line: line, column: column, offset: offset);
-                  interpolations.add(token);
-                } else {
-                  buffer.write(current);
-                  if (current == lexicon.escapeCharacterStart &&
-                      escappingCharacter == false) {
-                    escappingCharacter = true;
-                  } else if (escappingCharacter) {
-                    escappingCharacter = false;
-                  } else if (current == lexicon.stringEnd1 &&
-                      !escappingCharacter) {
-                    escappingCharacter = false;
-                    break;
-                  }
-                }
-              }
-              final lexeme = buffer.toString();
-              buffer.clear();
-              Token token;
-              if (interpolations.isEmpty) {
-                token = TokenStringLiteral(
-                    lexeme: lexeme,
-                    line: line,
-                    column: column,
-                    offset: offset,
-                    startMark: lexicon.stringStart1,
-                    endMark: lexicon.stringEnd1);
-              } else {
-                token = TokenStringInterpolation(
-                    lexeme: lexeme,
-                    line: line,
-                    column: column,
-                    offset: offset,
-                    startMark: lexicon.stringStart1,
-                    endMark: lexicon.stringEnd1,
-                    interpolations: interpolations);
-              }
-              handleLineInfo(lexeme);
-              addToken(token);
+              hanldeStringLiteral(lexicon.stringStart1, lexicon.stringEnd1);
             } else if (current == lexicon.stringStart2) {
-              bool escappingCharacter = false;
               buffer.write(current);
-              List<Token> interpolations = [];
-              while (iter.moveNext()) {
-                current = iter.current;
-                final charNext = iter.charactersAfter.isNotEmpty
-                    ? iter.charactersAfter.first
-                    : '';
-                final concact = current + charNext;
-                if (concact == lexicon.stringInterpolationStart &&
-                    iter.charactersAfter
-                        .contains(lexicon.stringInterpolationEnd)) {
-                  final inner = handleStringInterpolation();
-                  final token =
-                      lex(inner, line: line, column: column, offset: offset);
-                  interpolations.add(token);
-                } else {
-                  buffer.write(current);
-                  if (current == lexicon.escapeCharacterStart &&
-                      escappingCharacter == false) {
-                    escappingCharacter = true;
-                  } else if (escappingCharacter) {
-                    escappingCharacter = false;
-                  } else if (current == lexicon.stringEnd2 &&
-                      !escappingCharacter) {
-                    escappingCharacter = false;
-                    break;
-                  }
-                }
-              }
-              final lexeme = buffer.toString();
-              buffer.clear();
-              Token token;
-              if (interpolations.isEmpty) {
-                token = TokenStringLiteral(
-                    lexeme: lexeme,
-                    line: line,
-                    column: column,
-                    offset: offset,
-                    startMark: lexicon.stringStart2,
-                    endMark: lexicon.stringEnd2);
-              } else {
-                token = TokenStringInterpolation(
-                    lexeme: lexeme,
-                    line: line,
-                    column: column,
-                    offset: offset,
-                    startMark: lexicon.stringStart2,
-                    endMark: lexicon.stringEnd2,
-                    interpolations: interpolations);
-              }
-              handleLineInfo(lexeme);
-              addToken(token);
+              hanldeStringLiteral(lexicon.stringStart2, lexicon.stringEnd2);
             }
             // marked identifier
             else if (current == lexicon.identifierStart) {
