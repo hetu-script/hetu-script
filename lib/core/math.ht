@@ -3,6 +3,12 @@ external class Math {
   
   static const pi: num = 3.1415926535897932
 
+  /// Convert [radians] to degrees.
+  static fun degrees(radians)
+
+  /// Convert [degrees] to radians.
+  static fun radians(degrees)
+
   static fun radiusToSigma(radius: float) -> float
   
   // Box–Muller transform for generating normally distributed random numbers between [min : max].
@@ -15,9 +21,9 @@ external class Math {
 
   static fun max(a, b)
 
-  static fun random() -> num
+  static fun random([min = 0]) -> num
 
-  static fun randomInt(max: num) -> num
+  static fun randomInt(max: num, [min = 0]) -> num
 
   static fun randomBool() -> bool
 
