@@ -51,7 +51,9 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorExternalCtorWithReferCtor = '外部构造函数不能重定向。';
   @override
-  final String errorSourceProviderError = '资源错误：[{0}]。无法载入或文件不存在。';
+  final String errorResourceDoesNotExist = '资源路径 [{0}] 不存在。';
+  @override
+  final String errorSourceProviderError = '文件系统错误：无法从 [{1}] 所在目录载入资源路径 [{0}]。';
   @override
   final String errorNotAbsoluteError = '添加资源错误，不是绝对路径：[{0}]。';
   @override

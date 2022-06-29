@@ -26,6 +26,7 @@ enum ErrorCode {
   extendsSelf,
   missingFuncBody,
   externalCtorWithReferCtor,
+  resourceDoesNotExist,
   sourceProviderError,
   notAbsoluteError,
   invalidLeftValue,
@@ -576,8 +577,28 @@ class HTError {
             offset: offset,
             length: length);
 
+  /// Error: Resource does not exit.
+  HTError.resourceDoesNotExist(String id,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.resourceDoesNotExist, ErrorType.externalError,
+            message: HTLocale.current.errorResourceDoesNotExist,
+            interpolations: [id],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
   /// Error: Module import error
-  HTError.sourceProviderError(String id,
+  HTError.sourceProviderError(String id, String from,
       {String? extra,
       String? correction,
       String? filename,
@@ -587,7 +608,7 @@ class HTError {
       int? length})
       : this(ErrorCode.sourceProviderError, ErrorType.externalError,
             message: HTLocale.current.errorSourceProviderError,
-            interpolations: [id],
+            interpolations: [id, from],
             extra: extra,
             correction: correction,
             filename: filename,

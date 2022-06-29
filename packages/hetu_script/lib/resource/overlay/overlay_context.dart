@@ -48,7 +48,7 @@ class HTOverlayContext extends HTResourceContext<HTSource> {
     if (_cached.containsKey(key)) {
       return _cached[key]!;
     }
-    throw HTError.sourceProviderError(key);
+    throw HTError.resourceDoesNotExist(key);
   }
 
   @override
@@ -59,6 +59,6 @@ class HTOverlayContext extends HTResourceContext<HTSource> {
       _cached[fullName] = resource;
       return;
     }
-    throw HTError.sourceProviderError(fullName);
+    throw HTError.resourceDoesNotExist(fullName);
   }
 }

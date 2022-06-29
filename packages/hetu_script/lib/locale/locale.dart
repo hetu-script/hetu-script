@@ -30,6 +30,7 @@ abstract class HTLocale {
   String get errorExtendsSelf;
   String get errorMissingFuncBody;
   String get errorExternalCtorWithReferCtor;
+  String get errorResourceDoesNotExist;
   String get errorSourceProviderError;
   String get errorNotAbsoluteError;
   String get errorInvalidLeftValue;

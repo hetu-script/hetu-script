@@ -83,7 +83,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   late HTSource _currentSource;
 
-  late ASTCompilation _currentCompilation;
+  // late ASTCompilation _currentCompilation;
 
   // HTClassDeclaration? _curClass;
   // HTFunctionDeclaration? _curFunction;
@@ -112,7 +112,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     String? moduleName,
     bool globallyImport = false,
   }) {
-    _currentCompilation = compilation;
+    // _currentCompilation = compilation;
     _currentErrors = [];
     _currentAnalysisResults = {};
 

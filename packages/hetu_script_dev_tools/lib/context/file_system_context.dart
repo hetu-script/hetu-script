@@ -129,7 +129,7 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
   void updateResource(String fullName, HTSource resource) {
     final normalized = getAbsolutePath(key: fullName);
     if (!_cached.containsKey(normalized)) {
-      throw HTError.sourceProviderError(normalized);
+      throw HTError.resourceDoesNotExist(normalized);
     } else {
       _cached[normalized] = resource;
     }

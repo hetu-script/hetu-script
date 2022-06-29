@@ -57,8 +57,11 @@ class HTLocaleEnglish implements HTLocale {
   final String errorExternalCtorWithReferCtor =
       'Unexpected refer constructor on external constructor.';
   @override
+  final String errorResourceDoesNotExist =
+      'Resource with name [{0}] does not exist.';
+  @override
   final String errorSourceProviderError =
-      'Context error: [{0}]. Could not load resource or resource does not exist.';
+      'File system error: Could not load resource [{0}] from path [{1}].';
   @override
   final String errorNotAbsoluteError =
       'Adding source failed, not a absolute path: [{0}].';

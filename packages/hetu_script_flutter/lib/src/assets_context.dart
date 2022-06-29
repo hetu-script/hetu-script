@@ -110,13 +110,13 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
     if (_cached.containsKey(normalized)) {
       return _cached[normalized]!;
     }
-    throw HTError.sourceProviderError(normalized);
+    throw HTError.resourceDoesNotExist(normalized);
   }
 
   @override
   void updateResource(String fullName, HTSource resource) {
     if (!_cached.containsKey(fullName)) {
-      throw HTError.sourceProviderError(fullName);
+      throw HTError.resourceDoesNotExist(fullName);
     }
     _cached[fullName] = resource;
   }
