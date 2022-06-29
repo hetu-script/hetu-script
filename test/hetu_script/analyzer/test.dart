@@ -11,20 +11,16 @@ void main() {
       sourceContext: sourceContext);
   hetu.init();
   final source = HTSource(r'''
-  var person = {
-    familyName: 'Hord',
-    firstName: 'Luk'
-  }
-  print(person.firstName)
+  const a = 3 * b
 ''', type: HTResourceType.hetuScript);
   final compilation = hetu.bundle(source);
   final analysisResult = hetu.analyzer.analyzeCompilation(compilation);
   if (analysisResult.errors.isNotEmpty) {
     for (final error in analysisResult.errors) {
       if (error.severity >= ErrorSeverity.error) {
-        print('Error: $error');
+        print('Analyzer error: $error');
       } else {
-        print('Warning: $error');
+        print('Analyzer warning: $error');
       }
     }
   } else {

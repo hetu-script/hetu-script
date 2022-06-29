@@ -36,7 +36,7 @@ abstract class ASTNode {
 
   final HTSource? source;
 
-  ASTNode? parent;
+  // ASTNode? parent;
 
   final int line;
 
@@ -86,6 +86,9 @@ class ASTSource extends ASTNode {
 
   final List<HTError> errors;
 
+  /// This value is false untill assigned by analyzer
+  bool isResolved = false;
+
   @override
   bool get isExpression => false;
 
@@ -99,12 +102,12 @@ class ASTSource extends ASTNode {
       super.offset = 0,
       super.length = 0})
       : super(Semantic.source) {
-    for (final decl in imports) {
-      decl.parent = this;
-    }
-    for (final decl in nodes) {
-      decl.parent = this;
-    }
+    // for (final decl in imports) {
+    //   decl.parent = this;
+    // }
+    // for (final decl in nodes) {
+    //   decl.parent = this;
+    // }
   }
 }
 
@@ -148,12 +151,12 @@ class ASTCompilation extends ASTNode {
       super.offset = 0,
       super.length = 0})
       : super(Semantic.compilation) {
-    for (final decl in values.values) {
-      decl.parent = this;
-    }
-    for (final decl in sources.values) {
-      decl.parent = this;
-    }
+    // for (final decl in values.values) {
+    //   decl.parent = this;
+    // }
+    // for (final decl in sources.values) {
+    //   decl.parent = this;
+    // }
   }
 }
 
@@ -297,9 +300,9 @@ class ASTStringInterpolation extends ASTNode {
       super.offset = 0,
       super.length = 0})
       : super(Semantic.literalStringInterpolation) {
-    for (final ast in interpolations) {
-      ast.parent = this;
-    }
+    // for (final ast in interpolations) {
+    //   ast.parent = this;
+    // }
   }
 }
 

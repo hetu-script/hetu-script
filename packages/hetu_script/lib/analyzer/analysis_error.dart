@@ -104,4 +104,22 @@ class HTAnalysisError implements HTError {
             column: column,
             offset: offset,
             length: length);
+
+  HTAnalysisError.importSelf(
+      {String? extra,
+      String? correction,
+      required String filename,
+      required int line,
+      required int column,
+      required int offset,
+      required int length})
+      : this(ErrorCode.importSelf, ErrorType.staticWarning,
+            message: HTLocale.current.errorImportSelf,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
 }

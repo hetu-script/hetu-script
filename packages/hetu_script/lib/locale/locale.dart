@@ -43,7 +43,6 @@ abstract class HTLocale {
   String get errorNotMember;
   String get errorNotClass;
   String get errorAbstracted;
-  String get errorConstValue;
 
   // runtime errors
   String get errorUnsupported;
@@ -83,4 +82,8 @@ abstract class HTLocale {
   String get errorUnresolvedNamedStruct;
   String get errorBinding;
   String get errorNotStruct;
+
+  // Analysis errors
+  String get errorConstValue;
+  String get errorImportSelf;
 }

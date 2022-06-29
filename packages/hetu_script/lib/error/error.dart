@@ -84,6 +84,7 @@ enum ErrorCode {
 
   // Analysis errors
   constValue,
+  importSelf,
 }
 
 /// The type of an [HTError].

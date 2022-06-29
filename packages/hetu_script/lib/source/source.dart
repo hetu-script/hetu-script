@@ -4,9 +4,9 @@ import 'package:path/path.dart' as path;
 
 // import '../grammar/lexicon.dart';
 import '../grammar/constant.dart';
-import '../shared/crc32b.dart';
 import 'line_info.dart';
 import '../resource/resource.dart';
+import '../shared/crc32b.dart';
 
 /// A piece of code, with extra informations like:
 /// [fullName], [type], [lineInfo], etc.
@@ -31,10 +31,20 @@ class HTSource {
   LineInfo _lineInfo;
   LineInfo get lineInfo => _lineInfo;
 
+  String? _crc32b;
+
+  @override
+  bool operator ==(Object other) =>
+      other is HTSource ? hashCode == other.hashCode : false;
+
+  @override
+  int get hashCode => _crc32b != null ? _crc32b.hashCode : content.hashCode;
+
   HTSource(
     String content, {
     String? fullName,
     this.type = HTResourceType.hetuModule,
+    bool hashContent = false,
   })  : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
     if (fullName != null) {
@@ -51,6 +61,10 @@ class HTSource {
         nameBuilder.write('...');
       }
       _fullName = nameBuilder.toString();
+    }
+
+    if (hashContent) {
+      _crc32b = crc32b(content);
     }
   }
 }

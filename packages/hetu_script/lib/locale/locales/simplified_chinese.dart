@@ -74,8 +74,6 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   final String errorNotClass = '[{0}] 不是一个类。';
   @override
   final String errorAbstracted = '不能从 abstract class 创建实例。';
-  @override
-  final String errorConstValue = '常量声明 [{0}] 的初始化表达式不是常量表达式。';
 
   // runtime errors
   @override
@@ -152,4 +150,11 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   final String errorBinding = 'bind 操作只能用于函数字面量和对象字面量。';
   @override
   final String errorNotStruct = '赋值类型错误：并非结构体。';
+
+  // Analysis errors
+  @override
+  final String errorConstValue = '常量声明 [{0}] 的初始化表达式不是常量表达式。';
+
+  @override
+  final String errorImportSelf = '导入路径不能是代码本身的路径。';
 }

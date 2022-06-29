@@ -1,3 +1,5 @@
+import 'package:path/path.dart' as path;
+
 import '../source/source.dart';
 import '../resource/resource.dart';
 import '../resource/resource_context.dart';
@@ -77,9 +79,11 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   late AnalysisNamespace _currentNamespace;
 
-  late HTSource _curSource;
+  final Map<String, AnalysisNamespace> namespaces = {};
 
-  HTResourceType get sourceType => _curSource.type;
+  late HTSource _currentSource;
+
+  late ASTCompilation _currentCompilation;
 
   // HTClassDeclaration? _curClass;
   // HTFunctionDeclaration? _curFunction;
@@ -108,17 +112,23 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     String? moduleName,
     bool globallyImport = false,
   }) {
+    _currentCompilation = compilation;
     _currentErrors = [];
     _currentAnalysisResults = {};
 
     // Resolve namespaces
     for (final source in compilation.sources.values) {
-      // the first scan, namespaces & declarations are created.
+      // the first scan, create namespaces & declarations.
       resolve(source);
     }
 
     for (final source in compilation.sources.values) {
-      // the second & third scan.
+      // the second scan, handle import.
+      handleImport(source);
+    }
+
+    for (final source in compilation.sources.values) {
+      // the third & forth scan.
       _analyze(source);
     }
 
@@ -138,30 +148,38 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
   }
 
   void resolve(ASTSource source) {
+    source.isResolved = true;
     if (source.resourceType == HTResourceType.hetuLiteralCode) {
       _currentNamespace = globalNamespace;
     } else {
-      _currentNamespace = HTDeclarationNamespace(
-          lexicon: _lexicon, id: source.fullName, closure: globalNamespace);
+      if (namespaces[source.fullName] != null) {
+        _currentNamespace = namespaces[source.fullName]!;
+      } else {
+        namespaces[source.fullName] = _currentNamespace =
+            HTDeclarationNamespace(
+                lexicon: _lexicon,
+                id: source.fullName,
+                closure: globalNamespace);
+      }
     }
     for (final node in source.nodes) {
       resolveAST(node);
     }
   }
 
+  void handleImport(ASTSource source) {}
+
   HTSourceAnalysisResult _analyze(ASTSource source) {
     final sourceErrors = <HTAnalysisError>[];
-    // sourceErrors
-    //     .addAll(source.errors!.map((err) => HTAnalysisError.fromError(err)));
 
-    // the second scan, compute constant values
+    // the third scan, compute constant values
     if (config.computeConstantExpression) {
       final constantInterpreter = HTConstantInterpreter();
       source.accept(constantInterpreter);
       sourceErrors.addAll(constantInterpreter.errors);
     }
 
-    // the third scan, do static analysis
+    // the forth scan, do static analysis
     if (config.doStaticAnalysis) {
       final analyzer = HTAnalyzerImpl(lexicon: _lexicon);
       source.accept(analyzer);
@@ -215,7 +233,27 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   @override
   void visitImportExportDecl(ImportExportDecl node) {
-    node.subAccept(this);
+    if (!_currentSource.fullName
+        .startsWith(InternalIdentifier.anonymousScript)) {
+      // handle self import error.
+      final currentDir = path.dirname(_currentSource.fullName);
+      final fromPath = sourceContext.getAbsolutePath(
+          key: node.fromPath!, dirName: currentDir);
+      if (_currentSource.fullName == fromPath) {
+        final err = HTAnalysisError.importSelf(
+            filename: node.source!.fullName,
+            line: node.line,
+            column: node.column,
+            offset: node.offset,
+            length: node.length);
+        _currentErrors.add(err);
+      }
+    }
+    // TODO: duplicate import and
+    if (!node.isExport) {
+      // import statement
+      // if (node.)
+    } else {}
   }
 
   @override
@@ -228,14 +266,6 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     node.subAccept(this);
     _currentNamespace.define(node.id.id, node);
   }
-
-  // @override
-  // void visitConstDecl(ConstDecl node) {
-  //   _curLine = node.line;
-  //   _curColumn = node.column;
-
-  //   node.subAccept(this);
-  // }
 
   @override
   void visitVarDecl(VarDecl node) {
@@ -256,7 +286,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
   @override
   void visitParamDecl(ParamDecl node) {
     node.subAccept(this);
-    // _currentNamespace.define(node.id.id, node);
+    _currentNamespace.define(node.id.id, node);
   }
 
   @override

@@ -2266,7 +2266,6 @@ class HTDefaultParser extends HTParser {
   }
 
   ImportExportDecl _parseImportDecl() {
-    // TODO: duplicate import and self import error.
     final keyword = advance(); // not a keyword so don't use match
     final showList = <IdentifierExpr>[];
     if (curTok.type == lexicon.declarationBlockStart) {

@@ -21,14 +21,14 @@ class HTBundler {
       {required HTSource source,
       required HTParser parser,
       bool normalizePath = true}) {
-    final result = parser.parseSource(source);
-    final parserErrors = result.errors;
+    final sourceParseResult = parser.parseSource(source);
+    final sourceParseErrors = sourceParseResult.errors;
     final values = <String, ASTSource>{};
     final sources = <String, ASTSource>{};
     final Set cachedParsingTargets = <String>{};
-    void handleImport(ASTSource result) {
-      cachedParsingTargets.add(result.fullName);
-      for (final decl in result.imports) {
+    void handleImport(ASTSource astSource) {
+      cachedParsingTargets.add(astSource.fullName);
+      for (final decl in astSource.imports) {
         if (decl.isPreloadedModule) {
           decl.fullName = decl.fromPath;
           continue;
@@ -37,10 +37,10 @@ class HTBundler {
           late final ASTSource importedSource;
           String importFullName;
           if (normalizePath) {
-            final currentDir =
-                result.fullName.startsWith(InternalIdentifier.anonymousScript)
-                    ? sourceContext.root
-                    : path.dirname(result.fullName);
+            final currentDir = astSource.fullName
+                    .startsWith(InternalIdentifier.anonymousScript)
+                ? sourceContext.root
+                : path.dirname(astSource.fullName);
             decl.fullName = importFullName = sourceContext.getAbsolutePath(
                 key: decl.fromPath!, dirName: currentDir);
           } else {
@@ -57,7 +57,7 @@ class HTBundler {
             importedSource = parser.parseSource(source2);
             // final parser2 = HTParser(sourceContext: sourceContext);
             // importedSource = parser2.parseSource(source2);
-            parserErrors.addAll(importedSource.errors);
+            sourceParseErrors.addAll(importedSource.errors);
             // _cachedParseResults[importFullName] = importedSource;
           }
           if (importedSource.resourceType == HTResourceType.hetuValue) {
@@ -68,7 +68,7 @@ class HTBundler {
           }
         } catch (error) {
           if (error is HTError) {
-            parserErrors.add(error);
+            sourceParseErrors.add(error);
           } else {
             final convertedError = HTError.sourceProviderError(decl.fromPath!,
                 filename: source.fullName,
@@ -76,25 +76,25 @@ class HTBundler {
                 column: decl.column,
                 offset: decl.offset,
                 length: decl.length);
-            parserErrors.add(convertedError);
+            sourceParseErrors.add(convertedError);
           }
         }
       }
-      cachedParsingTargets.remove(result.fullName);
+      cachedParsingTargets.remove(astSource.fullName);
     }
 
-    if (result.resourceType == HTResourceType.hetuValue) {
-      values[result.fullName] = result;
+    if (sourceParseResult.resourceType == HTResourceType.hetuValue) {
+      values[sourceParseResult.fullName] = sourceParseResult;
     } else {
-      handleImport(result);
-      sources[result.fullName] = result;
+      handleImport(sourceParseResult);
+      sources[sourceParseResult.fullName] = sourceParseResult;
     }
     final compilation = ASTCompilation(
         values: values,
         sources: sources,
         entryResourceName: source.fullName,
         entryResourceType: source.type,
-        errors: parserErrors);
+        errors: sourceParseErrors);
     return compilation;
   }
 }

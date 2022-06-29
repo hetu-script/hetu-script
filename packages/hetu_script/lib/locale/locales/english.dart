@@ -84,9 +84,6 @@ class HTLocaleEnglish implements HTLocale {
   final String errorNotClass = '[{0}] is not a class.';
   @override
   final String errorAbstracted = 'Cannot create instance from abstract class.';
-  @override
-  final String errorConstValue =
-      'Const declaration [{0}]\'s initializer is not a constant expression.';
 
   // runtime errors
   @override
@@ -175,4 +172,13 @@ class HTLocaleEnglish implements HTLocale {
   @override
   final String errorNotStruct =
       'Value is not a struct literal, which is needed.';
+
+  // Analysis errors
+  @override
+  final String errorConstValue =
+      'Const declaration [{0}]\'s initializer is not a constant expression.';
+
+  @override
+  final String errorImportSelf =
+      'Import path is the same to the source itself.';
 }
