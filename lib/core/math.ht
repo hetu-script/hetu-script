@@ -21,9 +21,9 @@ external class Math {
 
   static fun max(a, b)
 
-  static fun random([min = 0]) -> num
+  static fun random() -> num
 
-  static fun randomInt(max: num, [min = 0]) -> num
+  static fun randomInt(range: num) -> num
 
   static fun randomBool() -> bool
 
