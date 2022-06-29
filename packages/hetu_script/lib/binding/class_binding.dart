@@ -298,9 +298,7 @@ class HTMathClassBinding extends HTExternalClass {
           final standardDeviation = positionalArgs[1].toDouble();
           assert(standardDeviation > 0);
           final num? min = namedArgs['min'];
-          assert(min == null || (mean - standardDeviation) >= min);
           final num? max = namedArgs['max'];
-          assert(max == null || (mean + standardDeviation) <= max);
           double r;
           do {
             r = gaussianNoise(mean, standardDeviation);
