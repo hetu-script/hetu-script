@@ -501,10 +501,12 @@ class HTFunction extends HTFunctionDeclaration
             }
 
             constructor.call(
-                createInstance: false,
-                useCallingNamespace: false,
-                positionalArgs: referCtorPosArgs,
-                namedArgs: referCtorNamedArgs);
+              createInstance: false,
+              useCallingNamespace: false,
+              positionalArgs: referCtorPosArgs,
+              namedArgs: referCtorNamedArgs,
+              typeArgs: typeArgs,
+            );
           }
         }
 

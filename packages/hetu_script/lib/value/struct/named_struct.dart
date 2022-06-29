@@ -51,9 +51,10 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
       final constructor = structObj
           .memberGet(InternalIdentifier.defaultConstructor) as HTFunction;
       constructor.call(
+          createInstance: false,
+          useCallingNamespace: false,
           positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          createInstance: false);
+          namedArgs: namedArgs);
     }
     return structObj;
   }
