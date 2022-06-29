@@ -690,20 +690,17 @@ class HTDefaultLexicon extends HTLexicon {
     return output.toString();
   }
 
-  String _stringifyStruct(HTStruct struct, {HTStruct? from}) {
+  String _stringifyStruct(HTStruct struct,
+      {HTStruct? from, bool withBraces = true}) {
     final output = StringBuffer();
-    output.writeln(structStart);
-    ++_curIndentCount;
+    if (withBraces) {
+      output.writeln(structStart);
+      ++_curIndentCount;
+    }
     for (var i = 0; i < struct.length; ++i) {
       final key = struct.keys.elementAt(i);
-      if (key.startsWith(internalPrefix)) {
-        continue;
-      }
-      if (from != null && from != struct) {
-        if (from.contains(key)) {
-          continue;
-        }
-      }
+      if (from != null && from.containsKey(key)) continue;
+      if (key.startsWith(internalPrefix)) continue;
       output.write(_curIndent());
       final value = struct[key];
       final valueBuffer = StringBuffer();
@@ -711,7 +708,7 @@ class HTDefaultLexicon extends HTLexicon {
         if (value.isEmpty) {
           valueBuffer.write('$functionBlockStart$functionBlockEnd');
         } else {
-          final content = _stringifyStruct(value, from: from);
+          final content = _stringifyStruct(value);
           // valueBuffer.writeln(functionBlockStart);
           valueBuffer.write(content);
           // valueBuffer.write(_curIndent());
@@ -727,13 +724,16 @@ class HTDefaultLexicon extends HTLexicon {
       }
       output.writeln();
     }
-    // if (struct.prototype != null && struct.prototype!.id != globalPrototypeId) {
-    //   final inherits = stringifyStructMembers(struct.prototype!, from: struct);
-    //   output.write(inherits);
-    // }
-    --_curIndentCount;
-    output.write(_curIndent());
-    output.write(structEnd);
+    if (struct.prototype != null && !struct.prototype!.isRootPrototype) {
+      final inherits = _stringifyStruct(struct.prototype!,
+          from: from ?? struct, withBraces: false);
+      output.write(inherits);
+    }
+    if (withBraces) {
+      --_curIndentCount;
+      output.write(_curIndent());
+      output.write(structEnd);
+    }
     return output.toString();
   }
 

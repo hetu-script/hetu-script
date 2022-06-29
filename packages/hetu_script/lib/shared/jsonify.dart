@@ -28,9 +28,10 @@ List<dynamic> jsonifyList(Iterable list) {
   return output;
 }
 
-Map<String, dynamic> jsonifyStruct(HTStruct struct) {
+Map<String, dynamic> jsonifyStruct(HTStruct struct, {HTStruct? from}) {
   final output = <String, dynamic>{};
   for (final key in struct.keys) {
+    if (from != null && from.containsKey(key)) continue;
     var value = struct[key];
     // ignore none json data value
     if (isJsonDataType(value)) {
@@ -43,9 +44,9 @@ Map<String, dynamic> jsonifyStruct(HTStruct struct) {
     }
   }
   // print prototype members, ignore the root object members
-  // if (struct.prototype != null && !struct.isRootPrototype) {
-  //   final inherits = jsonifyStruct(struct.prototype!);
-  //   output.addAll(inherits);
-  // }
+  if (struct.prototype != null && !struct.prototype!.isRootPrototype) {
+    final inherits = jsonifyStruct(struct.prototype!, from: from ?? struct);
+    output.addAll(inherits);
+  }
   return output;
 }

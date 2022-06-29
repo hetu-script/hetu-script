@@ -27,6 +27,7 @@ void main() {
     struct Person {
       construct {
         this.name = typename
+        this.race = 'han'
       }
     }
 // ''', fullName: 'source2.ht');
@@ -39,7 +40,7 @@ void main() {
     }
     fun test {
       final p = Jimmy()
-      print(p.name)
+      print(p)
     }
 ''', fullName: 'source3.ht');
   sourceContext.addResource(source1.fullName, source1);
