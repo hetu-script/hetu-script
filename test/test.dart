@@ -22,9 +22,18 @@ void main() async {
 
   hetu.eval(r'''
     struct Test {
-      var name = 'text struct'
+      construct {
+        this.name = 'text struct'
+      }
     }
+
+    struct Test2 extends Test {
+      construct () : super() {
+        this.fullname = 'a longer name: ${this.name}'
+      }
+    }
+
+    final t = Test2()
+    print(t)
 ''');
-  final r = hetu.invoke('Test');
-  print(hetu.lexicon.stringify(r));
 }

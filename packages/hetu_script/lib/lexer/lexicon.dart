@@ -245,6 +245,7 @@ abstract class HTLexicon {
         kTypeof,
         // kNamespace,
         kClass,
+        kExtends,
         kEnum,
         kFun,
         kStruct,

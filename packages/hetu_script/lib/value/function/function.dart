@@ -457,13 +457,23 @@ class HTFunction extends HTFunctionDeclaration
               constructor.namespace = instanceNamespace.next!;
               constructor.instance = instance;
             } else {
-              if (name == interpreter.lexicon.kThis) {
-                final prototype = (instance as HTStruct);
+              if (name == interpreter.lexicon.kSuper) {
+                final proto = (instance as HTStruct).prototype;
+                assert(proto != null);
                 if (key == null) {
-                  constructor = prototype
-                      .memberGet(InternalIdentifier.defaultConstructor);
+                  constructor =
+                      proto!.memberGet(InternalIdentifier.defaultConstructor);
                 } else {
-                  constructor = prototype.memberGet(
+                  constructor = proto!.memberGet(
+                      '${InternalIdentifier.namedConstructorPrefix}$key');
+                }
+              } else if (name == interpreter.lexicon.kThis) {
+                final obj = (instance as HTStruct);
+                if (key == null) {
+                  constructor =
+                      obj.memberGet(InternalIdentifier.defaultConstructor);
+                } else {
+                  constructor = obj.memberGet(
                       '${InternalIdentifier.namedConstructorPrefix}$key');
                 }
                 constructor.instance = instance;

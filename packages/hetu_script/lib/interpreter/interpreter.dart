@@ -1532,7 +1532,7 @@ class HTInterpreter {
           if (fieldType == StructObjFieldTypeCode.normal) {
             final key = _currentBytecodeModule.readShortString();
             final value = execute();
-            struct[key] = value;
+            struct.memberSet(key, value, recursive: false);
           } else if (fieldType == StructObjFieldTypeCode.spread) {
             final HTStruct spreadingStruct = execute();
             for (final key in spreadingStruct.keys) {

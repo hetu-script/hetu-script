@@ -201,7 +201,7 @@ class HTStruct with HTEntity {
 
   @override
   bool memberSet(dynamic varName, dynamic varValue,
-      {String? from, bool defineIfAbsent = true}) {
+      {String? from, bool defineIfAbsent = true, bool recursive = true}) {
     if (varName == null) {
       throw HTError.nullSubSetKey();
     }
@@ -236,7 +236,7 @@ class HTStruct with HTEntity {
       func.instance = this;
       func.call(positionalArgs: [varValue]);
       return true;
-    } else if (prototype != null) {
+    } else if (recursive && prototype != null) {
       final success = prototype!
           .memberSet(varName, varValue, from: from, defineIfAbsent: false);
       if (success) {
