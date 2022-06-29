@@ -271,6 +271,18 @@ class HTMathClassBinding extends HTExternalClass {
         return math.e;
       case 'Math.pi':
         return math.pi;
+      case 'Math.degrees':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            degrees(positionalArgs.first.toDouble());
+      case 'Math.radians':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            radians(positionalArgs.first.toDouble());
       case 'Math.radiusToSigma':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -319,13 +331,14 @@ class HTMathClassBinding extends HTExternalClass {
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            math.Random().nextDouble();
+            math.Random().nextDouble() + positionalArgs[0];
       case 'Math.randomInt':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
-            math.Random().nextInt(positionalArgs.first as int);
+            math.Random().nextInt(positionalArgs[0].toInt()) +
+            positionalArgs[1];
       case 'Math.randomBool':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
