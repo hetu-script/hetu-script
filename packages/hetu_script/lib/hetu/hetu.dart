@@ -211,7 +211,7 @@ class Hetu {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final source = HTSource(content, fullName: fileName, type: type);
-    final result = _evalSource(source,
+    final result = evalSource(source,
         moduleName: moduleName,
         globallyImport: globallyImport,
         invokeFunc: invokeFunc,
@@ -233,7 +233,7 @@ class Hetu {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final source = sourceContext.getResource(key);
-    final result = _evalSource(source,
+    final result = evalSource(source,
         moduleName: moduleName,
         globallyImport: globallyImport,
         invokeFunc: invokeFunc,
@@ -243,7 +243,7 @@ class Hetu {
     return result;
   }
 
-  dynamic _evalSource(HTSource source,
+  dynamic evalSource(HTSource source,
       {String? moduleName,
       bool globallyImport = false,
       String? invokeFunc,

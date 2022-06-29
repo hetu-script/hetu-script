@@ -276,31 +276,11 @@ class HTFunction extends HTFunctionDeclaration
   ///
   /// If [createInstance] == true, will create new instance and its namespace.
   dynamic call(
-      {List<dynamic> positionalArgs = const [],
+      {bool useCallingNamespace = true,
+      bool createInstance = true,
+      List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool createInstance = true}) {
-    // if (isAsync) {
-    //   return Future(() => call(
-    //       positionalArgs: positionalArgs,
-    //       namedArgs: namedArgs,
-    //       typeArgs: typeArgs,
-    //       createInstance: createInstance));
-    // } else {
-    return _call(
-      positionalArgs: positionalArgs,
-      namedArgs: namedArgs,
-      typeArgs: typeArgs,
-      createInstance: createInstance,
-    );
-    // }
-  }
-
-  dynamic _call(
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const [],
-      bool createInstance = true}) {
+      List<HTType> typeArgs = const []}) {
     try {
       interpreter.stackTraceList.insert(0,
           '$internalName (${interpreter.currentFileName}:${interpreter.currentLine}:${interpreter.currentColumn})');
@@ -346,11 +326,9 @@ class HTFunction extends HTFunctionDeclaration
         final HTNamespace callClosure = HTNamespace(
             lexicon: interpreter.lexicon,
             id: internalName,
-            closure: namespace != null
-                ? namespace as HTNamespace
-                : closure != null
-                    ? closure as HTNamespace
-                    : null);
+            closure: useCallingNamespace
+                ? namespace as HTNamespace?
+                : closure as HTNamespace?);
 
         // define this and super keyword
         if (instance != null) {
@@ -418,7 +396,8 @@ class HTFunction extends HTFunctionDeclaration
                 final instanceNamespace = namespace as HTInstanceNamespace;
                 constructor.namespace = instanceNamespace.next!;
                 constructor.instance = instance;
-                constructor.call(createInstance: false);
+                constructor.call(
+                    createInstance: false, useCallingNamespace: false);
                 superClass = superClass.superClass;
               }
             } else {
@@ -523,6 +502,7 @@ class HTFunction extends HTFunctionDeclaration
 
             constructor.call(
                 createInstance: false,
+                useCallingNamespace: false,
                 positionalArgs: referCtorPosArgs,
                 namedArgs: referCtorNamedArgs);
           }
