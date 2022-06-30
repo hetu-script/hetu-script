@@ -22,6 +22,7 @@ class HTLexer {
   late final RegExp _identifierRegExp;
   late final RegExp _numberStartRegExp;
   late final RegExp _numberRegExp;
+  late final RegExp _digitRegExp;
   late final RegExp _hexNumberRegExp;
 
   HTLexer({HTLexicon? lexicon}) : lexicon = lexicon ?? HTDefaultLexicon() {
@@ -30,6 +31,7 @@ class HTLexer {
     _identifierRegExp = RegExp(this.lexicon.identifierPattern, unicode: true);
     _numberStartRegExp = RegExp(this.lexicon.numberStartPattern);
     _numberRegExp = RegExp(this.lexicon.numberPattern);
+    _digitRegExp = RegExp(this.lexicon.digitPattern);
     _hexNumberRegExp = RegExp(this.lexicon.hexNumberPattern);
   }
 
@@ -360,13 +362,15 @@ class HTLexer {
               bool hasDecimalPoint = current == lexicon.decimalPoint;
               while (iter.charactersAfter.isNotEmpty) {
                 final charNext = iter.charactersAfter.first;
+                final char3rd = iter.charactersAfter.length > 1
+                    ? iter.charactersAfter.elementAt(1)
+                    : '';
                 if (_numberRegExp.hasMatch(charNext)) {
                   if (charNext == lexicon.decimalPoint) {
-                    if (!hasDecimalPoint) {
+                    if (!hasDecimalPoint && _digitRegExp.hasMatch(char3rd)) {
                       hasDecimalPoint = true;
-                    } else {
-                      break;
                     }
+                    break;
                   }
                   buffer.write(charNext);
                   iter.moveNext();

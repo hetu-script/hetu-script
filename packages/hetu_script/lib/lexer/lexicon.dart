@@ -6,6 +6,7 @@ abstract class HTLexicon {
   String get identifierStartPattern;
   String get identifierPattern;
   String get numberStartPattern;
+  String get digitPattern;
   String get numberPattern;
   String get hexNumberPattern;
   String get stringInterpolationPattern;

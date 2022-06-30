@@ -18,6 +18,9 @@ class ZhongwenLexicon extends HTLexicon {
   String get numberPattern => r'[\.\d]';
 
   @override
+  String get digitPattern => r'\d';
+
+  @override
   String get hexNumberPattern => r'[0-9a-fA-F]';
 
   @override

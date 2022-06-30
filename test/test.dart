@@ -47,7 +47,11 @@ void main() {
   sourceContext.addResource(source2.fullName, source2);
   sourceContext.addResource(source3.fullName, source3);
 
-  final r = hetu.evalSource(source3, invokeFunc: 'test');
+  // final r = hetu.evalSource(source3, invokeFunc: 'test');
+
+  final r = hetu.eval(r'''
+    2.isEven
+  ''');
 
   print(hetu.lexicon.stringify(r));
 }
