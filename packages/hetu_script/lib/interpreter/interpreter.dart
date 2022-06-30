@@ -1260,10 +1260,12 @@ class HTInterpreter {
             } else {
               if (object is List) {
                 if (key is! int) {
-                  throw HTError.subGetKey(key,
-                      filename: _currentFileName,
-                      line: _currentLine,
-                      column: _column);
+                  if (key.toInt() != key) {
+                    throw HTError.subGetKey(key,
+                        filename: _currentFileName,
+                        line: _currentLine,
+                        column: _column);
+                  }
                 } else if (key < 0 || key >= object.length) {
                   throw HTError.outOfRange(key, object.length,
                       filename: _currentFileName,
@@ -1271,7 +1273,7 @@ class HTInterpreter {
                       column: _column);
                 }
               }
-              _localValue = object[key];
+              _localValue = object[key.toInt()];
             }
           }
           break;
@@ -1327,17 +1329,19 @@ class HTInterpreter {
             } else {
               if (object is List) {
                 if (key is! int) {
-                  throw HTError.subGetKey(key,
-                      filename: _currentFileName,
-                      line: _currentLine,
-                      column: _column);
+                  if (key.toInt() != key) {
+                    throw HTError.subGetKey(key,
+                        filename: _currentFileName,
+                        line: _currentLine,
+                        column: _column);
+                  }
                 } else if (key < 0 || key >= object.length) {
                   throw HTError.outOfRange(key, object.length,
                       filename: _currentFileName,
                       line: _currentLine,
                       column: _column);
                 }
-                object[key] = value;
+                object[key.toInt()] = value;
               } else if (object is Map) {
                 object[key] = value;
               }
