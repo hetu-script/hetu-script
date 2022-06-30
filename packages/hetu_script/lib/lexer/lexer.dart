@@ -369,8 +369,9 @@ class HTLexer {
                   if (charNext == lexicon.decimalPoint) {
                     if (!hasDecimalPoint && _digitRegExp.hasMatch(char3rd)) {
                       hasDecimalPoint = true;
+                    } else {
+                      break;
                     }
-                    break;
                   }
                   buffer.write(charNext);
                   iter.moveNext();

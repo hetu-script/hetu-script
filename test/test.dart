@@ -50,7 +50,7 @@ void main() {
   // final r = hetu.evalSource(source3, invokeFunc: 'test');
 
   final r = hetu.eval(r'''
-    2.isEven
+    2.4.toString()
   ''');
 
   print(hetu.lexicon.stringify(r));
