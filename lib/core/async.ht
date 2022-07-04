@@ -2,6 +2,8 @@ external class Future {
 
   static fun wait(futures: List) -> Future //, { cleanUp: (successValue) -> void })
 
+  static fun value(possibleFuture) -> Future
+
   construct (func: function)
 
   fun then(func: (value) -> any) -> Future

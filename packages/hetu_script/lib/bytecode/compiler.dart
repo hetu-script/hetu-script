@@ -8,6 +8,7 @@ import '../grammar/constant.dart';
 import '../shared/constants.dart';
 import '../constant/global_constant_table.dart';
 import '../version.dart';
+// import '../parser/parser.dart';
 
 class HTRegIdx {
   static const value = 0;
@@ -52,6 +53,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   static const hetuSignature = 134550549;
 
   static var iterIndex = 0;
+  static var awaitedValueIndex = 0;
 
   CompilerConfig config;
 
@@ -66,6 +68,11 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   // Replace user defined identifiers with internal ones, used in for statement.
   final List<Map<String, String>> _markedSymbolsList = [];
+
+  // Stored all awaited values and those internal identifiers replaces them.
+  // key is the stmt astnode itself
+  // Map<String, ASTNode> _curStmtAwaitedExprs = {};
+  // Map<ASTNode, Map<String, ASTNode>> _awaitedExprsInStmts = {};
 
   HTCompiler({
     CompilerConfig? config,
@@ -241,28 +248,46 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
+  // If necessary, transform a statement with await keyword into a callback form.
+  // for example, statement like this:
+  //
+  //   final c = await a() + await b()
+  //
+  // will be turned into this in bytecode:
+  //
+  //   a().then((_$awaited_a) {
+  //     b().then((_$awaited_b) {
+  //       final c = _$awaited_a + _$awaited_b
+  //     })
+  //   })
+  // ASTNode? _convertPossibleAwaitedExpressionToCallBack(ASTNode node,
+  //     [List<ASTNode> restSyncCode = const []]) {
+  //   if (_curStmtAwaitedExprs.isNotEmpty) {
+  //     ASTNode awaitedStmt = node;
+  //     for (final id in _curStmtAwaitedExprs.keys.toList().reversed) {
+  //       final value = _curStmtAwaitedExprs[id]!;
+  //       awaitedStmt = CallExpr(
+  //           MemberExpr(GroupExpr(value), IdentifierExpr(_lexicon.idThen)),
+  //           positionalArgs: [
+  //             FuncDecl(
+  //               '${InternalIdentifier.anonymousFunction}${HTParser.anonymousFunctionIndex++}',
+  //               category: FunctionCategory.literal,
+  //               paramDecls: [ParamDecl(IdentifierExpr(id))],
+  //               definition: BlockStmt([node, ...restSyncCode],
+  //                   id: Semantic.functionCall),
+  //             )
+  //           ]);
+  //     }
+  //     return awaitedStmt;
+  //   } else {
+  //     return null;
+  //   }
+  // }
+
   Uint8List compileAST(ASTNode node, {bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
     Uint8List bytes;
-    // if (node.isExpression && node.isConstValue) {
-    //   late int type, index;
-    //   if (node.value is bool) {
-    //     type = HTConstantType.boolean.index;
-    //     index = _currentConstantTable.addGlobalConstant<bool>(node.value);
-    //   } else if (node.value is int) {
-    //     type = HTConstantType.integer.index;
-    //     index = _currentConstantTable.addGlobalConstant<int>(node.value);
-    //   } else if (node.value is double) {
-    //     type = HTConstantType.float.index;
-    //     index = _currentConstantTable.addGlobalConstant<double>(node.value);
-    //   } else if (node.value is String) {
-    //     type = HTConstantType.string.index;
-    //     index = _currentConstantTable.addGlobalConstant<String>(node.value);
-    //   }
-    //   bytes = _localConst(type, index, node.line, node.column);
-    // } else {
     bytes = node.accept(this);
-    // }
     bytesBuilder.add(bytes);
     if (endOfExec) {
       bytesBuilder.addByte(HTOpCode.endOfExec);
@@ -331,11 +356,14 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     // if the relativeName is null then it is the entry file of this module.
     bytesBuilder.add(_parseIdentifier(unit.fullName));
     bytesBuilder.addByte(unit.resourceType.index);
+    // final convertedNodes = _convertPossibleAwaitedBlockToCallBack(unit.nodes);
+    // for (final node in convertedNodes) {
     for (final node in unit.nodes) {
       final bytes = compileAST(node);
       bytesBuilder.add(bytes);
     }
     bytesBuilder.addByte(HTOpCode.endOfFile);
+
     return bytesBuilder.toBytes();
   }
 
@@ -690,6 +718,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.add(value);
       bytesBuilder.addByte(HTOpCode.typeOf);
     }
+    // else if (expr.op == _lexicon.kAwait) {
+    //   final markedAwaitedId = '_\$awaited_${awaitedValueIndex++}';
+    //   _curStmtAwaitedExprs[markedAwaitedId] = expr.object;
+    //   final markedId = IdentifierExpr(markedAwaitedId);
+    //   final bytes = visitIdentifierExpr(markedId);
+    //   bytesBuilder.add(bytes);
+    // }
     return bytesBuilder.toBytes();
   }
 

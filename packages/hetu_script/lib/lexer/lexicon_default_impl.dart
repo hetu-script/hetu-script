@@ -138,6 +138,9 @@ class HTDefaultLexicon extends HTLexicon {
   String get idApply => 'apply';
 
   @override
+  String get idThen => 'then';
+
+  @override
   String get kNull => 'null';
 
   @override
@@ -619,7 +622,7 @@ class HTDefaultLexicon extends HTLexicon {
   @override
   String get typeParameterStart => '<';
 
-  /// >
+  /// \>
   @override
   String get typeParameterEnd => '>';
 

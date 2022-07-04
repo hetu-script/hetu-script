@@ -128,14 +128,32 @@ abstract class HTLexicon {
         typeString,
       };
 
+  /// `values` api.
   String get idCollectionValues;
+
+  /// `contains` api.
   String get idCollectionContains;
+
+  /// `iterator` api on Iterable.
   String get idIterableIterator;
+
+  /// `moveNext()` api on iterator.
   String get idIterableIteratorMoveNext;
+
+  /// `current` api on iterator.
   String get idIterableIteratorCurrent;
+
+  /// `toString()` api on Object & struct object.
   String get idToString;
+
+  /// `bind()` api on function object.
   String get idBind;
+
+  /// `apply()` api on function object.
   String get idApply;
+
+  /// `then()` api on Future object.
+  String get idThen;
 
   // Set<String> get primitiveTypes => {
   //       kType,
@@ -354,6 +372,7 @@ abstract class HTLexicon {
         preIncrement,
         preDecrement,
         kTypeof,
+        kAwait,
       };
 
   String get multiply;
@@ -453,6 +472,7 @@ abstract class HTLexicon {
 
   String get structValueIndicator;
 
+  /// ';'
   String get endOfStatementMark;
 
   String get stringStart1;

@@ -92,6 +92,7 @@ abstract class HTValueTypeCode {
   static const nominalType = 14;
   static const functionType = 15;
   static const structuralType = 16;
+  static const future = 17;
 }
 
 abstract class StructObjFieldTypeCode {

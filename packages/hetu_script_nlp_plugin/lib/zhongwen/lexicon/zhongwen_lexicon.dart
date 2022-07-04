@@ -135,6 +135,9 @@ class ZhongwenLexicon extends HTLexicon {
   String get idApply => 'apply';
 
   @override
+  String get idThen => 'then';
+
+  @override
   String get kNull => 'null';
 
   @override

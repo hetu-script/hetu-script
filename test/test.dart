@@ -50,12 +50,14 @@ void main() {
   // final r = hetu.evalSource(source3, invokeFunc: 'test');
 
   final r = hetu.eval(r'''
-
-    final a = Future( () => 42 )
-    a.then( (value) => print(value) )
-    print(41)
-
+    async a => 1
+    
+    a()
   ''');
 
-  print(hetu.lexicon.stringify(r));
+  if (r is Future) {
+    r.then((value) => print(hetu.lexicon.stringify(value)));
+  } else {
+    print(hetu.lexicon.stringify(r));
+  }
 }
