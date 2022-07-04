@@ -50,9 +50,11 @@ void main() {
   // final r = hetu.evalSource(source3, invokeFunc: 'test');
 
   final r = hetu.eval(r'''
-    for (final i = 3; i < 13; ++i) {
-      print(i)
-    }
+
+    final a = Future( () => 42 )
+    a.then( (value) => print(value) )
+    print(41)
+
   ''');
 
   print(hetu.lexicon.stringify(r));

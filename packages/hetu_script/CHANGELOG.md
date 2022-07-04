@@ -2,9 +2,12 @@
 
 - UPGRADE to Dart 2.17.
 - Add api for dynamically import a source: `final { a, b } = require(path)`
-- Added support for const expression interpreter and static analyzer(WIP).
-- Now suport multiline String literal, syntax is the same to normal string.
-- Now support user-defined lexicon & parser, you can define a language with
+- Add Future() constructor.
+- Add Future.wait() api on Future class binding.
+- Add async keyword for declaration a async function.
+- Add fundations for support const expression interpreter and static analyzer (still WIP).
+- Add suport for multiline String literal, syntax is the same to normal string.
+- Add support for user-defined lexicon & parser, you can define a language with
   custom lexicon & grammar that compiles into the bytecode and runs with Hetu.
 
 ## 0.3.12

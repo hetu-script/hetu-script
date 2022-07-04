@@ -127,6 +127,23 @@ final func3 = () { 42 }
 final func4 = () => 42
 ```
 
+## Immediately run literal function
+
+Literal function is an expression, hence it has value, so just like in Javascript, you can immediately call it after the definition:
+
+```javascript
+() {
+  return Future( () => 42 )
+} ().then(
+  (value){
+    print(value)
+  }
+)
+print(41)
+```
+
+The above output should be 41 then 42, because although the 42 is print in the first call, it happens later because it is wrapped in a future.
+
 ## Bind a literal function to a struct
 
 You can bind a literal function (and only a literal function) onto a literal struct object and get a new function.

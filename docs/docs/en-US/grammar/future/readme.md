@@ -29,3 +29,37 @@ void main() {
   ''');
 }
 ```
+
+## Create a Future
+
+After 0.4.0, you can manually create a Future object by using the constructor of the Future class binding:
+
+```dart
+final a = Future( () => 42 )
+a.then( (value) => print(value) )
+print(41)
+```
+
+The above output should be 41 then 42.
+
+## Wait for a list of future
+
+After 0.4.0, you can use the static wait api on Future class to wait for a bunch of values to be returned.
+
+```dart
+async asyncFunc1 => 41
+async asyncFunc2 => 42
+
+Future.wait([asyncFunc1(), asyncFunc2()]).then((valueList) {
+  print(valueList)
+})
+```
+
+Above code will print:
+
+```
+[
+  41,
+  42
+]
+```

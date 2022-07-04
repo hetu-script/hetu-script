@@ -259,6 +259,32 @@ class HTFunction extends HTFunctionDeclaration
     }
   }
 
+  dynamic call(
+      {bool useCallingNamespace = true,
+      bool createInstance = true,
+      List<dynamic> positionalArgs = const [],
+      Map<String, dynamic> namedArgs = const {},
+      List<HTType> typeArgs = const []}) {
+    // For external async function, don't need this.
+    if (isAsync && !isExternal) {
+      return Future(() => _call(
+            useCallingNamespace: useCallingNamespace,
+            createInstance: createInstance,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            typeArgs: typeArgs,
+          ));
+    } else {
+      return _call(
+        useCallingNamespace: useCallingNamespace,
+        createInstance: createInstance,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs,
+      );
+    }
+  }
+
   /// Call this function with specific arguments.
   /// ```
   /// function<typeArg1, typeArg2>(posArg1, posArg2, name1: namedArg1, name2: namedArg2)
@@ -275,7 +301,7 @@ class HTFunction extends HTFunctionDeclaration
   /// ```
   ///
   /// If [createInstance] == true, will create new instance and its namespace.
-  dynamic call(
+  dynamic _call(
       {bool useCallingNamespace = true,
       bool createInstance = true,
       List<dynamic> positionalArgs = const [],

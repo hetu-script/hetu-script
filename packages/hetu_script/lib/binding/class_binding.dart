@@ -541,6 +541,18 @@ class HTFutureClassBinding extends HTExternalClass {
           final HTFunction func = positionalArgs.first;
           return Future(() => func.call());
         };
+      case 'Future.wait':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          final futures = List<Future<dynamic>>.from(positionalArgs.first);
+          // final HTFunction? func = namedArgs['cleanUp'];
+          return Future.wait(futures);
+          // , cleanUp: (value) {
+          //   if (func != null) func.call(positionalArgs: [value]);
+          // });
+        };
       default:
         throw HTError.undefined(varName);
     }

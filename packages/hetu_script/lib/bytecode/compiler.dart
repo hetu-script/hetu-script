@@ -64,6 +64,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   int get curLine => _curLine;
   int get curColumn => _curColumn;
 
+  // Replace user defined identifiers with internal ones, used in for statement.
   final List<Map<String, String>> _markedSymbolsList = [];
 
   HTCompiler({

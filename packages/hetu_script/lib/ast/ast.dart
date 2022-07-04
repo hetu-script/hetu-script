@@ -20,11 +20,9 @@ abstract class ASTNode {
 
   List<Comment> succeedingComments = [];
 
-  bool get isExpression => true;
+  final bool isStatement;
 
-  bool get isStatement => !isExpression;
-
-  bool get hasEndOfStmtMark => false;
+  bool get isExpression => !isStatement;
 
   /// Wether this value is constantant value,
   /// i.e. its value can be computed before compile into bytecode.
@@ -54,12 +52,15 @@ abstract class ASTNode {
   /// Visit all the sub nodes of this, doing nothing by default.
   void subAccept(AbstractASTVisitor visitor) {}
 
-  ASTNode(this.type,
-      {this.source,
-      this.line = 0,
-      this.column = 0,
-      this.offset = 0,
-      this.length = 0});
+  ASTNode(
+    this.type, {
+    this.isStatement = false,
+    this.source,
+    this.line = 0,
+    this.column = 0,
+    this.offset = 0,
+    this.length = 0,
+  });
 }
 
 /// Parse result of a single file
@@ -89,19 +90,16 @@ class ASTSource extends ASTNode {
   /// This value is false untill assigned by analyzer
   bool isResolved = false;
 
-  @override
-  bool get isExpression => false;
-
-  ASTSource(
-      {required this.nodes,
-      required super.source,
-      this.imports = const [],
-      this.errors = const [],
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.source) {
+  ASTSource({
+    required this.nodes,
+    this.imports = const [],
+    this.errors = const [],
+    required super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.source, isStatement: true) {
     // for (final decl in imports) {
     //   decl.parent = this;
     // }
@@ -136,21 +134,18 @@ class ASTCompilation extends ASTNode {
 
   final List<HTError> errors;
 
-  @override
-  bool get isExpression => false;
-
-  ASTCompilation(
-      {required this.values,
-      required this.sources,
-      required this.entryResourceName,
-      required this.entryResourceType,
-      required this.errors,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.compilation) {
+  ASTCompilation({
+    required this.values,
+    required this.sources,
+    required this.entryResourceName,
+    required this.entryResourceType,
+    required this.errors,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.compilation, isStatement: true) {
     // for (final decl in values.values) {
     //   decl.parent = this;
     // }
@@ -160,37 +155,17 @@ class ASTCompilation extends ASTNode {
   }
 }
 
-class ASTEmptyLine extends ASTNode {
-  @override
-  dynamic accept(AbstractASTVisitor visitor) => visitor.visitEmptyExpr(this);
-
-  @override
-  bool get isExpression => false;
-
-  @override
-  final bool hasEndOfStmtMark;
-
-  ASTEmptyLine(
-      {this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.empty);
-}
-
 class ASTLiteralNull extends ASTNode {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitNullExpr(this);
 
-  ASTLiteralNull(
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.literalNull);
+  ASTLiteralNull({
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.literalNull);
 }
 
 class ASTLiteralBoolean extends ASTNode {
@@ -202,13 +177,14 @@ class ASTLiteralBoolean extends ASTNode {
   @override
   bool get value => _value;
 
-  ASTLiteralBoolean(this._value,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.literalBoolean);
+  ASTLiteralBoolean(
+    this._value, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.literalBoolean);
 }
 
 class ASTLiteralInteger extends ASTNode {
@@ -221,13 +197,14 @@ class ASTLiteralInteger extends ASTNode {
   @override
   int get value => _value;
 
-  ASTLiteralInteger(this._value,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.literalInteger);
+  ASTLiteralInteger(
+    this._value, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.literalInteger);
 }
 
 class ASTLiteralFloat extends ASTNode {
@@ -240,13 +217,14 @@ class ASTLiteralFloat extends ASTNode {
   @override
   double get value => _value;
 
-  ASTLiteralFloat(this._value,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.literalFloat);
+  ASTLiteralFloat(
+    this._value, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.literalFloat);
 }
 
 class ASTLiteralString extends ASTNode {
@@ -263,13 +241,16 @@ class ASTLiteralString extends ASTNode {
 
   final String quotationRight;
 
-  ASTLiteralString(this._value, this.quotationLeft, this.quotationRight,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.literalString);
+  ASTLiteralString(
+    this._value,
+    this.quotationLeft,
+    this.quotationRight, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.literalString);
 }
 
 class ASTStringInterpolation extends ASTNode {
@@ -293,13 +274,16 @@ class ASTStringInterpolation extends ASTNode {
   final List<ASTNode> interpolations;
 
   ASTStringInterpolation(
-      this.text, this.quotationLeft, this.quotationRight, this.interpolations,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.literalStringInterpolation) {
+    this.text,
+    this.quotationLeft,
+    this.quotationRight,
+    this.interpolations, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.literalStringInterpolation) {
     // for (final ast in interpolations) {
     //   ast.parent = this;
     // }
@@ -323,19 +307,23 @@ class IdentifierExpr extends ASTNode {
   /// This value is null untill assigned by analyzer
   HTDeclaration? declaration;
 
-  IdentifierExpr(this.id,
-      {this.isMarked = false,
-      this.isLocal = true,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.identifierExpr);
+  IdentifierExpr(
+    this.id, {
+    this.isMarked = false,
+    this.isLocal = true,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.identifierExpr);
 
-  IdentifierExpr.fromToken(Token idTok,
-      {bool isMarked = false, bool isLocal = true, HTSource? source})
-      : this(idTok.literal,
+  IdentifierExpr.fromToken(
+    Token idTok, {
+    bool isMarked = false,
+    bool isLocal = true,
+    HTSource? source,
+  }) : this(idTok.literal,
             isLocal: isLocal,
             source: source,
             line: idTok.line,
@@ -355,13 +343,14 @@ class SpreadExpr extends ASTNode {
 
   final ASTNode collection;
 
-  SpreadExpr(this.collection,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.spreadExpr);
+  SpreadExpr(
+    this.collection, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.spreadExpr);
 }
 
 class CommaExpr extends ASTNode {
@@ -379,14 +368,15 @@ class CommaExpr extends ASTNode {
 
   final bool isLocal;
 
-  CommaExpr(this.list,
-      {this.isLocal = true,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.commaExpr);
+  CommaExpr(
+    this.list, {
+    this.isLocal = true,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.commaExpr);
 }
 
 class ListExpr extends ASTNode {
@@ -402,13 +392,14 @@ class ListExpr extends ASTNode {
 
   final List<ASTNode> list;
 
-  ListExpr(this.list,
-      {HTSource? source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.literalList);
+  ListExpr(
+    this.list, {
+    HTSource? source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.literalList);
 }
 
 class InOfExpr extends ASTNode {
@@ -424,13 +415,15 @@ class InOfExpr extends ASTNode {
 
   final bool valueOf;
 
-  InOfExpr(this.collection, this.valueOf,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.inExpr);
+  InOfExpr(
+    this.collection,
+    this.valueOf, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.inExpr);
 }
 
 class GroupExpr extends ASTNode {
@@ -444,25 +437,27 @@ class GroupExpr extends ASTNode {
 
   final ASTNode inner;
 
-  GroupExpr(this.inner,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.groupExpr);
+  GroupExpr(
+    this.inner, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.groupExpr);
 }
 
 abstract class TypeExpr extends ASTNode {
   bool get isLocal;
 
-  TypeExpr(String exprType,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(exprType);
+  TypeExpr(
+    String exprType, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(exprType);
 }
 
 class IntrinsicTypeExpr extends TypeExpr {
@@ -479,17 +474,17 @@ class IntrinsicTypeExpr extends TypeExpr {
   @override
   final bool isLocal;
 
-  IntrinsicTypeExpr(
-      {required this.id,
-      this.isTop = false,
-      this.isBottom = false,
-      this.isLocal = true,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.intrinsicTypeExpr);
+  IntrinsicTypeExpr({
+    required this.id,
+    this.isTop = false,
+    this.isBottom = false,
+    this.isLocal = true,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.intrinsicTypeExpr);
 }
 
 class NominalTypeExpr extends TypeExpr {
@@ -506,17 +501,17 @@ class NominalTypeExpr extends TypeExpr {
   @override
   final bool isLocal;
 
-  NominalTypeExpr(
-      {required this.id,
-      this.arguments = const [],
-      this.isNullable = false,
-      this.isLocal = true,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.nominalTypeExpr);
+  NominalTypeExpr({
+    required this.id,
+    this.arguments = const [],
+    this.isNullable = false,
+    this.isLocal = true,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.nominalTypeExpr);
 }
 
 class ParamTypeExpr extends ASTNode {
@@ -542,16 +537,17 @@ class ParamTypeExpr extends ASTNode {
 
   final TypeExpr declType;
 
-  ParamTypeExpr(this.declType,
-      {this.id,
-      required this.isOptional,
-      required this.isVariadic,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.paramTypeExpr);
+  ParamTypeExpr(
+    this.declType, {
+    this.id,
+    required this.isOptional,
+    required this.isVariadic,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.paramTypeExpr);
 }
 
 class FuncTypeExpr extends TypeExpr {
@@ -580,18 +576,19 @@ class FuncTypeExpr extends TypeExpr {
   @override
   final bool isLocal;
 
-  FuncTypeExpr(this.returnType,
-      {this.genericTypeParameters = const [],
-      this.paramTypes = const [],
-      this.hasOptionalParam = false,
-      this.hasNamedParam = false,
-      this.isLocal = true,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.funcTypeExpr);
+  FuncTypeExpr(
+    this.returnType, {
+    this.genericTypeParameters = const [],
+    this.paramTypes = const [],
+    this.hasOptionalParam = false,
+    this.hasNamedParam = false,
+    this.isLocal = true,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.funcTypeExpr);
 }
 
 class FieldTypeExpr extends ASTNode {
@@ -608,13 +605,15 @@ class FieldTypeExpr extends ASTNode {
 
   final TypeExpr fieldType;
 
-  FieldTypeExpr(this.id, this.fieldType,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.fieldTypeExpr);
+  FieldTypeExpr(
+    this.id,
+    this.fieldType, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.fieldTypeExpr);
 }
 
 class StructuralTypeExpr extends TypeExpr {
@@ -634,15 +633,15 @@ class StructuralTypeExpr extends TypeExpr {
   @override
   final bool isLocal;
 
-  StructuralTypeExpr(
-      {this.fieldTypes = const [],
-      this.isLocal = true,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.structuralTypeExpr);
+  StructuralTypeExpr({
+    this.fieldTypes = const [],
+    this.isLocal = true,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.structuralTypeExpr);
 }
 
 class GenericTypeParameterExpr extends ASTNode {
@@ -659,14 +658,15 @@ class GenericTypeParameterExpr extends ASTNode {
 
   final NominalTypeExpr? superType;
 
-  GenericTypeParameterExpr(this.id,
-      {this.superType,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.genericTypeParamExpr);
+  GenericTypeParameterExpr(
+    this.id, {
+    this.superType,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.genericTypeParamExpr);
 }
 
 /// -e, !e，++e, --e
@@ -684,13 +684,15 @@ class UnaryPrefixExpr extends ASTNode {
 
   final ASTNode object;
 
-  UnaryPrefixExpr(this.op, this.object,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.unaryExpr);
+  UnaryPrefixExpr(
+    this.op,
+    this.object, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.unaryExpr);
 }
 
 /// e++, e--
@@ -708,13 +710,15 @@ class UnaryPostfixExpr extends ASTNode {
 
   final String op;
 
-  UnaryPostfixExpr(this.object, this.op,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.unaryExpr);
+  UnaryPostfixExpr(
+    this.object,
+    this.op, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.unaryExpr);
 }
 
 class BinaryExpr extends ASTNode {
@@ -733,13 +737,16 @@ class BinaryExpr extends ASTNode {
 
   final ASTNode right;
 
-  BinaryExpr(this.left, this.op, this.right,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.binaryExpr);
+  BinaryExpr(
+    this.left,
+    this.op,
+    this.right, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.binaryExpr);
 }
 
 class TernaryExpr extends ASTNode {
@@ -759,13 +766,16 @@ class TernaryExpr extends ASTNode {
 
   final ASTNode elseBranch;
 
-  TernaryExpr(this.condition, this.thenBranch, this.elseBranch,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.binaryExpr);
+  TernaryExpr(
+    this.condition,
+    this.thenBranch,
+    this.elseBranch, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.binaryExpr);
 }
 
 class AssignExpr extends ASTNode {
@@ -784,13 +794,16 @@ class AssignExpr extends ASTNode {
 
   final ASTNode right;
 
-  AssignExpr(this.left, this.op, this.right,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.assignExpr);
+  AssignExpr(
+    this.left,
+    this.op,
+    this.right, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.assignExpr);
 }
 
 class MemberExpr extends ASTNode {
@@ -809,14 +822,16 @@ class MemberExpr extends ASTNode {
 
   final bool isNullable;
 
-  MemberExpr(this.object, this.key,
-      {this.isNullable = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.memberGetExpr);
+  MemberExpr(
+    this.object,
+    this.key, {
+    this.isNullable = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.memberGetExpr);
 }
 
 class SubExpr extends ASTNode {
@@ -835,14 +850,16 @@ class SubExpr extends ASTNode {
 
   final bool isNullable;
 
-  SubExpr(this.object, this.key,
-      {this.isNullable = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.subGetExpr);
+  SubExpr(
+    this.object,
+    this.key, {
+    this.isNullable = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.subGetExpr);
 }
 
 class CallExpr extends ASTNode {
@@ -870,20 +887,53 @@ class CallExpr extends ASTNode {
 
   final bool hasNewOperator;
 
-  CallExpr(this.callee,
-      {this.positionalArgs = const [],
-      this.namedArgs = const {},
-      this.isNullable = false,
-      this.hasNewOperator = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.callExpr);
+  CallExpr(
+    this.callee, {
+    this.positionalArgs = const [],
+    this.namedArgs = const {},
+    this.isNullable = false,
+    this.hasNewOperator = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.callExpr);
 }
 
-class AssertStmt extends ASTNode {
+abstract class Statement extends ASTNode {
+  final bool isAsync;
+
+  final bool hasEndOfStmtMark;
+
+  Statement(
+    super.type, {
+    this.isAsync = false,
+    this.hasEndOfStmtMark = false,
+    super.isStatement = true,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  });
+}
+
+class ASTEmptyLine extends Statement {
+  @override
+  dynamic accept(AbstractASTVisitor visitor) => visitor.visitEmptyExpr(this);
+
+  ASTEmptyLine({
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.empty, isAsync: false);
+}
+
+class AssertStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitAssertStmt(this);
 
@@ -894,45 +944,37 @@ class AssertStmt extends ASTNode {
 
   final ASTNode expr;
 
-  @override
-  bool get isExpression => false;
-
-  @override
-  final bool hasEndOfStmtMark;
-
-  AssertStmt(this.expr,
-      {this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.assertStmt);
+  AssertStmt(
+    this.expr, {
+    super.isAsync = false,
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.assertStmt);
 }
 
-class ThrowStmt extends ASTNode {
+class ThrowStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitThrowStmt(this);
 
   final ASTNode message;
 
-  @override
-  bool get isExpression => false;
-
-  @override
-  final bool hasEndOfStmtMark;
-
-  ThrowStmt(this.message,
-      {this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.throwStmt);
+  ThrowStmt(
+    this.message, {
+    super.isAsync = false,
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.throwStmt);
 }
 
-class ExprStmt extends ASTNode {
+class ExprStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitExprStmt(this);
 
@@ -943,23 +985,19 @@ class ExprStmt extends ASTNode {
 
   final ASTNode expr;
 
-  @override
-  bool get isExpression => false;
-
-  @override
-  final bool hasEndOfStmtMark;
-
-  ExprStmt(this.expr,
-      {this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.exprStmt);
+  ExprStmt(
+    this.expr, {
+    super.isAsync = false,
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.exprStmt);
 }
 
-class BlockStmt extends ASTNode {
+class BlockStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitBlockStmt(this);
 
@@ -976,21 +1014,20 @@ class BlockStmt extends ASTNode {
 
   final String? id;
 
-  @override
-  bool get isExpression => false;
-
-  BlockStmt(this.statements,
-      {this.hasOwnNamespace = true,
-      this.id,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.blockStmt);
+  BlockStmt(
+    this.statements, {
+    this.hasOwnNamespace = true,
+    super.isAsync = false,
+    this.id,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.blockStmt);
 }
 
-class ReturnStmt extends ASTNode {
+class ReturnStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitReturnStmt(this);
 
@@ -1003,24 +1040,20 @@ class ReturnStmt extends ASTNode {
 
   final ASTNode? returnValue;
 
-  @override
-  bool get isExpression => false;
-
-  @override
-  final bool hasEndOfStmtMark;
-
-  ReturnStmt(this.keyword,
-      {this.returnValue,
-      this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.returnStmt);
+  ReturnStmt(
+    this.keyword, {
+    this.returnValue,
+    super.isAsync = false,
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.returnStmt);
 }
 
-class IfStmt extends ASTNode {
+class IfStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitIf(this);
 
@@ -1037,21 +1070,21 @@ class IfStmt extends ASTNode {
 
   final ASTNode? elseBranch;
 
-  @override
-  final bool isExpression;
-
-  IfStmt(this.condition, this.thenBranch,
-      {this.elseBranch,
-      this.isExpression = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.ifStmt);
+  IfStmt(
+    this.condition,
+    this.thenBranch, {
+    this.elseBranch,
+    super.isStatement = false,
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.ifStmt);
 }
 
-class WhileStmt extends ASTNode {
+class WhileStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitWhileStmt(this);
 
@@ -1068,16 +1101,18 @@ class WhileStmt extends ASTNode {
   @override
   bool get isExpression => false;
 
-  WhileStmt(this.condition, this.loop,
-      {super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.whileStmt);
+  WhileStmt(
+    this.condition,
+    this.loop, {
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.whileStmt);
 }
 
-class DoStmt extends ASTNode {
+class DoStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitDoStmt(this);
 
@@ -1091,23 +1126,19 @@ class DoStmt extends ASTNode {
 
   final ASTNode? condition;
 
-  @override
-  bool get isExpression => false;
-
-  @override
-  final bool hasEndOfStmtMark;
-
-  DoStmt(this.loop, this.condition,
-      {this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.doStmt);
+  DoStmt(
+    this.loop,
+    this.condition, {
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.doStmt);
 }
 
-class ForStmt extends ASTNode {
+class ForStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitForStmt(this);
 
@@ -1129,20 +1160,23 @@ class ForStmt extends ASTNode {
 
   final BlockStmt loop;
 
-  @override
-  bool get isExpression => false;
-
-  ForStmt(this.init, this.condition, this.increment, this.loop,
-      {this.hasBracket = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.forStmt);
+  ForStmt(
+    this.init,
+    this.condition,
+    this.increment,
+    this.loop, {
+    this.hasBracket = false,
+    super.isStatement = true,
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.forStmt);
 }
 
-class ForRangeStmt extends ASTNode {
+class ForRangeStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitForRangeStmt(this);
 
@@ -1166,18 +1200,25 @@ class ForRangeStmt extends ASTNode {
   @override
   bool get isExpression => false;
 
-  ForRangeStmt(this.iterator, this.collection, this.loop,
-      {this.hasBracket = false,
-      this.iterateValue = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.forInStmt);
+  ForRangeStmt(
+    this.iterator,
+    this.collection,
+    this.loop, {
+    this.hasBracket = false,
+    this.iterateValue = false,
+    super.isStatement = true,
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(
+          Semantic.forInStmt,
+        );
 }
 
-class WhenStmt extends ASTNode {
+class WhenStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitWhen(this);
 
@@ -1198,83 +1239,71 @@ class WhenStmt extends ASTNode {
 
   final ASTNode? elseBranch;
 
-  @override
-  final bool isExpression;
-
-  WhenStmt(this.cases, this.elseBranch, this.condition,
-      {this.isExpression = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.whenStmt);
+  WhenStmt(
+    this.cases,
+    this.elseBranch,
+    this.condition, {
+    super.isStatement = true,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.whenStmt);
 }
 
-class BreakStmt extends ASTNode {
+class BreakStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitBreakStmt(this);
 
   final Token keyword;
 
-  @override
-  bool get isExpression => false;
-
-  @override
-  final bool hasEndOfStmtMark;
-
-  BreakStmt(this.keyword,
-      {this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.breakStmt);
+  BreakStmt(
+    this.keyword, {
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.breakStmt);
 }
 
-class ContinueStmt extends ASTNode {
+class ContinueStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitContinueStmt(this);
 
   final Token keyword;
 
-  @override
-  bool get isExpression => false;
-
-  @override
-  final bool hasEndOfStmtMark;
-
-  ContinueStmt(this.keyword,
-      {this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.continueStmt);
+  ContinueStmt(
+    this.keyword, {
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.continueStmt);
 }
 
-class DeleteStmt extends ASTNode {
+class DeleteStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitDeleteStmt(this);
 
   final String symbol;
 
-  @override
-  final bool hasEndOfStmtMark;
-
-  DeleteStmt(this.symbol,
-      {this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.deleteStmt);
+  DeleteStmt(
+    this.symbol, {
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.deleteStmt);
 }
 
-class DeleteMemberStmt extends ASTNode {
+class DeleteMemberStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitDeleteMemberStmt(this);
@@ -1283,20 +1312,19 @@ class DeleteMemberStmt extends ASTNode {
 
   final String key;
 
-  @override
-  final bool hasEndOfStmtMark;
-
-  DeleteMemberStmt(this.object, this.key,
-      {this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.deleteMemberStmt);
+  DeleteMemberStmt(
+    this.object,
+    this.key, {
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.deleteMemberStmt);
 }
 
-class DeleteSubStmt extends ASTNode {
+class DeleteSubStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitDeleteSubStmt(this);
@@ -1305,20 +1333,19 @@ class DeleteSubStmt extends ASTNode {
 
   final ASTNode key;
 
-  @override
-  final bool hasEndOfStmtMark;
-
-  DeleteSubStmt(this.object, this.key,
-      {this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.deleteSubMemberStmt);
+  DeleteSubStmt(
+    this.object,
+    this.key, {
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.deleteSubMemberStmt);
 }
 
-class ImportExportDecl extends ASTNode {
+class ImportExportDecl extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitImportExportDecl(this);
@@ -1340,33 +1367,27 @@ class ImportExportDecl extends ASTNode {
 
   bool get willExportAll => isExport && showList.isEmpty;
 
-  @override
-  bool get isExpression => false;
-
-  @override
-  final bool hasEndOfStmtMark;
-
   /// The normalized absolute path of the imported file.
   /// It is left as null at the first time of parsing,
   /// because at this time we don't know yet.
   String? fullFromPath;
 
-  ImportExportDecl(
-      {this.fromPath,
-      this.alias,
-      this.showList = const [],
-      this.isPreloadedModule = false,
-      this.isExport = false,
-      this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(isExport ? Semantic.exportStmt : Semantic.importStmt);
+  ImportExportDecl({
+    this.fromPath,
+    this.alias,
+    this.showList = const [],
+    this.isPreloadedModule = false,
+    this.isExport = false,
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(isExport ? Semantic.exportStmt : Semantic.importStmt);
 }
 
-class NamespaceDecl extends ASTNode {
+class NamespaceDecl extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitNamespaceDecl(this);
@@ -1388,22 +1409,21 @@ class NamespaceDecl extends ASTNode {
 
   final bool isPrivate;
 
-  @override
-  bool get isExpression => false;
-
-  NamespaceDecl(this.id, this.definition,
-      {this.classId,
-      this.isPrivate = false,
-      this.isTopLevel = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.namespaceDeclaration);
+  NamespaceDecl(
+    this.id,
+    this.definition, {
+    this.classId,
+    this.isPrivate = false,
+    this.isTopLevel = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.namespaceDeclaration);
 }
 
-class TypeAliasDecl extends ASTNode {
+class TypeAliasDecl extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitTypeAliasDecl(this);
@@ -1421,9 +1441,6 @@ class TypeAliasDecl extends ASTNode {
 
   final TypeExpr typeValue;
 
-  @override
-  final bool hasEndOfStmtMark;
-
   bool get isMember => classId != null;
 
   final bool isPrivate;
@@ -1433,18 +1450,20 @@ class TypeAliasDecl extends ASTNode {
   @override
   bool get isExpression => false;
 
-  TypeAliasDecl(this.id, this.typeValue,
-      {this.classId,
-      this.genericTypeParameters = const [],
-      this.hasEndOfStmtMark = false,
-      this.isPrivate = false,
-      this.isTopLevel = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.typeAliasDeclaration);
+  TypeAliasDecl(
+    this.id,
+    this.typeValue, {
+    this.classId,
+    this.genericTypeParameters = const [],
+    super.hasEndOfStmtMark = false,
+    this.isPrivate = false,
+    this.isTopLevel = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.typeAliasDeclaration);
 }
 
 // class ConstDecl extends AstNode {
@@ -1483,7 +1502,7 @@ class TypeAliasDecl extends ASTNode {
 //       int line = 0,
 //       int column = 0,
 //       int offset = 0,
-//       int length = 0})
+//       int length = 0,})
 //       : super(Semantic.constantDeclaration,
 //             source: source,
 //             line: line,
@@ -1536,38 +1555,36 @@ class VarDecl extends ASTNode {
 
   final bool lateInitialize;
 
-  @override
-  bool get isExpression => false;
-
-  @override
   final bool hasEndOfStmtMark;
 
-  VarDecl(this.id,
-      {String? internalName,
-      this.classId,
-      this.declType,
-      this.initializer,
-      this.hasEndOfStmtMark = false,
-      // this.typeInferrence = false,
-      this.isConst = false,
-      this.isField = false,
-      this.isExternal = false,
-      this.isStatic = false,
-      this.isMutable = false,
-      this.isPrivate = false,
-      this.isTopLevel = false,
-      this.lateFinalize = false,
-      this.lateInitialize = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : _internalName = internalName,
+  VarDecl(
+    this.id, {
+    String? internalName,
+    this.classId,
+    this.declType,
+    this.initializer,
+    super.isStatement = true,
+    this.hasEndOfStmtMark = false,
+    // this.typeInferrence = false,
+    this.isConst = false,
+    this.isField = false,
+    this.isExternal = false,
+    this.isStatic = false,
+    this.isMutable = false,
+    this.isPrivate = false,
+    this.isTopLevel = false,
+    this.lateFinalize = false,
+    this.lateInitialize = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  })  : _internalName = internalName,
         super(Semantic.variableDeclaration);
 }
 
-class DestructuringDecl extends ASTNode {
+class DestructuringDecl extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitDestructuringDecl(this);
@@ -1587,25 +1604,19 @@ class DestructuringDecl extends ASTNode {
 
   final bool isMutable;
 
-  @override
-  bool get isExpression => false;
-
-  @override
-  final bool hasEndOfStmtMark;
-
-  DestructuringDecl(
-      {required this.ids,
-      required this.isVector,
-      required this.initializer,
-      this.isTopLevel = false,
-      this.isMutable = false,
-      this.hasEndOfStmtMark = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.destructuringDeclaration);
+  DestructuringDecl({
+    required this.ids,
+    required this.isVector,
+    required this.initializer,
+    this.isTopLevel = false,
+    this.isMutable = false,
+    super.hasEndOfStmtMark = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.destructuringDeclaration);
 }
 
 class ParamDecl extends VarDecl {
@@ -1624,19 +1635,23 @@ class ParamDecl extends VarDecl {
   @override
   bool get isExpression => true;
 
-  ParamDecl(IdentifierExpr id,
-      {TypeExpr? declType,
-      ASTNode? initializer,
-      this.isVariadic = false,
-      this.isOptional = false,
-      this.isNamed = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(id,
-            declType: declType, initializer: initializer, isMutable: true);
+  ParamDecl(
+    IdentifierExpr id, {
+    TypeExpr? declType,
+    ASTNode? initializer,
+    this.isVariadic = false,
+    this.isOptional = false,
+    this.isNamed = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(id,
+            declType: declType,
+            initializer: initializer,
+            isMutable: true,
+            isStatement: false);
 }
 
 class RedirectingConstructorCallExpr extends ASTNode {
@@ -1664,15 +1679,20 @@ class RedirectingConstructorCallExpr extends ASTNode {
 
   final Map<String, ASTNode> namedArgs;
 
+  final bool hasEndOfStmtMark;
+
   RedirectingConstructorCallExpr(
-      this.callee, this.positionalArgs, this.namedArgs,
-      {this.key,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.redirectingConstructorCallExpression);
+    this.callee,
+    this.positionalArgs,
+    this.namedArgs, {
+    this.hasEndOfStmtMark = false,
+    this.key,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.redirectingConstructorCallExpression);
 }
 
 class FuncDecl extends ASTNode {
@@ -1713,7 +1733,6 @@ class FuncDecl extends ASTNode {
 
   final bool isExpressionBody;
 
-  @override
   final bool hasEndOfStmtMark;
 
   final ASTNode? definition;
@@ -1743,35 +1762,36 @@ class FuncDecl extends ASTNode {
   @override
   bool get isExpression => false;
 
-  FuncDecl(this.internalName,
-      {this.id,
-      this.classId,
-      this.genericTypeParameters = const [],
-      this.externalTypeId,
-      this.redirectingCtorCallExpr,
-      this.paramDecls = const [],
-      this.hasParamDecls = true,
-      this.returnType,
-      this.minArity = 0,
-      this.maxArity = 0,
-      this.isExpressionBody = false,
-      this.hasEndOfStmtMark = false,
-      this.definition,
-      this.isAsync = false,
-      this.isField = false,
-      this.isExternal = false,
-      this.isStatic = false,
-      this.isConst = false,
-      this.isVariadic = false,
-      this.isPrivate = false,
-      this.isTopLevel = false,
-      this.category = FunctionCategory.normal,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.functionDeclaration);
+  FuncDecl(
+    this.internalName, {
+    this.id,
+    this.classId,
+    this.genericTypeParameters = const [],
+    this.externalTypeId,
+    this.redirectingCtorCallExpr,
+    this.paramDecls = const [],
+    this.hasParamDecls = true,
+    this.returnType,
+    this.minArity = 0,
+    this.maxArity = 0,
+    this.isExpressionBody = false,
+    this.hasEndOfStmtMark = false,
+    this.definition,
+    this.isAsync = false,
+    this.isField = false,
+    this.isExternal = false,
+    this.isStatic = false,
+    this.isConst = false,
+    this.isVariadic = false,
+    this.isPrivate = false,
+    this.isTopLevel = false,
+    this.category = FunctionCategory.normal,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.functionDeclaration);
 }
 
 class ClassDecl extends ASTNode {
@@ -1823,24 +1843,26 @@ class ClassDecl extends ASTNode {
   @override
   bool get isExpression => false;
 
-  ClassDecl(this.id, this.definition,
-      {this.classId,
-      this.genericTypeParameters = const [],
-      this.superType,
-      this.implementsTypes = const [],
-      this.withTypes = const [],
-      this.isExternal = false,
-      this.isAbstract = false,
-      this.isPrivate = false,
-      this.isTopLevel = false,
-      this.hasUserDefinedConstructor = false,
-      this.lateResolve = true,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.classDeclaration);
+  ClassDecl(
+    this.id,
+    this.definition, {
+    this.classId,
+    this.genericTypeParameters = const [],
+    this.superType,
+    this.implementsTypes = const [],
+    this.withTypes = const [],
+    this.isExternal = false,
+    this.isAbstract = false,
+    this.isPrivate = false,
+    this.isTopLevel = false,
+    this.hasUserDefinedConstructor = false,
+    this.lateResolve = true,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.classDeclaration);
 }
 
 class EnumDecl extends ASTNode {
@@ -1864,17 +1886,19 @@ class EnumDecl extends ASTNode {
   @override
   bool get isExpression => false;
 
-  EnumDecl(this.id, this.enumerations,
-      {this.classId,
-      this.isExternal = false,
-      this.isPrivate = false,
-      this.isTopLevel = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.enumDeclaration);
+  EnumDecl(
+    this.id,
+    this.enumerations, {
+    this.classId,
+    this.isExternal = false,
+    this.isPrivate = false,
+    this.isTopLevel = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.enumDeclaration);
 }
 
 class StructDecl extends ASTNode {
@@ -1904,17 +1928,19 @@ class StructDecl extends ASTNode {
   @override
   bool get isExpression => false;
 
-  StructDecl(this.id, this.definition,
-      {this.prototypeId,
-      this.isPrivate = false,
-      this.isTopLevel = false,
-      // this.lateInitialize = true,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.structDeclaration);
+  StructDecl(
+    this.id,
+    this.definition, {
+    this.prototypeId,
+    this.isPrivate = false,
+    this.isTopLevel = false,
+    // this.lateInitialize = true,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.structDeclaration);
 }
 
 class StructObjField extends ASTNode {
@@ -1934,16 +1960,16 @@ class StructObjField extends ASTNode {
 
   final ASTNode? fieldValue;
 
-  StructObjField(
-      {this.key,
-      this.fieldValue,
-      this.isSpread = false,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.literalStructField);
+  StructObjField({
+    this.key,
+    this.fieldValue,
+    this.isSpread = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.literalStructField);
 }
 
 class StructObjExpr extends ASTNode {
@@ -1965,14 +1991,14 @@ class StructObjExpr extends ASTNode {
   final List<StructObjField> fields;
 
   StructObjExpr(
-      //this.internalName,
-      this.fields,
-      {this.id,
-      this.prototypeId,
-      super.source,
-      super.line = 0,
-      super.column = 0,
-      super.offset = 0,
-      super.length = 0})
-      : super(Semantic.literalStruct);
+    //this.internalName,
+    this.fields, {
+    this.id,
+    this.prototypeId,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.literalStruct);
 }

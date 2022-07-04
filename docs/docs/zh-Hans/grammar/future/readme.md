@@ -27,3 +27,39 @@ void main() {
   ''');
 }
 ```
+
+## 手动创建一个 Future 对象
+
+河图 0.4.0 版本之后，可以通过 Future 类的构造函数手动创建一个 Future 对象：
+
+```dart
+final a = Future( () => 42 )
+a.then( (value) => print(value) )
+print(41)
+```
+
+上面的代码将会先打印41，然后打印42。
+
+## 等待多个 Future 返回
+
+河图 0.4.0 版本之后，可以使用 Future 类上的静态函数 wait() 来等待多个 Future 完成，然后统一返回。
+
+注意在脚本中，不能使用 Dart 的泛型参数，因此所有的 Future 返回的都是 dynamic 类型。
+
+```dart
+async asyncFunc1 => 41
+async asyncFunc2 => 42
+
+Future.wait([asyncFunc1(), asyncFunc2()]).then((valueList) {
+  print(valueList)
+})
+```
+
+上述的代码将会打印：
+
+```
+[
+  41,
+  42
+]
+```

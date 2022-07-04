@@ -1419,12 +1419,12 @@ class HTDefaultParser extends HTParser {
 
     if (curTok.type == lexicon.kIf) {
       leftValueLegality = false;
-      return _parseIf(isExpression: true);
+      return _parseIf(isStatement: false);
     }
 
     if (curTok.type == lexicon.kWhen) {
       leftValueLegality = false;
-      return _parseWhen(isExpression: true);
+      return _parseWhen(isStatement: false);
     }
 
     // a literal function expression
@@ -2014,13 +2014,11 @@ class HTDefaultParser extends HTParser {
         length: curTok.offset - keyword.offset);
   }
 
-  ASTNode _parseExprOrStmtOrBlock({bool isExpression = false}) {
+  ASTNode _parseExprOrStmtOrBlock({bool isStatement = true}) {
     if (curTok.type == lexicon.functionBlockStart) {
       return _parseBlockStmt(id: Semantic.elseBranch);
     } else {
-      if (isExpression) {
-        return _parseExpr();
-      } else {
+      if (isStatement) {
         final startTok = curTok;
         var node = parseStmt(style: ParseStyle.functionDefinition);
         if (node == null) {
@@ -2042,28 +2040,30 @@ class HTDefaultParser extends HTParser {
           currentPrecedingCommentOrEmptyLine.clear();
         }
         return node;
+      } else {
+        return _parseExpr();
       }
     }
   }
 
-  IfStmt _parseIf({bool isExpression = false}) {
+  IfStmt _parseIf({bool isStatement = true}) {
     final keyword = match(lexicon.kIf);
     match(lexicon.groupExprStart);
     final condition = _parseExpr();
     match(lexicon.groupExprEnd);
-    var thenBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
+    var thenBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
     _handlePrecedingCommentOrEmptyLine();
     ASTNode? elseBranch;
-    if (isExpression) {
-      match(lexicon.kElse);
-      elseBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
-    } else {
+    if (isStatement) {
       if (expect([lexicon.kElse], consume: true)) {
-        elseBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
+        elseBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
       }
+    } else {
+      match(lexicon.kElse);
+      elseBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
     }
     return IfStmt(condition, thenBranch,
-        isExpression: isExpression,
+        isStatement: isStatement,
         elseBranch: elseBranch,
         source: currentSource,
         line: keyword.line,
@@ -2171,7 +2171,7 @@ class HTDefaultParser extends HTParser {
     }
   }
 
-  WhenStmt _parseWhen({bool isExpression = false}) {
+  WhenStmt _parseWhen({bool isStatement = true}) {
     final keyword = advance();
     ASTNode? condition;
     if (curTok.type != lexicon.functionBlockStart) {
@@ -2188,7 +2188,7 @@ class HTDefaultParser extends HTParser {
       if (curTok.lexeme == lexicon.kElse) {
         advance();
         match(lexicon.whenBranchIndicator);
-        elseBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
+        elseBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
       } else {
         ASTNode caseExpr;
         if (condition != null) {
@@ -2204,13 +2204,13 @@ class HTDefaultParser extends HTParser {
           caseExpr = _parseExpr();
         }
         match(lexicon.whenBranchIndicator);
-        var caseBranch = _parseExprOrStmtOrBlock(isExpression: isExpression);
+        var caseBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
         options[caseExpr] = caseBranch;
       }
     }
     match(lexicon.functionBlockEnd);
     return WhenStmt(options, elseBranch, condition,
-        isExpression: isExpression,
+        isStatement: isStatement,
         source: currentSource,
         line: keyword.line,
         column: keyword.column,
