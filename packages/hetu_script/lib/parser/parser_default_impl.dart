@@ -1461,6 +1461,7 @@ class HTDefaultParser extends HTParser {
           length: end.offset + end.length - start.offset);
     }
 
+    // a literal list value
     if (curTok.type == lexicon.listStart) {
       final start = advance();
       final listExpr = <ASTNode>[];
@@ -2181,10 +2182,17 @@ class HTDefaultParser extends HTParser {
     }
     final options = <ASTNode, ASTNode>{};
     ASTNode? elseBranch;
-    match(lexicon.functionBlockStart);
+    match(lexicon.declarationBlockStart);
     while (curTok.type != lexicon.functionBlockEnd &&
         curTok.type != Semantic.endOfFile) {
-      _handlePrecedingCommentOrEmptyLine();
+      final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
+      if (hasPrecedingComments &&
+          curTok.type == lexicon.declarationBlockEnd &&
+          options.isNotEmpty) {
+        final lastAst = options.values.last;
+        lastAst.succeedingComments.addAll(currentPrecedingCommentOrEmptyLine);
+        break;
+      }
       if (curTok.lexeme == lexicon.kElse) {
         advance();
         match(lexicon.whenBranchIndicator);
@@ -2208,7 +2216,7 @@ class HTDefaultParser extends HTParser {
         options[caseExpr] = caseBranch;
       }
     }
-    match(lexicon.functionBlockEnd);
+    match(lexicon.declarationBlockEnd);
     return WhenStmt(options, elseBranch, condition,
         isStatement: isStatement,
         source: currentSource,

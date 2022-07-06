@@ -50,9 +50,12 @@ void main() {
   // final r = hetu.evalSource(source3, invokeFunc: 'test');
 
   final r = hetu.eval(r'''
-    async a => 1
-    
-    a()
+  when(1) {
+    2 -> {
+      // null
+    }
+    // test comments
+  }
   ''');
 
   if (r is Future) {
