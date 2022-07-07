@@ -57,3 +57,29 @@ final p = Person('jimmy')
 // print(p._name) // Error!
 p.greeting()
 ```
+
+## 表达式和语句
+
+河图中，所有语句都是表达式，因此也具有值。
+
+例如变量声明和变量赋值，都会返回变量的值。对于下面的代码
+
+```dart
+if (a = fetch()) {
+  // ...
+}
+```
+
+如果 a 的值可以[隐式转换](strict_mode/readme.md#布尔值)为真，则 if 表达式将会执行。
+
+# 代码块
+
+河图中的代码块会返回最后一个表达式的值：
+
+```javascript
+fun test(n) {
+  var x = n * 2
+}
+```
+
+上述函数的返回值就是 n * 2

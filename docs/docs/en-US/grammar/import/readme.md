@@ -15,6 +15,10 @@ fun main {
 }
 ```
 
+You have to specify the extention part (.ht or .json) of the path.
+
+You can use relative key such as '../../filename.ht' in the path string (this also applies to export & require).
+
 ## Export
 
 Use export in a source to specify the symbols you wish to let other source access when they import from you.

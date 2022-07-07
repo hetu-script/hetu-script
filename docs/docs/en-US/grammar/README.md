@@ -55,3 +55,29 @@ final p = Person('jimmy')
 // print(p._name) // Error!
 p.greeting()
 ```
+
+## Expression, statement
+
+In hetu, variable declaration and variable assignment are both expression, which have the value of the assignment expression. It's possible to write code like:
+
+```dart
+if (a = fetch()) {
+  // ...
+}
+```
+
+The if statement will run if the value of a if [truthy](strict_mode/readme.md#Truth-value).
+
+# Block of code
+
+For blocks of code (function body), Hetu will implicitly return the last expression.
+
+The function below:
+
+```javascript
+fun test(n) {
+  var x = n * 2
+}
+```
+
+will return the value of x.
