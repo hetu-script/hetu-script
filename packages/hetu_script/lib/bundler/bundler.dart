@@ -63,7 +63,8 @@ class HTBundler {
             sources[importFullName] = importedSource;
           }
         } catch (error) {
-          if (error is HTError) {
+          if (error is HTError &&
+              error.code != ErrorCode.resourceDoesNotExist) {
             sourceParseErrors.add(error);
           } else {
             final convertedError = HTError.sourceProviderError(

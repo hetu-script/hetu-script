@@ -50,12 +50,15 @@ void main() {
   // final r = hetu.evalSource(source3, invokeFunc: 'test');
 
   final r = hetu.eval(r'''
-  when(1) {
-    2 -> {
-      // null
+  struct Test {
+    construct {
+      this.name = 'test'
     }
-    // test comments
   }
+
+  final a = {}
+  a.assign(Test())
+  a
   ''');
 
   if (r is Future) {
