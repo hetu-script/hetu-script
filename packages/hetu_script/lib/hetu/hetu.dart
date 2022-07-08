@@ -408,12 +408,14 @@ class Hetu {
 
   dynamic invoke(String funcName,
           {String? moduleName,
+          String? sourceName,
           List<dynamic> positionalArgs = const [],
           Map<String, dynamic> namedArgs = const {},
           List<HTType> typeArgs = const []}) =>
       interpreter.invoke(
         funcName,
         moduleName: moduleName,
+        sourceName: sourceName,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
         typeArgs: typeArgs,

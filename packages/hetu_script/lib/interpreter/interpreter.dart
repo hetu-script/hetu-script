@@ -362,23 +362,42 @@ class HTInterpreter {
   /// Call a function within current [HTNamespace].
   dynamic invoke(String funcName,
       {String? moduleName,
+      String? sourceName,
       bool isConstructorCall = false,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     try {
       stackTraceList.clear();
+      final savedModuleName = _currentBytecodeModule.id;
+      HTNamespace nsp = globalNamespace;
       if (moduleName != null) {
-        _currentBytecodeModule = cachedModules[moduleName]!;
-        _currentNamespace = _currentBytecodeModule.namespaces.values.last;
+        if (_currentBytecodeModule.id != moduleName) {
+          _currentBytecodeModule = cachedModules[moduleName]!;
+        }
+        if (sourceName != null) {
+          if (nsp.fullName != sourceName) {
+            assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
+            nsp = _currentBytecodeModule.namespaces[sourceName]!;
+          }
+        } else if (_currentBytecodeModule.namespaces.isNotEmpty) {
+          nsp = _currentBytecodeModule.namespaces.values.last;
+        }
+      } else if (sourceName != null) {
+        assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
+        nsp = _currentBytecodeModule.namespaces[sourceName]!;
       }
-      final callee = _currentNamespace.memberGet(funcName);
-      return _call(
+      final callee = nsp.memberGet(funcName);
+      final result = _call(
         callee,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
         typeArgs: typeArgs,
       );
+      if (_currentBytecodeModule.id != savedModuleName) {
+        _currentBytecodeModule = cachedModules[savedModuleName]!;
+      }
+      return result;
     } catch (error, stackTrace) {
       if (config.processError) {
         processError(error, stackTrace);
@@ -723,7 +742,9 @@ class HTInterpreter {
       dynamic result;
       if (invokeFunc != null) {
         result = invoke(invokeFunc,
-            positionalArgs: positionalArgs, namedArgs: namedArgs);
+            moduleName: _currentBytecodeModule.id,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs);
         return result;
       }
       stackTraceList.clear();
