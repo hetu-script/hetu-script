@@ -1133,6 +1133,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (stmt.returnValue != null) {
       final bytes = compileAST(stmt.returnValue!);
       bytesBuilder.add(bytes);
+    } else {
+      bytesBuilder.addByte(HTOpCode.endOfStmt);
     }
     bytesBuilder.addByte(HTOpCode.endOfFunc);
     return bytesBuilder.toBytes();

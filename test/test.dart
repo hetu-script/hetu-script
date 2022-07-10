@@ -47,27 +47,12 @@ void main() {
   sourceContext.addResource(source2.fullName, source2);
   sourceContext.addResource(source3.fullName, source3);
 
-  // final r = hetu.evalSource(source3, invokeFunc: 'test');
-  final jsonData = {
-    "name": "Aleph",
-    "type": "novel",
-    "volumes": 7,
-  };
-  final result = hetu.eval(
-      r'''
-            fun fromJsonTest(data) {
-              final obj = prototype.fromJson(data)
-              return obj.volumes
-            }
-          ''',
-      invokeFunc: 'fromJsonTest',
-      positionalArgs: [jsonData]);
-  // final r = hetu.eval(r'''
-  //   var a
-  //   if (a = 3) {
-  //     print(a)
-  //   }
-  // ''');
+  final result = hetu.eval(r'''
+    fun test {
+      if ( 1 < 2 ) return
+    }
+    test()
+  ''');
 
   if (result is Future) {
     result.then((value) => print(hetu.lexicon.stringify(value)));
