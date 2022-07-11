@@ -717,14 +717,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else if (expr.op == _lexicon.kTypeof) {
       bytesBuilder.add(value);
       bytesBuilder.addByte(HTOpCode.typeOf);
+    } else if (expr.op == _lexicon.kAwait) {
+      bytesBuilder.add(value);
+      bytesBuilder.addByte(HTOpCode.await);
     }
-    // else if (expr.op == _lexicon.kAwait) {
-    //   final markedAwaitedId = '_\$awaited_${awaitedValueIndex++}';
-    //   _curStmtAwaitedExprs[markedAwaitedId] = expr.object;
-    //   final markedId = IdentifierExpr(markedAwaitedId);
-    //   final bytes = visitIdentifierExpr(markedId);
-    //   bytesBuilder.add(bytes);
-    // }
     return bytesBuilder.toBytes();
   }
 

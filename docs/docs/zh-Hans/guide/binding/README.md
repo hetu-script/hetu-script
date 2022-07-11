@@ -78,7 +78,7 @@ await hetu.init(externalFunctions: {
 
 ```dart
 await hetu.init(externalFunctions: {
-  'hello': (context, {positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
+  'hello': (entity, {positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
 });
 ```
 

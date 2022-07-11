@@ -390,19 +390,10 @@ class Hetu {
     // Because we are loading it dynamically, it has to be a script rather than a module.
     source.type = HTResourceType.hetuScript;
     final bytes = _compileSource(source, moduleName: key);
-    final savedFileName = interpreter.currentFileName;
-    final savedModuleName = interpreter.currentBytecodeModule.id;
-    final savedNamespace = interpreter.currentNamespace;
-    final savedIp = interpreter.currentBytecodeModule.ip;
+    final HTContext storedContext = interpreter.getContext();
     interpreter.loadBytecode(bytes: bytes, moduleName: key);
     final nsp = interpreter.currentBytecodeModule.namespaces.values.last;
-    interpreter.restoreStackFrame(
-      clearStack: false,
-      savedFileName: savedFileName,
-      savedModuleName: savedModuleName,
-      savedNamespace: savedNamespace,
-      savedIp: savedIp,
-    );
+    interpreter.setContext(context: storedContext);
     return nsp;
   }
 

@@ -70,6 +70,7 @@ abstract class HTOpCode {
   static const typeIsNot = 76;
   static const isIn = 77;
   static const isNotIn = 78;
+  static const await = 79;
   static const lineInfo = 205;
 }
 

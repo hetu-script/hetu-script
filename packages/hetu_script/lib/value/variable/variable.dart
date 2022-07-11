@@ -73,12 +73,15 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
       if (!_isInitializing) {
         _isInitializing = true;
         final initVal = interpreter.execute(
+          context: HTContext(
             filename: fileName,
             moduleName: moduleName,
             ip: definitionIp!,
             namespace: closure,
             line: definitionLine,
-            column: definitionColumn);
+            column: definitionColumn,
+          ),
+        );
         value = initVal;
         _isInitialized = true;
         _isInitializing = false;

@@ -418,7 +418,7 @@ class HTFunction extends HTFunctionDeclaration
                 final HTFunction constructor = superClass.namespace.memberGet(
                     InternalIdentifier.defaultConstructor,
                     isRecursive: false);
-                // constructor's context is on this newly created instance
+                // constructor's namespace is on this newly created instance
                 final instanceNamespace = namespace as HTInstanceNamespace;
                 constructor.namespace = instanceNamespace.next!;
                 constructor.instance = instance;
@@ -457,7 +457,7 @@ class HTFunction extends HTFunctionDeclaration
                       isRecursive: false);
                 }
               }
-              // constructor's context is on this newly created instance
+              // constructor's namespace is on this newly created instance
               final instanceNamespace = namespace as HTInstanceNamespace;
               constructor.namespace = instanceNamespace.next!;
               constructor.instance = instance;
@@ -489,15 +489,15 @@ class HTFunction extends HTFunctionDeclaration
             final referCtorPosArgs = [];
             final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
             for (var i = 0; i < referCtorPosArgIps.length; ++i) {
-              final savedFileName = interpreter.currentFileName;
-              final savedModuleName = interpreter.currentBytecodeModule.id;
-              final savedNamespace = interpreter.currentNamespace;
-              final savedIp = interpreter.currentBytecodeModule.ip;
-              interpreter.newStackFrame(
+              final HTContext storedContext = interpreter.getContext();
+              interpreter.setContext(
+                context: HTContext(
                   filename: fileName,
                   moduleName: moduleName,
                   namespace: callClosure,
-                  ip: referCtorPosArgIps[i]);
+                  ip: referCtorPosArgIps[i],
+                ),
+              );
               final isSpread = interpreter.currentBytecodeModule.readBool();
               if (!isSpread) {
                 final arg = interpreter.execute();
@@ -506,12 +506,7 @@ class HTFunction extends HTFunctionDeclaration
                 final List arg = interpreter.execute();
                 referCtorPosArgs.addAll(arg);
               }
-              interpreter.restoreStackFrame(
-                savedFileName: savedFileName,
-                savedModuleName: savedModuleName,
-                savedNamespace: savedNamespace,
-                savedIp: savedIp,
-              );
+              interpreter.setContext(context: storedContext);
             }
 
             final referCtorNamedArgs = <String, dynamic>{};
@@ -519,10 +514,12 @@ class HTFunction extends HTFunctionDeclaration
             for (final name in referCtorNamedArgIps.keys) {
               final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
               final arg = interpreter.execute(
-                  filename: fileName,
-                  moduleName: moduleName,
-                  ip: referCtorNamedArgIp,
-                  namespace: callClosure);
+                context: HTContext(
+                    filename: fileName,
+                    moduleName: moduleName,
+                    ip: referCtorNamedArgIp,
+                    namespace: callClosure),
+              );
               referCtorNamedArgs[name] = arg;
             }
 
@@ -543,22 +540,26 @@ class HTFunction extends HTFunctionDeclaration
 
         if (category != FunctionCategory.constructor) {
           result = interpreter.execute(
+            context: HTContext(
               filename: fileName,
               moduleName: moduleName,
               ip: definitionIp,
               namespace: callClosure,
-              function: this,
               line: definitionLine,
-              column: definitionColumn);
+              column: definitionColumn,
+            ),
+          );
         } else {
           interpreter.execute(
+            context: HTContext(
               filename: fileName,
               moduleName: moduleName,
               ip: definitionIp,
               namespace: callClosure,
-              function: this,
               line: definitionLine,
-              column: definitionColumn);
+              column: definitionColumn,
+            ),
+          );
         }
       }
       // external function

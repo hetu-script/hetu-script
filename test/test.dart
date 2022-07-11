@@ -48,15 +48,14 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    fun test {
-      if ( 1 < 2 ) return
-    }
-    test()
+    async func => 42
+
+    print(await func())
   ''');
 
-  if (result is Future) {
-    result.then((value) => print(hetu.lexicon.stringify(value)));
-  } else {
-    print(hetu.lexicon.stringify(result));
-  }
+  // if (result is Future) {
+  //   result.then((value) => print(hetu.lexicon.stringify(value)));
+  // } else {
+  //   print(hetu.lexicon.stringify(result));
+  // }
 }

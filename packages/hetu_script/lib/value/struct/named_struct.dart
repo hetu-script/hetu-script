@@ -63,10 +63,13 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
   void resolve() {
     if (_isResolved) return;
     HTStruct static = interpreter.execute(
+      context: HTContext(
         filename: fileName,
         moduleName: moduleName,
         ip: staticDefinitionIp!,
-        namespace: closure != null ? closure as HTNamespace : null);
+        namespace: closure != null ? closure as HTNamespace : null,
+      ),
+    );
     if (closure != null) {
       if (prototypeId != null) {
         static.prototype = closure!.memberGet(prototypeId!,
@@ -77,10 +80,13 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
       }
     }
     HTStruct self = interpreter.execute(
+      context: HTContext(
         filename: fileName,
         moduleName: moduleName,
         ip: definitionIp!,
-        namespace: closure != null ? closure as HTNamespace : null);
+        namespace: closure != null ? closure as HTNamespace : null,
+      ),
+    );
     self.prototype = static;
     self.declaration = this;
     _self = self;

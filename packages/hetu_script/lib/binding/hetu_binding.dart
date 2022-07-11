@@ -1,10 +1,8 @@
 import 'dart:convert';
 
+import 'package:hetu_script/hetu_script.dart';
+
 import '../external/external_class.dart';
-import '../value/entity.dart';
-import '../type/type.dart';
-import '../error/error.dart';
-import '../hetu/hetu.dart';
 import '../../shared/jsonify.dart';
 import '../value/struct/struct.dart';
 
@@ -51,18 +49,9 @@ class HTHetuClassBinding extends HTExternalClass {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           final code = positionalArgs.first as String;
-          final savedFileName = hetu.interpreter.currentFileName;
-          final savedModuleName = hetu.interpreter.currentBytecodeModule.id;
-          final savedNamespace = hetu.interpreter.currentNamespace;
-          final savedIp = hetu.interpreter.currentBytecodeModule.ip;
+          final HTContext storedContext = hetu.interpreter.getContext();
           final result = hetu.eval(code);
-          hetu.interpreter.restoreStackFrame(
-            clearStack: true,
-            savedFileName: savedFileName,
-            savedModuleName: savedModuleName,
-            savedNamespace: savedNamespace,
-            savedIp: savedIp,
-          );
+          hetu.interpreter.setContext(context: storedContext);
           return result;
         };
       case 'require':

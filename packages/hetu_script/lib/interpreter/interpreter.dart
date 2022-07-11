@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:path/path.dart' as path;
 
@@ -85,6 +86,40 @@ class _LoopInfo {
   _LoopInfo(this.startIp, this.continueIp, this.breakIp, this.namespace);
 }
 
+enum StackFrameStrategy {
+  none,
+  retract,
+  create,
+}
+
+class HTContext {
+  final String? filename;
+  final String? moduleName;
+  final HTNamespace? namespace;
+  final int? ip;
+  final int? line;
+  final int? column;
+
+  HTContext({
+    this.filename,
+    this.moduleName,
+    this.namespace,
+    this.ip,
+    this.line,
+    this.column,
+  });
+}
+
+class FutureExecution {
+  Future future;
+  HTContext context;
+
+  FutureExecution({
+    required this.future,
+    required this.context,
+  });
+}
+
 /// A bytecode implementation of Hetu Script interpreter
 class HTInterpreter {
   static HTClass? rootClass;
@@ -123,8 +158,7 @@ class HTInterpreter {
   late HTBytecodeModule _currentBytecodeModule;
   HTBytecodeModule get currentBytecodeModule => _currentBytecodeModule;
 
-  HTClass? _class;
-  HTFunction? _function;
+  bool _hasTopAwait = false;
 
   var _currentStackIndex = -1;
 
@@ -475,13 +509,9 @@ class HTInterpreter {
     return unwrapFunc(func);
   }
 
-  bool switchModule(String id) {
-    if (cachedModules.containsKey(id)) {
-      newStackFrame(moduleName: id);
-      return true;
-    } else {
-      return false;
-    }
+  void switchModule(String moduleName) {
+    assert(cachedModules.containsKey(moduleName));
+    setContext(context: HTContext(moduleName: moduleName));
   }
 
   HTBytecodeModule? getBytecode(String moduleName) {
@@ -708,11 +738,14 @@ class HTInterpreter {
         _currentNamespace = globalNamespace;
       }
       while (_currentBytecodeModule.ip < _currentBytecodeModule.bytes.length) {
-        final result = execute(clearStack: false);
+        final result = execute(retractStackFrame: false);
         if (result is HTNamespace && result != globalNamespace) {
           _currentBytecodeModule.namespaces[result.id!] = result;
         } else if (result is HTValueSource) {
           _currentBytecodeModule.expressions[result.id] = result.value;
+        }
+        if (_hasTopAwait) {
+          break;
         }
         // TODO: import binary bytes
       }
@@ -761,105 +794,91 @@ class HTInterpreter {
     }
   }
 
-  Set<String> getExportList({String? sourceName, required String moduleName}) {
-    final module = cachedModules[moduleName]!;
-    sourceName ??= module.namespaces.values.last.fullName;
-    final namespace = module.namespaces[sourceName]!;
-    if (namespace.willExportAll) {
-      final list = <String>{};
-      for (final symbol in namespace.symbols.keys) {
-        if (_lexicon.isPrivate(symbol)) continue;
-        list.add(symbol);
-      }
-      return list;
-    } else {
-      return namespace.exports;
-    }
+  // Set<String> _getExportList({String? sourceName, required String moduleName}) {
+  //   final module = cachedModules[moduleName]!;
+  //   sourceName ??= module.namespaces.values.last.fullName;
+  //   final namespace = module.namespaces[sourceName]!;
+  //   if (namespace.willExportAll) {
+  //     final list = <String>{};
+  //     for (final symbol in namespace.symbols.keys) {
+  //       if (_lexicon.isPrivate(symbol)) continue;
+  //       list.add(symbol);
+  //     }
+  //     return list;
+  //   } else {
+  //     return namespace.exports;
+  //   }
+  // }
+
+  /// Get the current context of the interpreter,
+  /// parameter determines wether to store certain items.
+  /// For example, if you set ip to false,
+  /// the context you get from this method will leave ip as null.
+  HTContext getContext({
+    bool filename = true,
+    bool moduleName = true,
+    bool namespace = true,
+    bool ip = true,
+    bool line = true,
+    bool column = true,
+  }) {
+    return HTContext(
+      filename: filename ? currentFileName : null,
+      moduleName: moduleName ? currentBytecodeModule.id : null,
+      namespace: namespace ? currentNamespace : null,
+      ip: ip ? currentBytecodeModule.ip : null,
+      line: line ? currentLine : null,
+      column: column ? currentColumn : null,
+    );
   }
 
-  void newStackFrame(
-      {String? filename,
-      String? moduleName,
-      HTNamespace? namespace,
-      HTFunction? function,
-      int? ip,
-      int? line,
-      int? column}) {
-    // var ipChanged = false;
-    var libChanged = false;
-    if (filename != null) {
-      _currentFileName = filename;
-    }
-    if (moduleName != null && (_currentBytecodeModule.id != moduleName)) {
-      assert(cachedModules.containsKey(moduleName));
-      _currentBytecodeModule = cachedModules[moduleName]!;
-      libChanged = true;
-    }
-    if (namespace != null) {
-      _currentNamespace = namespace;
-    } else if (libChanged) {
-      _currentNamespace = _currentBytecodeModule.namespaces.values.last;
-    }
-    if (function != null) {
-      _function = function;
-    }
-    if (ip != null) {
-      _currentBytecodeModule.ip = ip;
-    } else if (libChanged) {
-      _currentBytecodeModule.ip = 0;
-    }
-    if (line != null) {
-      _currentLine = line;
-    } else if (libChanged) {
-      _currentLine = 0;
-    }
-    if (column != null) {
-      _column = column;
-    } else if (libChanged) {
-      _column = 0;
-    }
-    ++_currentStackIndex;
-    if (_stackFrames.length <= _currentStackIndex) {
-      _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
-    }
-  }
-
-  void restoreStackFrame(
-      {bool clearStack = true,
-      String? savedFileName,
-      String? savedModuleName,
-      HTNamespace? savedNamespace,
-      HTFunction? savedFunction,
-      int? savedIp,
-      int? savedLine,
-      int? savedColumn}) {
-    if (savedFileName != null) {
-      _currentFileName = savedFileName;
-    }
-    if (savedModuleName != null) {
-      if (_currentBytecodeModule.id != savedModuleName) {
-        assert(cachedModules.containsKey(savedModuleName));
-        _currentBytecodeModule = cachedModules[savedModuleName]!;
+  void setContext(
+      {StackFrameStrategy stackFrameStrategy = StackFrameStrategy.none,
+      HTContext? context}) {
+    if (context != null) {
+      var libChanged = false;
+      if (context.filename != null) {
+        _currentFileName = context.filename!;
+      }
+      if (context.moduleName != null &&
+          (_currentBytecodeModule.id != context.moduleName)) {
+        assert(cachedModules.containsKey(context.moduleName));
+        _currentBytecodeModule = cachedModules[context.moduleName]!;
+        libChanged = true;
+      }
+      if (context.namespace != null) {
+        _currentNamespace = context.namespace!;
+      } else if (libChanged) {
+        _currentNamespace = _currentBytecodeModule.namespaces.values.last;
+      }
+      if (context.ip != null) {
+        _currentBytecodeModule.ip = context.ip!;
+      } else if (libChanged) {
+        _currentBytecodeModule.ip = 0;
+      }
+      if (context.line != null) {
+        _currentLine = context.line!;
+      } else if (libChanged) {
+        _currentLine = 0;
+      }
+      if (context.column != null) {
+        _column = context.column!;
+      } else if (libChanged) {
+        _column = 0;
       }
     }
-    if (savedNamespace != null) {
-      _currentNamespace = savedNamespace;
-    }
-    if (savedFunction != null) {
-      _function = savedFunction;
-    }
-    if (savedIp != null) {
-      _currentBytecodeModule.ip = savedIp;
-    }
-    if (savedLine != null) {
-      _currentLine = savedLine;
-    }
-    if (savedColumn != null) {
-      _column = savedColumn;
-    }
-    if (clearStack) {
-      --_currentStackIndex;
-      _stackFrames.removeLast();
+    if (stackFrameStrategy == StackFrameStrategy.retract) {
+      if (_currentStackIndex > 0) {
+        --_currentStackIndex;
+        _stackFrames.removeLast();
+      } else {
+        _stackFrames.first.fillRange(0, _stackFrames.first.length, null);
+      }
+    } else if (stackFrameStrategy == StackFrameStrategy.create) {
+      ++_currentStackIndex;
+      if (_stackFrames.length <= _currentStackIndex) {
+        _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
+      }
     }
   }
 
@@ -870,75 +889,27 @@ class HTInterpreter {
   ///
   /// Changing library will create new stack frame for new register values.
   /// Such as currrent value, current symbol, current line & column, etc.
-  dynamic execute(
-      {String? filename,
-      String? moduleName,
-      HTNamespace? namespace,
-      HTFunction? function,
-      int? ip,
-      int? line,
-      int? column,
-      bool clearStack = true}) {
-    final savedFileName = _currentFileName;
-    final savedLibrary = _currentBytecodeModule;
-    final savedNamespace = _currentNamespace;
-    final savedFunction = _function;
-    final savedIp = _currentBytecodeModule.ip;
-    final savedLine = _currentLine;
-    final savedColumn = _column;
-    var libChanged = false;
-    var ipChanged = false;
-    if (filename != null) {
-      _currentFileName = filename;
-    }
-    if (moduleName != null && (_currentBytecodeModule.id != moduleName)) {
-      assert(cachedModules.containsKey(moduleName));
-      _currentBytecodeModule = cachedModules[moduleName]!;
-      libChanged = true;
-    }
-    if (namespace != null) {
-      _currentNamespace = namespace;
-    }
-    if (function != null) {
-      _function = function;
-    }
-    if (ip != null) {
-      _currentBytecodeModule.ip = ip;
-      ipChanged = true;
-    } else if (libChanged) {
-      _currentBytecodeModule.ip = 0;
-      ipChanged = true;
-    }
-    if (line != null) {
-      _currentLine = line;
-    } else if (libChanged) {
-      _currentLine = 0;
-    }
-    if (column != null) {
-      _column = column;
-    } else if (libChanged) {
-      _column = 0;
-    }
-    ++_currentStackIndex;
-    if (_stackFrames.length <= _currentStackIndex) {
-      _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
-    }
-
+  dynamic execute({
+    bool retractStackFrame = true,
+    HTContext? context,
+    dynamic localValue,
+  }) {
+    final savedContext = getContext(
+      filename: context?.filename != null,
+      moduleName: context?.moduleName != null,
+      namespace: context?.namespace != null,
+      ip: context?.ip != null,
+      line: context?.line != null,
+      column: context?.column != null,
+    );
+    setContext(stackFrameStrategy: StackFrameStrategy.create, context: context);
+    _localValue = localValue;
     final result = _execute();
-
-    _currentFileName = savedFileName;
-    _currentBytecodeModule = savedLibrary;
-    _currentNamespace = savedNamespace;
-    _function = savedFunction;
-    if (ipChanged) {
-      _currentBytecodeModule.ip = savedIp;
-    }
-    _currentLine = savedLine;
-    _column = savedColumn;
-    if (clearStack) {
-      --_currentStackIndex;
-      _stackFrames.removeLast();
-    }
+    setContext(
+        stackFrameStrategy: retractStackFrame
+            ? StackFrameStrategy.retract
+            : StackFrameStrategy.none,
+        context: context != null ? savedContext : null);
     return result;
   }
 
@@ -1115,7 +1086,7 @@ class HTInterpreter {
             closure: _currentNamespace,
             isTopLevel: isTopLevel,
           );
-          execute(namespace: namespace);
+          execute(context: HTContext(namespace: namespace));
           _currentNamespace.define(internalName, namespace);
           _localValue = namespace;
           break;
@@ -1228,7 +1199,21 @@ class HTInterpreter {
         case HTOpCode.negative:
         case HTOpCode.logicalNot:
         case HTOpCode.typeOf:
-          _handleUnaryPrefixOp(instruction);
+        case HTOpCode.await:
+          if (_isModuleEntryScript &&
+              (_currentNamespace.fullName == globalNamespace.fullName ||
+                  _currentNamespace.fullName == _currentFileName)) {
+            _hasTopAwait = true;
+          }
+          // handle the possible future execution request raised by await keyword and Future value.
+          final futureExecution = _handleUnaryPrefixOp(instruction);
+          if (futureExecution != null) {
+            return futureExecution.future.then((value) {
+              _hasTopAwait = false;
+              return execute(
+                  context: futureExecution.context, localValue: value);
+            });
+          }
           break;
         case HTOpCode.memberGet:
           final object = _getRegVal(HTRegIdx.postfixObject);
@@ -1859,7 +1844,7 @@ class HTInterpreter {
     }
   }
 
-  void _handleUnaryPrefixOp(int op) {
+  FutureExecution? _handleUnaryPrefixOp(int op) {
     final object = _localValue;
     switch (op) {
       case HTOpCode.negative:
@@ -1878,7 +1863,18 @@ class HTInterpreter {
           _localValue = HTTypeUnknown(_lexicon.typeUnknown);
         }
         break;
+      case HTOpCode.await:
+        _localValue = object;
+        if (object is Future) {
+          final HTContext storedContext = getContext();
+          return FutureExecution(
+            future: object,
+            context: storedContext,
+          );
+        }
+        break;
     }
+    return null;
   }
 
   void _handleCallExpr() {
@@ -2392,10 +2388,8 @@ class HTInterpreter {
         isAbstract: isAbstract,
         isEnum: isEnum);
     _currentNamespace.define(id, klass);
-    final savedClass = _class;
-    _class = klass;
     // deal with definition block
-    execute(namespace: klass.namespace);
+    execute(context: HTContext(namespace: klass.namespace));
     // Add default constructor if there's none.
     if (!isAbstract && !hasUserDefinedConstructor && !isExternal) {
       final ctorType = HTFunctionType(returnType: HTTypeAny(_lexicon.typeAny));
@@ -2407,10 +2401,6 @@ class HTInterpreter {
           declType: ctorType);
       klass.namespace.define(InternalIdentifier.defaultConstructor, ctor);
     }
-    // if (_isModuleEntryScript || _function != null) {
-    //   klass.resolve();
-    // }
-    _class = savedClass;
     _localValue = klass;
   }
 
@@ -2455,9 +2445,6 @@ class HTInterpreter {
       staticDefinitionIp: staticDefinitionIp,
       definitionIp: definitionIp,
     );
-    // if (_isModuleEntryScript || !lateInitialize) {
-    //   struct.resolve();
-    // }
     _currentNamespace.define(id, struct);
     _localValue = struct;
   }
