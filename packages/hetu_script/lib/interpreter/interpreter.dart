@@ -1748,28 +1748,70 @@ class HTInterpreter {
         }
         break;
       case HTOpCode.equal:
-        final left = _getRegVal(HTRegIdx.equalLeft);
-        _localValue = left == _localValue;
+        var left = _getRegVal(HTRegIdx.relationLeft);
+        var right = _localValue;
+        if (right is num && _isZero(left)) {
+          left = 0;
+        }
+        if (left is num && _isZero(right)) {
+          right = 0;
+        }
+        _localValue = left == right;
         break;
       case HTOpCode.notEqual:
-        final left = _getRegVal(HTRegIdx.equalLeft);
-        _localValue = left != _localValue;
+        var left = _getRegVal(HTRegIdx.relationLeft);
+        var right = _localValue;
+        if (right is num && _isZero(left)) {
+          left = 0;
+        }
+        if (left is num && _isZero(right)) {
+          right = 0;
+        }
+        _localValue = left != right;
         break;
       case HTOpCode.lesser:
-        final left = _getRegVal(HTRegIdx.relationLeft);
-        _localValue = left < _localValue;
+        var left = _getRegVal(HTRegIdx.relationLeft);
+        var right = _localValue;
+        if (_isZero(left)) {
+          left = 0;
+        }
+        if (_isZero(right)) {
+          right = 0;
+        }
+        _localValue = left < right;
         break;
       case HTOpCode.greater:
-        final left = _getRegVal(HTRegIdx.relationLeft);
-        _localValue = left > _localValue;
+        var left = _getRegVal(HTRegIdx.relationLeft);
+        var right = _localValue;
+        if (_isZero(left)) {
+          left = 0;
+        }
+        if (_isZero(right)) {
+          right = 0;
+        }
+        _localValue = left > right;
         break;
       case HTOpCode.lesserOrEqual:
-        final left = _getRegVal(HTRegIdx.relationLeft);
-        _localValue = left <= _localValue;
+        var left = _getRegVal(HTRegIdx.relationLeft);
+        var right = _localValue;
+        if (_isZero(left)) {
+          left = 0;
+        }
+        if (_isZero(right)) {
+          right = 0;
+        }
+        _localValue = left <= right;
         break;
       case HTOpCode.greaterOrEqual:
-        final left = _getRegVal(HTRegIdx.relationLeft);
-        _localValue = left >= _localValue;
+        var left = _getRegVal(HTRegIdx.relationLeft);
+        var right = _localValue;
+        if (_isZero(left)) {
+          left = 0;
+        }
+        if (_isZero(right)) {
+          right = 0;
+        }
+        _localValue = left >= right;
         break;
       case HTOpCode.typeAs:
         final object = _getRegVal(HTRegIdx.relationLeft);

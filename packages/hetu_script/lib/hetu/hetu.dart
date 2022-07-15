@@ -171,7 +171,7 @@ class Hetu {
       interpreter.bindExternalClass(HTHetuClassBinding());
       // load precompiled core module.
       final coreModule = Uint8List.fromList(hetuCoreModule);
-      loadBytecode(bytes: coreModule, moduleName: 'core', globallyImport: true);
+      loadBytecode(bytes: coreModule, moduleName: 'hetu', globallyImport: true);
 
       interpreter.invoke('initHetuEnv', positionalArgs: [this]);
 
