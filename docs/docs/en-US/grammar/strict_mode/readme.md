@@ -36,12 +36,14 @@ a = 42; // a is created!.
 
 ## Zero value
 
-If config.allowImplicitVariableDeclaration == true, variable with null value can be treated as 0.
+If config.allowImplicitVariableDeclaration == true, null value will be treated as 0 in these situations: <, >, <=, >=, +, -, ++, --, *, /, ~/, %, +=, -=, *=, /=, ~/=, %=.
 
 ```javascript
 final obj = {}
 ++obj.count // obj = { count: 1 }
 ```
+
+**In other situations null value won't be inexplicitly converted, for example == & !=.**.
 
 ## Truth value
 

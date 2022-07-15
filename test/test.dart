@@ -48,7 +48,9 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    0 == null
+    var a
+    a ~/= 423
+    a
   ''');
 
   if (result is Future) {
