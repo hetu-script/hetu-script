@@ -48,7 +48,7 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-       print('1' == '1')
+       print('' is! str)
   ''');
 
   // if (result is Future) {

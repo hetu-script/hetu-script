@@ -1695,7 +1695,7 @@ class HTInterpreter {
     }
   }
 
-  void _handleTypeCheck([bool isNot = false]) {
+  void _handleTypeCheck({bool isNot = false}) {
     final object = _getRegVal(HTRegIdx.relationLeft);
     final type = (_localValue as HTType).resolve(_currentNamespace);
     HTType valueType;
@@ -1824,7 +1824,7 @@ class HTInterpreter {
         _handleTypeCheck();
         break;
       case HTOpCode.typeIsNot:
-        _handleTypeCheck();
+        _handleTypeCheck(isNot: true);
         break;
       case HTOpCode.add:
         var left = _getRegVal(HTRegIdx.addLeft);

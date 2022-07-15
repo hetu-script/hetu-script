@@ -6,6 +6,16 @@ void main() {
   hetu.init();
 
   group('type -', () {
+    test('type is operator', () {
+      final result = hetu.eval(r'''
+        '' is! str
+      ''');
+      expect(
+        result,
+        false,
+      );
+    });
+
     test('extends', () {
       final result = hetu.eval(r'''
         class Super2 {
