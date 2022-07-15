@@ -57,9 +57,9 @@ void main() {
     }
   ''');
 
-  // if (result is Future) {
-  //   result.then((value) => print(hetu.lexicon.stringify(value)));
-  // } else {
-  //   print(hetu.lexicon.stringify(result));
-  // }
+  if (result is Future) {
+    result.then((value) => print(hetu.lexicon.stringify(value)));
+  } else {
+    print(hetu.lexicon.stringify(result));
+  }
 }

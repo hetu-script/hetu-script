@@ -1,9 +1,7 @@
 import 'package:meta/meta.dart';
 
 import '../../type/type.dart';
-import '../../source/source.dart';
 import '../../grammar/constant.dart';
-import '../namespace/declaration_namespace.dart';
 import '../declaration.dart';
 import '../type/abstract_type_declaration.dart';
 import '../generic/generic_type_parameter.dart';
@@ -41,27 +39,20 @@ class HTClassDeclaration extends HTDeclaration
   @override
   bool get isResolved => _isResolved;
 
-  HTClassDeclaration(
-      {String? id,
-      String? classId,
-      HTDeclarationNamespace? closure,
-      HTSource? source,
-      this.genericTypeParameters = const [],
-      HTType? superType,
-      this.implementsTypes = const [],
-      this.withTypes = const [],
-      bool isExternal = false,
-      this.isAbstract = false,
-      this.isEnum = false,
-      bool isTopLevel = false})
-      : _unresolvedSuperType = superType,
-        super(
-            id: id,
-            classId: classId,
-            closure: closure,
-            source: source,
-            isExternal: isExternal,
-            isTopLevel: isTopLevel) {
+  HTClassDeclaration({
+    super.id,
+    super.classId,
+    super.closure,
+    super.source,
+    this.genericTypeParameters = const [],
+    HTType? superType,
+    this.implementsTypes = const [],
+    this.withTypes = const [],
+    super.isExternal = false,
+    super.isTopLevel = false,
+    this.isAbstract = false,
+    this.isEnum = false,
+  }) : _unresolvedSuperType = superType {
     if (_unresolvedSuperType != null && _unresolvedSuperType!.isResolved) {
       _resolvedSuperType = _unresolvedSuperType;
     }

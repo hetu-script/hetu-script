@@ -2264,7 +2264,8 @@ class HTInterpreter {
         definitionIp = _currentBytecodeModule.ip;
         _currentBytecodeModule.skip(length);
       }
-      paramDecls[id] = HTParameter(id,
+      paramDecls[id] = HTParameter(
+          id: id,
           interpreter: this,
           fileName: _currentFileName,
           moduleName: _currentBytecodeModule.id,

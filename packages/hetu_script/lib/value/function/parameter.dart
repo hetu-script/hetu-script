@@ -1,6 +1,4 @@
-import '../../interpreter/interpreter.dart';
 import '../../value/namespace/namespace.dart';
-import '../../type/type.dart';
 import '../variable/variable.dart';
 import '../../declaration/function/abstract_parameter.dart';
 
@@ -23,30 +21,20 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
   final bool isVariadic;
 
   /// Create a standard [HTParameter].
-  HTParameter(String id,
-      {HTInterpreter? interpreter,
-      String? fileName,
-      String? moduleName,
-      HTNamespace? closure,
-      HTType? declType,
-      int? definitionIp,
-      int? definitionLine,
-      int? definitionColumn,
-      this.isOptional = false,
-      this.isNamed = false,
-      this.isVariadic = false})
-      : _closure = closure,
-        super(
-            id: id,
-            interpreter: interpreter,
-            fileName: fileName,
-            moduleName: moduleName,
-            closure: closure,
-            declType: declType,
-            isMutable: true,
-            definitionIp: definitionIp,
-            definitionLine: definitionLine,
-            definitionColumn: definitionColumn);
+  HTParameter({
+    required super.id,
+    super.interpreter,
+    super.fileName,
+    super.moduleName,
+    super.closure,
+    super.declType,
+    super.definitionIp,
+    super.definitionLine,
+    super.definitionColumn,
+    this.isOptional = false,
+    this.isNamed = false,
+    this.isVariadic = false,
+  }) : _closure = closure;
 
   // @override
   // String toString() {
@@ -65,7 +53,8 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
 
   @override
   HTParameter clone() {
-    return HTParameter(id!,
+    return HTParameter(
+        id: id!,
         interpreter: interpreter,
         fileName: fileName,
         moduleName: moduleName,

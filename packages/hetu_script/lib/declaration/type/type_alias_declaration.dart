@@ -1,8 +1,6 @@
-import '../../source/source.dart';
 import '../../type/type.dart';
 import '../generic/generic_type_parameter.dart';
 import '../declaration.dart';
-import '../namespace/declaration_namespace.dart';
 import 'abstract_type_declaration.dart';
 
 /// Similar to variable, but the value is a type.
@@ -25,27 +23,20 @@ class HTTypeAliasDeclaration extends HTDeclaration
   @override
   bool get isResolved => _isResolved;
 
-  HTTypeAliasDeclaration(String id, HTType declType,
-      {String? classId,
-      HTDeclarationNamespace? closure,
-      HTSource? source,
-      this.genericTypeParameters = const [],
-      bool isExternal = false,
-      bool isStatic = false,
-      bool isConst = false,
-      bool isMutable = false,
-      bool isTopLevel = false})
-      : _declType = declType,
-        super(
-            id: id,
-            classId: classId,
-            closure: closure,
-            source: source,
-            isExternal: isExternal,
-            isStatic: isStatic,
-            isConst: isConst,
-            isMutable: isMutable,
-            isTopLevel: isTopLevel);
+  HTTypeAliasDeclaration({
+    required String id,
+    required HTType declType,
+    super.classId,
+    super.closure,
+    super.source,
+    this.genericTypeParameters = const [],
+    super.isExternal = false,
+    super.isStatic = false,
+    super.isConst = false,
+    super.isMutable = false,
+    super.isTopLevel = false,
+  })  : _declType = declType,
+        super(id: id);
 
   @override
   void resolve() {
@@ -59,7 +50,9 @@ class HTTypeAliasDeclaration extends HTDeclaration
   }
 
   @override
-  HTTypeAliasDeclaration clone() => HTTypeAliasDeclaration(id!, declType,
+  HTTypeAliasDeclaration clone() => HTTypeAliasDeclaration(
+      id: id!,
+      declType: declType,
       classId: classId,
       closure: closure,
       genericTypeParameters: genericTypeParameters,

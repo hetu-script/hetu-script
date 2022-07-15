@@ -28,7 +28,7 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
   /// have to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be acessed within a script.
   HTVariable(
-      {required String id,
+      {required super.id,
       HTInterpreter? interpreter,
       String? fileName,
       String? moduleName,
@@ -47,7 +47,7 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
       int? definitionLine,
       int? definitionColumn})
       : _closure = closure,
-        super(id: id, closure: closure) {
+        super(closure: closure) {
     if (interpreter != null) {
       this.interpreter = interpreter;
     }

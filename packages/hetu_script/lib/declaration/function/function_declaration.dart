@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 import '../../grammar/constant.dart';
 import '../../type/type.dart';
 import '../../type/function.dart';
-import '../../source/source.dart';
 import '../type/abstract_type_declaration.dart';
 import '../declaration.dart';
 import '../namespace/declaration_namespace.dart';
@@ -67,39 +66,30 @@ class HTFunctionDeclaration extends HTDeclaration
   @override
   bool get isResolved => _isResolved;
 
-  HTFunctionDeclaration(
-      {required this.internalName,
-      String? id,
-      String? classId,
-      HTDeclarationNamespace? closure,
-      HTSource? source,
-      bool isExternal = false,
-      bool isStatic = false,
-      bool isConst = false,
-      bool isTopLevel = false,
-      this.category = FunctionCategory.normal,
-      this.externalTypeId,
-      this.genericTypeParameters = const [],
-      this.hasParamDecls = true,
-      Map<String, HTAbstractParameter> paramDecls = const {},
-      required this.declType,
-      this.isAsync = false,
-      this.isField = false,
-      this.isAbstract = false,
-      this.isVariadic = false,
-      this.minArity = 0,
-      this.maxArity = 0,
-      this.namespace})
-      : _paramDecls = paramDecls,
-        super(
-            id: id,
-            classId: classId,
-            closure: closure,
-            source: source,
-            isExternal: isExternal,
-            isStatic: isStatic,
-            isConst: isConst,
-            isTopLevel: isTopLevel);
+  HTFunctionDeclaration({
+    required this.internalName,
+    super.id,
+    super.classId,
+    super.closure,
+    super.source,
+    super.isExternal = false,
+    super.isStatic = false,
+    super.isConst = false,
+    super.isTopLevel = false,
+    this.category = FunctionCategory.normal,
+    this.externalTypeId,
+    this.genericTypeParameters = const [],
+    this.hasParamDecls = true,
+    Map<String, HTAbstractParameter> paramDecls = const {},
+    required this.declType,
+    this.isAsync = false,
+    this.isField = false,
+    this.isAbstract = false,
+    this.isVariadic = false,
+    this.minArity = 0,
+    this.maxArity = 0,
+    this.namespace,
+  }) : _paramDecls = paramDecls;
 
   @override
   @mustCallSuper

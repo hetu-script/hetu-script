@@ -17,14 +17,14 @@ class HTParameterDeclaration extends HTVariableDeclaration
 
   /// Create a standard [HTParameter].
   HTParameterDeclaration(
-      {required String id,
+      {required super.id,
       super.closure,
       super.source,
       super.declType,
       this.isOptional = false,
       this.isNamed = false,
       this.isVariadic = false})
-      : super(id: id, isMutable: true);
+      : super(isMutable: true);
 
   @override
   void initialize() {}

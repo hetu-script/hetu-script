@@ -451,13 +451,13 @@ abstract class TypeExpr extends ASTNode {
   bool get isLocal;
 
   TypeExpr(
-    String exprType, {
+    super.exprType, {
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(exprType);
+  });
 }
 
 class IntrinsicTypeExpr extends TypeExpr {
@@ -1213,9 +1213,7 @@ class ForRangeStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(
-          Semantic.forInStmt,
-        );
+  }) : super(Semantic.forInStmt);
 }
 
 class WhenStmt extends Statement {

@@ -82,7 +82,7 @@ class HTIntrinsicType extends HTType {
 /// Therefore, it should only be used as a last resort
 /// when we can’t use more specific types or `unknown`.
 class HTTypeAny extends HTIntrinsicType {
-  const HTTypeAny(String id) : super(id, isTop: true, isBottom: true);
+  const HTTypeAny(super.id) : super(isTop: true, isBottom: true);
 }
 
 /// A `top` type, basically a type-safe version of the type any.
@@ -93,32 +93,32 @@ class HTTypeAny extends HTIntrinsicType {
 ///
 /// You cannot do anything with it, unless you do an explicit type assertion.
 class HTTypeUnknown extends HTIntrinsicType {
-  const HTTypeUnknown(String id) : super(id, isTop: true, isBottom: false);
+  const HTTypeUnknown(super.id) : super(isTop: true, isBottom: false);
 }
 
 /// A `bottom` type. A function whose return type is never cannot return.
 /// For example by throwing an error or looping forever.
 class HTTypeNever extends HTIntrinsicType {
-  const HTTypeNever(String id) : super(id, isTop: false, isBottom: true);
+  const HTTypeNever(super.id) : super(isTop: false, isBottom: true);
 }
 
 /// A `empty` type. A function whose return type is empty.
 /// It may contain return statement, but cannot return any value.
 /// And you cannot use the function call result in any operation.
 class HTTypeVoid extends HTIntrinsicType {
-  const HTTypeVoid(String id) : super(id, isTop: false, isBottom: true);
+  const HTTypeVoid(super.id) : super(isTop: false, isBottom: true);
 }
 
 /// A `zero` type. It's the type of runtime null value.
 /// You cannot get this type via expression or declaration.
 class HTTypeNull extends HTIntrinsicType {
-  const HTTypeNull(String id) : super(id, isTop: false, isBottom: false);
+  const HTTypeNull(super.id) : super(isTop: false, isBottom: false);
 }
 
 class HTTypeFunction extends HTIntrinsicType {
-  const HTTypeFunction(String id) : super(id, isTop: false, isBottom: false);
+  const HTTypeFunction(super.id) : super(isTop: false, isBottom: false);
 }
 
 class HTTypeNamespace extends HTIntrinsicType {
-  const HTTypeNamespace(String id) : super(id, isTop: false, isBottom: false);
+  const HTTypeNamespace(super.id) : super(isTop: false, isBottom: false);
 }
