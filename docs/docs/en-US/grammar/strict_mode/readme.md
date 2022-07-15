@@ -67,10 +67,9 @@ The conversion rules is:
 /// inexpicit type conversion for truthy values
 bool _truthy(dynamic condition) {
   if (config.allowImplicitEmptyValueToFalseConversion) {
-    if (condition == null ||
-        condition == 0 ||
+    if (condition == false
+        condition == null ||
         condition == '' ||
-        condition == '0' ||
         condition == 'false' ||
         (condition is Iterable && condition.isEmpty) ||
         (condition is Map && condition.isEmpty) ||
