@@ -221,7 +221,9 @@ class HTInterpreter {
     if (config.allowImplicitEmptyValueToFalseConversion) {
       if (condition == false ||
           condition == null ||
+          condition == 0 ||
           condition == '' ||
+          condition == '0' ||
           condition == 'false' ||
           (condition is Iterable && condition.isEmpty) ||
           (condition is Map && condition.isEmpty) ||
