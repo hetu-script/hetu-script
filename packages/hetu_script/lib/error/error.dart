@@ -19,7 +19,9 @@ enum ErrorCode {
   external,
   nestedClass,
   constInClass,
-  outsideReturn,
+  misplacedReturn,
+  misplacedContinue,
+  misplacedBreak,
   setterArity,
   emptyTypeArgs,
   emptyImportList,
@@ -427,7 +429,7 @@ class HTError {
             length: length);
 
   /// Error: Return appeared outside of a function.
-  HTError.outsideReturn(
+  HTError.misplacedReturn(
       {String? extra,
       String? correction,
       String? filename,
@@ -435,8 +437,46 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.outsideReturn, ErrorType.syntacticError,
-            message: HTLocale.current.errorOutsideReturn,
+      : this(ErrorCode.misplacedReturn, ErrorType.syntacticError,
+            message: HTLocale.current.errorMisplacedReturn,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Continue appeared outside of a function.
+  HTError.misplacedContinue(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.misplacedContinue, ErrorType.syntacticError,
+            message: HTLocale.current.errorMisplacedContinue,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Break appeared outside of a loop.
+  HTError.misplacedBreak(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.misplacedBreak, ErrorType.syntacticError,
+            message: HTLocale.current.errorMisplacedBreak,
             extra: extra,
             correction: correction,
             filename: filename,

@@ -37,7 +37,11 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorConstInClass = '类成员声明如果是 const，则一定也要是 static 的。';
   @override
-  final String errorOutsideReturn = '不能在非函数定义的场合使用 return 语句。';
+  final String errorMisplacedReturn = '不能在非函数定义的场合使用 return 语句。';
+  @override
+  final String errorMisplacedContinue = '不能在非循环语句块的场合使用 continue 语句。';
+  @override
+  final String errorMisplacedBreak = '不能在非循环语句块的场合使用 break 语句。';
   @override
   final String errorSetterArity = 'setter 函数只能有且只有一个参数。';
   @override

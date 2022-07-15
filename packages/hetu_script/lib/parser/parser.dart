@@ -67,14 +67,6 @@ abstract class HTParser with TokenReader {
     currentPrecedingCommentOrEmptyLine = [];
   }
 
-  HTClassDeclaration? currentClass;
-  FunctionCategory? currentFunctionCategory;
-  String? currentStructId;
-
-  var leftValueLegality = false;
-
-  bool hasUserDefinedConstructor = false;
-
   HTSource? currentSource;
 
   HTParser({
@@ -137,8 +129,7 @@ abstract class HTParser with TokenReader {
   /// Convert string content into [ASTSource] by a certain grammar rules set.
   ASTSource parseSource(HTSource source) {
     currrentFileName = source.fullName;
-    currentClass = null;
-    currentFunctionCategory = null;
+    resetFlags();
     currentModuleImports = <ImportExportDecl>[];
     final tokens = lexer.lex(source.content);
     final nodes = parseToken(tokens, source: source);
@@ -149,6 +140,8 @@ abstract class HTParser with TokenReader {
         errors: errors); // copy the list);
     return result;
   }
+
+  void resetFlags();
 
   ASTNode? parseStmt({required ParseStyle style});
 }

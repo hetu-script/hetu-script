@@ -40,8 +40,14 @@ class HTLocaleEnglish implements HTLocale {
   @override
   final String errorConstInClass = 'Const value in class must be also static.';
   @override
-  final String errorOutsideReturn =
+  final String errorMisplacedReturn =
       'Unexpected return statement outside of a function.';
+  @override
+  final String errorMisplacedContinue =
+      'Unexpected continue statement outside of a loop.';
+  @override
+  final String errorMisplacedBreak =
+      'Unexpected break statement outside of a loop.';
   @override
   final String errorSetterArity =
       'Setter function must have exactly one parameter.';
