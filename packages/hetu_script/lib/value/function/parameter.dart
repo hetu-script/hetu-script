@@ -34,7 +34,8 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
     this.isOptional = false,
     this.isNamed = false,
     this.isVariadic = false,
-  }) : _closure = closure;
+  })  : _closure = closure,
+        super(isMutable: true);
 
   // @override
   // String toString() {
