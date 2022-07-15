@@ -1748,7 +1748,7 @@ class HTInterpreter {
         }
         break;
       case HTOpCode.equal:
-        var left = _getRegVal(HTRegIdx.relationLeft);
+        var left = _getRegVal(HTRegIdx.equalLeft);
         var right = _localValue;
         if (right is num && _isZero(left)) {
           left = 0;
@@ -1759,7 +1759,7 @@ class HTInterpreter {
         _localValue = left == right;
         break;
       case HTOpCode.notEqual:
-        var left = _getRegVal(HTRegIdx.relationLeft);
+        var left = _getRegVal(HTRegIdx.equalLeft);
         var right = _localValue;
         if (right is num && _isZero(left)) {
           left = 0;

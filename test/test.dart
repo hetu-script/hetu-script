@@ -48,9 +48,7 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    async func => 42
-
-    print(await func())
+       print('1' == '1')
   ''');
 
   // if (result is Future) {
