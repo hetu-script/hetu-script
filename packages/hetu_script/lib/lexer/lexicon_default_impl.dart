@@ -745,6 +745,7 @@ class HTDefaultLexicon extends HTLexicon {
 
   String _stringifyType(HTType type) {
     final output = StringBuffer();
+    output.write('$kType ');
     if (type is HTFunctionType) {
       // output.write('$typeFunction ');
       if (type.genericTypeParameters.isNotEmpty) {

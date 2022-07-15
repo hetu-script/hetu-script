@@ -5,12 +5,6 @@ import '../type/type.dart';
 /// The encapsulated null object, used when try to interact with a null value.
 class _HTNull with HTEntity {
   const _HTNull();
-
-  // @override
-  // String toString() => HTLexicon.kNull;
-
-  // @override
-  // HTType get valueType => const HTTypeNull();
 }
 
 /// A interface for store and access symbols from a collection.

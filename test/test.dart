@@ -48,13 +48,7 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    for (final i in range(5)) {
-      print('i: ${i}')
-      for (final j in range(5)) {
-        print('  j: ${j}')
-        if (j == 3) break
-      }
-    }
+    0 == null
   ''');
 
   if (result is Future) {

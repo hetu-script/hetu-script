@@ -1201,6 +1201,8 @@ class HTInterpreter {
         case HTOpCode.negative:
         case HTOpCode.logicalNot:
         case HTOpCode.typeOf:
+          _handleUnaryPrefixOp(instruction);
+          break;
         case HTOpCode.await:
           if (_isModuleEntryScript &&
               (_currentNamespace.fullName == globalNamespace.fullName ||
@@ -1208,8 +1210,13 @@ class HTInterpreter {
             _hasTopAwait = true;
           }
           // handle the possible future execution request raised by await keyword and Future value.
-          final futureExecution = _handleUnaryPrefixOp(instruction);
-          if (futureExecution != null) {
+          final object = _localValue;
+          if (object is Future) {
+            final HTContext storedContext = getContext();
+            final futureExecution = FutureExecution(
+              future: object,
+              context: storedContext,
+            );
             return futureExecution.future.then((value) {
               _hasTopAwait = false;
               return execute(
@@ -1751,25 +1758,11 @@ class HTInterpreter {
         break;
       case HTOpCode.equal:
         var left = _getRegVal(HTRegIdx.equalLeft);
-        var right = _localValue;
-        if (right is num && _isZero(left)) {
-          left = 0;
-        }
-        if (left is num && _isZero(right)) {
-          right = 0;
-        }
-        _localValue = left == right;
+        _localValue = left == _localValue;
         break;
       case HTOpCode.notEqual:
         var left = _getRegVal(HTRegIdx.equalLeft);
-        var right = _localValue;
-        if (right is num && _isZero(left)) {
-          left = 0;
-        }
-        if (left is num && _isZero(right)) {
-          right = 0;
-        }
-        _localValue = left != right;
+        _localValue = left != _localValue;
         break;
       case HTOpCode.lesser:
         var left = _getRegVal(HTRegIdx.relationLeft);
@@ -1900,21 +1893,15 @@ class HTInterpreter {
         break;
       case HTOpCode.typeOf:
         final encap = encapsulate(object);
-        final type = encap.valueType;
-        if (type != null) {
-          _localValue = type;
+        if (encap == HTEntity.nullValue) {
+          _localValue = HTTypeNull(_lexicon.kNull);
         } else {
-          _localValue = HTTypeUnknown(_lexicon.typeUnknown);
-        }
-        break;
-      case HTOpCode.await:
-        _localValue = object;
-        if (object is Future) {
-          final HTContext storedContext = getContext();
-          return FutureExecution(
-            future: object,
-            context: storedContext,
-          );
+          final type = encap.valueType;
+          if (type != null) {
+            _localValue = type;
+          } else {
+            _localValue = HTTypeUnknown(_lexicon.typeUnknown);
+          }
         }
         break;
     }
