@@ -298,7 +298,7 @@ class HTInterpreter {
       throw wrappedError;
     } else {
       final hetuError = HTError.extern(
-        error.toString(),
+        _lexicon.stringify(error),
         extra: stackTraceString,
         filename: currentFileName,
         line: currentLine,
