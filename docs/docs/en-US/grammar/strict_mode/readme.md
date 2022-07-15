@@ -47,7 +47,7 @@ final obj = {}
 
 ## Truth value
 
-If config.allowImplicitVariableDeclaration == true, some expressions will be inexplicitly converted to boolean:
+If config.allowImplicitVariableDeclaration == true, some expressions (normally empty valus, but not include '0') will be inexplicitly converted to boolean:
 
 1, if (expr)
 

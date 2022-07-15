@@ -45,7 +45,7 @@ final obj = {}
 
 ## 布尔值
 
-当 config.allowImplicitEmptyValueToFalseConversion == true 时，下列表达式的值，如果为人类主观意义上的空值（包括 0，空字符串等等）可以被隐式转换为布尔值。
+当 config.allowImplicitEmptyValueToFalseConversion == true 时，下列表达式的值，如果为人类主观意义上的空值（包括空字符串等等，但不包括0）可以被隐式转换为布尔值。
 
 1, if (expr)
 
