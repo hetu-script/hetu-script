@@ -990,7 +990,7 @@ class HTInterpreter {
           }
           break;
         case HTOpCode.throws:
-          throw HTError.scriptThrows(_localValue);
+          throw HTError.scriptThrows(_lexicon.stringify(_localValue));
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
         case HTOpCode.block:
           final id = _currentBytecodeModule.readShortString();
