@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:fast_noise/fast_noise.dart';
+
 import '../external/external_class.dart';
 import '../value/entity.dart';
 import '../type/type.dart';
@@ -304,13 +306,38 @@ class HTMathClassBinding extends HTExternalClass {
           } while ((min != null && r < min) || (max != null && r > max));
           return r;
         };
-      // case 'Math.perlinNoise':
-      //   return (HTEntity entity,
-      //           {List<dynamic> positionalArgs = const [],
-      //           Map<String, dynamic> namedArgs = const {},
-      //           List<HTType> typeArgs = const []}) =>
-      //       perlinNoise(
-      //           positionalArgs[0].toDouble(), positionalArgs[1].toDouble());
+      case 'Math.noise2d':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          final int size = positionalArgs[0].toInt();
+          final seed = namedArgs['seed'] ?? math.Random().nextInt(1 << 32);
+          final frequency = namedArgs['frequency'];
+          final noiseTypeString = namedArgs['noiseType'];
+          NoiseType noiseType;
+          switch (noiseTypeString) {
+            case 'perlinFractal':
+              noiseType = NoiseType.PerlinFractal;
+              break;
+            case 'perlin':
+              noiseType = NoiseType.Perlin;
+              break;
+            case 'cubicFractal':
+              noiseType = NoiseType.CubicFractal;
+              break;
+            case 'cubic':
+            default:
+              noiseType = NoiseType.Cubic;
+          }
+          return noise2(
+            size,
+            size,
+            seed: seed,
+            frequency: frequency,
+            noiseType: noiseType,
+          );
+        };
       case 'Math.min':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],

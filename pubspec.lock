@@ -71,6 +71,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.2"
+  fast_noise:
+    dependency: transitive
+    description:
+      name: fast_noise
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.1"
   file:
     dependency: transitive
     description:
@@ -78,6 +85,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "6.1.2"
+  fixnum:
+    dependency: transitive
+    description:
+      name: fixnum
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.1"
   frontend_server_client:
     dependency: transitive
     description:

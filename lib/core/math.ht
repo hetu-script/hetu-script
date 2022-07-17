@@ -14,6 +14,10 @@ external class Math {
   // Box–Muller transform for generating normally distributed random numbers between [min : max].
   static fun gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float}) -> float
 
+  // Noise generation function provided by [fast_noise](https://pub.dev/packages/fast_noise) package.
+  // Noise types: perlin, perlinFractal, cubic, cubicFractal
+  static fun noise2d(size, {seed, noiseType = 'cubic', frequency = 0.01})
+
   static fun min(a, b)
 
   static fun max(a, b)
