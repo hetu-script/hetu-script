@@ -6,7 +6,6 @@ import '../type/type.dart';
 import '../error/error.dart';
 import 'instance_binding.dart';
 import '../shared/gaussian_noise.dart';
-import '../shared/perlin_noise.dart';
 import '../shared/math.dart';
 import '../shared/uid.dart';
 import '../shared/crc32b.dart';
@@ -305,13 +304,13 @@ class HTMathClassBinding extends HTExternalClass {
           } while ((min != null && r < min) || (max != null && r > max));
           return r;
         };
-      case 'Math.perlinNoise':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            perlinNoise(
-                positionalArgs[0].toDouble(), positionalArgs[1].toDouble());
+      // case 'Math.perlinNoise':
+      //   return (HTEntity entity,
+      //           {List<dynamic> positionalArgs = const [],
+      //           Map<String, dynamic> namedArgs = const {},
+      //           List<HTType> typeArgs = const []}) =>
+      //       perlinNoise(
+      //           positionalArgs[0].toDouble(), positionalArgs[1].toDouble());
       case 'Math.min':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],

@@ -27,7 +27,7 @@
 
 ## 0.3.10
 
-- Added 'range(a, b)', 'List.random', 'eval(code)', 'Math.radiusToSigma(radius)', 'Math.gaussianNoise(mean, variance)', 'Math.perlinNoise(x, y)', 'Hash.uid4()', 'Hash.crc32b(data)' apis.
+- Added 'range(a, b)', 'List.random', 'eval(code)', 'Math.radiusToSigma(radius)', 'Math.gaussianNoise(mean, variance)', 'Hash.uid4()', 'Hash.crc32b(data)' apis.
 - Added Dart Set & Iterable, Iterator support.
 - Added 'x in Iterable' boolean expression.
 - Added interface typealias and runtime type check on struct literal.

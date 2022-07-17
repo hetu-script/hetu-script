@@ -48,9 +48,7 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    var a
-    a ~/= 423
-    a
+    Math.perlinNoise(15, 15)
   ''');
 
   if (result is Future) {

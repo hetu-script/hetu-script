@@ -118,9 +118,6 @@ external class Math {
   // Box–Muller transform for generating normally distributed random numbers
   static fun gaussianNoise(mean: float, variance: float) -> float
 
-  // Compute Perlin noise at coordinates x, y
-  static fun perlinNoise(x: float, y: float) -> float
-
   static fun min(a, b)
 
   static fun max(a, b)
