@@ -1068,18 +1068,19 @@ extension RandomBinding on math.Random {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) sync* {
           final Iterable list = positionalArgs.first;
-          assert(list.isNotEmpty);
-          // ignore: prefer_collection_literals
-          final Set indexes = LinkedHashSet();
-          int index;
-          do {
+          if (list.isNotEmpty) {
+            // ignore: prefer_collection_literals
+            final Set indexes = LinkedHashSet();
+            int index;
             do {
-              index = nextInt(list.length);
-            } while (indexes.contains(index));
-            indexes.add(index);
-          } while (indexes.length < list.length);
-          for (final index in indexes) {
-            yield list.elementAt(index);
+              do {
+                index = nextInt(list.length);
+              } while (indexes.contains(index));
+              indexes.add(index);
+            } while (indexes.length < list.length);
+            for (final index in indexes) {
+              yield list.elementAt(index);
+            }
           }
         };
       default:
