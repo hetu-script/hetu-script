@@ -113,7 +113,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorSubGetKey = '下标操作的 key [{0}] 必须是 [int] 类型。';
   @override
-  final String errorOutOfRange = '下表操作的 key [{0}] 超出了范围：[0..{1}]。';
+  final String errorOutOfRange = '下标操作的 key [{0}] 超出了范围：[0..{1}]。';
   @override
   final String errorAssignType = '值类型 [{1}] 和声明 [{0}] 的类型 [{2}] 不匹配。';
   @override

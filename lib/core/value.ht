@@ -326,8 +326,6 @@ external class Iterable {
   /// Returns a new `Iterator` that allows iterating the Iterable's elements.
   get iterator -> Iterator
 
-  get random -> any
-
   fun toJson() -> Map
 
   /// The current elements of this iterable modified by [toElement].

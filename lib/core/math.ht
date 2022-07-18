@@ -11,6 +11,8 @@ external class Random {
   fun nextColorHex({hasAlpha: bool = false}) -> str
 
   fun nextBrightColorHex({hasAlpha: bool = false}) -> str
+
+  fun nextIterable(list: Iterable) -> any
 }
 
 external class Math {

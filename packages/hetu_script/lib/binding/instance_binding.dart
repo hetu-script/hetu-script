@@ -450,13 +450,6 @@ extension IteratorBinding on Iterator {
 extension IterableBinding on Iterable {
   dynamic htFetch(String varName) {
     switch (varName) {
-      case 'random':
-        if (isNotEmpty) {
-          final index = math.Random().nextInt(length);
-          return elementAt(index);
-        } else {
-          return null;
-        }
       case 'toJson':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -1055,6 +1048,18 @@ extension RandomBinding on math.Random {
                   .truncate()
                   .toRadixString(16)
                   .padLeft(6, '0');
+        };
+      case 'nextIterable':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          final iterable = positionalArgs.first as Iterable;
+          if (iterable.isNotEmpty) {
+            return iterable.elementAt(nextInt(iterable.length));
+          } else {
+            return null;
+          }
         };
       default:
         throw HTError.undefined(varName);
