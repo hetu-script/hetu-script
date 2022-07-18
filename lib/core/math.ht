@@ -13,6 +13,8 @@ external class Random {
   fun nextBrightColorHex({hasAlpha: bool = false}) -> str
 
   fun nextIterable(list: Iterable) -> any
+
+  fun shuffle(list: Iterable) -> Iterable
 }
 
 external class Math {

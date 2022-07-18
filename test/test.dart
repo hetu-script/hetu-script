@@ -50,10 +50,15 @@ void main() {
 
   final result = hetu.eval(r'''
     final l = [1,2,3,4,5,6,7,8]
-    final r1 = Random(123)
-    print(r1.nextIterable(l))
-    final r2 = Random(123)
-    print(r2.nextIterable(l))
+    final r1 = Random(1)
+    for (final item in r1.shuffle(l)) {
+      print(item)
+    }
+    print('another Random()')
+    final r2 = Random(1)
+    for (final item in r2.shuffle(l)) {
+      print(item)
+    }
   ''');
 
   if (result is Future) {

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:collection';
 
 import 'package:characters/characters.dart';
 
@@ -1059,6 +1060,26 @@ extension RandomBinding on math.Random {
             return iterable.elementAt(nextInt(iterable.length));
           } else {
             return null;
+          }
+        };
+      case 'shuffle':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) sync* {
+          final Iterable list = positionalArgs.first;
+          assert(list.isNotEmpty);
+          // ignore: prefer_collection_literals
+          final Set indexes = LinkedHashSet();
+          int index;
+          do {
+            do {
+              index = nextInt(list.length);
+            } while (indexes.contains(index));
+            indexes.add(index);
+          } while (indexes.length < list.length);
+          for (final index in indexes) {
+            yield list.elementAt(index);
           }
         };
       default:
