@@ -8,9 +8,9 @@ external class Random {
 
   fun nextDouble() -> float
 
-  fun randomColorHex({hasAlpha: bool = false}) -> str
+  fun nextColorHex({hasAlpha: bool = false}) -> str
 
-  fun randomBrightColorHex({hasAlpha: bool = false}) -> str
+  fun nextBrightColorHex({hasAlpha: bool = false}) -> str
 }
 
 external class Math {

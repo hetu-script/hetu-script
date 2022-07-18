@@ -49,9 +49,9 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    final r = Random(234)
+    final r = Random(123)
 
-    r.nextInt(100)
+    r.nextBrightColorHex()
   ''');
 
   if (result is Future) {
