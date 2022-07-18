@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:math' as math;
 import 'package:path/path.dart' as path;
 
 import '../value/namespace/namespace.dart';
@@ -441,10 +442,10 @@ class HTInterpreter {
     }
   }
 
+  final externFunctions = <String, Function>{};
+  final externFunctionTypedefs = <String, HTExternalFunctionTypedef>{};
   final externClasses = <String, HTExternalClass>{};
   final externTypeReflection = <HTExternalTypeReflection>[];
-  final externFuncs = <String, Function>{};
-  final externFuncTypeUnwrappers = <String, HTExternalFunctionTypedef>{};
 
   /// Wether the interpreter has a certain external class binding.
   bool containsExternalClass(String id) => externClasses.containsKey(id);
@@ -477,35 +478,35 @@ class HTInterpreter {
   /// there must be a declaraction also in script for using this
   void bindExternalFunction(String id, Function function,
       {bool override = false}) {
-    if (externFuncs.containsKey(id) && !override) {
+    if (externFunctions.containsKey(id) && !override) {
       throw HTError.defined(id, ErrorType.runtimeError);
     }
-    externFuncs[id] = function;
+    externFunctions[id] = function;
   }
 
   /// Fetch a external function
   Function fetchExternalFunction(String id) {
-    if (!externFuncs.containsKey(id)) {
+    if (!externFunctions.containsKey(id)) {
       throw HTError.undefinedExternal(id);
     }
-    return externFuncs[id]!;
+    return externFunctions[id]!;
   }
 
   /// Register a external function typedef into scrfipt
   void bindExternalFunctionType(String id, HTExternalFunctionTypedef function,
       {bool override = false}) {
-    if (externFuncTypeUnwrappers.containsKey(id) && !override) {
+    if (externFunctionTypedefs.containsKey(id) && !override) {
       throw HTError.defined(id, ErrorType.runtimeError);
     }
-    externFuncTypeUnwrappers[id] = function;
+    externFunctionTypedefs[id] = function;
   }
 
   /// Using unwrapper to turn a script function into a external function
   Function unwrapExternalFunctionType(HTFunction func) {
-    if (!externFuncTypeUnwrappers.containsKey(func.externalTypeId)) {
+    if (!externFunctionTypedefs.containsKey(func.externalTypeId)) {
       throw HTError.undefinedExternal(func.externalTypeId!);
     }
-    final unwrapFunc = externFuncTypeUnwrappers[func.externalTypeId]!;
+    final unwrapFunc = externFunctionTypedefs[func.externalTypeId]!;
     return unwrapFunc(func);
   }
 
@@ -583,6 +584,8 @@ class HTInterpreter {
       typeString = 'Iterable';
     } else if (object is Iterator) {
       typeString = 'Iterator';
+    } else if (object is math.Random) {
+      typeString = 'Random';
     } else {
       var reflected = false;
       for (final reflect in externTypeReflection) {

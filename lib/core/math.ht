@@ -1,3 +1,18 @@
+external class Random {
+  
+  construct ([seed: int])
+
+  fun nextBool -> bool
+
+  fun nextInt(max: int) -> int
+
+  fun nextDouble() -> float
+
+  fun randomColorHex({hasAlpha: bool = false}) -> str
+
+  fun randomBrightColorHex({hasAlpha: bool = false}) -> str
+}
+
 external class Math {
   static const e: num = 2.718281828459045
   
@@ -21,16 +36,6 @@ external class Math {
   static fun min(a, b)
 
   static fun max(a, b)
-
-  static fun random() -> num
-
-  static fun randomInt(range: num) -> num
-
-  static fun randomBool() -> bool
-
-  static fun randomColorHex({hasAlpha: bool = false}) -> str
-
-  static fun randomBrightColorHex({hasAlpha: bool = false}) -> str
 
   static fun sqrt(x: num) -> num
 

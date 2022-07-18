@@ -262,6 +262,29 @@ class HTMapClassBinding extends HTExternalClass {
       (object as Map).htFetch(varName);
 }
 
+class HTRandomClassBinding extends HTExternalClass {
+  HTRandomClassBinding() : super('Random');
+
+  @override
+  dynamic memberGet(String varName, {String? from}) {
+    switch (varName) {
+      case 'Random':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            math.Random(positionalArgs.first);
+
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+
+  @override
+  dynamic instanceMemberGet(dynamic object, String varName) =>
+      (object as math.Random).htFetch(varName);
+}
+
 class HTMathClassBinding extends HTExternalClass {
   HTMathClassBinding() : super('Math');
 
@@ -350,54 +373,6 @@ class HTMathClassBinding extends HTExternalClass {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.max(positionalArgs[0] as num, positionalArgs[1] as num);
-      case 'Math.random':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            math.Random().nextDouble();
-      case 'Math.randomInt':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            math.Random().nextInt(positionalArgs[0].toInt());
-      case 'Math.randomBool':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            math.Random().nextBool();
-      case 'Math.randomColorHex':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          var prefix = '#';
-          if (namedArgs['hasAlpha']) {
-            prefix += 'ff';
-          }
-          return prefix +
-              (math.Random().nextDouble() * 16777215)
-                  .truncate()
-                  .toRadixString(16)
-                  .padLeft(6, '0');
-        };
-      case 'Math.randomBrightColorHex':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
-          var prefix = '#';
-          if (namedArgs['hasAlpha']) {
-            prefix += 'ff';
-          }
-          return prefix +
-              (math.Random().nextDouble() * 5592405 + 11184810)
-                  .truncate()
-                  .toRadixString(16)
-                  .padLeft(6, '0');
-        };
       case 'Math.sqrt':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -532,6 +507,15 @@ class HTHashClassBinding extends HTExternalClass {
           String data = positionalArgs[0];
           int crc = positionalArgs[1] ?? 0;
           return crc32b(data, crc);
+        };
+      case 'Hash.crc32bInt':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          String data = positionalArgs[0];
+          int crc = positionalArgs[1] ?? 0;
+          return crc32bInt(data, crc);
         };
       default:
         throw HTError.undefined(varName);

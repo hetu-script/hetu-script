@@ -1,4 +1,5 @@
 import 'package:hetu_script/hetu_script.dart';
+import 'dart:math' as math;
 
 void main() {
   final sourceContext = HTOverlayContext();
@@ -48,7 +49,9 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    Math.noise2d(10, 10)
+    final r = Random(234)
+
+    r.nextInt(100)
   ''');
 
   if (result is Future) {

@@ -35,5 +35,3 @@ export 'error/error.dart';
 export 'error/error_handler.dart';
 export 'error/error_severity.dart';
 export 'locale/locale.dart';
-
-export 'package:fast_noise/fast_noise.dart';

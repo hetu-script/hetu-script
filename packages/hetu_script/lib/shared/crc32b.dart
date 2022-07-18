@@ -12,7 +12,7 @@ import 'dart:convert';
 /// The return value is an unsigned integer.
 ///
 /// You may optionally specify the beginning CRC value.
-String crc32b(String data, [int? crc]) {
+int crc32bInt(String data, [int? crc]) {
   crc ??= 0;
   final input = utf8.encode(data);
 
@@ -28,10 +28,11 @@ String crc32b(String data, [int? crc]) {
   checksum = checksum ^ (0xffffffff);
 
   // Turns the signed integer into an unsigned integer.
-  final result = checksum & 0xffffffff;
-
-  return result.toRadixString(16);
+  return checksum & 0xffffffff;
 }
+
+String crc32b(String data, [int? crc]) =>
+    crc32bInt(data, crc).toRadixString(16);
 
 const _table = [
   0x00000000,

@@ -18,4 +18,4 @@ typedef HTExternalFunction = dynamic Function(HTEntity entity,
 /// native function as parameter.
 typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
-typedef HTExternalTypeReflection = String? Function(dynamic object);
+typedef HTExternalTypeReflection = String? Function(Object object);

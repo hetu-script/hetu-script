@@ -1,6 +1,5 @@
 ## 0.4.0
 
-- UPGRADE to Dart 2.17.
 - Add api for dynamically import a source: `final { a, b } = require(path)`
 - Add Future() constructor.
 - Add static value() & wait() methods on Future class binding.
@@ -9,6 +8,9 @@
 - Add suport for multiline String literal, syntax is the same to normal string.
 - Add support for user-defined lexicon & parser, you can define a language with
   custom lexicon & grammar that compiles into the bytecode and runs with Hetu.
+- ** BREAKING CHANGE **: 
+  SDK dependency has UPGRADE to Dart 2.17.
+  Changed Math.random() related api to separated Random class binding (this is for support of random seed).
 
 ## 0.3.12
 

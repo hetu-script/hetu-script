@@ -1005,6 +1005,63 @@ extension MapBinding on Map {
   }
 }
 
+extension RandomBinding on math.Random {
+  dynamic htFetch(String varName) {
+    switch (varName) {
+      case 'nextDouble':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            nextDouble();
+      case 'nextInt':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            nextInt(positionalArgs[0].toInt());
+      case 'nextBool':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            nextBool();
+      case 'nextColorHex':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          var prefix = '#';
+          if (namedArgs['hasAlpha']) {
+            prefix += 'ff';
+          }
+          return prefix +
+              (nextDouble() * 16777215)
+                  .truncate()
+                  .toRadixString(16)
+                  .padLeft(6, '0');
+        };
+      case 'nextBrightColorHex':
+        return (HTEntity entity,
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          var prefix = '#';
+          if (namedArgs['hasAlpha']) {
+            prefix += 'ff';
+          }
+          return prefix +
+              (nextDouble() * 5592405 + 11184810)
+                  .truncate()
+                  .toRadixString(16)
+                  .padLeft(6, '0');
+        };
+      default:
+        throw HTError.undefined(varName);
+    }
+  }
+}
+
 /// Binding object for dart [Future].
 extension FutureBinding on Future {
   dynamic htFetch(String varName) {

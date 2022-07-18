@@ -140,6 +140,7 @@ class Hetu {
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
+    List<HTExternalTypeReflection> externalTypeReflections = const [],
   }) {
     if (_isInitted) return;
 
@@ -163,6 +164,7 @@ class Hetu {
       interpreter.bindExternalClass(HTListClassBinding());
       interpreter.bindExternalClass(HTSetClassBinding());
       interpreter.bindExternalClass(HTMapClassBinding());
+      interpreter.bindExternalClass(HTRandomClassBinding());
       interpreter.bindExternalClass(HTMathClassBinding());
       interpreter.bindExternalClass(HTHashClassBinding());
       interpreter.bindExternalClass(HTSystemClassBinding());
@@ -189,6 +191,9 @@ class Hetu {
     }
     for (final value in externalClasses) {
       interpreter.bindExternalClass(value);
+    }
+    for (final value in externalTypeReflections) {
+      interpreter.bindExternalReflection(value);
     }
     _isInitted = true;
   }
