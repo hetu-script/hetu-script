@@ -31,14 +31,14 @@ class HTSource {
   LineInfo _lineInfo;
   LineInfo get lineInfo => _lineInfo;
 
-  String? _crc32b;
+  String? _crc;
 
   @override
   bool operator ==(Object other) =>
       other is HTSource ? hashCode == other.hashCode : false;
 
   @override
-  int get hashCode => _crc32b != null ? _crc32b.hashCode : content.hashCode;
+  int get hashCode => _crc != null ? _crc.hashCode : content.hashCode;
 
   HTSource(
     String content, {
@@ -50,7 +50,7 @@ class HTSource {
     if (fullName != null) {
       _fullName = fullName;
     } else {
-      final hash = crc32b(content);
+      final hash = crcString(content);
       final nameBuilder = StringBuffer();
       nameBuilder.write('${InternalIdentifier.anonymousScript}_$hash: ');
       var firstLine =
@@ -64,7 +64,7 @@ class HTSource {
     }
 
     if (hashContent) {
-      _crc32b = crc32b(content);
+      _crc = crcString(content);
     }
   }
 }

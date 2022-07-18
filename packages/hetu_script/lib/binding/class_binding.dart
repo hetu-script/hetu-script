@@ -499,23 +499,23 @@ class HTHashClassBinding extends HTExternalClass {
             List<HTType> typeArgs = const []}) {
           return uid4(positionalArgs.first);
         };
-      case 'Hash.crc32b':
+      case 'Hash.crcString':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           String data = positionalArgs[0];
           int crc = positionalArgs[1] ?? 0;
-          return crc32b(data, crc);
+          return crcString(data, crc);
         };
-      case 'Hash.crc32bInt':
+      case 'Hash.crcInt':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           String data = positionalArgs[0];
           int crc = positionalArgs[1] ?? 0;
-          return crc32bInt(data, crc);
+          return crcInt(data, crc);
         };
       default:
         throw HTError.undefined(varName);

@@ -156,6 +156,6 @@ external class Hash {
 
   static fun uid4(repeat: int) -> str
 
-  static fun crc32b(data: str, [crc: str = 0]) -> str
+  static fun crcString(data: str, [crc: str = 0]) -> str
 }
 ```
