@@ -49,9 +49,8 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    final l = []
     final r1 = Random(1)
-    print(r1.shuffle(l))
+    print(Math.gaussianNoise(10, 10, randomGenerator: r1))
   ''');
 
   if (result is Future) {

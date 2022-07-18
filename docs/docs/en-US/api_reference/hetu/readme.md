@@ -95,23 +95,48 @@ struct prototype {
 ## Math
 
 ```javascript
+external class Random {
+  
+  construct ([seed: int])
+
+  fun nextBool -> bool
+
+  fun nextInt(max: int) -> int
+
+  fun nextDouble() -> float
+
+  fun nextColorHex({hasAlpha: bool = false}) -> str
+
+  fun nextBrightColorHex({hasAlpha: bool = false}) -> str
+
+  fun nextIterable(list: Iterable) -> any
+
+  fun shuffle(list: Iterable) -> Iterable
+}
+
 external class Math {
   static const e: num = 2.718281828459045
+  
+  static const pi: num = 3.1415926535897932
 
-  static const pi: num = 3.1415926535897932external
+  /// Convert [radians] to degrees.
+  static fun degrees(radians)
+
+  /// Convert [degrees] to radians.
+  static fun radians(degrees)
 
   static fun radiusToSigma(radius: float) -> float
+  
+  // Box–Muller transform for generating normally distributed random numbers between [min : max].
+  static fun gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float, randomGenerator}) -> float
 
-  // Box–Muller transform for generating normally distributed random numbers
-  static fun gaussianNoise(mean: float, variance: float) -> float
+  // Noise generation function provided by [fast_noise](https://pub.dev/packages/fast_noise) package.
+  // Noise types: perlin, perlinFractal, cubic, cubicFractal
+  static fun noise2d(size, {seed, noiseType = 'cubic', frequency = 0.01})
 
   static fun min(a, b)
 
   static fun max(a, b)
-
-  static fun random() -> num
-
-  static fun randomInt(max: num) -> num
 
   static fun sqrt(x: num) -> num
 
@@ -133,19 +158,19 @@ external class Math {
 
   static fun sum(list: List<num>) -> num
 
-  static fun checkBit(index: num, check: num) -> bool
+  static fun checkBit(index: int, check: int) -> bool
 
-  static fun bitLS(x: num, distance: num) -> bool
+  static fun bitLS(x: int, distance: int) -> bool
 
-  static fun bitRS(x: num, distance: num) -> bool
+  static fun bitRS(x: int, distance: int) -> bool
 
-  static fun bitAnd(x: num, y: num) -> bool
+  static fun bitAnd(x: int, y: int) -> bool
 
-  static fun bitOr(x: num, y: num) -> bool
+  static fun bitOr(x: int, y: int) -> bool
 
-  static fun bitNot(x: num) -> bool
+  static fun bitNot(x: int) -> bool
 
-  static fun bitXor(x: num, y: num) -> bool
+  static fun bitXor(x: int, y: int) -> bool
 }
 ```
 
@@ -153,9 +178,11 @@ external class Math {
 
 ```javascript
 external class Hash {
-
-  static fun uid4(repeat: int) -> str
+  
+  static fun uid4([repeat: int?]) -> str
 
   static fun crcString(data: str, [crc: str = 0]) -> str
+
+  static fun crcInt(data: str, [crc: str = 0]) -> int
 }
 ```

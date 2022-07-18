@@ -320,12 +320,17 @@ class HTMathClassBinding extends HTExternalClass {
             List<HTType> typeArgs = const []}) {
           final mean = positionalArgs[0].toDouble();
           final standardDeviation = positionalArgs[1].toDouble();
+          final math.Random? randomGenerator = namedArgs['randomGenerator'];
           assert(standardDeviation > 0);
           final num? min = namedArgs['min'];
           final num? max = namedArgs['max'];
           double r;
           do {
-            r = gaussianNoise(mean, standardDeviation);
+            r = gaussianNoise(
+              mean,
+              standardDeviation,
+              randomGenerator: randomGenerator,
+            );
           } while ((min != null && r < min) || (max != null && r > max));
           return r;
         };

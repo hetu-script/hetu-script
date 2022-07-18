@@ -31,7 +31,7 @@ external class Math {
   static fun radiusToSigma(radius: float) -> float
   
   // Box–Muller transform for generating normally distributed random numbers between [min : max].
-  static fun gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float}) -> float
+  static fun gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float, randomGenerator}) -> float
 
   // Noise generation function provided by [fast_noise](https://pub.dev/packages/fast_noise) package.
   // Noise types: perlin, perlinFractal, cubic, cubicFractal
