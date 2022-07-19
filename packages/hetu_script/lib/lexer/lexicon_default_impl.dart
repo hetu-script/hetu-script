@@ -802,7 +802,7 @@ class HTDefaultLexicon extends HTLexicon {
         for (var i = 0; i < type.fieldTypes.length; ++i) {
           final key = type.fieldTypes.keys.elementAt(i);
           output.write('  $key$typeIndicator');
-          final fieldTypeString = type.fieldTypes[key].toString();
+          final fieldTypeString = _stringifyType(type.fieldTypes[key]!);
           output.write(' $fieldTypeString');
           if (i < type.fieldTypes.length - 1) {
             output.write(comma);
