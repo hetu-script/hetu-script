@@ -3065,6 +3065,8 @@ class HTDefaultParser extends HTParser {
     final startTok = match(lexicon.codeBlockStart);
     while (curTok.type != lexicon.codeBlockEnd &&
         curTok.type != Semantic.endOfFile) {
+      handlePrecedings();
+      if (curTok.type == lexicon.codeBlockEnd) break;
       final stmt = parseStmt(style: ParseStyle.structDefinition);
       if (stmt != null) {
         definition.add(stmt);
