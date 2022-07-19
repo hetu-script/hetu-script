@@ -2734,12 +2734,12 @@ class HTDefaultParser extends HTParser {
         if (!isOptional &&
             !isNamed &&
             expect([lexicon.optionalPositionalParameterStart], consume: true)) {
-          ++maxArity;
           isOptional = true;
           final params = parseExprList(
             endToken: lexicon.optionalPositionalParameterEnd,
             parseFunction: parseParam,
           );
+          maxArity += params.length;
           match(lexicon.optionalPositionalParameterEnd);
           paramDecls.addAll(params);
         }

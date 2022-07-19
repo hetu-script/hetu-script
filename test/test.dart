@@ -49,20 +49,10 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-
-      struct QuestFightBanditStage {
-        construct started () {
-          this.id = 'started'
-          this.next = 'found'
-          this.failed = 'foundFailed'
-        }
-
-        construct foundFailed() {
-
-        }
-
+      fun test([a, b]) {
+        print(a,b)
       }
-
+      test(1, 2)
   ''');
 
   if (result is Future) {
