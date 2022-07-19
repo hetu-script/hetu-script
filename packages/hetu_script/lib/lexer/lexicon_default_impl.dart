@@ -688,7 +688,7 @@ class HTDefaultLexicon extends HTLexicon {
         output.write(structString);
       }
     } else if (object is HTType) {
-      final typeString = _stringifyType(object);
+      final typeString = _stringifyType(object, showTypeKeyword: true);
       output.write(typeString);
     } else {
       output.write(object.toString());
@@ -743,9 +743,9 @@ class HTDefaultLexicon extends HTLexicon {
     return output.toString();
   }
 
-  String _stringifyType(HTType type) {
+  String _stringifyType(HTType type, {bool showTypeKeyword = false}) {
     final output = StringBuffer();
-    output.write('$kType ');
+    if (showTypeKeyword) output.write('$kType ');
     if (type is HTFunctionType) {
       // output.write('$typeFunction ');
       if (type.genericTypeParameters.isNotEmpty) {
