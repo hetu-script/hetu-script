@@ -33,7 +33,7 @@ class HTConstantInterpreter extends RecursiveASTVisitor<void> {
     var text = node.text;
     for (var i = 0; i < interpolations.length; ++i) {
       text = text.replaceAll(
-          '${_lexicon.functionBlockStart}$i${_lexicon.functionBlockEnd}',
+          '${_lexicon.codeBlockStart}$i${_lexicon.codeBlockEnd}',
           interpolations[i]);
     }
     node.value = text;

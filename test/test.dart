@@ -7,6 +7,7 @@ void main() {
       compileWithoutLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
+      showHetuStackTrace: true,
       showDartStackTrace: true,
       // stackTraceDisplayCountLimit: 20,
       allowVariableShadowing: true,
@@ -48,16 +49,10 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    1 && 
-      // comment between expression
-      print('yes')
-
-    fun 
-    // asdfsf
-    test {
-      print('hello world' // sfdsfd
-      )
-    }
+    
+    (a) {
+      a
+    } (42)
   ''');
 
   if (result is Future) {

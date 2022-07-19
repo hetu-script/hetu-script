@@ -6,7 +6,6 @@ import '../declaration/declaration.dart';
 import '../../resource/resource.dart' show HTResourceType;
 import '../../source/line_info.dart';
 import '../error/error.dart';
-import '../comment/comment.dart';
 
 part 'visitor/abstract_ast_visitor.dart';
 
@@ -14,11 +13,13 @@ part 'visitor/abstract_ast_visitor.dart';
 abstract class ASTNode {
   final String type;
 
-  List<CommentOrEmptyLine> precedingComments = [];
+  List<ASTDocumentation> precedings = [];
 
-  CommentOrEmptyLine? trailingComment;
+  ASTDocumentation? trailing;
 
-  List<CommentOrEmptyLine> succeedingComments = [];
+  ASTDocumentation? trailingAfterComma;
+
+  List<ASTDocumentation> succeedings = [];
 
   final bool isStatement;
 
@@ -61,6 +62,67 @@ abstract class ASTNode {
     this.offset = 0,
     this.length = 0,
   });
+}
+
+/// Comments or empty lines. Which has no meaning when interpreting,
+/// but they have meanings in formatting,
+/// so we keeps them as a special ASTNode.
+abstract class ASTDocumentation extends ASTNode {
+  final String content;
+
+  ASTDocumentation(
+    super.type, {
+    required this.content,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  });
+}
+
+class ASTComment extends ASTDocumentation {
+  @override
+  dynamic accept(AbstractASTVisitor visitor) => visitor.visitComment(this);
+
+  final bool isDocumentation;
+
+  final bool isMultiLine;
+
+  final bool isTrailing;
+
+  ASTComment({
+    required String content,
+    required this.isDocumentation,
+    required this.isMultiLine,
+    required this.isTrailing,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.comment, content: content);
+
+  ASTComment.fromCommentToken(TokenComment token)
+      : this(
+          content: token.literal,
+          isDocumentation: token.isDocumentation,
+          isMultiLine: token.isMultiLine,
+          isTrailing: token.isTrailing,
+        );
+}
+
+class ASTEmptyLine extends ASTDocumentation {
+  @override
+  dynamic accept(AbstractASTVisitor visitor) => visitor.visitEmptyLine(this);
+
+  ASTEmptyLine({
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.emptyLine, content: '\n');
 }
 
 /// Parse result of a single file
@@ -153,6 +215,19 @@ class ASTCompilation extends ASTNode {
     //   decl.parent = this;
     // }
   }
+}
+
+class ASTEmpty extends ASTNode {
+  @override
+  dynamic accept(AbstractASTVisitor visitor) => visitor.visitEmptyExpr(this);
+
+  ASTEmpty({
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(Semantic.empty);
 }
 
 class ASTLiteralNull extends ASTNode {
@@ -524,15 +599,15 @@ class ParamTypeExpr extends ASTNode {
     declType.accept(visitor);
   }
 
-  /// Wether this is an optional parameter.
-  final bool isOptional;
+  /// Wether this is an optional positional parameter.
+  final bool isOptionalPositional;
 
   /// Wether this is a variadic parameter.
   final bool isVariadic;
 
+  /// Wether this is a optional named parameter.
   bool get isNamed => id != null;
 
-  /// Wether this is a named parameter.
   final IdentifierExpr? id;
 
   final TypeExpr declType;
@@ -540,8 +615,8 @@ class ParamTypeExpr extends ASTNode {
   ParamTypeExpr(
     this.declType, {
     this.id,
-    required this.isOptional,
-    required this.isVariadic,
+    this.isOptionalPositional = false,
+    this.isVariadic = false,
     super.source,
     super.line = 0,
     super.column = 0,
@@ -879,6 +954,8 @@ class CallExpr extends ASTNode {
 
   final ASTNode callee;
 
+  final ASTDocumentation? documentationsWithinEmptyContent;
+
   final List<ASTNode> positionalArgs;
 
   final Map<String, ASTNode> namedArgs;
@@ -891,6 +968,7 @@ class CallExpr extends ASTNode {
     this.callee, {
     this.positionalArgs = const [],
     this.namedArgs = const {},
+    this.documentationsWithinEmptyContent,
     this.isNullable = false,
     this.hasNewOperator = false,
     super.source,
@@ -902,13 +980,13 @@ class CallExpr extends ASTNode {
 }
 
 abstract class Statement extends ASTNode {
-  final bool isAsync;
+  // final bool isAsync;
 
   final bool hasEndOfStmtMark;
 
   Statement(
     super.type, {
-    this.isAsync = false,
+    // this.isAsync = false,
     this.hasEndOfStmtMark = false,
     super.isStatement = true,
     super.source,
@@ -917,20 +995,6 @@ abstract class Statement extends ASTNode {
     super.offset = 0,
     super.length = 0,
   });
-}
-
-class ASTEmptyLine extends Statement {
-  @override
-  dynamic accept(AbstractASTVisitor visitor) => visitor.visitEmptyExpr(this);
-
-  ASTEmptyLine({
-    super.hasEndOfStmtMark = false,
-    super.source,
-    super.line = 0,
-    super.column = 0,
-    super.offset = 0,
-    super.length = 0,
-  }) : super(Semantic.empty, isAsync: false);
 }
 
 class AssertStmt extends Statement {
@@ -946,7 +1010,7 @@ class AssertStmt extends Statement {
 
   AssertStmt(
     this.expr, {
-    super.isAsync = false,
+    // super.isAsync = false,
     super.hasEndOfStmtMark = false,
     super.source,
     super.line = 0,
@@ -964,7 +1028,7 @@ class ThrowStmt extends Statement {
 
   ThrowStmt(
     this.message, {
-    super.isAsync = false,
+    // super.isAsync = false,
     super.hasEndOfStmtMark = false,
     super.source,
     super.line = 0,
@@ -987,7 +1051,7 @@ class ExprStmt extends Statement {
 
   ExprStmt(
     this.expr, {
-    super.isAsync = false,
+    // super.isAsync = false,
     super.hasEndOfStmtMark = false,
     super.source,
     super.line = 0,
@@ -1017,7 +1081,7 @@ class BlockStmt extends Statement {
   BlockStmt(
     this.statements, {
     this.hasOwnNamespace = true,
-    super.isAsync = false,
+    // super.isAsync = false,
     this.id,
     super.source,
     super.line = 0,
@@ -1043,7 +1107,7 @@ class ReturnStmt extends Statement {
   ReturnStmt(
     this.keyword, {
     this.returnValue,
-    super.isAsync = false,
+    // super.isAsync = false,
     super.hasEndOfStmtMark = false,
     super.source,
     super.line = 0,
@@ -1951,17 +2015,16 @@ class StructObjField extends ASTNode {
     value?.accept(visitor);
   }
 
-// if key is omitted, the value must be a identifier expr.
+  // if key is omitted, the value must be a identifier expr.
   final IdentifierExpr? key;
 
-  final bool isSpread;
+  bool get isSpread => key == null;
 
-  final ASTNode? fieldValue;
+  final ASTNode fieldValue;
 
   StructObjField({
     this.key,
-    this.fieldValue,
-    this.isSpread = false,
+    required this.fieldValue,
     super.source,
     super.line = 0,
     super.column = 0,

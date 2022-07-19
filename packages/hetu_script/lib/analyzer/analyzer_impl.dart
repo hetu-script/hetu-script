@@ -28,7 +28,13 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   }
 
   @override
-  void visitEmptyExpr(ASTEmptyLine node) {}
+  void visitComment(ASTComment node) {}
+
+  @override
+  void visitEmptyLine(ASTEmptyLine node) {}
+
+  @override
+  void visitEmptyExpr(ASTEmpty node) {}
 
   @override
   void visitNullExpr(ASTLiteralNull node) {}

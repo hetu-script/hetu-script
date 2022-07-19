@@ -3,7 +3,6 @@ import 'package:characters/characters.dart';
 import '../parser/token.dart';
 import 'lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
-import '../comment/comment.dart' show CommentType;
 import '../grammar/constant.dart';
 
 extension on String {
@@ -83,13 +82,10 @@ class HTLexer {
           addToken(token);
         }
       } else {
-        firstTokenOfCurrentLine =
-            lastTokenOfCurrentLine = TokenCommentOrEmptyLine(
-          lexeme: '\n',
+        firstTokenOfCurrentLine = lastTokenOfCurrentLine = TokenEmptyLine(
           line: line,
           column: column,
           offset: offset,
-          commentType: CommentType.emptyLine,
         );
       }
       assert(firstTokenOfCurrentLine != null);
@@ -207,15 +203,14 @@ class HTLexer {
             }
           } while (iter.moveNext());
           final lexeme = buffer.toString();
-          final token = TokenCommentOrEmptyLine(
+          final token = TokenComment(
               lexeme: lexeme,
               line: line,
               column: column,
               offset: offset,
-              commentType:
-                  currentString.startsWith(lexicon.documentationCommentStart)
-                      ? CommentType.documentation
-                      : CommentType.singleLine,
+              isDocumentation:
+                  currentString.startsWith(lexicon.documentationCommentStart),
+              isMultiLine: false,
               isTrailing: lastTokenOfCurrentLine != null ? true : false);
           addToken(token);
           buffer.clear();
@@ -238,12 +233,12 @@ class HTLexer {
             }
           } while (iter.moveNext());
           final lexeme = buffer.toString();
-          final token = TokenCommentOrEmptyLine(
+          final token = TokenComment(
               lexeme: lexeme,
               line: line,
               column: column,
               offset: offset,
-              commentType: CommentType.multiLine,
+              isMultiLine: true,
               isTrailing: lastTokenOfCurrentLine != null ? true : false);
           addToken(token);
           buffer.clear();

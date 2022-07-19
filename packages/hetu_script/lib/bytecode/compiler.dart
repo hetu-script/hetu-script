@@ -368,7 +368,17 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitEmptyExpr(ASTEmptyLine expr) {
+  Uint8List visitComment(ASTComment expr) {
+    return Uint8List(0);
+  }
+
+  @override
+  Uint8List visitEmptyLine(ASTEmptyLine expr) {
+    return Uint8List(0);
+  }
+
+  @override
+  Uint8List visitEmptyExpr(ASTEmpty expr) {
     return Uint8List(0);
   }
 
@@ -482,21 +492,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitStructObjField(StructObjField field) {
     final bytesBuilder = BytesBuilder();
-    if (field.key != null) {
-      bytesBuilder
-          .addByte(StructObjFieldTypeCode.normal); // normal key: value field
-      bytesBuilder.add(_parseIdentifier(field.key!.id));
-      final valueBytes = compileAST(field.fieldValue!, endOfExec: true);
-      bytesBuilder.add(valueBytes);
-    } else if (field.isSpread) {
-      bytesBuilder
-          .addByte(StructObjFieldTypeCode.spread); // spread another object
-      final valueBytes = compileAST(field.fieldValue!, endOfExec: true);
-      bytesBuilder.add(valueBytes);
+    if (field.isSpread) {
+      bytesBuilder.addByte(1); // bool: has isSpread
+      // spread another object
     } else {
-      bytesBuilder
-          .addByte(StructObjFieldTypeCode.empty); // spread another object
+      bytesBuilder.addByte(0); // bool: has isSpread
+      // normal key: value field
+      bytesBuilder.add(_parseIdentifier(field.key!.id));
     }
+    final valueBytes = compileAST(field.fieldValue, endOfExec: true);
+    bytesBuilder.add(valueBytes);
     return bytesBuilder.toBytes();
   }
 
@@ -517,9 +522,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has prototype
     }
-    final fields = obj.fields.where((field) => field.fieldValue != null);
-    bytesBuilder.addByte(fields.length);
-    for (final field in fields) {
+    bytesBuilder.addByte(obj.fields.length);
+    for (final field in obj.fields) {
       final bytes = visitStructObjField(field);
       bytesBuilder.add(bytes);
     }
@@ -612,7 +616,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     // could be function type so use visit ast node instead of visit type expr
     final declTypeBytes = compileAST(expr.declType);
     bytesBuilder.add(declTypeBytes);
-    bytesBuilder.addByte(expr.isOptional ? 1 : 0);
+    bytesBuilder.addByte(expr.isOptionalPositional ? 1 : 0);
     bytesBuilder.addByte(expr.isVariadic ? 1 : 0);
     if (expr.id != null) {
       bytesBuilder.addByte(1); // bool: isNamed

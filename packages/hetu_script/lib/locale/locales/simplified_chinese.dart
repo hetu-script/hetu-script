@@ -45,9 +45,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorSetterArity = 'setter 函数只能有且只有一个参数。';
   @override
-  final String errorEmptyTypeArgs = '类型参数列表是空的。';
-  @override
-  final String errorEmptyImportList = '导入关键字列表是空的。';
+  final String errorUnexpectedEmptyList = '[{0}] 列表是空的。';
   @override
   final String errorExtendsSelf = '类不能继承自己。';
   @override

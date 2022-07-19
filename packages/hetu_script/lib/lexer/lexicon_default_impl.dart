@@ -369,11 +369,11 @@ class HTDefaultLexicon extends HTLexicon {
 
   /// (
   @override
-  String get functionArgumentStart => '(';
+  String get functionParameterStart => '(';
 
   /// )
   @override
-  String get functionArgumentEnd => ')';
+  String get functionParameterEnd => ')';
 
   /// ?
   @override
@@ -564,19 +564,11 @@ class HTDefaultLexicon extends HTLexicon {
 
   /// {
   @override
-  String get functionBlockStart => '{';
+  String get codeBlockStart => '{';
 
   /// }
   @override
-  String get functionBlockEnd => '}';
-
-  /// {
-  @override
-  String get declarationBlockStart => '{';
-
-  /// }
-  @override
-  String get declarationBlockEnd => '}';
+  String get codeBlockEnd => '}';
 
   /// {
   @override
@@ -620,11 +612,17 @@ class HTDefaultLexicon extends HTLexicon {
 
   /// <
   @override
-  String get typeParameterStart => '<';
+  String get typeListStart => '<';
 
   /// \>
   @override
-  String get typeParameterEnd => '>';
+  String get typeListEnd => '>';
+
+  @override
+  String get importExportListStart => '{';
+
+  @override
+  String get importExportListEnd => '}';
 
   var _curIndentCount = 0;
 
@@ -712,13 +710,13 @@ class HTDefaultLexicon extends HTLexicon {
       final valueBuffer = StringBuffer();
       if (value is HTStruct) {
         if (value.isEmpty) {
-          valueBuffer.write('$functionBlockStart$functionBlockEnd');
+          valueBuffer.write('$codeBlockStart$codeBlockEnd');
         } else {
           final content = _stringifyStruct(value);
-          // valueBuffer.writeln(functionBlockStart);
+          // valueBuffer.writeln(codeBlockStart);
           valueBuffer.write(content);
           // valueBuffer.write(_curIndent());
-          // valueBuffer.write(functionBlockEnd);
+          // valueBuffer.write(codeBlockEnd);
         }
       } else {
         final valueString = stringify(value, asStringLiteral: true);
@@ -749,16 +747,16 @@ class HTDefaultLexicon extends HTLexicon {
     if (type is HTFunctionType) {
       // output.write('$typeFunction ');
       if (type.genericTypeParameters.isNotEmpty) {
-        output.write(typeParameterStart);
+        output.write(typeListStart);
         for (var i = 0; i < type.genericTypeParameters.length; ++i) {
           output.write(type.genericTypeParameters[i]);
           if (i < type.genericTypeParameters.length - 1) {
             output.write('$comma ');
           }
         }
-        output.write(typeParameterEnd);
+        output.write(typeListEnd);
       }
-      output.write(functionArgumentStart);
+      output.write(functionParameterStart);
       var i = 0;
       var optionalStarted = false;
       var namedStarted = false;
@@ -792,7 +790,7 @@ class HTDefaultLexicon extends HTLexicon {
       }
       final returnTypeString = _stringifyType(type.returnType);
       output.write(
-          '$functionArgumentEnd $functionReturnTypeIndicator $returnTypeString');
+          '$functionParameterEnd $functionReturnTypeIndicator $returnTypeString');
     } else if (type is HTStructuralType) {
       // output.write('$kStruct ');
       if (type.fieldTypes.isEmpty) {
@@ -816,14 +814,14 @@ class HTDefaultLexicon extends HTLexicon {
     } else if (type is HTNominalType) {
       output.write(type.id);
       if (type.typeArgs.isNotEmpty) {
-        output.write(typeParameterStart);
+        output.write(typeListStart);
         for (var i = 0; i < type.typeArgs.length; ++i) {
           output.write(type.typeArgs[i]);
           if ((type.typeArgs.length > 1) && (i != type.typeArgs.length - 1)) {
             output.write('$comma ');
           }
         }
-        output.write(typeParameterEnd);
+        output.write(typeListEnd);
       }
       if (type.isNullable) {
         output.write(nullableTypePostfix);

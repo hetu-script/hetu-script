@@ -1175,6 +1175,7 @@ class HTInterpreter {
           final truthValue = _truthy(_localValue);
           if (!truthValue) {
             _currentBytecodeModule.skip(thenBranchLength);
+            _clearLocals();
           }
           break;
         case HTOpCode.whileStmt:
@@ -1595,12 +1596,8 @@ class HTInterpreter {
             closure: _currentNamespace);
         final fieldsCount = _currentBytecodeModule.read();
         for (var i = 0; i < fieldsCount; ++i) {
-          final fieldType = _currentBytecodeModule.read();
-          if (fieldType == StructObjFieldTypeCode.normal) {
-            final key = _currentBytecodeModule.readShortString();
-            final value = execute();
-            struct.memberSet(key, value, recursive: false);
-          } else if (fieldType == StructObjFieldTypeCode.spread) {
+          final isSpread = _currentBytecodeModule.readBool();
+          if (isSpread) {
             final HTStruct spreadingStruct = execute();
             for (final key in spreadingStruct.keys) {
               // skip internal apis
@@ -1609,7 +1606,9 @@ class HTInterpreter {
               struct.define(key, copiedValue);
             }
           } else {
-            // empty field
+            final key = _currentBytecodeModule.readShortString();
+            final value = execute();
+            struct.memberSet(key, value, recursive: false);
           }
         }
         // _curNamespace = savedCurNamespace;

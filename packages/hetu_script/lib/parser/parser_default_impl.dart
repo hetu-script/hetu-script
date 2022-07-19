@@ -9,7 +9,6 @@ import '../resource/resource_context.dart';
 import '../grammar/constant.dart';
 import '../declaration/class/class_declaration.dart';
 import '../ast/ast.dart';
-import '../comment/comment.dart';
 import '../parser/parser.dart';
 
 /// Default parser implementation used by Hetu.
@@ -47,43 +46,20 @@ class HTDefaultParser extends HTParser {
     _isInLoop = false;
   }
 
-  bool _handlePrecedingCommentOrEmptyLine() {
-    bool handled = false;
-    while (curTok is TokenCommentOrEmptyLine) {
-      handled = true;
-      final comment = CommentOrEmptyLine.fromCommentToken(
-          advance() as TokenCommentOrEmptyLine);
-      currentPrecedingCommentOrEmptyLine.add(comment);
-    }
-    return handled;
-  }
-
-  bool _handleTrailingComment(ASTNode expr) {
-    if (curTok is TokenCommentOrEmptyLine) {
-      final tokenComment = curTok as TokenCommentOrEmptyLine;
-      if (tokenComment.isTrailing) {
-        advance();
-        expr.trailingComment =
-            CommentOrEmptyLine.fromCommentToken(tokenComment);
-      }
-      return true;
-    }
-    return false;
-  }
-
   @override
   ASTNode? parseStmt({required ParseStyle style}) {
-    if (_handlePrecedingCommentOrEmptyLine()) {
-      return null;
-    }
+    handlePrecedings();
+
+    // if (_handlePrecedingCommentsOrEmptyLines()) {
+    //   return null;
+    // }
 
     if (curTok.type == Semantic.endOfFile) {
       return null;
     }
 
     // save preceding comments because those might change during expression parsing.
-    // final precedingComments = currentPrecedingCommentOrEmptyLine;
-    // currentPrecedingCommentOrEmptyLine = [];
+    final savedPrecedings = savePrecedings();
 
     // if (curTok is TokenEmptyLine) {
     //   final empty = advance();
@@ -888,19 +864,20 @@ class HTDefaultParser extends HTParser {
         }
         break;
       case ParseStyle.expression:
-        stmt = _parseExpr();
+        stmt = parseExpr();
     }
 
-    // stmt.precedingComments = precedingComments;
-
-    _handleTrailingComment(stmt);
+    currentPrecedings = savedPrecedings;
+    setPrecedings(stmt);
+    // it's possible that there's trailing comment after end of stmt mark (;).
+    handleTrailing(stmt);
     return stmt;
   }
 
   AssertStmt _parseAssertStmt() {
     final keyword = match(lexicon.kAssert);
     match(lexicon.groupExprStart);
-    final expr = _parseExpr();
+    final expr = parseExpr();
     match(lexicon.groupExprEnd);
     final hasEndOfStmtMark =
         expect([lexicon.endOfStatementMark], consume: true);
@@ -916,7 +893,7 @@ class HTDefaultParser extends HTParser {
 
   ThrowStmt _parseThrowStmt() {
     final keyword = match(lexicon.kThrow);
-    final message = _parseExpr();
+    final message = parseExpr();
     final hasEndOfStmtMark =
         expect([lexicon.endOfStatementMark], consume: true);
     final stmt = ThrowStmt(message,
@@ -929,15 +906,72 @@ class HTDefaultParser extends HTParser {
     return stmt;
   }
 
+  ASTEmptyLine? _handleCallArguments(
+      List<ASTNode> positionalArgs, Map<String, ASTNode> namedArgs) {
+    bool hasAnyArgs = false;
+    final savedPrecedings = savePrecedings();
+    // call arguments are a bit complex so we didn't use [parseExprList] here.
+    while (curTok.type != lexicon.functionParameterEnd &&
+        curTok.type != Semantic.endOfFile) {
+      // it's possible that it's an empty arguments list, so we manually handle precedings here
+      handlePrecedings();
+      if (curTok.type == lexicon.functionParameterEnd) break;
+      hasAnyArgs = true;
+      if (expect([Semantic.identifier, lexicon.namedArgumentValueIndicator],
+          consume: false)) {
+        final name = match(Semantic.identifier).lexeme;
+        match(lexicon.namedArgumentValueIndicator);
+        final namedArg = parseExpr();
+        handleTrailing(namedArg,
+            endMarkForCommaExpressions: lexicon.functionParameterEnd);
+        namedArgs[name] = namedArg;
+      } else {
+        ASTNode positionalArg;
+        if (curTok.type == lexicon.spreadSyntax) {
+          final spreadTok = advance();
+          final spread = parseExpr();
+          positionalArg = SpreadExpr(spread,
+              source: currentSource,
+              line: spreadTok.line,
+              column: spreadTok.column,
+              offset: spreadTok.offset,
+              length: spread.length);
+        } else {
+          positionalArg = parseExpr();
+        }
+        handleTrailing(positionalArg,
+            endMarkForCommaExpressions: lexicon.functionParameterEnd);
+        positionalArgs.add(positionalArg);
+      }
+    }
+    final endTok = match(lexicon.functionParameterEnd);
+    if (hasAnyArgs) {
+      return null;
+    }
+    final empty = ASTEmptyLine(
+      source: currentSource,
+      line: endTok.line,
+      column: endTok.column,
+      offset: endTok.offset,
+      length: endTok.length,
+    );
+    setPrecedings(empty);
+    // empty line's documentation are within the brackets
+    // so we restore the precedings to previous state
+    currentPrecedings = savedPrecedings;
+    return empty;
+  }
+
   /// Recursive descent parsing
   ///
   /// Assignment operator =, precedence 1, associativity right
-  ASTNode _parseExpr() {
+  @override
+  ASTNode parseExpr() {
     ASTNode? expr;
     final left = _parserTernaryExpr();
     if (lexicon.assignments.contains(curTok.type)) {
       final op = advance();
-      final right = _parseExpr();
+      final right = parseExpr();
       expr = AssignExpr(left, op.lexeme, right,
           source: currentSource,
           line: left.line,
@@ -1212,7 +1246,7 @@ class HTDefaultParser extends HTParser {
             (expr is CallExpr && expr.isNullable)) {
           isNullable = true;
         }
-        var indexExpr = _parseExpr();
+        var indexExpr = parseExpr();
         _leftValueLegality = true;
         match(lexicon.listEnd);
         expr = SubExpr(expr, indexExpr,
@@ -1223,7 +1257,7 @@ class HTDefaultParser extends HTParser {
             offset: expr.offset,
             length: curTok.offset - expr.offset);
       } else if (op.type == lexicon.nullableSubGet) {
-        var indexExpr = _parseExpr();
+        var indexExpr = parseExpr();
         _leftValueLegality = true;
         match(lexicon.listEnd);
         expr = SubExpr(expr, indexExpr,
@@ -1247,7 +1281,7 @@ class HTDefaultParser extends HTParser {
             column: expr.column,
             offset: expr.offset,
             length: curTok.offset - expr.offset);
-      } else if (op.type == lexicon.functionArgumentStart) {
+      } else if (op.type == lexicon.functionParameterStart) {
         var isNullable = false;
         if ((expr is MemberExpr && expr.isNullable) ||
             (expr is SubExpr && expr.isNullable) ||
@@ -1283,7 +1317,7 @@ class HTDefaultParser extends HTParser {
 
   /// Expression without associativity
   ASTNode _parsePrimaryExpr() {
-    _handlePrecedingCommentOrEmptyLine();
+    handlePrecedings();
 
     ASTNode? expr;
 
@@ -1352,7 +1386,7 @@ class HTDefaultParser extends HTParser {
       final savedLine = line;
       final savedColumn = column;
       for (final token in token.interpolations) {
-        final nodes = parseToken(token,
+        final nodes = parseTokens(token,
             source: currentSource, style: ParseStyle.expression);
         ASTNode? expr;
         for (final node in nodes) {
@@ -1430,12 +1464,14 @@ class HTDefaultParser extends HTParser {
           isMarked: idTok.isMarked, source: currentSource);
       var positionalArgs = <ASTNode>[];
       var namedArgs = <String, ASTNode>{};
-      if (expect([lexicon.functionArgumentStart], consume: true)) {
-        _handleCallArguments(positionalArgs, namedArgs);
+      ASTEmptyLine? empty;
+      if (expect([lexicon.functionParameterStart], consume: true)) {
+        empty = _handleCallArguments(positionalArgs, namedArgs);
       }
       expr = CallExpr(id,
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
+          documentationsWithinEmptyContent: empty,
           hasNewOperator: true,
           source: currentSource,
           line: keyword.line,
@@ -1457,10 +1493,10 @@ class HTDefaultParser extends HTParser {
     }
 
     // a literal function expression
-    if (expr == null && curTok.type == lexicon.functionArgumentStart) {
+    if (expr == null && curTok.type == lexicon.functionParameterStart) {
       final tokenAfterGroupExprStart = curTok.next;
       final tokenAfterGroupExprEnd = seekGroupClosing(
-          {lexicon.functionArgumentStart: lexicon.functionArgumentEnd});
+          {lexicon.functionParameterStart: lexicon.functionParameterEnd});
       if ((tokenAfterGroupExprStart?.type == lexicon.groupExprEnd ||
               (tokenAfterGroupExprStart?.type == Semantic.identifier &&
                   (tokenAfterGroupExprStart?.next?.type == lexicon.comma ||
@@ -1468,7 +1504,7 @@ class HTDefaultParser extends HTParser {
                           lexicon.typeIndicator ||
                       tokenAfterGroupExprStart?.next?.type ==
                           lexicon.groupExprEnd))) &&
-          (tokenAfterGroupExprEnd.type == lexicon.functionBlockStart ||
+          (tokenAfterGroupExprEnd.type == lexicon.codeBlockStart ||
               tokenAfterGroupExprEnd.type ==
                   lexicon.functionSingleLineBodyIndicator)) {
         _leftValueLegality = false;
@@ -1479,7 +1515,7 @@ class HTDefaultParser extends HTParser {
 
     if (expr == null && curTok.type == lexicon.groupExprStart) {
       final start = advance();
-      final innerExpr = _parseExpr();
+      final innerExpr = parseExpr();
       final end = match(lexicon.groupExprEnd);
       _leftValueLegality = false;
       expr = GroupExpr(innerExpr,
@@ -1493,58 +1529,38 @@ class HTDefaultParser extends HTParser {
     // a literal list value
     if (expr == null && curTok.type == lexicon.listStart) {
       final start = advance();
-      final listExpr = <ASTNode>[];
-      bool isPreviousItemEndedWithComma = false;
-      while (
-          curTok.type != lexicon.listEnd && curTok.type != Semantic.endOfFile) {
-        final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-        if (hasPrecedingComments &&
-            !isPreviousItemEndedWithComma &&
-            listExpr.isNotEmpty) {
-          listExpr.last.succeedingComments
-              .addAll(currentPrecedingCommentOrEmptyLine);
-          break;
-        }
-        if ((curTok.type == lexicon.listEnd) ||
-            (curTok.type == Semantic.endOfFile)) {
-          break;
-        }
-        isPreviousItemEndedWithComma = false;
-        ASTNode item;
-        if (curTok.type == lexicon.spreadSyntax) {
-          final spreadTok = advance();
-          item = _parseExpr();
-          setPrecedingComment(item);
-          listExpr.add(SpreadExpr(item,
-              source: currentSource,
-              line: spreadTok.line,
-              column: spreadTok.column,
-              offset: spreadTok.offset,
-              length: item.end - spreadTok.offset));
-        } else {
-          item = _parseExpr();
-          setPrecedingComment(item);
-          listExpr.add(item);
-        }
-        final hasTrailingComment = _handleTrailingComment(item);
-        if (!hasTrailingComment) {
-          isPreviousItemEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isPreviousItemEndedWithComma) {
-            _handleTrailingComment(item);
+      final listExprs = parseExprList(
+        endToken: lexicon.listEnd,
+        parseFunction: () {
+          if (curTok.type == lexicon.listEnd) return null;
+          ASTNode item;
+          if (curTok.type == lexicon.spreadSyntax) {
+            final spreadTok = advance();
+            item = parseExpr();
+            final spreadExpr = SpreadExpr(item,
+                source: currentSource,
+                line: spreadTok.line,
+                column: spreadTok.column,
+                offset: spreadTok.offset,
+                length: item.end - spreadTok.offset);
+            setPrecedings(spreadExpr);
+            return spreadExpr;
+          } else {
+            return parseExpr();
           }
-        }
-      }
-      final end = match(lexicon.listEnd);
+        },
+      );
+      final endTok = match(lexicon.listEnd);
       _leftValueLegality = false;
-      expr = ListExpr(listExpr,
+      expr = ListExpr(listExprs,
           source: currentSource,
           line: start.line,
           column: start.column,
           offset: start.offset,
-          length: end.end - start.offset);
+          length: endTok.end - start.offset);
     }
 
-    if (expr == null && curTok.type == lexicon.functionBlockStart) {
+    if (expr == null && curTok.type == lexicon.codeBlockStart) {
       _leftValueLegality = false;
       expr = _parseStructObj();
     }
@@ -1590,21 +1606,17 @@ class HTDefaultParser extends HTParser {
           offset: errToken.offset);
     }
 
-    setPrecedingComment(expr);
+    setPrecedings(expr);
+    handleTrailing(expr);
     return expr;
   }
 
   CommaExpr _handleCommaExpr(String endMark, {bool isLocal = true}) {
-    final list = <ASTNode>[];
-    while (curTok.type != endMark && curTok.type != Semantic.endOfFile) {
-      _handlePrecedingCommentOrEmptyLine();
-      final item = _parseExpr();
-      setPrecedingComment(item);
-      list.add(item);
-      if (curTok.type != endMark) {
-        match(lexicon.comma);
-      }
-    }
+    final List<ASTNode> list = parseExprList(
+      endToken: endMark,
+      parseFunction: () => parseExpr(),
+    );
+    assert(list.isNotEmpty);
     return CommaExpr(list,
         isLocal: isLocal,
         source: currentSource,
@@ -1616,7 +1628,7 @@ class HTDefaultParser extends HTParser {
 
   InOfExpr _handleInOfExpr() {
     final opTok = advance();
-    final collection = _parseExpr();
+    final collection = parseExpr();
     return InOfExpr(collection, opTok.lexeme == lexicon.kOf ? true : false,
         line: collection.line,
         column: collection.column,
@@ -1627,78 +1639,106 @@ class HTDefaultParser extends HTParser {
   TypeExpr _parseTypeExpr({bool isLocal = false}) {
     // function type
     if (curTok.type == lexicon.groupExprStart) {
+      final savedPrecedings = savePrecedings();
       final startTok = advance();
       // TODO: generic parameters
-      final parameters = <ParamTypeExpr>[];
       var isOptional = false;
       var isNamed = false;
-      var isVariadic = false;
-      bool isPreviousItemEndedWithComma = false;
-      while (curTok.type != lexicon.groupExprEnd &&
+      final parameters = <ParamTypeExpr>[];
+      // function parameters are a bit complex so we didn't use [parseExprList] here.
+      while (curTok.type != lexicon.functionParameterEnd &&
           curTok.type != Semantic.endOfFile) {
-        final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-        if (hasPrecedingComments &&
-            !isPreviousItemEndedWithComma &&
-            parameters.isNotEmpty) {
-          parameters.last.succeedingComments
-              .addAll(currentPrecedingCommentOrEmptyLine);
+        handlePrecedings();
+        if (curTok.type == lexicon.functionParameterEnd) {
+          // TODO: store comments within empty function parameter list
           break;
         }
-        if ((curTok.type == lexicon.groupExprEnd) ||
-            (curTok.type == Semantic.endOfFile)) {
-          break;
+        // optional positional args
+        if (!isOptional &&
+            !isNamed &&
+            expect([lexicon.optionalPositionalParameterStart], consume: true)) {
+          isOptional = true;
+          bool alreadyHasVariadic = false;
+          final optionalPositionalParameters = parseExprList(
+            endToken: lexicon.optionalPositionalParameterEnd,
+            parseFunction: () {
+              final isVariadic = expect([lexicon.variadicArgs], consume: true);
+              if (alreadyHasVariadic && isVariadic) {
+                final err = HTError.unexpected(Semantic.funcTypeExpr,
+                    Semantic.paramTypeExpr, lexicon.variadicArgs,
+                    filename: currrentFileName,
+                    line: curTok.line,
+                    column: curTok.column,
+                    offset: curTok.offset,
+                    length: curTok.length);
+                errors.add(err);
+              }
+              alreadyHasVariadic = isVariadic;
+              final paramType = _parseTypeExpr();
+              final param = ParamTypeExpr(paramType,
+                  isOptionalPositional: isOptional,
+                  isVariadic: isVariadic,
+                  source: currentSource,
+                  line: paramType.line,
+                  column: paramType.column,
+                  offset: paramType.offset,
+                  length: curTok.offset - paramType.offset);
+              setPrecedings(param);
+              return param;
+            },
+          );
+          match(lexicon.optionalPositionalParameterEnd);
+          parameters.addAll(optionalPositionalParameters);
         }
-        isPreviousItemEndedWithComma = false;
-        final start = curTok;
-        if (!isOptional) {
-          isOptional = expect([lexicon.listStart], consume: true);
-          if (!isOptional && !isNamed) {
-            isNamed = expect([lexicon.functionBlockStart], consume: true);
-          }
+        // optional named args
+        else if (!isOptional &&
+            !isNamed &&
+            expect([lexicon.namedParameterStart], consume: true)) {
+          isNamed = true;
+          final namedParameters = parseExprList(
+            endToken: lexicon.optionalPositionalParameterEnd,
+            parseFunction: () {
+              final paramId = match(Semantic.identifier);
+              final paramSymbol =
+                  IdentifierExpr.fromToken(paramId, source: currentSource);
+              match(lexicon.typeIndicator);
+              final paramType = _parseTypeExpr();
+              final param = ParamTypeExpr(paramType,
+                  id: paramSymbol,
+                  source: currentSource,
+                  line: paramType.line,
+                  column: paramType.column,
+                  offset: paramType.offset,
+                  length: curTok.offset - paramType.offset);
+              setPrecedings(param);
+              return param;
+            },
+          );
+          match(lexicon.namedParameterStart);
+          parameters.addAll(namedParameters);
         }
-        late final TypeExpr paramType;
-        IdentifierExpr? paramSymbol;
-        if (!isNamed) {
-          isVariadic = expect([lexicon.variadicArgs], consume: true);
-        } else {
-          final paramId = match(Semantic.identifier);
-          paramSymbol =
-              IdentifierExpr.fromToken(paramId, source: currentSource);
-          match(lexicon.typeIndicator);
-        }
-        paramType = _parseTypeExpr();
-        setPrecedingComment(paramType);
-        final param = ParamTypeExpr(paramType,
-            isOptional: isOptional,
-            isVariadic: isVariadic,
-            id: paramSymbol,
-            source: currentSource,
-            line: start.line,
-            column: start.column,
-            offset: start.offset,
-            length: curTok.offset - start.offset);
-        final hasTrailingComments = _handleTrailingComment(param);
-        if (!hasTrailingComments) {
-          isPreviousItemEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isPreviousItemEndedWithComma) {
-            _handleTrailingComment(param);
-          }
-        }
-        parameters.add(param);
-        if (isOptional && expect([lexicon.listEnd], consume: true)) {
-          break;
-        }
-        if (isNamed && expect([lexicon.functionBlockEnd], consume: true)) {
-          break;
-        }
-        if (isVariadic) {
-          break;
+        // mandatory positional args
+        else {
+          bool isVariadic = expect([lexicon.variadicArgs], consume: true);
+          final paramType = _parseTypeExpr();
+          final param = ParamTypeExpr(paramType,
+              isOptionalPositional: isOptional,
+              isVariadic: isVariadic,
+              source: currentSource,
+              line: paramType.line,
+              column: paramType.column,
+              offset: paramType.offset,
+              length: curTok.offset - paramType.offset);
+          parameters.add(param);
+          if (isVariadic) break;
+          handleTrailing(param,
+              endMarkForCommaExpressions: lexicon.functionParameterEnd);
         }
       }
-      match(lexicon.groupExprEnd);
+      match(lexicon.functionParameterEnd);
       match(lexicon.functionReturnTypeIndicator);
       final returnType = _parseTypeExpr();
-      return FuncTypeExpr(returnType,
+      final funcType = FuncTypeExpr(returnType,
           isLocal: isLocal,
           paramTypes: parameters,
           hasOptionalParam: isOptional,
@@ -1708,48 +1748,34 @@ class HTDefaultParser extends HTParser {
           column: startTok.column,
           offset: startTok.offset,
           length: curTok.offset - startTok.offset);
+      currentPrecedings = savedPrecedings;
+      setPrecedings(funcType);
+      return funcType;
     }
     // structural type (interface of struct)
     else if (curTok.type == lexicon.structStart) {
+      final savedPrecedings = savePrecedings();
       final startTok = advance();
-      final fieldTypes = <FieldTypeExpr>[];
-      bool isPreviousItemEndedWithComma = false;
-      while (curTok.type != lexicon.functionBlockEnd &&
-          curTok.type != Semantic.endOfFile) {
-        final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-        if (hasPrecedingComments &&
-            !isPreviousItemEndedWithComma &&
-            fieldTypes.isNotEmpty) {
-          fieldTypes.last.succeedingComments
-              .addAll(currentPrecedingCommentOrEmptyLine);
-          break;
-        }
-        if ((curTok.type == lexicon.functionBlockEnd) ||
-            (curTok.type == Semantic.endOfFile)) {
-          break;
-        }
-        isPreviousItemEndedWithComma = false;
-        late Token idTok;
-        if (curTok.type == Semantic.literalString) {
-          idTok = advance();
-        } else {
-          idTok = match(Semantic.identifier);
-        }
-        match(lexicon.typeIndicator);
-        final typeExpr = _parseTypeExpr();
-        final expr = FieldTypeExpr(idTok.literal, typeExpr);
-        setPrecedingComment(expr);
-        fieldTypes.add(expr);
-        final hasTrailingComments = _handleTrailingComment(expr);
-        if (!hasTrailingComments) {
-          isPreviousItemEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isPreviousItemEndedWithComma) {
-            _handleTrailingComment(expr);
+      final fieldTypes = parseExprList(
+        endToken: lexicon.codeBlockEnd,
+        parseFunction: () {
+          if (curTok.type == Semantic.literalString ||
+              curTok.type == Semantic.identifier) {
+            final savedPrecedings = savePrecedings();
+            final idTok = advance();
+            match(lexicon.typeIndicator);
+            final typeExpr = _parseTypeExpr();
+            final expr = FieldTypeExpr(idTok.literal, typeExpr);
+            currentPrecedings = savedPrecedings;
+            setPrecedings(expr);
+            return expr;
+          } else {
+            return null;
           }
-        }
-      }
-      match(lexicon.functionBlockEnd);
-      return StructuralTypeExpr(
+        },
+      );
+      match(lexicon.codeBlockEnd);
+      final structuralType = StructuralTypeExpr(
         fieldTypes: fieldTypes,
         isLocal: isLocal,
         source: currentSource,
@@ -1757,13 +1783,17 @@ class HTDefaultParser extends HTParser {
         column: startTok.column,
         length: curTok.offset - startTok.offset,
       );
+      currentPrecedings = savedPrecedings;
+      setPrecedings(structuralType);
+      return structuralType;
     }
     // intrinsic types & nominal types (class)
     else {
+      handlePrecedings();
       final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok, source: currentSource);
       if (id.id == lexicon.typeAny) {
-        return IntrinsicTypeExpr(
+        final typeExpr = IntrinsicTypeExpr(
           id: id,
           isTop: true,
           isBottom: true,
@@ -1774,8 +1804,10 @@ class HTDefaultParser extends HTParser {
           offset: idTok.offset,
           length: curTok.offset - idTok.offset,
         );
+        setPrecedings(typeExpr);
+        return typeExpr;
       } else if (id.id == lexicon.typeUnknown) {
-        return IntrinsicTypeExpr(
+        final typeExpr = IntrinsicTypeExpr(
           id: id,
           isTop: true,
           isBottom: false,
@@ -1786,8 +1818,10 @@ class HTDefaultParser extends HTParser {
           offset: idTok.offset,
           length: curTok.offset - idTok.offset,
         );
+        setPrecedings(typeExpr);
+        return typeExpr;
       } else if (id.id == lexicon.typeVoid) {
-        return IntrinsicTypeExpr(
+        final typeExpr = IntrinsicTypeExpr(
           id: id,
           isTop: false,
           isBottom: true,
@@ -1798,8 +1832,10 @@ class HTDefaultParser extends HTParser {
           offset: idTok.offset,
           length: curTok.offset - idTok.offset,
         );
+        setPrecedings(typeExpr);
+        return typeExpr;
       } else if (id.id == lexicon.typeNever) {
-        return IntrinsicTypeExpr(
+        final typeExpr = IntrinsicTypeExpr(
           id: id,
           isTop: false,
           isBottom: true,
@@ -1810,8 +1846,10 @@ class HTDefaultParser extends HTParser {
           offset: idTok.offset,
           length: curTok.offset - idTok.offset,
         );
+        setPrecedings(typeExpr);
+        return typeExpr;
       } else if (id.id == lexicon.typeFunction) {
-        return IntrinsicTypeExpr(
+        final typeExpr = IntrinsicTypeExpr(
           id: id,
           isTop: false,
           isBottom: false,
@@ -1822,8 +1860,10 @@ class HTDefaultParser extends HTParser {
           offset: idTok.offset,
           length: curTok.offset - idTok.offset,
         );
+        setPrecedings(typeExpr);
+        return typeExpr;
       } else if (id.id == lexicon.typeNamespace) {
-        return IntrinsicTypeExpr(
+        final typeExpr = IntrinsicTypeExpr(
           id: id,
           isTop: false,
           isBottom: false,
@@ -1834,11 +1874,18 @@ class HTDefaultParser extends HTParser {
           offset: idTok.offset,
           length: curTok.offset - idTok.offset,
         );
+        setPrecedings(typeExpr);
+        return typeExpr;
       } else {
-        final typeArgs = <TypeExpr>[];
-        if (expect([lexicon.typeParameterStart], consume: true)) {
-          if (curTok.type == lexicon.typeParameterEnd) {
-            final err = HTError.emptyTypeArgs(
+        List<TypeExpr> typeArgs = [];
+        if (expect([lexicon.typeListStart], consume: true)) {
+          typeArgs = parseExprList(
+            endToken: lexicon.typeListEnd,
+            parseFunction: () => _parseTypeExpr(),
+          );
+          match(lexicon.typeListEnd);
+          if (typeArgs.isEmpty) {
+            final err = HTError.unexpectedEmptyList(Semantic.typeArguments,
                 filename: currrentFileName,
                 line: curTok.line,
                 column: curTok.column,
@@ -1846,41 +1893,9 @@ class HTDefaultParser extends HTParser {
                 length: curTok.end - idTok.offset);
             errors.add(err);
           }
-          bool isPreviousItemEndedWithComma = false;
-          while ((curTok.type != lexicon.typeParameterEnd) &&
-              (curTok.type != Semantic.endOfFile)) {
-            final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-            if (hasPrecedingComments &&
-                !isPreviousItemEndedWithComma &&
-                typeArgs.isNotEmpty) {
-              typeArgs.last.succeedingComments
-                  .addAll(currentPrecedingCommentOrEmptyLine);
-              break;
-            }
-            if ((curTok.type == lexicon.typeParameterEnd) ||
-                (curTok.type == Semantic.endOfFile)) {
-              break;
-            }
-            isPreviousItemEndedWithComma = false;
-            final typeArg = _parseTypeExpr();
-            typeArgs.add(typeArg);
-            final hasTrailingComments = _handleTrailingComment(typeArg);
-            if (!hasTrailingComments) {
-              if (curTok.type == lexicon.typeParameterEnd) {
-                break;
-              } else {
-                isPreviousItemEndedWithComma =
-                    expect([lexicon.comma], consume: true);
-                if (isPreviousItemEndedWithComma) {
-                  _handleTrailingComment(typeArg);
-                }
-              }
-            }
-          }
-          match(lexicon.typeParameterEnd);
         }
         final isNullable = expect([lexicon.nullableTypePostfix], consume: true);
-        return NominalTypeExpr(
+        final nominalType = NominalTypeExpr(
           id: id,
           arguments: typeArgs,
           isNullable: isNullable,
@@ -1891,6 +1906,8 @@ class HTDefaultParser extends HTParser {
           offset: idTok.offset,
           length: curTok.offset - idTok.offset,
         );
+        setPrecedings(nominalType);
+        return nominalType;
       }
     }
   }
@@ -1901,23 +1918,15 @@ class HTDefaultParser extends HTParser {
     bool hasOwnNamespace = true,
     bool isLoop = false,
   }) {
-    final startTok = match(lexicon.functionBlockStart);
-    final statements = <ASTNode>[];
+    final startTok = match(lexicon.codeBlockStart);
+    final savedPrecedings = savePrecedings();
     final savedIsLoopFlag = _isInLoop;
     if (isLoop) _isInLoop = true;
-    while (curTok.type != lexicon.functionBlockEnd &&
-        curTok.type != Semantic.endOfFile) {
-      _handlePrecedingCommentOrEmptyLine();
-      if (curTok.type == lexicon.functionBlockEnd ||
-          curTok.type == Semantic.endOfFile) {
-        break;
-      }
-      final stmt = parseStmt(style: sourceType);
-      if (stmt != null) {
-        setPrecedingComment(stmt);
-        statements.add(stmt);
-      }
-    }
+    final statements = parseExprList(
+      endToken: lexicon.codeBlockEnd,
+      parseFunction: () => parseStmt(style: sourceType),
+      handleComma: false,
+    );
     if (statements.isEmpty) {
       final empty = ASTEmptyLine(
           source: currentSource,
@@ -1925,12 +1934,12 @@ class HTDefaultParser extends HTParser {
           column: curTok.column,
           offset: curTok.offset,
           length: curTok.offset - (curTok.previous?.end ?? startTok.end));
-      setPrecedingComment(empty);
+      setPrecedings(empty);
       statements.add(empty);
     }
     _isInLoop = savedIsLoopFlag;
-    final endTok = match(lexicon.functionBlockEnd);
-    return BlockStmt(statements,
+    final endTok = match(lexicon.codeBlockEnd);
+    final block = BlockStmt(statements,
         id: id,
         hasOwnNamespace: hasOwnNamespace,
         source: currentSource,
@@ -1938,109 +1947,32 @@ class HTDefaultParser extends HTParser {
         column: startTok.column,
         offset: startTok.offset,
         length: endTok.offset - startTok.offset);
-  }
-
-  void _handleCallArguments(
-      List<ASTNode> positionalArgs, Map<String, ASTNode> namedArgs) {
-    var isNamed = false;
-    bool isPreviousItemEndedWithComma = false;
-    while ((curTok.type != lexicon.groupExprEnd) &&
-        (curTok.type != Semantic.endOfFile)) {
-      final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-      if (hasPrecedingComments && !isPreviousItemEndedWithComma) {
-        if (positionalArgs.isNotEmpty) {
-          positionalArgs.last.succeedingComments
-              .addAll(currentPrecedingCommentOrEmptyLine);
-          break;
-        } else if (namedArgs.isNotEmpty) {
-          namedArgs.values.last.succeedingComments
-              .addAll(currentPrecedingCommentOrEmptyLine);
-          break;
-        }
-      }
-      if ((curTok.type == lexicon.groupExprEnd) ||
-          (curTok.type == Semantic.endOfFile)) {
-        break;
-      }
-      isPreviousItemEndedWithComma = false;
-      if ((!isNamed &&
-              expect([Semantic.identifier, lexicon.namedArgumentValueIndicator],
-                  consume: false)) ||
-          isNamed) {
-        isNamed = true;
-        final name = match(Semantic.identifier).lexeme;
-        match(lexicon.namedArgumentValueIndicator);
-        final namedArg = _parseExpr();
-        setPrecedingComment(namedArg);
-        namedArgs[name] = namedArg;
-        final hasTrailingComments = _handleTrailingComment(namedArg);
-        if (!hasTrailingComments) {
-          isPreviousItemEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isPreviousItemEndedWithComma) {
-            _handleTrailingComment(namedArg);
-          }
-        }
-      } else {
-        late ASTNode positionalArg;
-        if (curTok.type == lexicon.spreadSyntax) {
-          final spreadTok = advance();
-          final spread = _parseExpr();
-          positionalArg = SpreadExpr(spread,
-              source: currentSource,
-              line: spreadTok.line,
-              column: spreadTok.column,
-              offset: spreadTok.offset,
-              length: spread.end - spreadTok.offset);
-        } else {
-          positionalArg = _parseExpr();
-        }
-        setPrecedingComment(positionalArg);
-        positionalArgs.add(positionalArg);
-        final hasTrailingComments = _handleTrailingComment(positionalArg);
-        if (!hasTrailingComments) {
-          isPreviousItemEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isPreviousItemEndedWithComma) {
-            _handleTrailingComment(positionalArg);
-          }
-        }
-      }
-    }
-    match(lexicon.functionArgumentEnd);
+    currentPrecedings = savedPrecedings;
+    setPrecedings(block);
+    return block;
   }
 
   ASTNode _parseExprStmt() {
-    if (curTok.type == lexicon.endOfStatementMark) {
-      final empty = advance();
-      final stmt = ASTEmptyLine(
-          hasEndOfStmtMark: true,
-          source: currentSource,
-          line: empty.line,
-          column: empty.column,
-          offset: empty.offset,
-          length: curTok.offset - empty.offset);
-      return stmt;
-    } else {
-      final expr = _parseExpr();
-      final hasEndOfStmtMark =
-          expect([lexicon.endOfStatementMark], consume: true);
-      final stmt = ExprStmt(expr,
-          hasEndOfStmtMark: hasEndOfStmtMark,
-          source: currentSource,
-          line: expr.line,
-          column: expr.column,
-          offset: expr.offset,
-          length: curTok.offset - expr.offset);
-      return stmt;
-    }
+    final expr = parseExpr();
+    final hasEndOfStmtMark =
+        expect([lexicon.endOfStatementMark], consume: true);
+    final stmt = ExprStmt(expr,
+        hasEndOfStmtMark: hasEndOfStmtMark,
+        source: currentSource,
+        line: expr.line,
+        column: expr.column,
+        offset: expr.offset,
+        length: curTok.offset - expr.offset);
+    handleTrailing(stmt);
+    return stmt;
   }
 
   ReturnStmt _parseReturnStmt() {
     var keyword = advance();
     ASTNode? expr;
-    if (curTok.type != lexicon.functionBlockEnd &&
-        curTok.type != lexicon.endOfStatementMark &&
-        curTok.type != Semantic.endOfFile) {
-      expr = _parseExpr();
+    if (curTok.type != lexicon.codeBlockEnd &&
+        curTok.type != lexicon.endOfStatementMark) {
+      expr = parseExpr();
     }
     final hasEndOfStmtMark =
         expect([lexicon.endOfStatementMark], consume: true);
@@ -2055,7 +1987,7 @@ class HTDefaultParser extends HTParser {
   }
 
   ASTNode _parseExprOrStmtOrBlock({bool isStatement = true}) {
-    if (curTok.type == lexicon.functionBlockStart) {
+    if (curTok.type == lexicon.codeBlockStart) {
       return _parseBlockStmt(id: Semantic.elseBranch);
     } else {
       if (isStatement) {
@@ -2076,12 +2008,12 @@ class HTDefaultParser extends HTParser {
               column: curTok.column,
               offset: curTok.offset,
               length: curTok.offset - startTok.offset);
-          node.precedingComments.addAll(currentPrecedingCommentOrEmptyLine);
-          currentPrecedingCommentOrEmptyLine.clear();
+          node.precedings.addAll(currentPrecedings);
+          currentPrecedings.clear();
         }
         return node;
       } else {
-        return _parseExpr();
+        return parseExpr();
       }
     }
   }
@@ -2089,10 +2021,10 @@ class HTDefaultParser extends HTParser {
   IfStmt _parseIf({bool isStatement = true}) {
     final keyword = match(lexicon.kIf);
     match(lexicon.groupExprStart);
-    final condition = _parseExpr();
+    final condition = parseExpr();
     match(lexicon.groupExprEnd);
     var thenBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
-    _handlePrecedingCommentOrEmptyLine();
+    handlePrecedings();
     ASTNode? elseBranch;
     if (isStatement) {
       if (expect([lexicon.kElse], consume: true)) {
@@ -2115,7 +2047,7 @@ class HTDefaultParser extends HTParser {
   WhileStmt _parseWhileStmt() {
     final keyword = match(lexicon.kWhile);
     match(lexicon.groupExprStart);
-    final condition = _parseExpr();
+    final condition = parseExpr();
     match(lexicon.groupExprEnd);
     final loop = _parseBlockStmt(id: Semantic.whileLoop, isLoop: true);
     return WhileStmt(condition, loop,
@@ -2132,7 +2064,7 @@ class HTDefaultParser extends HTParser {
     ASTNode? condition;
     if (expect([lexicon.kWhile], consume: true)) {
       match(lexicon.groupExprStart);
-      condition = _parseExpr();
+      condition = parseExpr();
       match(lexicon.groupExprEnd);
     }
     final hasEndOfStmtMark =
@@ -2168,7 +2100,7 @@ class HTDefaultParser extends HTParser {
           // typeInferrence: curTok.type != lexicon.VAR,
           isMutable: curTok.type != lexicon.kFinal);
       advance();
-      final collection = _parseExpr();
+      final collection = parseExpr();
       if (hasBracket) {
         match(lexicon.groupExprEnd);
       }
@@ -2191,11 +2123,11 @@ class HTDefaultParser extends HTParser {
         match(lexicon.endOfStatementMark);
       }
       if (!expect([lexicon.endOfStatementMark], consume: false)) {
-        condition = _parseExpr();
+        condition = parseExpr();
       }
       match(lexicon.endOfStatementMark);
       if (!expect([lexicon.groupExprEnd], consume: false)) {
-        increment = _parseExpr();
+        increment = parseExpr();
       }
       if (hasBracket) {
         match(lexicon.groupExprEnd);
@@ -2214,48 +2146,44 @@ class HTDefaultParser extends HTParser {
   WhenStmt _parseWhen({bool isStatement = true}) {
     final keyword = advance();
     ASTNode? condition;
-    if (curTok.type != lexicon.functionBlockStart) {
+    if (curTok.type != lexicon.codeBlockStart) {
       match(lexicon.groupExprStart);
-      condition = _parseExpr();
+      condition = parseExpr();
       match(lexicon.groupExprEnd);
     }
     final options = <ASTNode, ASTNode>{};
     ASTNode? elseBranch;
-    match(lexicon.declarationBlockStart);
-    while (curTok.type != lexicon.functionBlockEnd &&
+    match(lexicon.codeBlockStart);
+    // when branches are a bit complex so we didn't use [parseExprList] here.
+    while (curTok.type != lexicon.codeBlockEnd &&
         curTok.type != Semantic.endOfFile) {
-      final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-      if (hasPrecedingComments &&
-          curTok.type == lexicon.declarationBlockEnd &&
-          options.isNotEmpty) {
-        final lastAst = options.values.last;
-        lastAst.succeedingComments.addAll(currentPrecedingCommentOrEmptyLine);
-        break;
-      }
+      handlePrecedings();
+      if (curTok.type == lexicon.codeBlockEnd && options.isNotEmpty) break;
       if (curTok.lexeme == lexicon.kElse) {
         advance();
         match(lexicon.whenBranchIndicator);
         elseBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
       } else {
         ASTNode caseExpr;
-        if (condition != null) {
-          if (peek(1).type == lexicon.comma) {
-            caseExpr =
-                _handleCommaExpr(lexicon.whenBranchIndicator, isLocal: false);
-          } else if (curTok.type == lexicon.kIn) {
-            caseExpr = _handleInOfExpr();
-          } else {
-            caseExpr = _parseExpr();
-          }
+        if (peek(1).type == lexicon.comma) {
+          caseExpr =
+              _handleCommaExpr(lexicon.whenBranchIndicator, isLocal: false);
+        } else if (curTok.type == lexicon.kIn) {
+          caseExpr = _handleInOfExpr();
         } else {
-          caseExpr = _parseExpr();
+          caseExpr = parseExpr();
         }
         match(lexicon.whenBranchIndicator);
         var caseBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
         options[caseExpr] = caseBranch;
       }
     }
-    match(lexicon.declarationBlockEnd);
+    match(lexicon.codeBlockEnd);
+    assert(options.isNotEmpty);
+    if (currentPrecedings.isNotEmpty) {
+      options.values.last.succeedings = currentPrecedings;
+      currentPrecedings = [];
+    }
     return WhenStmt(options, elseBranch, condition,
         isStatement: isStatement,
         source: currentSource,
@@ -2266,59 +2194,45 @@ class HTDefaultParser extends HTParser {
   }
 
   List<GenericTypeParameterExpr> _getGenericParams() {
-    final genericParams = <GenericTypeParameterExpr>[];
-    bool isPreviousItemEndedWithComma = false;
-    if (expect([lexicon.typeParameterStart], consume: true)) {
-      while ((curTok.type != lexicon.typeParameterEnd) &&
-          (curTok.type != Semantic.endOfFile)) {
-        final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-        if (hasPrecedingComments &&
-            !isPreviousItemEndedWithComma &&
-            genericParams.isNotEmpty) {
-          genericParams.last.succeedingComments
-              .addAll(currentPrecedingCommentOrEmptyLine);
-          break;
-        }
-        if ((curTok.type == lexicon.typeParameterEnd) ||
-            (curTok.type == Semantic.endOfFile)) {
-          break;
-        }
-        isPreviousItemEndedWithComma = false;
-        final idTok = match(Semantic.identifier);
-        final id = IdentifierExpr.fromToken(idTok, source: currentSource);
-        final param = GenericTypeParameterExpr(id,
-            source: currentSource,
-            line: idTok.line,
-            column: idTok.column,
-            offset: idTok.offset,
-            length: curTok.offset - idTok.offset);
-        setPrecedingComment(param);
-        genericParams.add(param);
-        final hasTrailingComments = _handleTrailingComment(param);
-        if (!hasTrailingComments) {
-          if (curTok.type == lexicon.typeParameterEnd) {
-            break;
-          } else {
-            isPreviousItemEndedWithComma =
-                expect([lexicon.comma], consume: true);
-            if (isPreviousItemEndedWithComma) {
-              _handleTrailingComment(param);
-            }
-          }
-        }
-      }
-      match(lexicon.typeParameterEnd);
+    List<GenericTypeParameterExpr> genericParams = [];
+    if (expect([lexicon.typeListStart], consume: true)) {
+      genericParams = parseExprList(
+        endToken: lexicon.typeListEnd,
+        parseFunction: () {
+          final idTok = match(Semantic.identifier);
+          final id = IdentifierExpr.fromToken(idTok, source: currentSource);
+          final param = GenericTypeParameterExpr(id,
+              source: currentSource,
+              line: idTok.line,
+              column: idTok.column,
+              offset: idTok.offset,
+              length: curTok.offset - idTok.offset);
+          setPrecedings(param);
+          return param;
+        },
+      );
+      match(lexicon.typeListEnd);
     }
     return genericParams;
   }
 
   ImportExportDecl _parseImportDecl() {
     final keyword = advance(); // not a keyword so don't use match
-    final showList = <IdentifierExpr>[];
-    if (curTok.type == lexicon.declarationBlockStart) {
+    List<IdentifierExpr> showList = [];
+    if (curTok.type == lexicon.importExportListStart) {
       advance();
-      if (curTok.type == lexicon.declarationBlockEnd) {
-        final err = HTError.emptyImportList(
+      showList = parseExprList(
+        endToken: lexicon.importExportListEnd,
+        parseFunction: () {
+          final idTok = match(Semantic.identifier);
+          final id = IdentifierExpr.fromToken(idTok, source: currentSource);
+          setPrecedings(id);
+          return id;
+        },
+      );
+      match(lexicon.codeBlockEnd);
+      if (showList.isEmpty) {
+        final err = HTError.unexpectedEmptyList(Semantic.importSymbols,
             filename: currrentFileName,
             line: curTok.line,
             column: curTok.column,
@@ -2326,35 +2240,7 @@ class HTDefaultParser extends HTParser {
             length: curTok.end - keyword.offset);
         errors.add(err);
       }
-      bool isPreviousItemEndedWithComma = false;
-      while (curTok.type != lexicon.declarationBlockEnd &&
-          curTok.type != Semantic.endOfFile) {
-        final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-        if (hasPrecedingComments &&
-            !isPreviousItemEndedWithComma &&
-            showList.isNotEmpty) {
-          showList.last.succeedingComments
-              .addAll(currentPrecedingCommentOrEmptyLine);
-          break;
-        }
-        if ((curTok.type == lexicon.declarationBlockEnd) ||
-            (curTok.type == Semantic.endOfFile)) {
-          break;
-        }
-        isPreviousItemEndedWithComma = false;
-        final idTok = match(Semantic.identifier);
-        final id = IdentifierExpr.fromToken(idTok, source: currentSource);
-        setPrecedingComment(id);
-        showList.add(id);
-        final hasTrailingComments = _handleTrailingComment(id);
-        if (!hasTrailingComments) {
-          isPreviousItemEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isPreviousItemEndedWithComma) {
-            _handleTrailingComment(id);
-          }
-        }
-      }
-      match(lexicon.functionBlockEnd);
+
       // check lexeme here because expect() can only deal with token type
       final fromKeyword = advance().lexeme;
       if (fromKeyword != lexicon.kFrom) {
@@ -2430,37 +2316,17 @@ class HTDefaultParser extends HTParser {
     final keyword = advance(); // not a keyword so don't use match
     late final ImportExportDecl stmt;
     // export some of the symbols from this or other source
-    if (expect([lexicon.declarationBlockStart], consume: true)) {
-      final showList = <IdentifierExpr>[];
-      bool isPreviousItemEndedWithComma = false;
-      while (curTok.type != lexicon.declarationBlockEnd &&
-          curTok.type != Semantic.endOfFile) {
-        final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-        if (hasPrecedingComments &&
-            !isPreviousItemEndedWithComma &&
-            showList.isNotEmpty) {
-          showList.last.succeedingComments
-              .addAll(currentPrecedingCommentOrEmptyLine);
-          break;
-        }
-        if ((curTok.type == lexicon.declarationBlockEnd) ||
-            (curTok.type == Semantic.endOfFile)) {
-          break;
-        }
-        isPreviousItemEndedWithComma = false;
-        final idTok = match(Semantic.identifier);
-        final id = IdentifierExpr.fromToken(idTok, source: currentSource);
-        setPrecedingComment(id);
-        showList.add(id);
-        final hasTrailingComments = _handleTrailingComment(id);
-        if (!hasTrailingComments) {
-          isPreviousItemEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isPreviousItemEndedWithComma) {
-            _handleTrailingComment(id);
-          }
-        }
-      }
-      match(lexicon.functionBlockEnd);
+    if (expect([lexicon.codeBlockStart], consume: true)) {
+      final showList = parseExprList(
+        endToken: lexicon.importExportListEnd,
+        parseFunction: () {
+          final idTok = match(Semantic.identifier);
+          final id = IdentifierExpr.fromToken(idTok, source: currentSource);
+          setPrecedings(id);
+          return id;
+        },
+      );
+      match(lexicon.codeBlockEnd);
       String? fromPath;
       var hasEndOfStmtMark =
           expect([lexicon.endOfStatementMark], consume: true);
@@ -2538,7 +2404,7 @@ class HTDefaultParser extends HTParser {
           offset: keyword.offset,
           length: curTok.offset - keyword.offset);
     } else {
-      final expr = _parseExpr();
+      final expr = parseExpr();
       final hasEndOfStmtMark =
           expect([lexicon.endOfStatementMark], consume: true);
       if (expr is MemberExpr) {
@@ -2649,10 +2515,10 @@ class HTDefaultParser extends HTParser {
     if (!lateFinalize) {
       if (isConst) {
         match(lexicon.assign);
-        initializer = _parseExpr();
+        initializer = parseExpr();
       } else {
         if (expect([lexicon.assign], consume: true)) {
-          initializer = _parseExpr();
+          initializer = parseExpr();
         } else {
           initializer = additionalInitializer;
         }
@@ -2695,43 +2561,24 @@ class HTDefaultParser extends HTParser {
       endMark = lexicon.listEnd;
       isVector = true;
     } else {
-      endMark = lexicon.functionBlockEnd;
+      endMark = lexicon.codeBlockEnd;
     }
-    bool isPreviousItemEndedWithComma = false;
+    // declarations are a bit complex so we didn't use [parseExprList] here.
     while (curTok.type != endMark && curTok.type != Semantic.endOfFile) {
-      final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-      if (hasPrecedingComments &&
-          !isPreviousItemEndedWithComma &&
-          ids.isNotEmpty) {
-        // because the type could be null, here the remaining comments are binded to the id instead.
-        // this has to be taken care of when print ast to string.
-        ids.keys.last.succeedingComments
-            .addAll(currentPrecedingCommentOrEmptyLine);
-        break;
-      }
-      if ((curTok.type == endMark) || (curTok.type == Semantic.endOfFile)) {
-        break;
-      }
-      isPreviousItemEndedWithComma = false;
+      handlePrecedings();
       final idTok = match(Semantic.identifier);
       final id = IdentifierExpr.fromToken(idTok, source: currentSource);
-      setPrecedingComment(id);
+      setPrecedings(id);
       TypeExpr? declType;
       if (expect([lexicon.typeIndicator], consume: true)) {
         declType = _parseTypeExpr();
       }
       ids[id] = declType;
-      final hasTrailingComments = _handleTrailingComment(id);
-      if (!hasTrailingComments) {
-        isPreviousItemEndedWithComma = expect([lexicon.comma], consume: true);
-        if (isPreviousItemEndedWithComma) {
-          _handleTrailingComment(id);
-        }
-      }
+      handleTrailing(declType ?? id, endMarkForCommaExpressions: endMark);
     }
     match(endMark);
     match(lexicon.assign);
-    final initializer = _parseExpr();
+    final initializer = parseExpr();
     bool hasEndOfStmtMark = expect([lexicon.endOfStatementMark], consume: true);
     return DestructuringDecl(
         ids: ids,
@@ -2813,53 +2660,31 @@ class HTDefaultParser extends HTParser {
     var isFuncVariadic = false;
     var minArity = 0;
     var maxArity = 0;
-    var paramDecls = <ParamDecl>[];
+    List<ParamDecl> paramDecls = [];
     var hasParamDecls = false;
     if (category != FunctionCategory.getter &&
-        expect([lexicon.functionArgumentStart], consume: true)) {
+        expect([lexicon.functionParameterStart], consume: true)) {
       final startTok = curTok;
       hasParamDecls = true;
       var isOptional = false;
       var isNamed = false;
-      var isVariadic = false;
-      var isPreviousItemEndedWithComma = false;
-      while ((curTok.type != lexicon.functionArgumentEnd) &&
-          (curTok.type != lexicon.optionalPositionalParameterEnd) &&
-          (curTok.type != lexicon.namedParameterEnd) &&
-          (curTok.type != Semantic.endOfFile)) {
-        final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
-        if (hasPrecedingComments &&
-            !isPreviousItemEndedWithComma &&
-            paramDecls.isNotEmpty) {
-          paramDecls.last.succeedingComments
-              .addAll(currentPrecedingCommentOrEmptyLine);
-          break;
-        }
-        if ((curTok.type == lexicon.functionArgumentEnd) ||
-            (curTok.type == lexicon.optionalPositionalParameterEnd) ||
-            (curTok.type == lexicon.namedParameterEnd) ||
-            (curTok.type == Semantic.endOfFile)) {
-          break;
-        }
-        // 可选参数, 根据是否有方括号判断, 一旦开始了可选参数, 则不再增加参数数量arity要求
-        if (!isOptional) {
-          isOptional =
-              expect([lexicon.optionalPositionalParameterStart], consume: true);
-          if (!isOptional && !isNamed) {
-            //检查命名参数, 根据是否有花括号判断
-            isNamed = expect([lexicon.namedParameterStart], consume: true);
+      bool noVariadic = false;
+
+      ParamDecl parseParam() {
+        bool isParamVariadic = false;
+        if (!noVariadic) {
+          isParamVariadic = expect([lexicon.variadicArgs], consume: true);
+          if (isFuncVariadic && isParamVariadic) {
+            final err = HTError.unexpected(Semantic.funcTypeExpr,
+                Semantic.paramTypeExpr, lexicon.variadicArgs,
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
           }
-        }
-        if (!isNamed) {
-          isVariadic = expect([lexicon.variadicArgs], consume: true);
-        }
-        if (!isNamed && !isVariadic) {
-          if (!isOptional) {
-            ++minArity;
-            ++maxArity;
-          } else {
-            ++maxArity;
-          }
+          isFuncVariadic = isParamVariadic;
         }
         final paramId = match(Semantic.identifier);
         final paramSymbol =
@@ -2871,7 +2696,7 @@ class HTDefaultParser extends HTParser {
         ASTNode? initializer;
         if (expect([lexicon.assign], consume: true)) {
           if (isOptional || isNamed) {
-            initializer = _parseExpr();
+            initializer = parseExpr();
           } else {
             final lastTok = peek(-1);
             final err = HTError.argInit(
@@ -2886,7 +2711,7 @@ class HTDefaultParser extends HTParser {
         final param = ParamDecl(paramSymbol,
             declType: paramDeclType,
             initializer: initializer,
-            isVariadic: isVariadic,
+            isVariadic: isParamVariadic,
             isOptional: isOptional,
             isNamed: isNamed,
             source: currentSource,
@@ -2894,28 +2719,52 @@ class HTDefaultParser extends HTParser {
             column: paramId.column,
             offset: paramId.offset,
             length: curTok.offset - paramId.offset);
-        setPrecedingComment(param);
-        final hasTrailingComments = _handleTrailingComment(param);
-        if (!hasTrailingComments) {
-          isPreviousItemEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isPreviousItemEndedWithComma) {
-            _handleTrailingComment(param);
-          }
-        }
-        paramDecls.add(param);
-        if (isVariadic) {
-          isFuncVariadic = true;
+        setPrecedings(param);
+        return param;
+      }
+
+      while (curTok.type != lexicon.functionParameterEnd &&
+          curTok.type != Semantic.endOfFile) {
+        handlePrecedings();
+        if (curTok.type == lexicon.functionParameterEnd) {
+          // TODO: store comments within empty function parameter list
           break;
         }
+        // 可选参数, 根据是否有方括号判断, 一旦开始了可选参数, 则不再增加参数数量arity要求
+        if (!isOptional &&
+            !isNamed &&
+            expect([lexicon.optionalPositionalParameterStart], consume: true)) {
+          ++maxArity;
+          isOptional = true;
+          final params = parseExprList(
+            endToken: lexicon.optionalPositionalParameterEnd,
+            parseFunction: parseParam,
+          );
+          match(lexicon.optionalPositionalParameterEnd);
+          paramDecls.addAll(params);
+        }
+        //检查命名参数, 根据是否有花括号判断
+        else if (!isOptional &&
+            !isNamed &&
+            expect([lexicon.namedParameterStart], consume: true)) {
+          isNamed = true;
+          noVariadic = true;
+          final params = parseExprList(
+            endToken: lexicon.namedParameterEnd,
+            parseFunction: parseParam,
+          );
+          match(lexicon.namedParameterEnd);
+          paramDecls.addAll(params);
+        } else {
+          ++minArity;
+          ++maxArity;
+          final param = parseParam();
+          paramDecls.add(param);
+          handleTrailing(param,
+              endMarkForCommaExpressions: lexicon.functionParameterEnd);
+        }
       }
-      if (isOptional) {
-        match(lexicon.listEnd);
-      } else if (isNamed) {
-        match(lexicon.functionBlockEnd);
-      }
-
-      final endTok = match(lexicon.groupExprEnd);
-
+      final endTok = match(lexicon.functionParameterEnd);
       // setter can only have one parameter
       if ((category == FunctionCategory.setter) && (minArity != 1)) {
         final err = HTError.setterArity(
@@ -2952,7 +2801,7 @@ class HTDefaultParser extends HTParser {
         final lastTok = peek(-1);
         final err = HTError.unexpected(
             Semantic.function,
-            lexicon.functionBlockStart,
+            lexicon.codeBlockStart,
             lexicon.constructorInitializationListIndicator,
             filename: currrentFileName,
             line: curTok.line,
@@ -3009,7 +2858,7 @@ class HTDefaultParser extends HTParser {
     bool isExpressionBody = false;
     bool hasEndOfStmtMark = false;
     ASTNode? definition;
-    if (curTok.type == lexicon.functionBlockStart) {
+    if (curTok.type == lexicon.codeBlockStart) {
       if (category == FunctionCategory.literal && !hasKeyword) {
         startTok = curTok;
       }
@@ -3020,7 +2869,7 @@ class HTDefaultParser extends HTParser {
       if (category == FunctionCategory.literal && !hasKeyword) {
         startTok = curTok;
       }
-      definition = _parseExpr();
+      definition = parseExpr();
       hasEndOfStmtMark = expect([lexicon.endOfStatementMark], consume: true);
     } else if (expect([lexicon.assign], consume: true)) {
       final err = HTError.unsupported(Semantic.redirectingFunctionDefinition,
@@ -3048,7 +2897,7 @@ class HTDefaultParser extends HTParser {
       }
     }
     _currentFunctionCategory = savedCurFuncType;
-    return FuncDecl(internalName,
+    final funcDecl = FuncDecl(internalName,
         id: id != null
             ? IdentifierExpr.fromToken(id, source: currentSource)
             : null,
@@ -3077,6 +2926,7 @@ class HTDefaultParser extends HTParser {
         column: startTok.column,
         offset: startTok.offset,
         length: curTok.offset - startTok.offset);
+    return funcDecl;
   }
 
   ClassDecl _parseClassDecl(
@@ -3124,7 +2974,7 @@ class HTDefaultParser extends HTParser {
         sourceType: ParseStyle.classDefinition,
         hasOwnNamespace: false,
         id: Semantic.classDefinition);
-    final decl = ClassDecl(
+    final classDecl = ClassDecl(
         IdentifierExpr.fromToken(id, source: currentSource), definition,
         genericTypeParameters: genericParameters,
         superType: superClassType,
@@ -3140,7 +2990,8 @@ class HTDefaultParser extends HTParser {
         length: curTok.offset - keyword.offset);
     _hasUserDefinedConstructor = savedHasUsrDefCtor;
     _currentClassDeclaration = savedClass;
-    return decl;
+
+    return classDecl;
   }
 
   EnumDecl _parseEnumDecl({bool isExternal = false, bool isTopLevel = false}) {
@@ -3148,18 +2999,17 @@ class HTDefaultParser extends HTParser {
     final id = match(Semantic.identifier);
     var enumerations = <IdentifierExpr>[];
     bool isPreviousItemEndedWithComma = false;
-    if (expect([lexicon.declarationBlockStart], consume: true)) {
-      while (curTok.type != lexicon.declarationBlockEnd &&
+    if (expect([lexicon.codeBlockStart], consume: true)) {
+      while (curTok.type != lexicon.codeBlockEnd &&
           curTok.type != Semantic.endOfFile) {
-        final hasPrecedingComments = _handlePrecedingCommentOrEmptyLine();
+        final hasPrecedingComments = handlePrecedings();
         if (hasPrecedingComments &&
             !isPreviousItemEndedWithComma &&
             enumerations.isNotEmpty) {
-          enumerations.last.succeedingComments
-              .addAll(currentPrecedingCommentOrEmptyLine);
+          enumerations.last.succeedings.addAll(currentPrecedings);
           break;
         }
-        if ((curTok.type == lexicon.declarationBlockEnd) ||
+        if ((curTok.type == lexicon.codeBlockEnd) ||
             (curTok.type == Semantic.endOfFile)) {
           break;
         }
@@ -3167,21 +3017,16 @@ class HTDefaultParser extends HTParser {
         final enumIdTok = match(Semantic.identifier);
         final enumId =
             IdentifierExpr.fromToken(enumIdTok, source: currentSource);
-        setPrecedingComment(enumId);
+        setPrecedings(enumId);
+        handleTrailing(enumId,
+            endMarkForCommaExpressions: lexicon.codeBlockEnd);
         enumerations.add(enumId);
-        final hasTrailingComments = _handleTrailingComment(enumId);
-        if (!hasTrailingComments) {
-          isPreviousItemEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isPreviousItemEndedWithComma) {
-            _handleTrailingComment(enumId);
-          }
-        }
       }
-      match(lexicon.functionBlockEnd);
+      match(lexicon.codeBlockEnd);
     } else {
       expect([lexicon.endOfStatementMark], consume: true);
     }
-    return EnumDecl(
+    final enumDecl = EnumDecl(
         IdentifierExpr.fromToken(id, source: currentSource), enumerations,
         isExternal: isExternal,
         isTopLevel: isTopLevel,
@@ -3190,6 +3035,8 @@ class HTDefaultParser extends HTParser {
         column: keyword.column,
         offset: keyword.offset,
         length: curTok.offset - keyword.offset);
+
+    return enumDecl;
   }
 
   StructDecl _parseStructDecl({bool isTopLevel = false}) {
@@ -3215,15 +3062,15 @@ class HTDefaultParser extends HTParser {
     final savedStructId = _currentStructId;
     _currentStructId = id.id;
     final definition = <ASTNode>[];
-    final startTok = match(lexicon.functionBlockStart);
-    while (curTok.type != lexicon.functionBlockEnd &&
+    final startTok = match(lexicon.codeBlockStart);
+    while (curTok.type != lexicon.codeBlockEnd &&
         curTok.type != Semantic.endOfFile) {
       final stmt = parseStmt(style: ParseStyle.structDefinition);
       if (stmt != null) {
         definition.add(stmt);
       }
     }
-    final endTok = match(lexicon.functionBlockEnd);
+    final endTok = match(lexicon.codeBlockEnd);
     if (definition.isEmpty) {
       final empty = ASTEmptyLine(
           source: currentSource,
@@ -3231,12 +3078,12 @@ class HTDefaultParser extends HTParser {
           column: endTok.column,
           offset: endTok.offset,
           length: endTok.offset - startTok.end);
-      empty.precedingComments.addAll(currentPrecedingCommentOrEmptyLine);
-      currentPrecedingCommentOrEmptyLine.clear();
+      empty.precedings.addAll(currentPrecedings);
+      currentPrecedings.clear();
       definition.add(empty);
     }
     _currentStructId = savedStructId;
-    return StructDecl(id, definition,
+    final structDecl = StructDecl(id, definition,
         prototypeId: prototypeId,
         isTopLevel: isTopLevel,
         // lateInitialize: lateInitialize,
@@ -3245,6 +3092,7 @@ class HTDefaultParser extends HTParser {
         column: keyword.column,
         offset: keyword.offset,
         length: curTok.offset - keyword.offset);
+    return structDecl;
   }
 
   StructObjExpr _parseStructObj({bool hasKeyword = false}) {
@@ -3259,17 +3107,17 @@ class HTDefaultParser extends HTParser {
     prototypeId ??= IdentifierExpr(lexicon.globalPrototypeId);
     final structBlockStartTok = match(lexicon.structStart);
     final fields = <StructObjField>[];
+    // struct are a bit complex so we didn't use [parseExprList] here.
     while (
         curTok.type != lexicon.structEnd && curTok.type != Semantic.endOfFile) {
-      _handlePrecedingCommentOrEmptyLine();
-      if (curTok.type == lexicon.structEnd ||
-          curTok.type == Semantic.endOfFile) {
+      handlePrecedings();
+      if (curTok.type == lexicon.structEnd) {
         break;
       }
       if (curTok.type == Semantic.identifier ||
           curTok.type == Semantic.literalString) {
         final keyTok = advance();
-        late final StructObjField field;
+        StructObjField field;
         if (curTok.type == lexicon.comma || curTok.type == lexicon.structEnd) {
           final id = IdentifierExpr.fromToken(keyTok, source: currentSource);
           field = StructObjField(
@@ -3279,9 +3127,10 @@ class HTDefaultParser extends HTParser {
                 source: currentSource,
               ),
               fieldValue: id);
+          setPrecedings(field);
         } else {
           match(lexicon.structValueIndicator);
-          final value = _parseExpr();
+          final value = parseExpr();
           field = StructObjField(
               key: IdentifierExpr.fromToken(
                 keyTok,
@@ -3290,29 +3139,15 @@ class HTDefaultParser extends HTParser {
               ),
               fieldValue: value);
         }
-        setPrecedingComment(field);
         fields.add(field);
-        final hasTrailingComments = _handleTrailingComment(field);
-        if (!hasTrailingComments) {
-          final isEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isEndedWithComma) {
-            _handleTrailingComment(field);
-          }
-        }
+        handleTrailing(field, endMarkForCommaExpressions: lexicon.structEnd);
       } else if (curTok.type == lexicon.spreadSyntax) {
         advance();
-        final value = _parseExpr();
-        final field = StructObjField(fieldValue: value, isSpread: true);
-        setPrecedingComment(field);
+        final value = parseExpr();
+        final field = StructObjField(fieldValue: value);
         fields.add(field);
         fields.add(field);
-        final hasTrailingComments = _handleTrailingComment(field);
-        if (!hasTrailingComments) {
-          final isEndedWithComma = expect([lexicon.comma], consume: true);
-          if (isEndedWithComma) {
-            _handleTrailingComment(field);
-          }
-        }
+        handleTrailing(field, endMarkForCommaExpressions: lexicon.structEnd);
       } else {
         final errTok = advance();
         final err = HTError.structMemberId(curTok.type,
@@ -3324,17 +3159,15 @@ class HTDefaultParser extends HTParser {
         errors.add(err);
       }
     }
-    if (fields.isEmpty) {
-      final empty = StructObjField(
-          source: currentSource,
-          line: curTok.line,
-          column: curTok.column,
-          offset: curTok.offset,
-          length: curTok.offset - structBlockStartTok.offset);
-      empty.precedingComments.addAll(currentPrecedingCommentOrEmptyLine);
-      currentPrecedingCommentOrEmptyLine.clear();
-      fields.add(empty);
-    }
+    // if (fields.isEmpty) {
+    //   final empty = StructObjField(
+    //       source: currentSource,
+    //       line: curTok.line,
+    //       column: curTok.column,
+    //       offset: curTok.offset,
+    //       length: curTok.offset - structBlockStartTok.offset);
+    //   setPrecedings(empty);
+    // }
     match(lexicon.structEnd);
     return StructObjExpr(fields,
         prototypeId: prototypeId,

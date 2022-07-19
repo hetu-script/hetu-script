@@ -52,9 +52,7 @@ class HTLocaleEnglish implements HTLocale {
   final String errorSetterArity =
       'Setter function must have exactly one parameter.';
   @override
-  final String errorEmptyTypeArgs = 'Empty type arguments.';
-  @override
-  final String errorEmptyImportList = 'Empty import list.';
+  final String errorUnexpectedEmptyList = 'Unexpected empty [{0}] list.';
   @override
   final String errorExtendsSelf = 'Class try to extends itself.';
   @override

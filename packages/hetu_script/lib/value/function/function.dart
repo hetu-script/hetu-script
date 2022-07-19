@@ -125,7 +125,7 @@ class HTFunction extends HTFunctionDeclaration
   //       result.write(interpreter.lexicon.optionalPositionalParameterStart);
   //     } else if (param.isNamed && !namedStarted) {
   //       namedStarted = true;
-  //       result.write(interpreter.lexicon.functionBlockStart);
+  //       result.write(interpreter.lexicon.codeBlockStart);
   //     }
   //     result.write(param.id);
   //     if (param.declType != null) {
@@ -139,7 +139,7 @@ class HTFunction extends HTFunctionDeclaration
   //   if (optionalStarted) {
   //     result.write(interpreter.lexicon.optionalPositionalParameterEnd);
   //   } else if (namedStarted) {
-  //     result.write(interpreter.lexicon.functionBlockEnd);
+  //     result.write(interpreter.lexicon.codeBlockEnd);
   //   }
   //   result.write(
   //       '${interpreter.lexicon.groupExprEnd} ${interpreter.lexicon.functionReturnTypeIndicator} ' +

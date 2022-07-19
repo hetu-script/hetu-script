@@ -1,5 +1,4 @@
 import '../grammar/constant.dart';
-import '../comment/comment.dart' show CommentType;
 
 class Token {
   final String lexeme;
@@ -8,6 +7,7 @@ class Token {
 
   final int column;
 
+  /// the start position of this token
   final int offset;
 
   int get length => lexeme.length;
@@ -38,15 +38,38 @@ class Token {
   });
 }
 
-// class TokenEmptyLine extends Token {
-//   TokenEmptyLine(
-//       {required super.line,
-//       required super.column,
-//       required super.offset,
-//       super.previous,
-//       super.next})
-//       : super(lexeme: Semantic.emptyLine);
-// }
+class TokenComment extends Token {
+  @override
+  String get type => Semantic.comment;
+
+  final bool isDocumentation;
+
+  final bool isMultiLine;
+
+  final bool isTrailing;
+
+  TokenComment({
+    required super.lexeme,
+    required super.line,
+    required super.column,
+    required super.offset,
+    super.previous,
+    super.next,
+    this.isDocumentation = false,
+    this.isMultiLine = false,
+    this.isTrailing = false,
+  });
+}
+
+class TokenEmptyLine extends Token {
+  TokenEmptyLine(
+      {required super.line,
+      required super.column,
+      required super.offset,
+      super.previous,
+      super.next})
+      : super(lexeme: Semantic.emptyLine);
+}
 
 class TokenIdentifier extends Token {
   @override
@@ -161,23 +184,4 @@ class TokenStringInterpolation extends TokenStringLiteral {
       required super.startMark,
       required super.endMark,
       required this.interpolations});
-}
-
-class TokenCommentOrEmptyLine extends Token {
-  @override
-  String get type => Semantic.comment;
-
-  final CommentType commentType;
-
-  final bool isTrailing;
-
-  TokenCommentOrEmptyLine(
-      {required super.lexeme,
-      required super.line,
-      required super.column,
-      required super.offset,
-      super.previous,
-      super.next,
-      required this.commentType,
-      this.isTrailing = false});
 }

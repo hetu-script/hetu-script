@@ -8,6 +8,7 @@
 - Add suport for multiline String literal, syntax is the same to normal string.
 - Add support for user-defined lexicon & parser, you can define a language with
   custom lexicon & grammar that compiles into the bytecode and runs with Hetu.
+- Named arguments can be placed anywhere in the function call arguments list, just like in Dart 2.17.
 - ** BREAKING CHANGE **: 
   SDK dependency has UPGRADE to Dart 2.17.
   Changed Math.random() related api to separated Random class binding (this is for support of random seed).

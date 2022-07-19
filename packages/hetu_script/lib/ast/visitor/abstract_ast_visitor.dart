@@ -12,7 +12,11 @@ abstract class AbstractASTVisitor<T> {
 
   T? visitSource(ASTSource node) {}
 
-  T? visitEmptyExpr(ASTEmptyLine node) {}
+  T? visitComment(ASTComment node) {}
+
+  T? visitEmptyLine(ASTEmptyLine node) {}
+
+  T? visitEmptyExpr(ASTEmpty node) {}
 
   T? visitNullExpr(ASTLiteralNull node) {}
 

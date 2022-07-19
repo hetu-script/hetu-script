@@ -1,7 +1,6 @@
 import '../ast/ast.dart';
 import '../source/source.dart';
 import 'token.dart';
-import '../comment/comment.dart';
 import '../grammar/constant.dart';
 import '../lexer/lexer.dart';
 import '../lexer/lexicon.dart';
@@ -59,7 +58,7 @@ abstract class HTParser with TokenReader {
   // All import decl in this list must have non-null [fromPath]
   late List<ImportExportDecl> currentModuleImports;
 
-  List<CommentOrEmptyLine> currentPrecedingCommentOrEmptyLine = [];
+  List<ASTDocumentation> currentPrecedings = [];
 
   HTSource? currentSource;
 
@@ -69,14 +68,109 @@ abstract class HTParser with TokenReader {
   })  : config = config ?? ParserConfig(),
         lexer = HTLexer(lexicon: lexicon);
 
-  bool setPrecedingComment(ASTNode expr) {
-    if (currentPrecedingCommentOrEmptyLine.isNotEmpty) {
-      expr.precedingComments = currentPrecedingCommentOrEmptyLine;
-      currentPrecedingCommentOrEmptyLine = [];
+  /// A functional programming way to parse expression seperated by comma,
+  /// such as parameter list, argumetn list, list, group... etc.
+  /// the comma after the last expression is optional.
+  /// Note that this method will not consume either the start or the end mark.
+  ///
+  /// [astListResult] is a predefined list, and this function will modify the list in the process.
+  List<T> parseExprList<T extends ASTNode>({
+    required String endToken,
+    bool handleComma = true,
+    required T? Function() parseFunction,
+  }) {
+    final List<T> listResult = [];
+    final savedPrecedings = savePrecedings();
+    while (curTok.type != endToken && curTok.type != Semantic.endOfFile) {
+      // deal with comments or empty liens before spread syntax
+      handlePrecedings();
+      if (curTok.type == endToken) break;
+      final expr = parseFunction();
+      if (expr != null) {
+        listResult.add(expr);
+        handleTrailing(expr,
+            handleComma: handleComma, endMarkForCommaExpressions: endToken);
+      } else {
+        break;
+      }
+    }
+    if (currentPrecedings.isNotEmpty && listResult.isNotEmpty) {
+      listResult.last.succeedings = currentPrecedings;
+      currentPrecedings = [];
+    }
+    currentPrecedings = savedPrecedings;
+    return listResult;
+  }
+
+  // save current preceding comments & empty lines
+  List<ASTDocumentation> savePrecedings() {
+    final saved = currentPrecedings;
+    currentPrecedings = [];
+    return saved;
+  }
+
+  // set current preceding comments & empty lines on parsed ast.
+  bool setPrecedings(ASTNode expr) {
+    if (currentPrecedings.isNotEmpty) {
+      expr.precedings = currentPrecedings;
+      currentPrecedings = [];
       return true;
     }
     return false;
   }
+
+  /// To handle the comments & empty lines before a expr;
+  bool handlePrecedings() {
+    bool handled = false;
+    while (curTok is TokenComment || curTok is TokenEmptyLine) {
+      handled = true;
+      ASTDocumentation documentation;
+      if (curTok is TokenComment) {
+        documentation = ASTComment.fromCommentToken(advance() as TokenComment);
+      } else {
+        final token = advance();
+        documentation = ASTEmptyLine(
+          source: currentSource,
+          line: token.line,
+          column: token.column,
+          offset: token.offset,
+          length: token.length,
+        );
+      }
+      currentPrecedings.add(documentation);
+    }
+    return handled;
+  }
+
+  void _handleTrailing(ASTNode expr, {bool afterComma = false}) {
+    if (curTok is TokenComment) {
+      final tokenComment = curTok as TokenComment;
+      if (tokenComment.isTrailing) {
+        advance();
+        final trailing = ASTComment.fromCommentToken(tokenComment);
+        if (afterComma) {
+          expr.trailingAfterComma = trailing;
+        } else {
+          expr.trailing = trailing;
+        }
+      }
+    }
+  }
+
+  void handleTrailing(ASTNode expr,
+      {bool handleComma = true, String? endMarkForCommaExpressions}) {
+    _handleTrailing(expr);
+    if (endMarkForCommaExpressions != null &&
+        curTok.type != endMarkForCommaExpressions) {
+      if (handleComma) match(lexicon.comma);
+      _handleTrailing(expr, afterComma: true);
+    }
+  }
+
+  /// To read the current token from current position and produce an AST expression.
+  /// Normally this is the entry point of recursive descent parsing.
+  /// Class that implements [HTParser] must define this method.
+  ASTNode parseExpr();
 
   /// Convert tokens into a list of [ASTNode] by a certain grammar rules set.
   ///
@@ -84,7 +178,8 @@ abstract class HTParser with TokenReader {
   ///
   /// If [style] is not specified, will use [source.sourceType] to determine,
   /// if source is null at the same time, will use [ParseStyle.script] by default.
-  List<ASTNode> parseToken(Token token, {HTSource? source, ParseStyle? style}) {
+  List<ASTNode> parseTokens(Token token,
+      {HTSource? source, ParseStyle? style}) {
     // create new list of errors here, old error list is still usable
     errors = <HTError>[];
     final nodes = <ASTNode>[];
@@ -108,6 +203,7 @@ abstract class HTParser with TokenReader {
         style = ParseStyle.script;
       }
     }
+
     while (curTok.type != Semantic.endOfFile) {
       final stmt = parseStmt(style: style);
       if (stmt != null) {
@@ -115,16 +211,7 @@ abstract class HTParser with TokenReader {
           continue;
         }
         nodes.add(stmt);
-      } else {
-        final empty = ASTEmptyLine(
-            source: currentSource,
-            line: curTok.line,
-            column: curTok.column,
-            offset: curTok.offset,
-            length: curTok.end);
-        setPrecedingComment(empty);
-        nodes.add(empty);
-      }
+      } else {}
     }
     return nodes;
   }
@@ -135,7 +222,7 @@ abstract class HTParser with TokenReader {
     resetFlags();
     currentModuleImports = <ImportExportDecl>[];
     final tokens = lexer.lex(source.content);
-    final nodes = parseToken(tokens, source: source);
+    final nodes = parseTokens(tokens, source: source);
     final result = ASTSource(
         nodes: nodes,
         source: source,

@@ -14,12 +14,11 @@ void main() {
             + 'oha')
           ++j
           if (i is num) 
-        ;
             j
         ''');
       expect(
         result,
-        4,
+        null,
       );
     });
     test('late initialization', () {

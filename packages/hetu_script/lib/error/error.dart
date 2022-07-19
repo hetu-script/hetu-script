@@ -23,8 +23,7 @@ enum ErrorCode {
   misplacedContinue,
   misplacedBreak,
   setterArity,
-  emptyTypeArgs,
-  emptyImportList,
+  unexpectedEmptyList,
   extendsSelf,
   missingFuncBody,
   externalCtorWithReferCtor,
@@ -505,7 +504,7 @@ class HTError {
             length: length);
 
   /// Error: Type arguments is emtpy brackets.
-  HTError.emptyTypeArgs(
+  HTError.unexpectedEmptyList(String listName,
       {String? extra,
       String? correction,
       String? filename,
@@ -513,26 +512,9 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.emptyTypeArgs, ErrorType.syntacticError,
-            message: HTLocale.current.errorEmptyTypeArgs,
-            extra: extra,
-            correction: correction,
-            filename: filename,
-            line: line,
-            column: column,
-            offset: offset,
-            length: length);
-
-  HTError.emptyImportList(
-      {String? extra,
-      String? correction,
-      String? filename,
-      int? line,
-      int? column,
-      int? offset,
-      int? length})
-      : this(ErrorCode.emptyImportList, ErrorType.syntacticError,
-            message: HTLocale.current.errorEmptyImportList,
+      : this(ErrorCode.unexpectedEmptyList, ErrorType.syntacticError,
+            message: HTLocale.current.errorUnexpectedEmptyList,
+            interpolations: [listName],
             extra: extra,
             correction: correction,
             filename: filename,

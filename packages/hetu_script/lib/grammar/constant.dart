@@ -41,9 +41,9 @@ abstract class Semantic {
 
   static const endOfFile = 'end_of_file';
   static const name = 'name';
-  static const empty = 'empty';
-  static const emptyLine = 'empty_line';
   static const comment = 'comment';
+  static const emptyLine = 'empty_line';
+  static const empty = 'empty';
 
   static const keyword = 'keyword';
   static const identifier = 'identifier';
@@ -86,6 +86,8 @@ abstract class Semantic {
   static const commaExpr = 'comma_expression';
   static const inExpr = 'in_expression';
 
+  static const typeParameters = 'type_parameters';
+  static const typeArguments = 'type_arguments';
   static const intrinsicTypeExpr = 'intrinsic_type_expression';
   static const nominalTypeExpr = 'nominal_type_expression';
   static const literalTypeExpr = 'literal_type_expression';
@@ -95,6 +97,7 @@ abstract class Semantic {
   static const fieldTypeExpr = 'field_type_expression';
   static const structuralTypeExpr = 'structural_type_expression';
   static const genericTypeParamExpr = 'generic_type_parameter_expression';
+
   static const blockExpr = 'block_expression';
   static const identifierExpr = 'identifier_expression';
   static const unaryExpr = 'unary_expression';
@@ -128,6 +131,8 @@ abstract class Semantic {
   static const importStmt = 'import_statement';
   static const exportStmt = 'export_statement';
   static const exportImportStmt = 'export_import_statement';
+  static const importSymbols = 'import_symbols';
+  static const exportSymbols = 'export_symbols';
   static const exprStmt = 'expression_statement';
   static const blockStmt = 'block_statement';
   static const assertStmt = 'assert_statement';

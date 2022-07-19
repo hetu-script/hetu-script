@@ -13,6 +13,11 @@ class ZhongwenParser extends HTParser {
   void resetFlags() {}
 
   @override
+  ASTNode parseExpr() {
+    return ASTEmptyLine();
+  }
+
+  @override
   ASTNode? parseStmt({required ParseStyle style}) {
     return null;
   }

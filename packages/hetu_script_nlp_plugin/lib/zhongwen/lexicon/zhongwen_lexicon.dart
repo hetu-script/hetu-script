@@ -374,11 +374,11 @@ class ZhongwenLexicon extends HTLexicon {
 
   /// (
   @override
-  String get functionArgumentStart => '对';
+  String get functionParameterStart => '对';
 
   /// )
   @override
-  String get functionArgumentEnd => '，';
+  String get functionParameterEnd => '，';
 
   /// ?
   @override
@@ -569,19 +569,11 @@ class ZhongwenLexicon extends HTLexicon {
 
   /// {
   @override
-  String get functionBlockStart => '{';
+  String get codeBlockStart => '{';
 
   /// }
   @override
-  String get functionBlockEnd => '}';
-
-  /// {
-  @override
-  String get declarationBlockStart => '{';
-
-  /// }
-  @override
-  String get declarationBlockEnd => '}';
+  String get codeBlockEnd => '}';
 
   /// {
   @override
@@ -625,11 +617,17 @@ class ZhongwenLexicon extends HTLexicon {
 
   /// <
   @override
-  String get typeParameterStart => '<';
+  String get typeListStart => '<';
 
   /// >
   @override
-  String get typeParameterEnd => '>';
+  String get typeListEnd => '>';
+
+  @override
+  String get importExportListStart => '{';
+
+  @override
+  String get importExportListEnd => '}';
 
   // var _curIndentCount = 0;
 

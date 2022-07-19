@@ -27,8 +27,7 @@ abstract class HTLocale {
   String get errorMisplacedContinue;
   String get errorMisplacedBreak;
   String get errorSetterArity;
-  String get errorEmptyTypeArgs;
-  String get errorEmptyImportList;
+  String get errorUnexpectedEmptyList;
   String get errorExtendsSelf;
   String get errorMissingFuncBody;
   String get errorExternalCtorWithReferCtor;

@@ -71,9 +71,9 @@ class HTStruct with HTEntity {
   //   if (_fields.isNotEmpty) {
   //     final content =
   //         interpreter.lexicon.stringifyStructMembers(this, from: this);
-  //     return '${interpreter.lexicon.functionBlockStart}\n$content${interpreter.lexicon.functionBlockEnd}';
+  //     return '${interpreter.lexicon.codeBlockStart}\n$content${interpreter.lexicon.codeBlockEnd}';
   //   } else {
-  //     return '${interpreter.lexicon.functionBlockStart}${interpreter.lexicon.functionBlockEnd}';
+  //     return '${interpreter.lexicon.codeBlockStart}${interpreter.lexicon.codeBlockEnd}';
   //   }
   // }
 

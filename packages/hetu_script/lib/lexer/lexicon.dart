@@ -1,6 +1,6 @@
 /// Lexicon used by Hetu,
 abstract class HTLexicon {
-  /// the identity name of this lexicon.
+  /// the unique name of this lexicon.
   String get name;
 
   String get identifierStartPattern;
@@ -41,8 +41,8 @@ abstract class HTLexicon {
   /// Add semicolon before a line starting with one of '{, (, [, ++, --'.
   /// This is to avoid ambiguity in parser.
   List<String> get autoSemicolonInsertAtStart => [
-        functionBlockStart,
-        functionArgumentStart,
+        codeBlockStart,
+        functionParameterStart,
         subGetStart,
         preIncrement,
         preDecrement,
@@ -77,7 +77,7 @@ abstract class HTLexicon {
         assignIfNull,
         memberGet,
         groupExprStart,
-        functionBlockStart,
+        codeBlockStart,
         subGetStart,
         listStart,
         optionalPositionalParameterStart,
@@ -90,7 +90,7 @@ abstract class HTLexicon {
         functionReturnTypeIndicator,
         whenBranchIndicator,
         functionSingleLineBodyIndicator,
-        typeParameterStart,
+        typeListStart,
       ];
 
   String get globalObjectId;
@@ -330,9 +330,9 @@ abstract class HTLexicon {
 
   String get nullableFunctionArgumentCall;
 
-  String get functionArgumentStart;
+  String get functionParameterStart;
 
-  String get functionArgumentEnd;
+  String get functionParameterEnd;
 
   String get nullableTypePostfix;
 
@@ -347,7 +347,7 @@ abstract class HTLexicon {
         nullableSubGet,
         subGetStart,
         nullableFunctionArgumentCall,
-        functionArgumentStart,
+        functionParameterStart,
         postIncrement,
         postDecrement,
       };
@@ -491,13 +491,9 @@ abstract class HTLexicon {
 
   String get groupExprEnd;
 
-  String get functionBlockStart;
+  String get codeBlockStart;
 
-  String get functionBlockEnd;
-
-  String get declarationBlockStart;
-
-  String get declarationBlockEnd;
+  String get codeBlockEnd;
 
   String get structStart;
 
@@ -519,9 +515,13 @@ abstract class HTLexicon {
 
   String get externalFunctionTypeDefEnd;
 
-  String get typeParameterStart;
+  String get typeListStart;
 
-  String get typeParameterEnd;
+  String get typeListEnd;
+
+  String get importExportListStart;
+
+  String get importExportListEnd;
 
   /// Token that are not identifers.
   List<String> get punctuations => [
@@ -537,8 +537,8 @@ abstract class HTLexicon {
         subGetStart,
         subGetEnd,
         nullableFunctionArgumentCall,
-        functionArgumentStart,
-        functionArgumentEnd,
+        functionParameterStart,
+        functionParameterEnd,
         nullableTypePostfix,
         postIncrement,
         postDecrement,
@@ -584,10 +584,10 @@ abstract class HTLexicon {
         identifierEnd,
         groupExprStart,
         groupExprEnd,
-        functionBlockStart,
-        functionBlockEnd,
-        declarationBlockStart,
-        declarationBlockEnd,
+        codeBlockStart,
+        codeBlockEnd,
+        codeBlockStart,
+        codeBlockEnd,
         structStart,
         structEnd,
         listStart,
@@ -598,8 +598,8 @@ abstract class HTLexicon {
         namedParameterEnd,
         externalFunctionTypeDefStart,
         externalFunctionTypeDefEnd,
-        typeParameterStart,
-        typeParameterEnd,
+        typeListStart,
+        typeListEnd,
       ];
 
   /// Marker for group start and end.
@@ -607,7 +607,7 @@ abstract class HTLexicon {
   //       subGetStart: subGetEnd,
   //       functionCallArgumentStart: functionCallArgumentEnd,
   //       groupExprStart: groupExprEnd,
-  //       functionBlockStart: functionBlockEnd,
+  //       codeBlockStart: codeBlockEnd,
   //       declarationBlockStart: declarationBlockEnd,
   //       structStart: structEnd,
   //       listStart: listEnd,
@@ -621,7 +621,7 @@ abstract class HTLexicon {
   String stringify(dynamic object, {bool asStringLiteral = false});
 
   String getBaseTypeId(String typeString) {
-    final argsStart = typeString.indexOf(typeParameterStart);
+    final argsStart = typeString.indexOf(typeListStart);
     if (argsStart != -1) {
       return typeString.substring(0, argsStart);
     } else {
