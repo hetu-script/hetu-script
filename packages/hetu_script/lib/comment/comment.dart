@@ -1,4 +1,4 @@
-import '../parser/token.dart' show TokenComment;
+import '../parser/token.dart' show TokenCommentOrEmptyLine;
 
 enum CommentType {
   emptyLine,
@@ -8,20 +8,19 @@ enum CommentType {
 }
 
 /// Comment or Empty line before a statement.
-class Comment {
+class CommentOrEmptyLine {
   final String content;
 
   final CommentType type;
 
   final bool isTrailing;
 
-  Comment({this.content = '', required this.type, this.isTrailing = false});
+  CommentOrEmptyLine(
+      {required this.content, required this.type, this.isTrailing = false});
 
-  Comment.fromCommentToken(TokenComment token)
+  CommentOrEmptyLine.fromCommentToken(TokenCommentOrEmptyLine token)
       : this(
             content: token.literal,
             type: token.commentType,
             isTrailing: token.isTrailing);
-
-  Comment.emptyLine() : this(type: CommentType.emptyLine);
 }

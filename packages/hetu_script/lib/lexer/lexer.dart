@@ -83,8 +83,14 @@ class HTLexer {
           addToken(token);
         }
       } else {
-        firstTokenOfCurrentLine = lastTokenOfCurrentLine =
-            TokenEmptyLine(line: line, column: column, offset: offset);
+        firstTokenOfCurrentLine =
+            lastTokenOfCurrentLine = TokenCommentOrEmptyLine(
+          lexeme: '\n',
+          line: line,
+          column: column,
+          offset: offset,
+          commentType: CommentType.emptyLine,
+        );
       }
       assert(firstTokenOfCurrentLine != null);
       if (lastToken != null) {
@@ -201,7 +207,7 @@ class HTLexer {
             }
           } while (iter.moveNext());
           final lexeme = buffer.toString();
-          final token = TokenComment(
+          final token = TokenCommentOrEmptyLine(
               lexeme: lexeme,
               line: line,
               column: column,
@@ -232,7 +238,7 @@ class HTLexer {
             }
           } while (iter.moveNext());
           final lexeme = buffer.toString();
-          final token = TokenComment(
+          final token = TokenCommentOrEmptyLine(
               lexeme: lexeme,
               line: line,
               column: column,

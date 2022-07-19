@@ -51,6 +51,13 @@ void main() {
     1 && 
       // comment between expression
       print('yes')
+
+    fun 
+    // asdfsf
+    test {
+      print('hello world' // sfdsfd
+      )
+    }
   ''');
 
   if (result is Future) {

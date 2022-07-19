@@ -38,15 +38,15 @@ class Token {
   });
 }
 
-class TokenEmptyLine extends Token {
-  TokenEmptyLine(
-      {required super.line,
-      required super.column,
-      required super.offset,
-      super.previous,
-      super.next})
-      : super(lexeme: Semantic.emptyLine);
-}
+// class TokenEmptyLine extends Token {
+//   TokenEmptyLine(
+//       {required super.line,
+//       required super.column,
+//       required super.offset,
+//       super.previous,
+//       super.next})
+//       : super(lexeme: Semantic.emptyLine);
+// }
 
 class TokenIdentifier extends Token {
   @override
@@ -163,7 +163,7 @@ class TokenStringInterpolation extends TokenStringLiteral {
       required this.interpolations});
 }
 
-class TokenComment extends Token {
+class TokenCommentOrEmptyLine extends Token {
   @override
   String get type => Semantic.comment;
 
@@ -171,7 +171,7 @@ class TokenComment extends Token {
 
   final bool isTrailing;
 
-  TokenComment(
+  TokenCommentOrEmptyLine(
       {required super.lexeme,
       required super.line,
       required super.column,

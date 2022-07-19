@@ -49,26 +49,22 @@ class HTDefaultParser extends HTParser {
 
   bool _handlePrecedingCommentOrEmptyLine() {
     bool handled = false;
-    while (curTok is TokenComment || curTok is TokenEmptyLine) {
+    while (curTok is TokenCommentOrEmptyLine) {
       handled = true;
-      late Comment comment;
-      if (curTok is TokenComment) {
-        comment = Comment.fromCommentToken(advance() as TokenComment);
-      } else if (curTok is TokenEmptyLine) {
-        advance();
-        comment = Comment.emptyLine();
-      }
+      final comment = CommentOrEmptyLine.fromCommentToken(
+          advance() as TokenCommentOrEmptyLine);
       currentPrecedingCommentOrEmptyLine.add(comment);
     }
     return handled;
   }
 
   bool _handleTrailingComment(ASTNode expr) {
-    if (curTok is TokenComment) {
-      final tokenComment = curTok as TokenComment;
+    if (curTok is TokenCommentOrEmptyLine) {
+      final tokenComment = curTok as TokenCommentOrEmptyLine;
       if (tokenComment.isTrailing) {
         advance();
-        expr.trailingComment = Comment.fromCommentToken(tokenComment);
+        expr.trailingComment =
+            CommentOrEmptyLine.fromCommentToken(tokenComment);
       }
       return true;
     }
@@ -86,16 +82,16 @@ class HTDefaultParser extends HTParser {
     }
 
     // save preceding comments because those might change during expression parsing.
-    final precedingComments = currentPrecedingCommentOrEmptyLine;
-    currentPrecedingCommentOrEmptyLine = [];
+    // final precedingComments = currentPrecedingCommentOrEmptyLine;
+    // currentPrecedingCommentOrEmptyLine = [];
 
-    if (curTok is TokenEmptyLine) {
-      final empty = advance();
-      final emptyStmt = ASTEmptyLine(
-          line: empty.line, column: empty.column, offset: empty.offset);
-      emptyStmt.precedingComments = precedingComments;
-      return emptyStmt;
-    }
+    // if (curTok is TokenEmptyLine) {
+    //   final empty = advance();
+    //   final emptyStmt = ASTEmptyLine(
+    //       line: empty.line, column: empty.column, offset: empty.offset);
+    //   emptyStmt.precedingComments = precedingComments;
+    //   return emptyStmt;
+    // }
 
     ASTNode stmt;
 
@@ -895,15 +891,9 @@ class HTDefaultParser extends HTParser {
         stmt = _parseExpr();
     }
 
-    stmt.precedingComments = precedingComments;
+    // stmt.precedingComments = precedingComments;
 
-    if (curTok is TokenComment) {
-      final token = advance() as TokenComment;
-      if (token.isTrailing) {
-        stmt.trailingComment = Comment.fromCommentToken(token);
-      }
-    }
-
+    _handleTrailingComment(stmt);
     return stmt;
   }
 
@@ -943,7 +933,6 @@ class HTDefaultParser extends HTParser {
   ///
   /// Assignment operator =, precedence 1, associativity right
   ASTNode _parseExpr() {
-    _handlePrecedingCommentOrEmptyLine();
     ASTNode? expr;
     final left = _parserTernaryExpr();
     if (lexicon.assignments.contains(curTok.type)) {
@@ -958,9 +947,6 @@ class HTDefaultParser extends HTParser {
     } else {
       expr = left;
     }
-
-    setPrecedingComment(expr);
-
     return expr;
   }
 

@@ -14,11 +14,11 @@ part 'visitor/abstract_ast_visitor.dart';
 abstract class ASTNode {
   final String type;
 
-  List<Comment> precedingComments = [];
+  List<CommentOrEmptyLine> precedingComments = [];
 
-  Comment? trailingComment;
+  CommentOrEmptyLine? trailingComment;
 
-  List<Comment> succeedingComments = [];
+  List<CommentOrEmptyLine> succeedingComments = [];
 
   final bool isStatement;
 

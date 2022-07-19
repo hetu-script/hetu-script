@@ -2,7 +2,6 @@ import '../ast/ast.dart';
 import '../source/source.dart';
 import 'token.dart';
 import '../comment/comment.dart';
-import '../declaration/class/class_declaration.dart';
 import '../grammar/constant.dart';
 import '../lexer/lexer.dart';
 import '../lexer/lexicon.dart';
@@ -60,12 +59,7 @@ abstract class HTParser with TokenReader {
   // All import decl in this list must have non-null [fromPath]
   late List<ImportExportDecl> currentModuleImports;
 
-  List<Comment> currentPrecedingCommentOrEmptyLine = [];
-
-  void setPrecedingComment(ASTNode expr) {
-    expr.precedingComments = currentPrecedingCommentOrEmptyLine;
-    currentPrecedingCommentOrEmptyLine = [];
-  }
+  List<CommentOrEmptyLine> currentPrecedingCommentOrEmptyLine = [];
 
   HTSource? currentSource;
 
@@ -74,6 +68,15 @@ abstract class HTParser with TokenReader {
     required this.lexicon,
   })  : config = config ?? ParserConfig(),
         lexer = HTLexer(lexicon: lexicon);
+
+  bool setPrecedingComment(ASTNode expr) {
+    if (currentPrecedingCommentOrEmptyLine.isNotEmpty) {
+      expr.precedingComments = currentPrecedingCommentOrEmptyLine;
+      currentPrecedingCommentOrEmptyLine = [];
+      return true;
+    }
+    return false;
+  }
 
   /// Convert tokens into a list of [ASTNode] by a certain grammar rules set.
   ///
