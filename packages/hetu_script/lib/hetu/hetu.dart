@@ -198,6 +198,7 @@ class Hetu {
     _isInitted = true;
   }
 
+  /// Change the current parser.
   void setParser(String name) {
     assert(_parsers.containsKey(name));
     _currentParser = _parsers[name]!;
@@ -226,7 +227,8 @@ class Hetu {
     return result;
   }
 
-  /// Evaluate a file, [key] is a possibly relative path,
+  /// Evaluate a file.
+  /// [key] is a possibly relative path.
   /// file content will be searched by [sourceContext].
   /// If [invokeFunc] is provided, will immediately
   /// call the function after evaluation completed.
@@ -248,6 +250,9 @@ class Hetu {
     return result;
   }
 
+  /// Evaluate a [HTSource].
+  /// If [invokeFunc] is provided, will immediately
+  /// call the function after evaluation completed.
   dynamic evalSource(HTSource source,
       {String? moduleName,
       bool globallyImport = false,
@@ -270,6 +275,18 @@ class Hetu {
     return result;
   }
 
+  /// Process the import declaration within several sources,
+  /// generate a single [ASTCompilation] for [HTCompiler] to compile.
+  ASTCompilation bundle(HTSource source) {
+    final compilation = bundler.bundle(
+        source: source,
+        parser: _currentParser,
+        normalizePath: config.normalizeImportPath);
+    return compilation;
+  }
+
+  /// Compile a string into bytecode.
+  /// This won't execute the code, so runtime errors will not be reported.
   Uint8List compile(String content,
       {String? filename,
       String? moduleName,
@@ -283,19 +300,12 @@ class Hetu {
     return _compileSource(source, moduleName: moduleName);
   }
 
-  /// Compile a script content into bytecode for later use.
+  /// Compile a source within current [sourceContext].
+  /// This won't execute the code, so runtime errors will not be reported.
   Uint8List compileFile(String key,
       {String? moduleName, CompilerConfig? config}) {
     final source = sourceContext.getResource(key);
     return _compileSource(source, moduleName: moduleName);
-  }
-
-  ASTCompilation bundle(HTSource source) {
-    final compilation = bundler.bundle(
-        source: source,
-        parser: _currentParser,
-        normalizePath: config.normalizeImportPath);
-    return compilation;
   }
 
   /// Compile a [HTSource] into bytecode for later use.
@@ -402,6 +412,19 @@ class Hetu {
     return nsp;
   }
 
+  /// Get a top level variable defined in a certain namespace in the interpreter.
+  dynamic fetchGlobal(
+    String varName, {
+    String? moduleName,
+    String? sourceName,
+  }) =>
+      interpreter.fetchGlobal(
+        varName,
+        moduleName: moduleName,
+        sourceName: sourceName,
+      );
+
+  /// Invoke a top level function defined in a certain namespace in the interpreter.
   dynamic invoke(String funcName,
           {String? moduleName,
           String? sourceName,

@@ -43,6 +43,7 @@ mixin InterpreterRef {
   late final HTInterpreter interpreter;
 }
 
+/// Collection of config of bytecode interpreter.
 class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
   @override
   bool showDartStackTrace;
@@ -87,12 +88,14 @@ class _LoopInfo {
   _LoopInfo(this.startIp, this.continueIp, this.breakIp, this.namespace);
 }
 
+/// Determines how the interepreter deal with stack frame information when context are changed.
 enum StackFrameStrategy {
   none,
   retract,
   create,
 }
 
+/// The exucution context of the bytecode interpreter.
 class HTContext {
   final String? filename;
   final String? moduleName;
@@ -111,6 +114,7 @@ class HTContext {
   });
 }
 
+/// A wrapper class for the bytecode interpreter to run a certain task in a future.
 class FutureExecution {
   Future future;
   HTContext context;
@@ -307,6 +311,7 @@ class HTInterpreter {
     }
   }
 
+  /// handler for various kinds of invocations.
   dynamic _call(dynamic callee,
       {bool isConstructorCall = false,
       List<dynamic> positionalArgs = const [],
@@ -394,7 +399,48 @@ class HTInterpreter {
     }
   }
 
-  /// Call a function within current [HTNamespace].
+  /// Get a top level variable defined in a certain namespace.
+  dynamic fetchGlobal(
+    String varName, {
+    String? moduleName,
+    String? sourceName,
+  }) {
+    try {
+      final savedModuleName = _currentBytecodeModule.id;
+      HTNamespace nsp = globalNamespace;
+      if (moduleName != null) {
+        if (_currentBytecodeModule.id != moduleName) {
+          _currentBytecodeModule = cachedModules[moduleName]!;
+        }
+        if (sourceName != null) {
+          if (nsp.fullName != sourceName) {
+            assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
+            nsp = _currentBytecodeModule.namespaces[sourceName]!;
+          }
+        } else if (_currentBytecodeModule.namespaces.isNotEmpty) {
+          nsp = _currentBytecodeModule.namespaces.values.last;
+        }
+      } else if (sourceName != null) {
+        assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
+        nsp = _currentBytecodeModule.namespaces[sourceName]!;
+      }
+      final result = nsp.memberGet(varName, isRecursive: false);
+      if (_currentBytecodeModule.id != savedModuleName) {
+        _currentBytecodeModule = cachedModules[savedModuleName]!;
+      }
+      return result;
+    } catch (error, stackTrace) {
+      if (config.processError) {
+        processError(error, stackTrace);
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  /// Invoke a top level function defined in a certain namespace.
+  /// It's possible to use this method to invoke a [HTClass] or [HTNamedStruct]
+  /// name as a contruct call, you will get a [HTInstance] or [HTStruct] as return value.
   dynamic invoke(String funcName,
       {String? moduleName,
       String? sourceName,
@@ -422,7 +468,7 @@ class HTInterpreter {
         assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
         nsp = _currentBytecodeModule.namespaces[sourceName]!;
       }
-      final callee = nsp.memberGet(funcName);
+      final callee = nsp.memberGet(funcName, isRecursive: false);
       final result = _call(
         callee,
         positionalArgs: positionalArgs,
@@ -835,6 +881,7 @@ class HTInterpreter {
     );
   }
 
+  /// Change the current context of the bytecode interpreter to a new one.
   void setContext(
       {StackFrameStrategy stackFrameStrategy = StackFrameStrategy.none,
       HTContext? context}) {

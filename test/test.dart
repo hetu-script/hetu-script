@@ -49,9 +49,12 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    final r1 = Random(1)
-    print(Math.gaussianNoise(10, 10, randomGenerator: r1))
+    final r1 = {name: 'object'}
   ''');
+
+  final r1 = hetu.interpreter.fetchGlobal('r1');
+
+  print(r1.runtimeType);
 
   if (result is Future) {
     result.then((value) => print(hetu.lexicon.stringify(value)));
