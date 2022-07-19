@@ -1297,13 +1297,15 @@ class HTDefaultParser extends HTParser {
 
   /// Expression without associativity
   ASTNode _parsePrimaryExpr() {
-    // Don't use if else here because those token types might be same,
-    // for example, functionArgumentStart & groupExprStart are both '('.
+    _handlePrecedingCommentOrEmptyLine();
 
+    ASTNode? expr;
+
+    // We cannot use 'switch case' here because we have to use lexicon's value, which is not constant.
     if (curTok.type == lexicon.kNull) {
       final token = advance();
       _leftValueLegality = false;
-      return ASTLiteralNull(
+      expr = ASTLiteralNull(
           source: currentSource,
           line: token.line,
           column: token.column,
@@ -1311,10 +1313,10 @@ class HTDefaultParser extends HTParser {
           length: token.length);
     }
 
-    if (curTok.type == Semantic.literalBoolean) {
+    if (expr == null && curTok.type == Semantic.literalBoolean) {
       final token = match(Semantic.literalBoolean) as TokenBooleanLiteral;
       _leftValueLegality = false;
-      return ASTLiteralBoolean(token.literal,
+      expr = ASTLiteralBoolean(token.literal,
           source: currentSource,
           line: token.line,
           column: token.column,
@@ -1322,10 +1324,10 @@ class HTDefaultParser extends HTParser {
           length: token.length);
     }
 
-    if (curTok.type == Semantic.literalInteger) {
+    if (expr == null && curTok.type == Semantic.literalInteger) {
       final token = match(Semantic.literalInteger) as TokenIntLiteral;
       _leftValueLegality = false;
-      return ASTLiteralInteger(token.literal,
+      expr = ASTLiteralInteger(token.literal,
           source: currentSource,
           line: token.line,
           column: token.column,
@@ -1333,10 +1335,10 @@ class HTDefaultParser extends HTParser {
           length: token.length);
     }
 
-    if (curTok.type == Semantic.literalFloat) {
+    if (expr == null && curTok.type == Semantic.literalFloat) {
       final token = advance() as TokenFloatLiteral;
       _leftValueLegality = false;
-      return ASTLiteralFloat(token.literal,
+      expr = ASTLiteralFloat(token.literal,
           source: currentSource,
           line: token.line,
           column: token.column,
@@ -1344,10 +1346,10 @@ class HTDefaultParser extends HTParser {
           length: token.length);
     }
 
-    if (curTok.type == Semantic.literalString) {
+    if (expr == null && curTok.type == Semantic.literalString) {
       final token = advance() as TokenStringLiteral;
       _leftValueLegality = false;
-      return ASTLiteralString(token.literal, token.startMark, token.endMark,
+      expr = ASTLiteralString(token.literal, token.startMark, token.endMark,
           source: currentSource,
           line: token.line,
           column: token.column,
@@ -1355,7 +1357,7 @@ class HTDefaultParser extends HTParser {
           length: token.length);
     }
 
-    if (curTok.type == Semantic.literalStringInterpolation) {
+    if (expr == null && curTok.type == Semantic.literalStringInterpolation) {
       final token = advance() as TokenStringInterpolation;
       final interpolations = <ASTNode>[];
       final savedCurrent = curTok;
@@ -1400,7 +1402,7 @@ class HTDefaultParser extends HTParser {
           (Match m) =>
               '${lexicon.stringInterpolationStart}${i++}${lexicon.stringInterpolationEnd}');
       _leftValueLegality = false;
-      return ASTStringInterpolation(
+      expr = ASTStringInterpolation(
           text, token.startMark, token.endMark, interpolations,
           source: currentSource,
           line: token.line,
@@ -1409,10 +1411,11 @@ class HTDefaultParser extends HTParser {
           length: token.length);
     }
 
-    if (curTok.type == lexicon.kThis) {
+    // a this expression
+    if (expr == null && curTok.type == lexicon.kThis) {
       final keyword = advance();
       _leftValueLegality = false;
-      return IdentifierExpr(keyword.lexeme,
+      expr = IdentifierExpr(keyword.lexeme,
           source: currentSource,
           line: keyword.line,
           column: keyword.column,
@@ -1420,10 +1423,11 @@ class HTDefaultParser extends HTParser {
           length: keyword.length);
     }
 
+    // a super constructor call
     if (curTok.type == lexicon.kSuper) {
       final keyword = advance();
       _leftValueLegality = false;
-      return IdentifierExpr(keyword.lexeme,
+      expr = IdentifierExpr(keyword.lexeme,
           source: currentSource,
           line: keyword.line,
           column: keyword.column,
@@ -1431,7 +1435,8 @@ class HTDefaultParser extends HTParser {
           length: keyword.length);
     }
 
-    if (curTok.type == lexicon.kNew) {
+    // a constructor call
+    if (expr == null && curTok.type == lexicon.kNew) {
       final keyword = advance();
       _leftValueLegality = false;
       final idTok = match(Semantic.identifier) as TokenIdentifier;
@@ -1442,7 +1447,7 @@ class HTDefaultParser extends HTParser {
       if (expect([lexicon.functionArgumentStart], consume: true)) {
         _handleCallArguments(positionalArgs, namedArgs);
       }
-      return CallExpr(id,
+      expr = CallExpr(id,
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
           hasNewOperator: true,
@@ -1453,18 +1458,20 @@ class HTDefaultParser extends HTParser {
           length: curTok.offset - keyword.offset);
     }
 
-    if (curTok.type == lexicon.kIf) {
+    // an if expression
+    if (expr == null && curTok.type == lexicon.kIf) {
       _leftValueLegality = false;
-      return _parseIf(isStatement: false);
+      expr = _parseIf(isStatement: false);
     }
 
-    if (curTok.type == lexicon.kWhen) {
+    // a when expression
+    if (expr == null && curTok.type == lexicon.kWhen) {
       _leftValueLegality = false;
-      return _parseWhen(isStatement: false);
+      expr = _parseWhen(isStatement: false);
     }
 
     // a literal function expression
-    if (curTok.type == lexicon.functionArgumentStart) {
+    if (expr == null && curTok.type == lexicon.functionArgumentStart) {
       final tokenAfterGroupExprStart = curTok.next;
       final tokenAfterGroupExprEnd = seekGroupClosing(
           {lexicon.functionArgumentStart: lexicon.functionArgumentEnd});
@@ -1479,17 +1486,17 @@ class HTDefaultParser extends HTParser {
               tokenAfterGroupExprEnd.type ==
                   lexicon.functionSingleLineBodyIndicator)) {
         _leftValueLegality = false;
-        return _parseFunction(
+        expr = _parseFunction(
             category: FunctionCategory.literal, hasKeyword: false);
       }
     }
 
-    if (curTok.type == lexicon.groupExprStart) {
+    if (expr == null && curTok.type == lexicon.groupExprStart) {
       final start = advance();
       final innerExpr = _parseExpr();
       final end = match(lexicon.groupExprEnd);
       _leftValueLegality = false;
-      return GroupExpr(innerExpr,
+      expr = GroupExpr(innerExpr,
           source: currentSource,
           line: start.line,
           column: start.column,
@@ -1498,7 +1505,7 @@ class HTDefaultParser extends HTParser {
     }
 
     // a literal list value
-    if (curTok.type == lexicon.listStart) {
+    if (expr == null && curTok.type == lexicon.listStart) {
       final start = advance();
       final listExpr = <ASTNode>[];
       bool isPreviousItemEndedWithComma = false;
@@ -1543,7 +1550,7 @@ class HTDefaultParser extends HTParser {
       }
       final end = match(lexicon.listEnd);
       _leftValueLegality = false;
-      return ListExpr(listExpr,
+      expr = ListExpr(listExpr,
           source: currentSource,
           line: start.line,
           column: start.column,
@@ -1551,49 +1558,54 @@ class HTDefaultParser extends HTParser {
           length: end.end - start.offset);
     }
 
-    if (curTok.type == lexicon.functionBlockStart) {
+    if (expr == null && curTok.type == lexicon.functionBlockStart) {
       _leftValueLegality = false;
-      return _parseStructObj();
+      expr = _parseStructObj();
     }
 
-    if (curTok.type == lexicon.kStruct) {
+    if (expr == null && curTok.type == lexicon.kStruct) {
       _leftValueLegality = false;
-      return _parseStructObj(hasKeyword: true);
+      expr = _parseStructObj(hasKeyword: true);
     }
 
-    if (curTok.type == lexicon.kFun) {
+    if (expr == null && curTok.type == lexicon.kFun) {
       _leftValueLegality = false;
-      return _parseFunction(category: FunctionCategory.literal);
+      expr = _parseFunction(category: FunctionCategory.literal);
     }
 
-    if (curTok.type == lexicon.kAsync) {
+    if (expr == null && curTok.type == lexicon.kAsync) {
       _leftValueLegality = false;
-      return _parseFunction(category: FunctionCategory.literal, isAsync: true);
+      expr = _parseFunction(category: FunctionCategory.literal, isAsync: true);
     }
 
-    if (curTok.type == Semantic.identifier) {
+    if (expr == null && curTok.type == Semantic.identifier) {
       final id = advance() as TokenIdentifier;
       final isLocal = curTok.type != lexicon.assign;
       // TODO: type arguments
       _leftValueLegality = true;
-      return IdentifierExpr.fromToken(id,
+      expr = IdentifierExpr.fromToken(id,
           isMarked: id.isMarked, isLocal: isLocal, source: currentSource);
     }
 
-    final err = HTError.unexpected(
-        Semantic.expression, Semantic.expression, curTok.lexeme,
-        filename: currrentFileName,
-        line: curTok.line,
-        column: curTok.column,
-        offset: curTok.offset,
-        length: curTok.length);
-    errors.add(err);
-    final errToken = advance();
-    return ASTEmptyLine(
-        source: currentSource,
-        line: errToken.line,
-        column: errToken.column,
-        offset: errToken.offset);
+    if (expr == null) {
+      final err = HTError.unexpected(
+          Semantic.expression, Semantic.expression, curTok.lexeme,
+          filename: currrentFileName,
+          line: curTok.line,
+          column: curTok.column,
+          offset: curTok.offset,
+          length: curTok.length);
+      errors.add(err);
+      final errToken = advance();
+      expr = ASTEmptyLine(
+          source: currentSource,
+          line: errToken.line,
+          column: errToken.column,
+          offset: errToken.offset);
+    }
+
+    setPrecedingComment(expr);
+    return expr;
   }
 
   CommaExpr _handleCommaExpr(String endMark, {bool isLocal = true}) {

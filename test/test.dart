@@ -48,12 +48,10 @@ void main() {
   sourceContext.addResource(source3.fullName, source3);
 
   final result = hetu.eval(r'''
-    final r1 = {name: 'object'}
+    1 && 
+      // comment between expression
+      print('yes')
   ''');
-
-  final r1 = hetu.interpreter.fetch('r1');
-
-  print(r1.runtimeType);
 
   if (result is Future) {
     result.then((value) => print(hetu.lexicon.stringify(value)));
