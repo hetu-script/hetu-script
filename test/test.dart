@@ -1,5 +1,4 @@
 import 'package:hetu_script/hetu_script.dart';
-import 'dart:math' as math;
 
 void main() {
   final sourceContext = HTOverlayContext();
@@ -52,7 +51,7 @@ void main() {
     final r1 = {name: 'object'}
   ''');
 
-  final r1 = hetu.interpreter.fetchGlobal('r1');
+  final r1 = hetu.interpreter.fetch('r1');
 
   print(r1.runtimeType);
 

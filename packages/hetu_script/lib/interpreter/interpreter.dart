@@ -400,7 +400,7 @@ class HTInterpreter {
   }
 
   /// Get a top level variable defined in a certain namespace.
-  dynamic fetchGlobal(
+  dynamic fetch(
     String varName, {
     String? moduleName,
     String? sourceName,

@@ -413,12 +413,12 @@ class Hetu {
   }
 
   /// Get a top level variable defined in a certain namespace in the interpreter.
-  dynamic fetchGlobal(
+  dynamic fetch(
     String varName, {
     String? moduleName,
     String? sourceName,
   }) =>
-      interpreter.fetchGlobal(
+      interpreter.fetch(
         varName,
         moduleName: moduleName,
         sourceName: sourceName,
