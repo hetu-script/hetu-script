@@ -49,11 +49,16 @@ void main() {
   sourceContext.addResource(source2.fullName, source2);
   sourceContext.addResource(source3.fullName, source3);
 
+  hetu.interpreter.bindExternalFunction('test', () {
+    print('dart function called');
+  });
+
   final result = hetu.eval(r'''
-      fun test([a, b]) {
-        print(a,b)
+      namespace ui {
+        external fun test
       }
-      test(1, 2)
+
+      ui.test()
   ''');
 
   if (result is Future) {

@@ -834,7 +834,7 @@ class HTInterpreter {
       final tok = DateTime.now().millisecondsSinceEpoch;
       if (debugPerformance) {
         print(
-            '${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.namespaces.values.last.fullName}]');
+            'hetu: ${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.namespaces.values.last.fullName}]');
       }
       stackTraceList.clear();
       if (_isModuleEntryScript) {
@@ -1129,7 +1129,7 @@ class HTInterpreter {
           _handleConstDecl();
           break;
         case HTOpCode.namespaceDecl:
-          final internalName = _currentBytecodeModule.readShortString();
+          final id = _currentBytecodeModule.readShortString();
           String? classId;
           final hasClassId = _currentBytecodeModule.readBool();
           if (hasClassId) {
@@ -1138,13 +1138,13 @@ class HTInterpreter {
           final isTopLevel = _currentBytecodeModule.readBool();
           final namespace = HTNamespace(
             lexicon: _lexicon,
-            id: internalName,
+            id: id,
             classId: classId,
             closure: _currentNamespace,
             isTopLevel: isTopLevel,
           );
           execute(context: HTContext(namespace: namespace));
-          _currentNamespace.define(internalName, namespace);
+          _currentNamespace.define(id, namespace);
           _localValue = namespace;
           break;
         case HTOpCode.delete:

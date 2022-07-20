@@ -31,6 +31,7 @@ class HTDefaultParser extends HTParser {
     return false;
   }
 
+  String? _currentExplicitNamespaceId;
   HTClassDeclaration? _currentClassDeclaration;
   FunctionCategory? _currentFunctionCategory;
   String? _currentStructId;
@@ -2446,8 +2447,11 @@ class HTDefaultParser extends HTParser {
     final keyword = advance();
     final idTok = match(Semantic.identifier);
     final id = IdentifierExpr.fromToken(idTok, source: currentSource);
+    final savedSurrentExplicitNamespaceId = _currentExplicitNamespaceId;
+    _currentExplicitNamespaceId = idTok.lexeme;
     final definition = _parseBlockStmt(
-        id: id.id, sourceType: ParseStyle.module, hasOwnNamespace: false);
+        id: id.id, sourceType: ParseStyle.namespace, hasOwnNamespace: false);
+    _currentExplicitNamespaceId = savedSurrentExplicitNamespaceId;
     return NamespaceDecl(
       id,
       definition,
