@@ -438,6 +438,45 @@ class HTInterpreter {
     }
   }
 
+  /// Assign value to a top level variable defined in a certain namespace in the interpreter.
+  void assign(
+    String varName,
+    dynamic value, {
+    String? moduleName,
+    String? sourceName,
+  }) {
+    try {
+      final savedModuleName = _currentBytecodeModule.id;
+      HTNamespace nsp = globalNamespace;
+      if (moduleName != null) {
+        if (_currentBytecodeModule.id != moduleName) {
+          _currentBytecodeModule = cachedModules[moduleName]!;
+        }
+        if (sourceName != null) {
+          if (nsp.fullName != sourceName) {
+            assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
+            nsp = _currentBytecodeModule.namespaces[sourceName]!;
+          }
+        } else if (_currentBytecodeModule.namespaces.isNotEmpty) {
+          nsp = _currentBytecodeModule.namespaces.values.last;
+        }
+      } else if (sourceName != null) {
+        assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
+        nsp = _currentBytecodeModule.namespaces[sourceName]!;
+      }
+      nsp.memberSet(varName, value, isRecursive: false);
+      if (_currentBytecodeModule.id != savedModuleName) {
+        _currentBytecodeModule = cachedModules[savedModuleName]!;
+      }
+    } catch (error, stackTrace) {
+      if (config.processError) {
+        processError(error, stackTrace);
+      } else {
+        rethrow;
+      }
+    }
+  }
+
   /// Invoke a top level function defined in a certain namespace.
   /// It's possible to use this method to invoke a [HTClass] or [HTNamedStruct]
   /// name as a contruct call, you will get a [HTInstance] or [HTStruct] as return value.

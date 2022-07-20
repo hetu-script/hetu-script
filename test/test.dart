@@ -54,11 +54,7 @@ void main() {
   });
 
   final result = hetu.eval(r'''
-      namespace ui {
-        external fun test
-      }
-
-      ui.test()
+      print('在 ${1 * 2} 生成悬赏任务：${6 * 7}')
   ''');
 
   if (result is Future) {

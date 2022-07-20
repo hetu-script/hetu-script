@@ -446,6 +446,20 @@ class Hetu {
         sourceName: sourceName,
       );
 
+  /// Assign value to a top level variable defined in a certain namespace in the interpreter.
+  void assign(
+    String varName,
+    dynamic value, {
+    String? moduleName,
+    String? sourceName,
+  }) =>
+      interpreter.assign(
+        varName,
+        value,
+        moduleName: moduleName,
+        sourceName: sourceName,
+      );
+
   /// Invoke a top level function defined in a certain namespace in the interpreter.
   dynamic invoke(String funcName,
           {String? moduleName,
