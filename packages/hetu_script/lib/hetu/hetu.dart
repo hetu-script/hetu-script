@@ -29,6 +29,8 @@ import '../error/error_handler.dart';
 
 class HetuConfig
     implements ParserConfig, AnalyzerConfig, CompilerConfig, InterpreterConfig {
+  bool timer;
+
   @override
   bool explicitEndOfStatement;
 
@@ -68,6 +70,7 @@ class HetuConfig
   bool normalizeImportPath;
 
   HetuConfig({
+    this.timer = false,
     this.explicitEndOfStatement = false,
     this.doStaticAnalysis = false,
     this.computeConstantExpression = false,
@@ -118,17 +121,28 @@ class Hetu {
       HTParser? parser})
       : config = config ?? HetuConfig(),
         lexicon = lexicon ?? HTDefaultLexicon(),
-        sourceContext = sourceContext ?? HTOverlayContext(),
-        _currentParser = parser ?? HTDefaultParser() {
-    bundler = HTBundler(sourceContext: this.sourceContext);
+        sourceContext = sourceContext ?? HTOverlayContext() {
+    _currentParser = parser ??
+        HTDefaultParser(
+          config: this.config,
+        );
+    bundler = HTBundler(
+      sourceContext: this.sourceContext,
+    );
     _parsers[parserName] = _currentParser;
-    analyzer =
-        HTAnalyzer(config: this.config, sourceContext: this.sourceContext);
-    compiler = HTCompiler(config: this.config, lexicon: this.lexicon);
+    analyzer = HTAnalyzer(
+      config: this.config,
+      sourceContext: this.sourceContext,
+    );
+    compiler = HTCompiler(
+      config: this.config,
+      lexicon: this.lexicon,
+    );
     interpreter = HTInterpreter(
-        config: this.config,
-        sourceContext: this.sourceContext,
-        lexicon: this.lexicon);
+      config: this.config,
+      sourceContext: this.sourceContext,
+      lexicon: this.lexicon,
+    );
   }
 
   /// Initialize the interpreter,
@@ -216,6 +230,7 @@ class Hetu {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
+    if (content.trim().isEmpty) return null;
     final source = HTSource(content, fullName: fileName, type: type);
     final result = evalSource(source,
         moduleName: moduleName,
@@ -260,7 +275,7 @@ class Hetu {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
-    if (source.content.isEmpty) {
+    if (source.content.trim().isEmpty) {
       return null;
     }
     final bytes = _compileSource(source, moduleName: moduleName);
@@ -277,11 +292,26 @@ class Hetu {
 
   /// Process the import declaration within several sources,
   /// generate a single [ASTCompilation] for [HTCompiler] to compile.
-  ASTCompilation bundle(HTSource source) {
+  ASTCompilation bundle(HTSource source, {bool errorHandled = false}) {
     final compilation = bundler.bundle(
-        source: source,
-        parser: _currentParser,
-        normalizePath: config.normalizeImportPath);
+      source: source,
+      parser: _currentParser,
+      normalizePath: config.normalizeImportPath,
+      timer: config.timer,
+    );
+    if (compilation.errors.isNotEmpty) {
+      for (final error in compilation.errors) {
+        if (error.severity >= ErrorSeverity.error) {
+          if (errorHandled) {
+            throw error;
+          } else {
+            interpreter.processError(error);
+          }
+        } else {
+          print('${error.severity}: $error');
+        }
+      }
+    }
     return compilation;
   }
 
@@ -312,9 +342,13 @@ class Hetu {
   Uint8List _compileSource(HTSource source,
       {String? moduleName, bool errorHandled = false}) {
     try {
-      final compilation = bundle(source);
+      final compilation = bundle(source, errorHandled: true);
+      Uint8List bytes;
       if (config.doStaticAnalysis) {
-        final result = analyzer.analyzeCompilation(compilation);
+        final result = analyzer.analyzeCompilation(
+          compilation,
+          timer: config.timer,
+        );
         if (result.errors.isNotEmpty) {
           for (final error in result.errors) {
             if (error.severity >= ErrorSeverity.error) {
@@ -328,23 +362,12 @@ class Hetu {
             }
           }
         }
-        return compiler.compile(result.compilation);
-      } else {
-        if (compilation.errors.isNotEmpty) {
-          for (final error in compilation.errors) {
-            if (error.severity >= ErrorSeverity.error) {
-              if (errorHandled) {
-                throw error;
-              } else {
-                interpreter.processError(error);
-              }
-            } else {
-              print('${error.severity}: $error');
-            }
-          }
-        }
-        return compiler.compile(compilation);
       }
+      bytes = compiler.compile(
+        compilation,
+        timer: config.timer,
+      );
+      return bytes;
     } catch (error, stackTrace) {
       if (errorHandled) {
         rethrow;
@@ -365,14 +388,17 @@ class Hetu {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     interpreter.loadBytecode(
-        bytes: bytes,
-        moduleName: moduleName,
-        globallyImport: globallyImport,
-        invokeFunc: invokeFunc,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        typeArgs: typeArgs);
-    if (interpreter.currentBytecodeModule.namespaces.isNotEmpty) {
+      bytes: bytes,
+      moduleName: moduleName,
+      globallyImport: globallyImport,
+      invokeFunc: invokeFunc,
+      positionalArgs: positionalArgs,
+      namedArgs: namedArgs,
+      typeArgs: typeArgs,
+      timer: config.timer,
+    );
+    if (config.doStaticAnalysis &&
+        interpreter.currentBytecodeModule.namespaces.isNotEmpty) {
       analyzer.globalNamespace.import(
           interpreter.currentBytecodeModule.namespaces.values.last,
           idOnly: true);

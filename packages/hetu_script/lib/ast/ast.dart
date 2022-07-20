@@ -190,7 +190,7 @@ class ASTCompilation extends ASTNode {
 
   final Map<String, ASTSource> sources;
 
-  final String entryResourceName;
+  final String entryFullname;
 
   final HTResourceType entryResourceType;
 
@@ -199,7 +199,7 @@ class ASTCompilation extends ASTNode {
   ASTCompilation({
     required this.values,
     required this.sources,
-    required this.entryResourceName,
+    required this.entryFullname,
     required this.entryResourceType,
     required this.errors,
     super.source,

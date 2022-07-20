@@ -17,11 +17,14 @@ class HTBundler {
 
   /// Parse a string content and generate a library,
   /// will import other files.
-  ASTCompilation bundle(
-      {required HTSource source,
-      required HTParser parser,
-      bool normalizePath = true}) {
-    final sourceParseResult = parser.parseSource(source);
+  ASTCompilation bundle({
+    required HTSource source,
+    required HTParser parser,
+    bool normalizePath = true,
+    bool timer = false,
+  }) {
+    final tik = DateTime.now().millisecondsSinceEpoch;
+    final sourceParseResult = parser.parseSource(source, timer: timer);
     final sourceParseErrors = sourceParseResult.errors;
     final values = <String, ASTSource>{};
     final sources = <String, ASTSource>{};
@@ -90,9 +93,13 @@ class HTBundler {
     final compilation = ASTCompilation(
         values: values,
         sources: sources,
-        entryResourceName: source.fullName,
+        entryFullname: source.fullName,
         entryResourceType: source.type,
         errors: sourceParseErrors);
+    final tok = DateTime.now().millisecondsSinceEpoch;
+    if (timer) {
+      print('${tok - tik}ms\tto bundle\t[${source.fullName}]');
+    }
     return compilation;
   }
 }

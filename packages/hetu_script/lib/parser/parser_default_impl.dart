@@ -16,7 +16,9 @@ class HTDefaultParser extends HTParser {
   @override
   String get name => 'default';
 
-  HTDefaultParser() : super(lexicon: HTDefaultLexicon());
+  HTDefaultParser({
+    super.config,
+  }) : super(lexicon: HTDefaultLexicon());
 
   bool get _isWithinModuleNamespace {
     if (_currentFunctionCategory != null) {

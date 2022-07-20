@@ -742,15 +742,18 @@ class HTInterpreter {
 
   /// Load a pre-compiled bytecode file as a module.
   /// If [invokeFunc] is true, execute the bytecode immediately.
-  dynamic loadBytecode(
-      {required Uint8List bytes,
-      required String moduleName,
-      bool globallyImport = false,
-      String? invokeFunc,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic loadBytecode({
+    required Uint8List bytes,
+    required String moduleName,
+    bool globallyImport = false,
+    String? invokeFunc,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    List<HTType> typeArgs = const [],
+    bool timer = false,
+  }) {
     try {
+      final tik = DateTime.now().millisecondsSinceEpoch;
       _currentBytecodeModule = HTBytecodeModule(id: moduleName, bytes: bytes);
       cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       final signature = _currentBytecodeModule.readUint32();
@@ -827,13 +830,17 @@ class HTInterpreter {
             moduleName: _currentBytecodeModule.id,
             positionalArgs: positionalArgs,
             namedArgs: namedArgs);
-        return result;
+      }
+      final tok = DateTime.now().millisecondsSinceEpoch;
+      if (timer) {
+        print(
+            '${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.namespaces.values.last.fullName}]');
       }
       stackTraceList.clear();
       if (_isModuleEntryScript) {
         result = _stackFrames.last.first;
-        return result;
       }
+      return result;
     } catch (error, stackTrace) {
       if (config.processError) {
         processError(error, stackTrace);

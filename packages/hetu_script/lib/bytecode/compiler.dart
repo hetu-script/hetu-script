@@ -80,7 +80,18 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   })  : config = config ?? CompilerConfig(),
         _lexicon = lexicon ?? HTDefaultLexicon();
 
-  Uint8List compile(ASTCompilation compilation) => compilation.accept(this);
+  Uint8List compile(
+    ASTCompilation compilation, {
+    bool timer = false,
+  }) {
+    final tik = DateTime.now().millisecondsSinceEpoch;
+    final bytes = compilation.accept(this);
+    final tok = DateTime.now().millisecondsSinceEpoch;
+    if (timer) {
+      print('${tok - tik}ms\tto compile\t[${compilation.entryFullname}]');
+    }
+    return bytes;
+  }
 
   /// -32768 to 32767
   Uint8List _int16(int value) =>
@@ -307,7 +318,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     mainBytesBuilder.addByte(kHetuVersion.minor);
     mainBytesBuilder.add(_uint16(kHetuVersion.patch));
     // entry file name
-    mainBytesBuilder.add(_utf8String(compilation.entryResourceName));
+    mainBytesBuilder.add(_utf8String(compilation.entryFullname));
     // index: ResourceType
     mainBytesBuilder.addByte(compilation.entryResourceType.index);
     final sourceBytesBuilder = BytesBuilder();

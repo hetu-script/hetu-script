@@ -37,7 +37,9 @@ enum ParseStyle {
 class ParserConfig {
   bool explicitEndOfStatement;
 
-  ParserConfig({this.explicitEndOfStatement = false});
+  ParserConfig({
+    this.explicitEndOfStatement = false,
+  });
 }
 
 /// A general parser, with abstract method to parse a token list or string content.
@@ -217,7 +219,8 @@ abstract class HTParser with TokenReader {
   }
 
   /// Convert string content into [ASTSource] by a certain grammar rules set.
-  ASTSource parseSource(HTSource source) {
+  ASTSource parseSource(HTSource source, {bool timer = false}) {
+    final tik = DateTime.now().millisecondsSinceEpoch;
     currrentFileName = source.fullName;
     resetFlags();
     currentModuleImports = <ImportExportDecl>[];
@@ -228,6 +231,10 @@ abstract class HTParser with TokenReader {
         source: source,
         imports: currentModuleImports,
         errors: errors); // copy the list);
+    final tok = DateTime.now().millisecondsSinceEpoch;
+    if (timer) {
+      print('${tok - tik}ms\tto parse\t[${source.fullName}]');
+    }
     return result;
   }
 

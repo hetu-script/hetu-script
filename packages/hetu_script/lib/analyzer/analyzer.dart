@@ -111,7 +111,9 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     ASTCompilation compilation, {
     String? moduleName,
     bool globallyImport = false,
+    bool timer = false,
   }) {
+    final tik = DateTime.now().millisecondsSinceEpoch;
     // _currentCompilation = compilation;
     _currentErrors = [];
     _currentAnalysisResults = {};
@@ -140,11 +142,16 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     // for (final node in result.parseResult.nodes) {
     //   node.accept(visitor);
     // }
-    return HTModuleAnalysisResult(
+    final result = HTModuleAnalysisResult(
       sourceAnalysisResults: _currentAnalysisResults,
       errors: _currentErrors,
       compilation: compilation,
     );
+    final tok = DateTime.now().millisecondsSinceEpoch;
+    if (timer) {
+      print('analyzed [${compilation.entryFullname}]\t${tok - tik}ms');
+    }
+    return result;
   }
 
   void resolve(ASTSource source) {

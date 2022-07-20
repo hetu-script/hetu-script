@@ -17,14 +17,14 @@ abstract class InternalIdentifier {
   static const namedConstructorPrefix = r'$construct_';
   static const getter = r'$getter_';
   static const setter = r'$setter_';
-  static const subGetter = r'$subscript_getter_';
-  static const subSetter = r'$subscript_setter_';
+  static const subGetter = r'$sub_getter_';
+  static const subSetter = r'$sub_setter_';
 
-  static const anonymousScript = r'$anonymous_script';
-  static const anonymousClass = r'$anonymous_class';
-  static const anonymousStruct = r'$anonymous_struct';
-  static const anonymousFunction = r'$anonymous_function';
-  static const anonymousBlock = r'$anonymous_block';
+  static const anonymousScript = r'$script';
+  static const anonymousClass = r'$class';
+  static const anonymousStruct = r'$struct';
+  static const anonymousFunction = r'$function';
+  static const anonymousBlock = r'$block';
 
   static const instanceOfDescription = 'instance of';
   static const externalType = 'external type';
