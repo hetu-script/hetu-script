@@ -21,10 +21,11 @@ class HTBundler {
     required HTSource source,
     required HTParser parser,
     bool normalizePath = true,
-    bool timer = false,
+    bool debugPerformance = false,
   }) {
     final tik = DateTime.now().millisecondsSinceEpoch;
-    final sourceParseResult = parser.parseSource(source, timer: timer);
+    final sourceParseResult =
+        parser.parseSource(source, debugPerformance: debugPerformance);
     final sourceParseErrors = sourceParseResult.errors;
     final values = <String, ASTSource>{};
     final sources = <String, ASTSource>{};
@@ -53,7 +54,8 @@ class HTBundler {
             continue;
           } else {
             final source2 = sourceContext.getResource(importFullName);
-            importedSource = parser.parseSource(source2);
+            importedSource =
+                parser.parseSource(source2, debugPerformance: debugPerformance);
             // final parser2 = HTParser(sourceContext: sourceContext);
             // importedSource = parser2.parseSource(source2);
             sourceParseErrors.addAll(importedSource.errors);
@@ -97,7 +99,7 @@ class HTBundler {
         entryResourceType: source.type,
         errors: sourceParseErrors);
     final tok = DateTime.now().millisecondsSinceEpoch;
-    if (timer) {
+    if (debugPerformance) {
       print('${tok - tik}ms\tto bundle\t[${source.fullName}]');
     }
     return compilation;

@@ -750,7 +750,7 @@ class HTInterpreter {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
     List<HTType> typeArgs = const [],
-    bool timer = false,
+    bool debugPerformance = false,
   }) {
     try {
       final tik = DateTime.now().millisecondsSinceEpoch;
@@ -832,7 +832,7 @@ class HTInterpreter {
             namedArgs: namedArgs);
       }
       final tok = DateTime.now().millisecondsSinceEpoch;
-      if (timer) {
+      if (debugPerformance) {
         print(
             '${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.namespaces.values.last.fullName}]');
       }

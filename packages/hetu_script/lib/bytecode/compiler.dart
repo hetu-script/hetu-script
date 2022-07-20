@@ -82,12 +82,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   Uint8List compile(
     ASTCompilation compilation, {
-    bool timer = false,
+    bool debugPerformance = false,
   }) {
     final tik = DateTime.now().millisecondsSinceEpoch;
     final bytes = compilation.accept(this);
     final tok = DateTime.now().millisecondsSinceEpoch;
-    if (timer) {
+    if (debugPerformance) {
       print('${tok - tik}ms\tto compile\t[${compilation.entryFullname}]');
     }
     return bytes;

@@ -29,7 +29,7 @@ import '../error/error_handler.dart';
 
 class HetuConfig
     implements ParserConfig, AnalyzerConfig, CompilerConfig, InterpreterConfig {
-  bool timer;
+  bool debugPerformance;
 
   @override
   bool explicitEndOfStatement;
@@ -70,7 +70,7 @@ class HetuConfig
   bool normalizeImportPath;
 
   HetuConfig({
-    this.timer = false,
+    this.debugPerformance = false,
     this.explicitEndOfStatement = false,
     this.doStaticAnalysis = false,
     this.computeConstantExpression = false,
@@ -297,7 +297,7 @@ class Hetu {
       source: source,
       parser: _currentParser,
       normalizePath: config.normalizeImportPath,
-      timer: config.timer,
+      debugPerformance: config.debugPerformance,
     );
     if (compilation.errors.isNotEmpty) {
       for (final error in compilation.errors) {
@@ -347,7 +347,7 @@ class Hetu {
       if (config.doStaticAnalysis) {
         final result = analyzer.analyzeCompilation(
           compilation,
-          timer: config.timer,
+          debugPerformance: config.debugPerformance,
         );
         if (result.errors.isNotEmpty) {
           for (final error in result.errors) {
@@ -365,7 +365,7 @@ class Hetu {
       }
       bytes = compiler.compile(
         compilation,
-        timer: config.timer,
+        debugPerformance: config.debugPerformance,
       );
       return bytes;
     } catch (error, stackTrace) {
@@ -395,7 +395,7 @@ class Hetu {
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
-      timer: config.timer,
+      debugPerformance: config.debugPerformance,
     );
     if (config.doStaticAnalysis &&
         interpreter.currentBytecodeModule.namespaces.isNotEmpty) {
