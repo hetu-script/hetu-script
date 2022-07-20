@@ -301,14 +301,10 @@ class Hetu {
     );
     if (compilation.errors.isNotEmpty) {
       for (final error in compilation.errors) {
-        if (error.severity >= ErrorSeverity.error) {
-          if (errorHandled) {
-            throw error;
-          } else {
-            interpreter.processError(error);
-          }
+        if (errorHandled) {
+          throw error;
         } else {
-          print('${error.severity}: $error');
+          interpreter.processError(error);
         }
       }
     }
