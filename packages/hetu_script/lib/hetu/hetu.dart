@@ -70,7 +70,7 @@ class HetuConfig
   bool normalizeImportPath;
 
   HetuConfig({
-    this.debugPerformance = false,
+    this.debugPerformance = true,
     this.explicitEndOfStatement = false,
     this.doStaticAnalysis = false,
     this.computeConstantExpression = false,
@@ -354,7 +354,7 @@ class Hetu {
                 interpreter.processError(error);
               }
             } else {
-              print('${error.severity}: $error');
+              print('hetu - ${error.severity}: $error');
             }
           }
         }
