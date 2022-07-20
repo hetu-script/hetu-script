@@ -50,17 +50,15 @@ class HTBundler {
           } else {
             decl.fullFromPath = importFullName = decl.fromPath!;
           }
-          if (cachedParsingTargets.contains(importFullName)) {
-            continue;
-          } else {
-            final source2 = sourceContext.getResource(importFullName);
-            importedSource =
-                parser.parseSource(source2, debugPerformance: debugPerformance);
-            // final parser2 = HTParser(sourceContext: sourceContext);
-            // importedSource = parser2.parseSource(source2);
-            sourceParseErrors.addAll(importedSource.errors);
-            // _cachedParseResults[importFullName] = importedSource;
-          }
+          if (sources.keys.contains(importFullName) ||
+              cachedParsingTargets.contains(importFullName)) continue;
+          final source2 = sourceContext.getResource(importFullName);
+          importedSource =
+              parser.parseSource(source2, debugPerformance: debugPerformance);
+          // final parser2 = HTParser(sourceContext: sourceContext);
+          // importedSource = parser2.parseSource(source2);
+          sourceParseErrors.addAll(importedSource.errors);
+          // _cachedParseResults[importFullName] = importedSource;
           if (importedSource.resourceType == HTResourceType.hetuValue) {
             values[importFullName] = importedSource;
           } else {
