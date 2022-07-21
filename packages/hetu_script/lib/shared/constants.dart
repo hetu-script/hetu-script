@@ -18,29 +18,32 @@ abstract class HTOpCode {
   static const whileStmt = 15;
   static const doStmt = 16;
   static const whenStmt = 17;
-  static const block = 18;
+  static const codeBlock = 18;
   static const library = 19;
   static const file = 20;
   static const endOfStmt = 21;
-  static const endOfBlock = 22;
+  static const endOfCodeBlock = 22;
   static const endOfExec = 23;
   static const endOfFunc = 24;
   static const endOfFile = 25;
   static const constIntTable = 30;
   static const constFloatTable = 31;
   static const constStringTable = 32;
-  static const delete = 38;
-  static const constDecl = 39;
-  static const importExportDecl = 40;
-  static const libraryDecl = 41;
-  static const namespaceDecl = 42;
-  static const typeAliasDecl = 43;
-  static const funcDecl = 44;
-  static const classDecl = 45;
-  static const externalEnumDecl = 46;
-  static const structDecl = 47;
-  static const varDecl = 48;
-  static const destructuringDecl = 49;
+  static const constDecl = 33;
+  static const importExportDecl = 34;
+  static const typeAliasDecl = 35;
+  static const varDecl = 36;
+  static const destructuringDecl = 37;
+  static const funcDecl = 38;
+  static const externalEnumDecl = 39;
+  static const structDecl = 40;
+
+  static const namespaceDecl = 41;
+  static const namespaceDeclEnd = 42;
+  static const classDecl = 43;
+  static const classDeclEnd = 44;
+
+  static const delete = 49;
   static const assign = 50;
   static const memberSet = 51;
   static const subSet = 52;
@@ -70,7 +73,8 @@ abstract class HTOpCode {
   static const typeIsNot = 76;
   static const isIn = 77;
   static const isNotIn = 78;
-  static const await = 79;
+  static const awaitedValue = 79;
+
   static const lineInfo = 205;
 }
 

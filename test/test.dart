@@ -52,10 +52,21 @@ void main() {
   hetu.interpreter.bindExternalFunction('test', () {
     print('dart function called');
   });
-
-  final result = hetu.eval(r'''
-      print('在 ${1 * 2} 生成悬赏任务：${6 * 7}')
-  ''');
+  final jsonData = {
+    "name": "Aleph",
+    "type": "novel",
+    "volumes": 7,
+  };
+  final result = hetu.eval(
+    r'''
+            fun fromJsonTest(data) {
+              final obj = prototype.fromJson(data)
+              return obj.volumes
+            }
+          ''',
+    invokeFunc: 'fromJsonTest',
+    positionalArgs: [jsonData],
+  );
 
   if (result is Future) {
     result.then((value) => print(hetu.lexicon.stringify(value)));

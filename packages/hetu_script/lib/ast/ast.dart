@@ -1074,13 +1074,13 @@ class BlockStmt extends Statement {
 
   final List<ASTNode> statements;
 
-  final bool hasOwnNamespace;
+  final bool isCodeBlock;
 
   final String? id;
 
   BlockStmt(
     this.statements, {
-    this.hasOwnNamespace = true,
+    this.isCodeBlock = true,
     // super.isAsync = false,
     this.id,
     super.source,

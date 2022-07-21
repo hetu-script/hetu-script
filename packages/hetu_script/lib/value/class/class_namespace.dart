@@ -3,11 +3,15 @@ import '../../grammar/constant.dart';
 // import '../../source/source.dart';
 import '../function/function.dart';
 import '../namespace/namespace.dart';
+import 'class.dart';
 
 /// A implementation of [HTNamespace] for [HTClass].
 /// For interpreter searching for symbols within static methods.
 class HTClassNamespace extends HTNamespace {
+  final HTClass klass;
+
   HTClassNamespace({
+    required this.klass,
     required super.lexicon,
     super.id,
     super.classId,

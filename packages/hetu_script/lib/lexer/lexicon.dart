@@ -353,9 +353,10 @@ abstract class HTLexicon {
       };
 
   /// prefix operators that modify the value
-  Set<String> get unaryPrefixsOnLeftValue => {
+  Set<String> get unaryPrefixsThatChangeTheValue => {
         preIncrement,
         preDecrement,
+        kAwait,
       };
 
   String get logicalNot;

@@ -213,7 +213,7 @@ abstract class HTParser with TokenReader {
           continue;
         }
         nodes.add(stmt);
-      } else {}
+      }
     }
     return nodes;
   }

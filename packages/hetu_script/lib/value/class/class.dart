@@ -36,30 +36,35 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
 
   /// The [HTNamespace] for this class,
   /// for searching for static variables.
-  final HTClassNamespace namespace;
+  late final HTClassNamespace namespace;
+
+  final bool hasUserDefinedConstructor;
 
   /// Create a default [HTClass] instance.
-  HTClass(HTInterpreter interpreter,
-      {super.id,
-      super.classId,
-      HTNamespace? closure,
-      super.source,
-      super.genericTypeParameters = const [],
-      super.superType,
-      super.withTypes = const [],
-      super.implementsTypes = const [],
-      super.isExternal = false,
-      super.isAbstract = false,
-      super.isEnum = false,
-      this.superClass})
-      : namespace = HTClassNamespace(
-          lexicon: interpreter.lexicon,
-          id: id,
-          classId: classId,
-          closure: closure,
-          source: source,
-        ),
-        super(closure: closure) {
+  HTClass(
+    HTInterpreter interpreter, {
+    super.id,
+    super.classId,
+    HTNamespace? closure,
+    super.source,
+    super.genericTypeParameters = const [],
+    super.superType,
+    super.withTypes = const [],
+    super.implementsTypes = const [],
+    super.isExternal = false,
+    super.isAbstract = false,
+    super.isEnum = false,
+    this.superClass,
+    this.hasUserDefinedConstructor = false,
+  }) : super(closure: closure) {
+    namespace = HTClassNamespace(
+      klass: this,
+      lexicon: interpreter.lexicon,
+      id: id,
+      classId: classId,
+      closure: closure,
+      source: source,
+    );
     this.interpreter = interpreter;
   }
 
