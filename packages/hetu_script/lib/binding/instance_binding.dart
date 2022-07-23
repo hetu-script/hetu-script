@@ -1077,10 +1077,8 @@ extension RandomBinding on math.Random {
                 index = nextInt(list.length);
               } while (indexes.contains(index));
               indexes.add(index);
-            } while (indexes.length < list.length);
-            for (final index in indexes) {
               yield list.elementAt(index);
-            }
+            } while (indexes.length < list.length);
           }
         };
       default:

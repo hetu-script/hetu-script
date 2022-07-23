@@ -59,19 +59,9 @@ void main() {
   };
   final result = hetu.eval(
     r'''
-      if (1 < 2) {
-        var a = 0
-        while(true) {
-          print(a)
-
-          if (a > 5) {
-            break
-          }
-          
-          ++a
-        }
-        a
-      }
+      final a = ['centerTop', 'centerLeft', 'centerRight', 'centerBottom']
+      final i = Random().shuffle(a).toList()
+      print(i.first, i.last)
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],
