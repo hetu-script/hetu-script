@@ -59,13 +59,22 @@ void main() {
   };
   final result = hetu.eval(
     r'''
-            fun fromJsonTest(data) {
-              final obj = prototype.fromJson(data)
-              return obj.volumes
-            }
+      if (1 < 2) {
+        var a = 0
+        while(true) {
+          print(a)
+
+          if (a > 5) {
+            break
+          }
+          
+          ++a
+        }
+        a
+      }
           ''',
-    invokeFunc: 'fromJsonTest',
-    positionalArgs: [jsonData],
+    // invokeFunc: 'fromJsonTest',
+    // positionalArgs: [jsonData],
   );
 
   if (result is Future) {

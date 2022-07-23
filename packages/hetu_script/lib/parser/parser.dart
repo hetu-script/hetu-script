@@ -92,8 +92,6 @@ abstract class HTParser with TokenReader {
         listResult.add(expr);
         handleTrailing(expr,
             handleComma: handleComma, endMarkForCommaExpressions: endToken);
-      } else {
-        break;
       }
     }
     if (currentPrecedings.isNotEmpty && listResult.isNotEmpty) {

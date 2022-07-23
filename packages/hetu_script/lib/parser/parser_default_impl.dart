@@ -57,6 +57,12 @@ class HTDefaultParser extends HTParser {
     //   return null;
     // }
 
+    // handle emtpy statement is a must because automatic semicolon insertion.
+    if (curTok.type == lexicon.endOfStatementMark) {
+      advance();
+      return null;
+    }
+
     if (curTok.type == Semantic.endOfFile) {
       return null;
     }

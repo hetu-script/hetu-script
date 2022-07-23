@@ -1274,6 +1274,7 @@ class HTInterpreter {
             break;
           case HTOpCode.assign:
             final value = _getRegVal(HTRegIdx.assign);
+            assert(localSymbol != null);
             final id = localSymbol!;
             final result = _currentNamespace.memberSet(id, value,
                 isRecursive: true, throws: false);
