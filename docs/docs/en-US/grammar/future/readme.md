@@ -42,6 +42,25 @@ print(41)
 
 The above output should be 41 then 42.
 
+And you could also create a async function by add `async` keyword before its definition block:
+
+```dart
+// for declaration
+fun testAsync async {
+  // some code
+}
+
+// for literal function
+() async {
+  // some code
+} ().then((value) {
+  // you can immediately call this future literal function to do things just like in Javascript.
+})
+
+```
+
+Hetu will create a Future object by using the script function as its argument.
+
 ## Wait for a list of future
 
 After 0.4.0, you can use the static wait api on Future class to wait for a bunch of values to be returned.

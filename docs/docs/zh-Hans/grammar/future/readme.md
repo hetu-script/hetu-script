@@ -40,6 +40,25 @@ print(41)
 
 上面的代码将会先打印41，然后打印42。
 
+你也可以在函数定义代码块的括号之前添加 `async` 关键字来方便的返回一个Future对象：
+
+```dart
+// 函数声明时附带async
+fun testAsync async {
+  // some code
+}
+
+// 匿名函数附带async
+() async {
+  // some code
+} ().then((value) {
+  // 匿名函数的好处是可以原地立即执行，这种用法类似 Javascript
+})
+
+```
+
+这种方式声明的函数，本质上还是创建了一个 Dart 的 Future 对象。然后将脚本函数作为其参数。
+
 ## 等待多个 Future 返回
 
 河图 0.4.0 版本之后，可以使用 Future 类上的静态函数 wait() 来等待多个 Future 完成，然后统一返回。
