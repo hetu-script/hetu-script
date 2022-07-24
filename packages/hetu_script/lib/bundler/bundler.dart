@@ -23,9 +23,9 @@ class HTBundler {
     bool normalizePath = true,
     bool debugPerformance = false,
   }) {
-    final tik = DateTime.now().millisecondsSinceEpoch;
     final sourceParseResult =
         parser.parseSource(source, debugPerformance: debugPerformance);
+    final tik = DateTime.now().millisecondsSinceEpoch;
     final sourceParseErrors = sourceParseResult.errors;
     final values = <String, ASTSource>{};
     final sources = <String, ASTSource>{};
