@@ -1727,6 +1727,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else {
         bytesBuilder.addByte(0);
       }
+      bytesBuilder.addByte(stmt.isAsync ? 1 : 0);
     }
     bytesBuilder.addByte(stmt.hasParamDecls ? 1 : 0);
     bytesBuilder.addByte(stmt.isVariadic ? 1 : 0);

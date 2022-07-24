@@ -1685,6 +1685,7 @@ class HTInterpreter {
         if (hasExternalTypedef) {
           externalTypedef = _currentBytecodeModule.readShortString();
         }
+        final isAsync = _currentBytecodeModule.readBool();
         final hasParamDecls = _currentBytecodeModule.readBool();
         final isVariadic = _currentBytecodeModule.readBool();
         final minArity = _currentBytecodeModule.read();
@@ -1724,6 +1725,7 @@ class HTInterpreter {
             hasParamDecls: hasParamDecls,
             paramDecls: paramDecls,
             declType: declType,
+            isAsync: isAsync,
             isVariadic: isVariadic,
             minArity: minArity,
             maxArity: maxArity,

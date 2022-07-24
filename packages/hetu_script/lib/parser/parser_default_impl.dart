@@ -171,23 +171,25 @@ class HTDefaultParser extends HTParser {
             stmt = _parseFunction(
                 category: FunctionCategory.literal, isTopLevel: true);
           }
-        } else if (curTok.type == lexicon.kAsync) {
-          if (expect([lexicon.kAsync, Semantic.identifier]) ||
-              expect([
-                lexicon.kFun,
-                lexicon.externalFunctionTypeDefStart,
-                Semantic.identifier,
-                lexicon.externalFunctionTypeDefEnd,
-                Semantic.identifier
-              ])) {
-            stmt = _parseFunction(isAsync: true, isTopLevel: true);
-          } else {
-            stmt = _parseFunction(
-                category: FunctionCategory.literal,
-                isAsync: true,
-                isTopLevel: true);
-          }
-        } else if (curTok.type == lexicon.kStruct) {
+        }
+        // else if (curTok.type == lexicon.kAsync) {
+        //   if (expect([lexicon.kAsync, Semantic.identifier]) ||
+        //       expect([
+        //         lexicon.kFun,
+        //         lexicon.externalFunctionTypeDefStart,
+        //         Semantic.identifier,
+        //         lexicon.externalFunctionTypeDefEnd,
+        //         Semantic.identifier
+        //       ])) {
+        //     stmt = _parseFunction(isAsync: true, isTopLevel: true);
+        //   } else {
+        //     stmt = _parseFunction(
+        //         category: FunctionCategory.literal,
+        //         isAsync: true,
+        //         isTopLevel: true);
+        //   }
+        // }
+        else if (curTok.type == lexicon.kStruct) {
           stmt =
               _parseStructDecl(isTopLevel: true); // , lateInitialize: false);
         } else if (curTok.type == lexicon.kDelete) {
@@ -488,31 +490,33 @@ class HTDefaultParser extends HTParser {
                 isOverrided: isOverrided,
                 isExternal: isExternal,
                 isStatic: isStatic);
-          } else if (curTok.type == lexicon.kAsync) {
-            if (isExternal) {
-              final err = HTError.external(Semantic.asyncFunction,
-                  filename: currrentFileName,
-                  line: curTok.line,
-                  column: curTok.column,
-                  offset: curTok.offset,
-                  length: curTok.length);
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                  source: currentSource,
-                  line: errToken.line,
-                  column: errToken.column,
-                  offset: errToken.offset);
-            } else {
-              stmt = _parseFunction(
-                  category: FunctionCategory.method,
-                  classId: _currentClassDeclaration?.id,
-                  isAsync: true,
-                  isOverrided: isOverrided,
-                  isExternal: isExternal,
-                  isStatic: isStatic);
-            }
-          } else if (curTok.type == lexicon.kGet) {
+          }
+          // else if (curTok.type == lexicon.kAsync) {
+          //   if (isExternal) {
+          //     final err = HTError.external(Semantic.asyncFunction,
+          //         filename: currrentFileName,
+          //         line: curTok.line,
+          //         column: curTok.column,
+          //         offset: curTok.offset,
+          //         length: curTok.length);
+          //     errors.add(err);
+          //     final errToken = advance();
+          //     stmt = ASTEmptyLine(
+          //         source: currentSource,
+          //         line: errToken.line,
+          //         column: errToken.column,
+          //         offset: errToken.offset);
+          //   } else {
+          //     stmt = _parseFunction(
+          //         category: FunctionCategory.method,
+          //         classId: _currentClassDeclaration?.id,
+          //         isAsync: true,
+          //         isOverrided: isOverrided,
+          //         isExternal: isExternal,
+          //         isStatic: isStatic);
+          //   }
+          // }
+          else if (curTok.type == lexicon.kGet) {
             stmt = _parseFunction(
                 category: FunctionCategory.getter,
                 classId: _currentClassDeclaration?.id,
@@ -644,31 +648,33 @@ class HTDefaultParser extends HTParser {
               isExternal: isExternal,
               isField: true,
               isStatic: isStatic);
-        } else if (curTok.type == lexicon.kAsync) {
-          if (isExternal) {
-            final err = HTError.external(Semantic.asyncFunction,
-                filename: currrentFileName,
-                line: curTok.line,
-                column: curTok.column,
-                offset: curTok.offset,
-                length: curTok.length);
-            errors.add(err);
-            final errToken = advance();
-            stmt = ASTEmptyLine(
-                source: currentSource,
-                line: errToken.line,
-                column: errToken.column,
-                offset: errToken.offset);
-          } else {
-            stmt = _parseFunction(
-                category: FunctionCategory.method,
-                classId: _currentStructId,
-                isAsync: true,
-                isField: true,
-                isExternal: isExternal,
-                isStatic: isStatic);
-          }
-        } else if (curTok.type == lexicon.kGet) {
+        }
+        // else if (curTok.type == lexicon.kAsync) {
+        //   if (isExternal) {
+        //     final err = HTError.external(Semantic.asyncFunction,
+        //         filename: currrentFileName,
+        //         line: curTok.line,
+        //         column: curTok.column,
+        //         offset: curTok.offset,
+        //         length: curTok.length);
+        //     errors.add(err);
+        //     final errToken = advance();
+        //     stmt = ASTEmptyLine(
+        //         source: currentSource,
+        //         line: errToken.line,
+        //         column: errToken.column,
+        //         offset: errToken.offset);
+        //   } else {
+        //     stmt = _parseFunction(
+        //         category: FunctionCategory.method,
+        //         classId: _currentStructId,
+        //         isAsync: true,
+        //         isField: true,
+        //         isExternal: isExternal,
+        //         isStatic: isStatic);
+        //   }
+        // }
+        else if (curTok.type == lexicon.kGet) {
           stmt = _parseFunction(
               category: FunctionCategory.getter,
               classId: _currentStructId,
@@ -777,21 +783,23 @@ class HTDefaultParser extends HTParser {
           } else {
             stmt = _parseFunction(category: FunctionCategory.literal);
           }
-        } else if (curTok.type == lexicon.kAsync) {
-          if (expect([lexicon.kAsync, Semantic.identifier]) ||
-              expect([
-                lexicon.kFun,
-                lexicon.externalFunctionTypeDefStart,
-                Semantic.identifier,
-                lexicon.externalFunctionTypeDefEnd,
-                Semantic.identifier
-              ])) {
-            stmt = _parseFunction(isAsync: true);
-          } else {
-            stmt = _parseFunction(
-                category: FunctionCategory.literal, isAsync: true);
-          }
-        } else if (curTok.type == lexicon.kStruct) {
+        }
+        // else if (curTok.type == lexicon.kAsync) {
+        //   if (expect([lexicon.kAsync, Semantic.identifier]) ||
+        //       expect([
+        //         lexicon.kFun,
+        //         lexicon.externalFunctionTypeDefStart,
+        //         Semantic.identifier,
+        //         lexicon.externalFunctionTypeDefEnd,
+        //         Semantic.identifier
+        //       ])) {
+        //     stmt = _parseFunction(isAsync: true);
+        //   } else {
+        //     stmt = _parseFunction(
+        //         category: FunctionCategory.literal, isAsync: true);
+        //   }
+        // }
+        else if (curTok.type == lexicon.kStruct) {
           stmt = _parseStructDecl(); // (lateInitialize: false);
         } else if (curTok.type == lexicon.kDelete) {
           stmt = _parseDeleteStmt();
@@ -1512,7 +1520,8 @@ class HTDefaultParser extends HTParser {
                           lexicon.groupExprEnd))) &&
           (tokenAfterGroupExprEnd.type == lexicon.codeBlockStart ||
               tokenAfterGroupExprEnd.type ==
-                  lexicon.functionSingleLineBodyIndicator)) {
+                  lexicon.functionSingleLineBodyIndicator ||
+              tokenAfterGroupExprEnd.type == lexicon.kAsync)) {
         _isLegalLeftValue = false;
         expr = _parseFunction(
             category: FunctionCategory.literal, hasKeyword: false);
@@ -1581,10 +1590,10 @@ class HTDefaultParser extends HTParser {
       expr = _parseFunction(category: FunctionCategory.literal);
     }
 
-    if (expr == null && curTok.type == lexicon.kAsync) {
-      _isLegalLeftValue = false;
-      expr = _parseFunction(category: FunctionCategory.literal, isAsync: true);
-    }
+    // if (expr == null && curTok.type == lexicon.kAsync) {
+    //   _isLegalLeftValue = false;
+    //   expr = _parseFunction(category: FunctionCategory.literal, isAsync: true);
+    // }
 
     if (expr == null && curTok.type == Semantic.identifier) {
       final id = advance() as TokenIdentifier;
@@ -2607,7 +2616,7 @@ class HTDefaultParser extends HTParser {
       {FunctionCategory category = FunctionCategory.normal,
       String? classId,
       bool hasKeyword = true,
-      bool isAsync = false,
+      // bool isAsync = false,
       bool isField = false,
       bool isOverrided = false,
       bool isExternal = false,
@@ -2863,6 +2872,14 @@ class HTDefaultParser extends HTParser {
           column: ctorCallee.column,
           offset: ctorCallee.offset,
           length: curTok.offset - ctorCallee.offset);
+    }
+    bool isAsync = false;
+    if (category == FunctionCategory.normal ||
+        category == FunctionCategory.method ||
+        category == FunctionCategory.literal) {
+      if (expect([lexicon.kAsync], consume: true)) {
+        isAsync = true;
+      }
     }
     bool isExpressionBody = false;
     bool hasEndOfStmtMark = false;
