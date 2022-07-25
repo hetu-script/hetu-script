@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
+
 import '../ast/ast.dart';
 import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
@@ -109,13 +111,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   // Uint8List _int32(int value) =>
   //     Uint8List(4)..buffer.asByteData().setInt32(0, value, Endian.big);
 
-  // Uint8List _float32(double value) =>
-  //     Uint8List(4)..buffer.asByteData().setFloat32(0, value, Endian.big);
-
   /// -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
   // Uint8List _int64(int value) {
   //     Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
   // }
+
+  // Uint8List _float32(double value) =>
+  //     Uint8List(4)..buffer.asByteData().setFloat32(0, value, Endian.big);
 
   // Uint8List _float64(double value) {
   //     Uint8List(8)..buffer.asByteData().setInt64(0, value, Endian.big);
@@ -317,6 +319,19 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     mainBytesBuilder.addByte(kHetuVersion.major);
     mainBytesBuilder.addByte(kHetuVersion.minor);
     mainBytesBuilder.add(_uint16(kHetuVersion.patch));
+    // pre-release id length
+    mainBytesBuilder.addByte(kHetuVersion.preRelease.length);
+    for (final item in kHetuVersion.preRelease) {
+      mainBytesBuilder.add(_utf8String(item.toString()));
+    }
+    // build id length
+    mainBytesBuilder.addByte(kHetuVersion.build.length);
+    for (final item in kHetuVersion.build) {
+      mainBytesBuilder.add(_utf8String(item.toString()));
+    }
+    final compiledAt = DateTime.now();
+    final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    mainBytesBuilder.add(_utf8String(formatter.format(compiledAt)));
     // entry file name
     mainBytesBuilder.add(_utf8String(compilation.entryFullname));
     // index: ResourceType

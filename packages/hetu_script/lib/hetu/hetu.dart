@@ -26,6 +26,7 @@ import '../parser/parser_default_impl.dart';
 import '../resource/resource.dart';
 import '../bundler/bundler.dart';
 import '../error/error_handler.dart';
+import '../version.dart';
 
 class HetuConfig
     implements ParserConfig, AnalyzerConfig, CompilerConfig, InterpreterConfig {
@@ -383,7 +384,7 @@ class Hetu {
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
-    interpreter.loadBytecode(
+    final result = interpreter.loadBytecode(
       bytes: bytes,
       moduleName: moduleName,
       globallyImport: globallyImport,
@@ -399,6 +400,7 @@ class Hetu {
           interpreter.currentBytecodeModule.namespaces.values.last,
           idOnly: true);
     }
+    return result;
   }
 
   /// Load a source into current bytecode dynamically.

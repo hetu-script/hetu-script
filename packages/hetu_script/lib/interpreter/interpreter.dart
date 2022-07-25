@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:math' as math;
-import 'package:hetu_script/value/class/class_namespace.dart';
-import 'package:path/path.dart' as path;
 
+import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
+
+import '../value/class/class_namespace.dart';
 import '../value/namespace/namespace.dart';
 import '../value/struct/named_struct.dart';
 import '../value/entity.dart';
@@ -802,6 +804,23 @@ class HTInterpreter {
       final major = _currentBytecodeModule.read();
       final minor = _currentBytecodeModule.read();
       final patch = _currentBytecodeModule.readUint16();
+      final preReleaseLength = _currentBytecodeModule.read();
+      String? preRelease;
+      for (var i = 0; i < preReleaseLength; ++i) {
+        preRelease ??= '';
+        preRelease += _currentBytecodeModule.readUtf8String();
+      }
+      final buildLength = _currentBytecodeModule.read();
+      String? build;
+      for (var i = 0; i < buildLength; ++i) {
+        build ??= '';
+        build += _currentBytecodeModule.readUtf8String();
+      }
+      _currentBytecodeModule.version =
+          Version(major, minor, patch, pre: preRelease, build: build);
+      _currentBytecodeModule.compiledAt =
+          _currentBytecodeModule.readUtf8String();
+
       var incompatible = false;
       if (major > 0) {
         if (major != kHetuVersion.major) {
@@ -818,7 +837,7 @@ class HTInterpreter {
         throw HTError.version('$major.$minor.$patch', '$kHetuVersion',
             filename: _currentFileName, line: _currentLine, column: _column);
       }
-      _currentFileName = _currentBytecodeModule.readLongString();
+      _currentFileName = _currentBytecodeModule.readUtf8String();
       final sourceType =
           HTResourceType.values.elementAt(_currentBytecodeModule.read());
       _isModuleEntryScript = sourceType == HTResourceType.hetuScript ||
@@ -873,7 +892,7 @@ class HTInterpreter {
       final tok = DateTime.now().millisecondsSinceEpoch;
       if (debugPerformance) {
         print(
-            'hetu: ${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.namespaces.values.last.fullName}]');
+            'hetu: ${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.id}] (version: \'${_currentBytecodeModule.version}\', compiled at: ${_currentBytecodeModule.compiledAt})');
       }
       stackTraceList.clear();
       return result;
@@ -1043,7 +1062,7 @@ class HTInterpreter {
             _currentBytecodeModule.ip = _anchor + distance;
             break;
           case HTOpCode.file:
-            _currentFileName = _currentBytecodeModule.readShortString();
+            _currentFileName = _currentBytecodeModule.getConstString();
             final resourceTypeIndex = _currentBytecodeModule.read();
             _currentFileResourceType =
                 HTResourceType.values.elementAt(resourceTypeIndex);
@@ -1075,7 +1094,7 @@ class HTInterpreter {
             break;
           case HTOpCode.assertion:
             assert(_localValue is bool);
-            final text = _currentBytecodeModule.readShortString();
+            final text = _currentBytecodeModule.getConstString();
             if (!_localValue) {
               throw HTError.assertionFailed(text);
             }
@@ -1084,7 +1103,7 @@ class HTInterpreter {
             throw HTError.scriptThrows(_lexicon.stringify(_localValue));
           // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
           case HTOpCode.codeBlock:
-            final id = _currentBytecodeModule.readShortString();
+            final id = _currentBytecodeModule.getConstString();
             _currentNamespace = HTNamespace(
                 lexicon: _lexicon, id: id, closure: _currentNamespace);
             break;
@@ -1133,7 +1152,7 @@ class HTInterpreter {
             final utf8StringLength = _currentBytecodeModule.readUint16();
             for (var i = 0; i < utf8StringLength; ++i) {
               _currentBytecodeModule.addGlobalConstant<String>(
-                  _currentBytecodeModule.readLongString());
+                  _currentBytecodeModule.readUtf8String());
             }
             break;
           case HTOpCode.importExportDecl:
@@ -1186,11 +1205,11 @@ class HTInterpreter {
             _handleConstDecl();
             break;
           case HTOpCode.namespaceDecl:
-            final id = _currentBytecodeModule.readShortString();
+            final id = _currentBytecodeModule.getConstString();
             String? classId;
             final hasClassId = _currentBytecodeModule.readBool();
             if (hasClassId) {
-              classId = _currentBytecodeModule.readShortString();
+              classId = _currentBytecodeModule.getConstString();
             }
             final isTopLevel = _currentBytecodeModule.readBool();
             _currentNamespace = HTNamespace(
@@ -1214,7 +1233,7 @@ class HTInterpreter {
             if (deletingType == DeletingTypeCode.member) {
               final object = execute();
               if (object is HTStruct) {
-                final symbol = _currentBytecodeModule.readShortString();
+                final symbol = _currentBytecodeModule.getConstString();
                 object.delete(symbol);
               } else {
                 throw HTError.delete(
@@ -1234,7 +1253,7 @@ class HTInterpreter {
                     column: _column);
               }
             } else {
-              final symbol = _currentBytecodeModule.readShortString();
+              final symbol = _currentBytecodeModule.getConstString();
               _currentNamespace.delete(symbol);
             }
             break;
@@ -1485,7 +1504,7 @@ class HTInterpreter {
     final showList = <String>{};
     final showListLength = _currentBytecodeModule.read();
     for (var i = 0; i < showListLength; ++i) {
-      final id = _currentBytecodeModule.readShortString();
+      final id = _currentBytecodeModule.getConstString();
       showList.add(id);
       if (isExported) {
         _currentNamespace.declareExport(id);
@@ -1494,12 +1513,12 @@ class HTInterpreter {
     final hasFromPath = _currentBytecodeModule.readBool();
     String? fromPath;
     if (hasFromPath) {
-      fromPath = _currentBytecodeModule.readShortString();
+      fromPath = _currentBytecodeModule.getConstString();
     }
     String? alias;
     final hasAlias = _currentBytecodeModule.readBool();
     if (hasAlias) {
-      alias = _currentBytecodeModule.readShortString();
+      alias = _currentBytecodeModule.getConstString();
     }
     if (isPreloadedModule) {
       assert(fromPath != null);
@@ -1579,10 +1598,10 @@ class HTInterpreter {
         _localValue = _currentBytecodeModule.getGlobalConstant(String, index);
         break;
       case HTValueTypeCode.string:
-        _localValue = _currentBytecodeModule.readLongString();
+        _localValue = _currentBytecodeModule.readUtf8String();
         break;
       case HTValueTypeCode.stringInterpolation:
-        var literal = _currentBytecodeModule.readLongString();
+        var literal = _currentBytecodeModule.readUtf8String();
         final interpolationLength = _currentBytecodeModule.read();
         for (var i = 0; i < interpolationLength; ++i) {
           final value = execute();
@@ -1593,7 +1612,7 @@ class HTInterpreter {
         _localValue = literal;
         break;
       case HTValueTypeCode.identifier:
-        final symbol = _localSymbol = _currentBytecodeModule.readShortString();
+        final symbol = _localSymbol = _currentBytecodeModule.getConstString();
         final isLocal = _currentBytecodeModule.readBool();
         if (isLocal) {
           _localValue = _currentNamespace.memberGet(symbol, isRecursive: true);
@@ -1634,12 +1653,12 @@ class HTInterpreter {
         String? id;
         final hasId = _currentBytecodeModule.readBool();
         if (hasId) {
-          id = _currentBytecodeModule.readShortString();
+          id = _currentBytecodeModule.getConstString();
         }
         HTStruct? prototype;
         final hasPrototypeId = _currentBytecodeModule.readBool();
         if (hasPrototypeId) {
-          final prototypeId = _currentBytecodeModule.readShortString();
+          final prototypeId = _currentBytecodeModule.getConstString();
           prototype = _currentNamespace.memberGet(prototypeId,
               from: _currentNamespace.fullName, isRecursive: true);
         }
@@ -1660,7 +1679,7 @@ class HTInterpreter {
               struct.define(key, copiedValue);
             }
           } else {
-            final key = _currentBytecodeModule.readShortString();
+            final key = _currentBytecodeModule.getConstString();
             final value = execute();
             struct.memberSet(key, value, recursive: false);
           }
@@ -1679,11 +1698,11 @@ class HTInterpreter {
       //   _curValue = map;
       //   break;
       case HTValueTypeCode.function:
-        final internalName = _currentBytecodeModule.readShortString();
+        final internalName = _currentBytecodeModule.getConstString();
         final hasExternalTypedef = _currentBytecodeModule.readBool();
         String? externalTypedef;
         if (hasExternalTypedef) {
-          externalTypedef = _currentBytecodeModule.readShortString();
+          externalTypedef = _currentBytecodeModule.getConstString();
         }
         final isAsync = _currentBytecodeModule.readBool();
         final hasParamDecls = _currentBytecodeModule.readBool();
@@ -2042,7 +2061,7 @@ class HTInterpreter {
     final namedArgs = <String, dynamic>{};
     final namedArgsLength = _currentBytecodeModule.read();
     for (var i = 0; i < namedArgsLength; ++i) {
-      final name = _currentBytecodeModule.readShortString();
+      final name = _currentBytecodeModule.getConstString();
       final arg = execute();
       // final arg = execute(moveRegIndex: true);
       namedArgs[name] = arg;
@@ -2059,7 +2078,7 @@ class HTInterpreter {
   }
 
   HTIntrinsicType _handleIntrinsicType() {
-    final typeName = _currentBytecodeModule.readShortString();
+    final typeName = _currentBytecodeModule.getConstString();
     final isTop = _currentBytecodeModule.readBool();
     final isBottom = _currentBytecodeModule.readBool();
     if (typeName == _lexicon.typeAny) {
@@ -2085,7 +2104,7 @@ class HTInterpreter {
   }
 
   HTUnresolvedType _handleNominalType() {
-    final typeName = _currentBytecodeModule.readShortString();
+    final typeName = _currentBytecodeModule.getConstString();
     final typeArgsLength = _currentBytecodeModule.read();
     final typeArgs = <HTUnresolvedType>[];
     for (var i = 0; i < typeArgsLength; ++i) {
@@ -2107,7 +2126,7 @@ class HTInterpreter {
       final isNamed = _currentBytecodeModule.read() == 0 ? false : true;
       String? paramId;
       if (isNamed) {
-        paramId = _currentBytecodeModule.readShortString();
+        paramId = _currentBytecodeModule.getConstString();
       }
       final decl = HTParameterType(
           id: paramId,
@@ -2125,7 +2144,7 @@ class HTInterpreter {
     final fieldsLength = _currentBytecodeModule.readUint16();
     final fieldTypes = <String, HTType>{};
     for (var i = 0; i < fieldsLength; ++i) {
-      final id = _currentBytecodeModule.readShortString();
+      final id = _currentBytecodeModule.getConstString();
       final typeExpr = _handleTypeExpr();
       fieldTypes[id] = typeExpr;
     }
@@ -2151,11 +2170,11 @@ class HTInterpreter {
   }
 
   void _handleTypeAliasDecl() {
-    final id = _currentBytecodeModule.readShortString();
+    final id = _currentBytecodeModule.getConstString();
     String? classId;
     final hasClassId = _currentBytecodeModule.readBool();
     if (hasClassId) {
-      classId = _currentBytecodeModule.readShortString();
+      classId = _currentBytecodeModule.getConstString();
     }
     final isTopLevel = _currentBytecodeModule.readBool();
     if (isTopLevel && _currentNamespace.willExportAll) {
@@ -2169,11 +2188,11 @@ class HTInterpreter {
   }
 
   void _handleConstDecl() {
-    final id = _currentBytecodeModule.readShortString();
+    final id = _currentBytecodeModule.getConstString();
     String? classId;
     final hasClassId = _currentBytecodeModule.readBool();
     if (hasClassId) {
-      classId = _currentBytecodeModule.readShortString();
+      classId = _currentBytecodeModule.getConstString();
     }
     final isTopLevel = _currentBytecodeModule.readBool();
     if (isTopLevel && _currentNamespace.willExportAll) {
@@ -2193,11 +2212,11 @@ class HTInterpreter {
   }
 
   void _handleVarDecl() {
-    final id = _currentBytecodeModule.readShortString();
+    final id = _currentBytecodeModule.getConstString();
     String? classId;
     final hasClassId = _currentBytecodeModule.readBool();
     if (hasClassId) {
-      classId = _currentBytecodeModule.readShortString();
+      classId = _currentBytecodeModule.getConstString();
     }
     final isField = _currentBytecodeModule.readBool();
     final isExternal = _currentBytecodeModule.readBool();
@@ -2281,7 +2300,7 @@ class HTInterpreter {
     final omittedPrefix = '##';
     var omittedIndex = 0;
     for (var i = 0; i < idCount; ++i) {
-      var id = _currentBytecodeModule.readShortString();
+      var id = _currentBytecodeModule.getConstString();
       // omit '_' symbols
       if (id == _lexicon.omittedMark) {
         id = omittedPrefix + (omittedIndex++).toString();
@@ -2333,7 +2352,7 @@ class HTInterpreter {
   Map<String, HTParameter> _getParams(int paramDeclsLength) {
     final paramDecls = <String, HTParameter>{};
     for (var i = 0; i < paramDeclsLength; ++i) {
-      final id = _currentBytecodeModule.readShortString();
+      final id = _currentBytecodeModule.getConstString();
       final isOptional = _currentBytecodeModule.readBool();
       final isVariadic = _currentBytecodeModule.readBool();
       final isNamed = _currentBytecodeModule.readBool();
@@ -2371,21 +2390,21 @@ class HTInterpreter {
   }
 
   void _handleFuncDecl() {
-    final internalName = _currentBytecodeModule.readShortString();
+    final internalName = _currentBytecodeModule.getConstString();
     String? id;
     final hasId = _currentBytecodeModule.readBool();
     if (hasId) {
-      id = _currentBytecodeModule.readShortString();
+      id = _currentBytecodeModule.getConstString();
     }
     String? classId;
     final hasClassId = _currentBytecodeModule.readBool();
     if (hasClassId) {
-      classId = _currentBytecodeModule.readShortString();
+      classId = _currentBytecodeModule.getConstString();
     }
     String? externalTypeId;
     final hasExternalTypedef = _currentBytecodeModule.readBool();
     if (hasExternalTypedef) {
-      externalTypeId = _currentBytecodeModule.readShortString();
+      externalTypeId = _currentBytecodeModule.getConstString();
     }
     final category = FunctionCategory.values[_currentBytecodeModule.read()];
     final isAsync = _currentBytecodeModule.readBool();
@@ -2425,11 +2444,11 @@ class HTInterpreter {
     if (category == FunctionCategory.constructor) {
       final hasRedirectingCtor = _currentBytecodeModule.readBool();
       if (hasRedirectingCtor) {
-        final calleeId = _currentBytecodeModule.readShortString();
+        final calleeId = _currentBytecodeModule.getConstString();
         final hasCtorName = _currentBytecodeModule.readBool();
         String? ctorName;
         if (hasCtorName) {
-          ctorName = _currentBytecodeModule.readShortString();
+          ctorName = _currentBytecodeModule.getConstString();
         }
         final positionalArgIpsLength = _currentBytecodeModule.read();
         for (var i = 0; i < positionalArgIpsLength; ++i) {
@@ -2439,7 +2458,7 @@ class HTInterpreter {
         }
         final namedArgsLength = _currentBytecodeModule.read();
         for (var i = 0; i < namedArgsLength; ++i) {
-          final argName = _currentBytecodeModule.readShortString();
+          final argName = _currentBytecodeModule.getConstString();
           final argLength = _currentBytecodeModule.readUint16();
           namedArgIps[argName] = _currentBytecodeModule.ip;
           _currentBytecodeModule.skip(argLength);
@@ -2493,7 +2512,7 @@ class HTInterpreter {
   }
 
   void _handleClassDecl() {
-    final id = _currentBytecodeModule.readShortString();
+    final id = _currentBytecodeModule.getConstString();
     final isExternal = _currentBytecodeModule.readBool();
     final isAbstract = _currentBytecodeModule.readBool();
     final isTopLevel = _currentBytecodeModule.readBool();
@@ -2529,7 +2548,7 @@ class HTInterpreter {
   }
 
   void _handleExternalEnumDecl() {
-    final id = _currentBytecodeModule.readShortString();
+    final id = _currentBytecodeModule.getConstString();
     final isTopLevel = _currentBytecodeModule.readBool();
     if (isTopLevel && _currentNamespace.willExportAll) {
       _currentNamespace.declareExport(id);
@@ -2540,7 +2559,7 @@ class HTInterpreter {
   }
 
   void _handleStructDecl() {
-    final id = _currentBytecodeModule.readShortString();
+    final id = _currentBytecodeModule.getConstString();
     final isTopLevel = _currentBytecodeModule.readBool();
     if (isTopLevel && _currentNamespace.willExportAll) {
       _currentNamespace.declareExport(id);
@@ -2548,7 +2567,7 @@ class HTInterpreter {
     String? prototypeId;
     final hasPrototypeId = _currentBytecodeModule.readBool();
     if (hasPrototypeId) {
-      prototypeId = _currentBytecodeModule.readShortString();
+      prototypeId = _currentBytecodeModule.getConstString();
     } else if (id != _lexicon.globalPrototypeId) {
       prototypeId = _lexicon.globalPrototypeId;
     }

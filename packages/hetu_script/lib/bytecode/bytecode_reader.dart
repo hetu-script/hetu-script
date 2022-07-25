@@ -99,20 +99,20 @@ class BytecodeReader {
 
   /// Fetch a int64 from the bytes list
   int readInt64() {
-    final data = readLongString();
+    final data = readUtf8String();
     final number = int.parse(data);
     return number;
   }
 
   /// Fetch a float64 from the bytes list
   double readFloat64() {
-    final data = readLongString();
+    final data = readUtf8String();
     final number = double.parse(data);
     return number;
   }
 
   /// Fetch a utf8 string from the bytes list
-  String readLongString() {
+  String readUtf8String() {
     final length = readUint32();
     final start = ip;
     ip += length;
