@@ -59,11 +59,16 @@ void main() {
   };
   final result = hetu.eval(
     r'''
-      () async {
-        42
-      }().then((value) {
-        print(value)
-      })
+      struct Test {
+        construct {
+          this.name = 'test'
+        }
+
+        construct age : this() {
+          this.age = 17
+        }
+      }
+      Test.age(17)
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],

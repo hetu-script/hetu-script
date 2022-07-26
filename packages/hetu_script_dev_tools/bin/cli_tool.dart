@@ -33,6 +33,7 @@ final argParser = ArgParser();
 
 final hetu = Hetu(
     config: HetuConfig(
+      debugPerformance: false,
       compileWithoutLineInfo: true,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
