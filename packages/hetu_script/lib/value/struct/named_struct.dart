@@ -7,6 +7,7 @@ import '../../grammar/constant.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
 import '../function/function.dart';
+import '../../type/type.dart';
 
 /// Unlike class and function, the declaration of a struct is a value
 /// and struct object does not extends from this.
@@ -44,21 +45,22 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
   HTStruct createObject({
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
+    List<HTType> typeArgs = const [],
   }) {
     if (!isResolved) {
       throw HTError.unresolvedNamedStruct(id!);
     }
-    HTStruct structObj = _self!.clone();
-    if (structObj.containsKey(InternalIdentifier.defaultConstructor)) {
-      final constructor = structObj
-          .memberGet(InternalIdentifier.defaultConstructor) as HTFunction;
-      constructor.call(
-          createInstance: false,
-          useCallingNamespace: false,
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs);
+    if (_self!.containsKey(InternalIdentifier.defaultConstructor)) {
+      final constructor =
+          _self!.memberGet(InternalIdentifier.defaultConstructor) as HTFunction;
+      return constructor.call(
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        typeArgs: typeArgs,
+      );
+    } else {
+      return _self!.clone();
     }
-    return structObj;
   }
 
   @override

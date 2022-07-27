@@ -1694,6 +1694,8 @@ class ParamDecl extends VarDecl {
 
   final bool isNamed;
 
+  final bool isInitialization;
+
   @override
   bool get isExpression => true;
 
@@ -1704,6 +1706,7 @@ class ParamDecl extends VarDecl {
     this.isVariadic = false,
     this.isOptional = false,
     this.isNamed = false,
+    this.isInitialization = false,
     super.source,
     super.line = 0,
     super.column = 0,

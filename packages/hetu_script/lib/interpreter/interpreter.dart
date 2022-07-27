@@ -313,11 +313,13 @@ class HTInterpreter {
   }
 
   /// handler for various kinds of invocations.
-  dynamic _call(dynamic callee,
-      {bool isConstructorCall = false,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic _call(
+    dynamic callee, {
+    bool isConstructorCall = false,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    List<HTType> typeArgs = const [],
+  }) {
     dynamic handleClassConstructor(dynamic callee) {
       late HTClass klass;
       if (callee is HTType) {
@@ -338,28 +340,25 @@ class HTInterpreter {
         final constructor = klass
             .memberGet(InternalIdentifier.defaultConstructor) as HTFunction;
         return constructor.call(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs,
+        );
       } else {
         throw HTError.notCallable(klass.id!,
             filename: _currentFileName, line: _currentLine, column: _column);
       }
     }
 
-    dynamic handleStructConstructor(HTStruct callee) {
-      HTNamedStruct def = callee.declaration!;
-      return def.createObject(
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-      );
-    }
-
     if (isConstructorCall) {
       if ((callee is HTClass) || (callee is HTType)) {
         return handleClassConstructor(callee);
       } else if (callee is HTStruct && callee.declaration != null) {
-        return handleStructConstructor(callee);
+        return callee.declaration!.createObject(
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs,
+        );
       } else {
         throw HTError.notNewable(_lexicon.stringify(callee),
             filename: _currentFileName, line: _currentLine, column: _column);
@@ -389,7 +388,11 @@ class HTInterpreter {
       } else if ((callee is HTClass) || (callee is HTType)) {
         return handleClassConstructor(callee);
       } else if (callee is HTStruct && callee.declaration != null) {
-        return handleStructConstructor(callee);
+        return callee.declaration!.createObject(
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          typeArgs: typeArgs,
+        );
       } else {
         throw HTError.notCallable(
             _lexicon.stringify(callee, asStringLiteral: true),
@@ -2349,6 +2352,7 @@ class HTInterpreter {
       final isOptional = _currentBytecodeModule.readBool();
       final isVariadic = _currentBytecodeModule.readBool();
       final isNamed = _currentBytecodeModule.readBool();
+      final isInitialization = _currentBytecodeModule.readBool();
       HTType? declType;
       final hasTypeDecl = _currentBytecodeModule.readBool();
       if (hasTypeDecl) {
@@ -2366,18 +2370,20 @@ class HTInterpreter {
         _currentBytecodeModule.skip(length);
       }
       paramDecls[id] = HTParameter(
-          id: id,
-          interpreter: this,
-          fileName: _currentFileName,
-          moduleName: _currentBytecodeModule.id,
-          closure: _currentNamespace,
-          declType: declType,
-          definitionIp: definitionIp,
-          definitionLine: definitionLine,
-          definitionColumn: definitionColumn,
-          isOptional: isOptional,
-          isNamed: isNamed,
-          isVariadic: isVariadic);
+        id: id,
+        interpreter: this,
+        fileName: _currentFileName,
+        moduleName: _currentBytecodeModule.id,
+        closure: _currentNamespace,
+        declType: declType,
+        definitionIp: definitionIp,
+        definitionLine: definitionLine,
+        definitionColumn: definitionColumn,
+        isVariadic: isVariadic,
+        isOptional: isOptional,
+        isNamed: isNamed,
+        isInitialization: isInitialization,
+      );
     }
     return paramDecls;
   }

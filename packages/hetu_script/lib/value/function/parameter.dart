@@ -12,13 +12,16 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
   HTNamespace? get closure => _closure;
 
   @override
+  final bool isVariadic;
+
+  @override
   final bool isOptional;
 
   @override
   final bool isNamed;
 
   @override
-  final bool isVariadic;
+  final bool isInitialization;
 
   /// Create a standard [HTParameter].
   HTParameter({
@@ -31,9 +34,10 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
     super.definitionIp,
     super.definitionLine,
     super.definitionColumn,
+    this.isVariadic = false,
     this.isOptional = false,
     this.isNamed = false,
-    this.isVariadic = false,
+    this.isInitialization = false,
   })  : _closure = closure,
         super(isMutable: true);
 
@@ -55,17 +59,19 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
   @override
   HTParameter clone() {
     return HTParameter(
-        id: id!,
-        interpreter: interpreter,
-        fileName: fileName,
-        moduleName: moduleName,
-        closure: closure,
-        declType: declType,
-        definitionIp: definitionIp,
-        definitionLine: definitionLine,
-        definitionColumn: definitionColumn,
-        isOptional: isOptional,
-        isNamed: isNamed,
-        isVariadic: isVariadic);
+      id: id!,
+      interpreter: interpreter,
+      fileName: fileName,
+      moduleName: moduleName,
+      closure: closure,
+      declType: declType,
+      definitionIp: definitionIp,
+      definitionLine: definitionLine,
+      definitionColumn: definitionColumn,
+      isVariadic: isVariadic,
+      isOptional: isOptional,
+      isNamed: isNamed,
+      isInitialization: isInitialization,
+    );
   }
 }

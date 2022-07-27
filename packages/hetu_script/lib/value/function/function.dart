@@ -372,31 +372,35 @@ class HTFunction extends HTFunctionDeclaration
         var variadicStart = -1;
         HTAbstractParameter? variadicParam;
         for (var i = 0; i < paramDecls.length; ++i) {
-          var decl = paramDecls.values.elementAt(i).clone();
+          var paramDecl = paramDecls.values.elementAt(i).clone();
           final paramId = paramDecls.keys.elementAt(i);
           // omit params with '_' as id
-          if (!decl.isNamed && paramId == interpreter.lexicon.omittedMark) {
+          if (!paramDecl.isNamed &&
+              paramId == interpreter.lexicon.omittedMark) {
             continue;
           }
-          callClosure.define(paramId, decl);
+          callClosure.define(paramId, paramDecl);
 
-          if (decl.isVariadic) {
+          if (paramDecl.isVariadic) {
             variadicStart = i;
-            variadicParam = decl;
+            variadicParam = paramDecl;
             break;
           } else {
             if (i < maxArity) {
               if (i < positionalArgs.length) {
-                decl.value = positionalArgs[i];
+                paramDecl.value = positionalArgs[i];
               } else {
-                decl.initialize();
+                paramDecl.initialize();
               }
             } else {
-              if (namedArgs.containsKey(decl.id)) {
-                decl.value = namedArgs[decl.id];
+              if (namedArgs.containsKey(paramDecl.id)) {
+                paramDecl.value = namedArgs[paramDecl.id];
               } else {
-                decl.initialize();
+                paramDecl.initialize();
               }
+            }
+            if (paramDecl.isInitialization) {
+              result.memberSet(paramDecl.id!, paramDecl.value);
             }
           }
         }

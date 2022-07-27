@@ -60,17 +60,19 @@ void main() {
   final result = hetu.eval(
     r'''
       struct Winged {
-        fun fly {
-          print('i\'m flying')
+        var age = 17
+        construct ([this.name = 'jimmy']) {
+
         }
       }
 
-      struct Person with Winged {
-        var name = 'jimmy'
-      }
+      final w = Winged()
+      
+      Winged.age = 22
 
-      final p = Person()
-      p
+      print(w)
+      print(Winged)
+
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],

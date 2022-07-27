@@ -15,16 +15,20 @@ class HTParameterDeclaration extends HTVariableDeclaration
   @override
   final bool isVariadic;
 
+  @override
+  final bool isInitialization;
+
   /// Create a standard [HTParameter].
-  HTParameterDeclaration(
-      {required super.id,
-      super.closure,
-      super.source,
-      super.declType,
-      this.isOptional = false,
-      this.isNamed = false,
-      this.isVariadic = false})
-      : super(isMutable: true);
+  HTParameterDeclaration({
+    required super.id,
+    super.closure,
+    super.source,
+    super.declType,
+    this.isVariadic = false,
+    this.isOptional = false,
+    this.isNamed = false,
+    this.isInitialization = false,
+  }) : super(isMutable: true);
 
   @override
   void initialize() {}
@@ -32,11 +36,13 @@ class HTParameterDeclaration extends HTVariableDeclaration
   @override
   HTParameterDeclaration clone() {
     return HTParameterDeclaration(
-        id: id!,
-        closure: closure,
-        declType: declType,
-        isOptional: isOptional,
-        isNamed: isNamed,
-        isVariadic: isVariadic);
+      id: id!,
+      closure: closure,
+      declType: declType,
+      isVariadic: isVariadic,
+      isOptional: isOptional,
+      isNamed: isNamed,
+      isInitialization: isInitialization,
+    );
   }
 }

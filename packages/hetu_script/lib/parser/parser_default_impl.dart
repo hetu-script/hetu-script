@@ -2686,11 +2686,11 @@ class HTDefaultParser extends HTParser {
       hasParamDecls = true;
       var isOptional = false;
       var isNamed = false;
-      bool noVariadic = false;
+      bool allowVariadic = true;
 
       ParamDecl parseParam() {
         bool isParamVariadic = false;
-        if (!noVariadic) {
+        if (allowVariadic) {
           isParamVariadic = expect([lexicon.variadicArgs], consume: true);
           if (isFuncVariadic && isParamVariadic) {
             final err = HTError.unexpected(Semantic.funcTypeExpr,
@@ -2704,13 +2704,25 @@ class HTDefaultParser extends HTParser {
           }
           isFuncVariadic = isParamVariadic;
         }
-        final paramId = match(Semantic.identifier);
-        final paramSymbol =
-            IdentifierExpr.fromToken(paramId, source: currentSource);
         TypeExpr? paramDeclType;
-        if (expect([lexicon.typeIndicator], consume: true)) {
-          paramDeclType = _parseTypeExpr();
+        IdentifierExpr paramSymbol;
+        bool hasThisInitializingSyntax = false;
+        if (category == FunctionCategory.constructor) {
+          hasThisInitializingSyntax = expect([lexicon.kThis], consume: true);
         }
+        if (hasThisInitializingSyntax) {
+          hasThisInitializingSyntax = true;
+          match(lexicon.memberGet);
+        }
+        final paramId = match(Semantic.identifier);
+        paramSymbol = IdentifierExpr.fromToken(paramId, source: currentSource);
+
+        if (!hasThisInitializingSyntax) {
+          if (expect([lexicon.typeIndicator], consume: true)) {
+            paramDeclType = _parseTypeExpr();
+          }
+        }
+
         ASTNode? initializer;
         if (expect([lexicon.assign], consume: true)) {
           if (isOptional || isNamed) {
@@ -2732,6 +2744,7 @@ class HTDefaultParser extends HTParser {
             isVariadic: isParamVariadic,
             isOptional: isOptional,
             isNamed: isNamed,
+            isInitialization: hasThisInitializingSyntax,
             source: currentSource,
             line: paramId.line,
             column: paramId.column,
@@ -2766,7 +2779,7 @@ class HTDefaultParser extends HTParser {
             !isNamed &&
             expect([lexicon.namedParameterStart], consume: true)) {
           isNamed = true;
-          noVariadic = true;
+          allowVariadic = false;
           final params = parseExprList(
             endToken: lexicon.namedParameterEnd,
             parseFunction: parseParam,

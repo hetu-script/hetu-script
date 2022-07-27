@@ -1663,6 +1663,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(stmt.isOptional ? 1 : 0);
     bytesBuilder.addByte(stmt.isVariadic ? 1 : 0);
     bytesBuilder.addByte(stmt.isNamed ? 1 : 0);
+    bytesBuilder.addByte(stmt.isInitialization ? 1 : 0);
     Uint8List? typeDecl;
     if (stmt.declType != null) {
       typeDecl = compileAST(stmt.declType!);
