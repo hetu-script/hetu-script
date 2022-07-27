@@ -4,7 +4,7 @@ void main() {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
-      debugPerformance: true,
+      debugPerformance: false,
       compileWithoutLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
@@ -59,16 +59,18 @@ void main() {
   };
   final result = hetu.eval(
     r'''
-      struct Test {
-        construct {
-          this.name = 'test'
-        }
-
-        construct age : this() {
-          this.age = 17
+      struct Winged {
+        fun fly {
+          print('i\'m flying')
         }
       }
-      Test.age(17)
+
+      struct Person with Winged {
+        var name = 'jimmy'
+      }
+
+      final p = Person()
+      p
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],

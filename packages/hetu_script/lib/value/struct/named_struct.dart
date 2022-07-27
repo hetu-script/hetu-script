@@ -12,6 +12,7 @@ import '../function/function.dart';
 /// and struct object does not extends from this.
 class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
   final String? prototypeId;
+  final List<String> mixinIds;
 
   HTStruct? _self;
 
@@ -28,6 +29,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
     required String moduleName,
     super.closure,
     this.prototypeId,
+    this.mixinIds = const [],
     super.source,
     super.isTopLevel = false,
     this.staticDefinitionIp,
@@ -79,7 +81,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
             .memberGet(interpreter.lexicon.globalPrototypeId);
       }
     }
-    HTStruct self = interpreter.execute(
+    _self = interpreter.execute(
       context: HTContext(
         filename: fileName,
         moduleName: moduleName,
@@ -87,9 +89,18 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
         namespace: closure != null ? closure as HTNamespace : null,
       ),
     );
-    self.prototype = static;
-    self.declaration = this;
-    _self = self;
+    _self!.prototype = static;
+    _self!.declaration = this;
+
+    if (closure != null) {
+      if (mixinIds.isNotEmpty) {
+        for (final mixinId in mixinIds) {
+          final mixinObj = closure!
+              .memberGet(mixinId, from: closure!.fullName, isRecursive: true);
+          static.assign(mixinObj);
+        }
+      }
+    }
     _isResolved = true;
   }
 

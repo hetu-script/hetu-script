@@ -26,7 +26,6 @@ import '../parser/parser_default_impl.dart';
 import '../resource/resource.dart';
 import '../bundler/bundler.dart';
 import '../error/error_handler.dart';
-import '../version.dart';
 
 class HetuConfig
     implements ParserConfig, AnalyzerConfig, CompilerConfig, InterpreterConfig {
@@ -43,6 +42,9 @@ class HetuConfig
 
   @override
   bool compileWithoutLineInfo;
+
+  @override
+  bool ignoreAssertionStatement;
 
   @override
   bool showDartStackTrace;
@@ -76,6 +78,7 @@ class HetuConfig
     this.doStaticAnalysis = false,
     this.computeConstantExpression = false,
     this.compileWithoutLineInfo = false,
+    this.ignoreAssertionStatement = false,
     this.showDartStackTrace = false,
     this.showHetuStackTrace = false,
     this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,

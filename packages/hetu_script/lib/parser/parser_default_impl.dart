@@ -3071,6 +3071,7 @@ class HTDefaultParser extends HTParser {
     final idTok = match(Semantic.identifier);
     final id = IdentifierExpr.fromToken(idTok, source: currentSource);
     IdentifierExpr? prototypeId;
+    List<IdentifierExpr> mixinIds = [];
     if (expect([lexicon.kExtends], consume: true)) {
       final prototypeIdTok = match(Semantic.identifier);
       if (prototypeIdTok.lexeme == id.id) {
@@ -3084,6 +3085,25 @@ class HTDefaultParser extends HTParser {
       }
       prototypeId =
           IdentifierExpr.fromToken(prototypeIdTok, source: currentSource);
+    } else if (expect([lexicon.kWith], consume: true)) {
+      while (curTok.type != lexicon.codeBlockStart &&
+          curTok.type != Semantic.endOfFile) {
+        final mixinIdTok = match(Semantic.identifier);
+        if (mixinIdTok.lexeme == id.id) {
+          final err = HTError.extendsSelf(
+              filename: currrentFileName,
+              line: keyword.line,
+              column: keyword.column,
+              offset: keyword.offset,
+              length: keyword.length);
+          errors.add(err);
+        }
+        final mixinId =
+            IdentifierExpr.fromToken(mixinIdTok, source: currentSource);
+        handleTrailing(mixinId,
+            endMarkForCommaExpressions: lexicon.codeBlockStart);
+        mixinIds.add(mixinId);
+      }
     }
     final savedStructId = _currentStructId;
     _currentStructId = id.id;
@@ -3113,6 +3133,7 @@ class HTDefaultParser extends HTParser {
     _currentStructId = savedStructId;
     final structDecl = StructDecl(id, definition,
         prototypeId: prototypeId,
+        mixinIds: mixinIds,
         isTopLevel: isTopLevel,
         // lateInitialize: lateInitialize,
         source: currentSource,

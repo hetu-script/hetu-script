@@ -2,7 +2,11 @@ import 'package:test/test.dart';
 import 'package:hetu_script/hetu_script.dart';
 
 void main() {
-  final hetu = Hetu();
+  final hetu = Hetu(
+    config: HetuConfig(
+      debugPerformance: false,
+    ),
+  );
   hetu.init();
 
   group('utilities -', () {

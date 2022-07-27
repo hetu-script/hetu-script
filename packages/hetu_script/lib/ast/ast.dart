@@ -1979,6 +1979,8 @@ class StructDecl extends ASTNode {
 
   final IdentifierExpr? prototypeId;
 
+  final List<IdentifierExpr> mixinIds;
+
   final List<ASTNode> definition;
 
   final bool isPrivate;
@@ -1994,6 +1996,7 @@ class StructDecl extends ASTNode {
     this.id,
     this.definition, {
     this.prototypeId,
+    this.mixinIds = const [],
     this.isPrivate = false,
     this.isTopLevel = false,
     // this.lateInitialize = true,

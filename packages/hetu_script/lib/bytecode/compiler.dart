@@ -35,7 +35,12 @@ class HTRegIdx {
 class CompilerConfig {
   bool compileWithoutLineInfo;
 
-  CompilerConfig({this.compileWithoutLineInfo = false});
+  bool ignoreAssertionStatement;
+
+  CompilerConfig({
+    this.compileWithoutLineInfo = false,
+    this.ignoreAssertionStatement = false,
+  });
 }
 
 /// Compiles source code into bytecode.
@@ -1101,14 +1106,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitAssertStmt(AssertStmt stmt) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
-    final bytes = compileAST(stmt.expr);
-    bytesBuilder.add(bytes);
-    bytesBuilder.addByte(HTOpCode.assertion);
-    final content = stmt.source!.content;
-    final text = content.substring(stmt.expr.offset, stmt.expr.end);
-    bytesBuilder.add(_parseIdentifier(text.trim()));
-    bytesBuilder.addByte(HTOpCode.endOfStmt);
+    if (!config.ignoreAssertionStatement) {
+      bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
+      final bytes = compileAST(stmt.expr);
+      bytesBuilder.add(bytes);
+      bytesBuilder.addByte(HTOpCode.assertion);
+      final content = stmt.source!.content;
+      final text = content.substring(stmt.expr.offset, stmt.expr.end);
+      bytesBuilder.add(_parseIdentifier(text.trim()));
+      bytesBuilder.addByte(HTOpCode.endOfStmt);
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -1913,7 +1920,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: hasPrototypeId
     }
-    // bytesBuilder.addByte(stmt.lateInitialize ? 1 : 0);
+    bytesBuilder.addByte(stmt.mixinIds.length);
+    for (final mixinId in stmt.mixinIds) {
+      bytesBuilder.add(_parseIdentifier(mixinId.id));
+    }
     final staticFields = <StructObjField>[];
     final fields = <StructObjField>[];
     for (final node in stmt.definition) {

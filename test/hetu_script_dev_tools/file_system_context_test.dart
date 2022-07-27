@@ -4,7 +4,12 @@ import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
   final sourceContext = HTFileSystemResourceContext(root: 'script/');
-  final hetu = Hetu(sourceContext: sourceContext);
+  final hetu = Hetu(
+    config: HetuConfig(
+      debugPerformance: false,
+    ),
+    sourceContext: sourceContext,
+  );
   hetu.init();
 
   group('module -', () {

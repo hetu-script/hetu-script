@@ -258,6 +258,7 @@ class HTStruct with HTEntity {
   void subSet(dynamic varName, dynamic varValue, {String? from}) =>
       memberSet(varName, varValue, from: from);
 
+  // return a deep copy of this struct.
   HTStruct clone() {
     final cloned =
         HTStruct(interpreter, prototype: prototype, closure: closure);
@@ -269,6 +270,7 @@ class HTStruct with HTEntity {
     return cloned;
   }
 
+  // deep copy another struct then assign to this one.
   void assign(HTStruct other) {
     for (final key in other._fields.keys) {
       if (key.startsWith(interpreter.lexicon.internalPrefix)) continue;

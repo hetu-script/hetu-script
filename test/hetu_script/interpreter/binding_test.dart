@@ -122,7 +122,11 @@ class PersonClassBinding extends HTExternalClass {
 }
 
 void main() {
-  final hetu = Hetu();
+  final hetu = Hetu(
+    config: HetuConfig(
+      debugPerformance: false,
+    ),
+  );
   hetu.init(externalClasses: [
     NameClassBinding(),
     ProfileClassBinding(),

@@ -747,8 +747,7 @@ class HTInterpreter {
 
     if (decl.alias == null) {
       if (decl.showList.isEmpty) {
-        nsp.import(importedNamespace,
-            export: decl.isExported, showList: decl.showList);
+        nsp.import(importedNamespace, export: decl.isExported);
       } else {
         for (final id in decl.showList) {
           if (!importedNamespace.symbols.containsKey(id)) {
@@ -760,13 +759,10 @@ class HTInterpreter {
       }
     } else {
       if (decl.showList.isEmpty) {
-        final aliasNamespace = HTNamespace(
-            lexicon: _lexicon, id: decl.alias!, closure: globalNamespace);
-        aliasNamespace.import(importedNamespace);
-        nsp.defineImport(decl.alias!, aliasNamespace);
+        nsp.defineImport(decl.alias!, importedNamespace);
       } else {
         final aliasNamespace = HTNamespace(
-            lexicon: _lexicon, id: decl.alias!, closure: globalNamespace);
+            lexicon: _lexicon, id: decl.alias!, closure: nsp.closure);
         for (final id in decl.showList) {
           if (!importedNamespace.symbols.containsKey(id)) {
             throw HTError.undefined(id);
@@ -1525,13 +1521,10 @@ class HTInterpreter {
       final importedModule = cachedModules[fromPath]!;
       final importedNamespace = importedModule.namespaces.values.last;
       if (showList.isEmpty) {
-        final aliasNamespace = HTNamespace(
-            lexicon: _lexicon, id: alias!, closure: globalNamespace);
-        aliasNamespace.import(importedNamespace);
-        _currentNamespace.defineImport(alias, aliasNamespace);
+        _currentNamespace.defineImport(alias!, importedNamespace);
       } else {
         final aliasNamespace = HTNamespace(
-            lexicon: _lexicon, id: alias!, closure: globalNamespace);
+            lexicon: _lexicon, id: alias!, closure: _currentNamespace.closure);
         for (final id in showList) {
           final decl = importedNamespace.symbols[id]!;
           assert(!decl.isPrivate);
@@ -2571,7 +2564,11 @@ class HTInterpreter {
     } else if (id != _lexicon.globalPrototypeId) {
       prototypeId = _lexicon.globalPrototypeId;
     }
-    // final lateInitialize = _currentBytecodeModule.readBool();
+    final mixinIdsLength = _currentBytecodeModule.read();
+    List<String> mixinIds = [];
+    for (var i = 0; i < mixinIdsLength; ++i) {
+      mixinIds.add(_currentBytecodeModule.getConstString());
+    }
     final staticFieldsLength = _currentBytecodeModule.readUint16();
     final staticDefinitionIp = _currentBytecodeModule.ip;
     _currentBytecodeModule.skip(staticFieldsLength);
@@ -2585,6 +2582,7 @@ class HTInterpreter {
       moduleName: _currentBytecodeModule.id,
       closure: _currentNamespace,
       prototypeId: prototypeId,
+      mixinIds: mixinIds,
       staticDefinitionIp: staticDefinitionIp,
       definitionIp: definitionIp,
     );

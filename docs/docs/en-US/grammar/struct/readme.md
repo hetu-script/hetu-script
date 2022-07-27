@@ -82,7 +82,7 @@ print(n.race) // Dragon
 
 One important thing worth noted: within a named struct's method, **you cannot omit 'this' when accessing its own members** like you would do in a class method.
 
-## Struct inherit
+## struct inherits
 
 Named struct can declare its prototype same way as a class declare its super class.
 
@@ -138,4 +138,25 @@ Or, you can dynamically access and modify a struct's prototype by internal membe
 ```dart
 final p2 = {}
 p2.$prototype = P
+```
+
+### struct mixins
+
+When `extends` another struct, the content of the super class will stored within `$prototype` varialbe. Although you can access those members at runtime via `.` operator, you won't see them when you stringify or jsonify the struct.
+
+If you wish to copy and assign another content of struct to the declaring struct. You can use `with` keyword instead of `extends`.
+
+```javascript
+struct Winged {
+  fun fly {
+    print('i\'m flying')
+  }
+}
+
+struct Person with Wings {
+
+}
+
+final p = Person()
+p.fly()
 ```
