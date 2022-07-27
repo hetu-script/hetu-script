@@ -31,6 +31,7 @@ abstract class InternalIdentifier {
 }
 
 abstract class Semantic {
+  static const interpreter = 'interpreter';
   static const compilation = 'compilation';
   static const source = 'source';
   static const namespace = 'namespace';

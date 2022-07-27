@@ -52,21 +52,16 @@ void main() {
   hetu.interpreter.bindExternalFunction('test', () {
     print('dart function called');
   });
-  final jsonData = {
-    "name": "Aleph",
-    "type": "novel",
-    "volumes": 7,
-  };
+  // final jsonData = {
+  //   "name": "Aleph",
+  //   "type": "novel",
+  //   "volumes": 7,
+  // };
   final result = hetu.eval(
     r'''
-      class Person {
-        var name
-        construct ([this.name = 'jimmy']) {}
-      }
+      import 'source2.ht'
 
       final p = Person()
-      print(p.name)
-
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],

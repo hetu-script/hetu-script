@@ -81,7 +81,7 @@ class HTLocaleEnglish implements HTLocale {
 
   // compile time errors
   @override
-  final String errorDefined = '[{0}] is already defined.';
+  final String errorDefined = '[{0}] is already defined in namespace\n[{1}].';
   @override
   final String errorOutsideThis =
       'Unexpected this expression outside of a function.';
