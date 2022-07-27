@@ -133,7 +133,11 @@ void enterReplMode({dynamic prompt}) {
         print(hetu.lexicon.stringify(result));
       } catch (e) {
         if (e is HTError) {
-          print(e.message);
+          if (showDetailsOfError) {
+            print(e);
+          } else {
+            print(e.message);
+          }
         } else {
           print(e);
         }
