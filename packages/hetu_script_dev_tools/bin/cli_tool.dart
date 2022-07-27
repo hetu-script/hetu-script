@@ -51,6 +51,8 @@ final analyzer = HTAnalyzer(sourceContext: sourceContext);
 final parser = HTDefaultParser();
 final bundler = HTBundler(sourceContext: sourceContext);
 
+bool showDetailsOfError = false;
+
 void main(List<String> arguments) {
   try {
     final version = kHetuVersion.toString();
@@ -214,6 +216,7 @@ void run(List<String> args, {bool enterRepl = false}) {
   final prompt =
       'Loaded module: [${args.first}] with execution result:\n${hetu.lexicon.stringify(result)}';
   if (enterRepl) {
+    showDetailsOfError = true;
     enterReplMode(prompt: prompt);
   } else {
     print(hetu.lexicon.stringify(result));
