@@ -1,4 +1,4 @@
-## 0.4.0
+## 0.4.1
 
 - Add api for dynamically import a source: `final { a, b } = require(path)`
 - Add Future() constructor.
@@ -8,8 +8,10 @@
 - Add suport for multiline String literal, syntax is the same to normal string.
 - Add support for user-defined lexicon & parser, you can define a language with
   custom lexicon & grammar that compiles into the bytecode and runs with Hetu.
+- Add this syntax in constructor's parameter list to quick initialize a instance member on class or named struct.
 - Named arguments can be placed anywhere in the function call arguments list, just like in Dart 2.17.
 - ** BREAKING CHANGE **: 
+  Bytecode has changes so the bytecode module compiled by earlier version is not compatible for this version.
   SDK dependency has UPGRADE to Dart 2.17.
   Changed Math.random() related api to separated Random class binding (this is for support of random seed).
 

@@ -64,6 +64,20 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.3.0"
+  fast_noise:
+    dependency: transitive
+    description:
+      name: fast_noise
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.1"
+  fixnum:
+    dependency: transitive
+    description:
+      name: fixnum
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -94,7 +108,7 @@ packages:
       path: "../hetu_script"
       relative: true
     source: path
-    version: "0.4.0-pre1"
+    version: "0.4.0-pre7"
   hetu_script_flutter:
     dependency: "direct main"
     description:
@@ -109,6 +123,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.7.0"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.17.0"
   linked_scroll_controller:
     dependency: transitive
     description:

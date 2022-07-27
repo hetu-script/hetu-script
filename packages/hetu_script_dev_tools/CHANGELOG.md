@@ -1,3 +1,7 @@
+## 0.1.0
+
+- Upgrade to hetu_script 0.4.1
+
 ## 0.0.7
 
 - Pre-compiled console module.
