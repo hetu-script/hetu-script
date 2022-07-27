@@ -59,19 +59,13 @@ void main() {
   };
   final result = hetu.eval(
     r'''
-      struct Winged {
-        var age = 17
-        construct ([this.name = 'jimmy']) {
-
-        }
+      class Person {
+        var name
+        construct ([this.name = 'jimmy']) {}
       }
 
-      final w = Winged()
-      
-      Winged.age = 22
-
-      print(w)
-      print(Winged)
+      final p = Person()
+      print(p.name)
 
           ''',
     // invokeFunc: 'fromJsonTest',
