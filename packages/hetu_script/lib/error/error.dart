@@ -738,7 +738,7 @@ class HTError {
             length: length);
 
   /// Error: A same name declaration is already existed.
-  HTError.defined(String id, String path, ErrorType type,
+  HTError.defined(String id, ErrorType type,
       {String? extra,
       String? correction,
       String? filename,
@@ -748,7 +748,7 @@ class HTError {
       int? length})
       : this(ErrorCode.defined, type,
             message: HTLocale.current.errorDefined,
-            interpolations: [id, path],
+            interpolations: [id],
             extra: extra,
             correction: correction,
             filename: filename,

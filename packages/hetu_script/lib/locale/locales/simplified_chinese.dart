@@ -69,7 +69,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
 
   // compile time errors
   @override
-  final String errorDefined = '标识符 [{0}] 在已经被定义在命名空间：\n[{1}]';
+  final String errorDefined = '标识符 [{0}] 已经被定义过。';
   @override
   final String errorOutsideThis = '只能在类的实例成员函数中使用 this 关键字。';
   @override

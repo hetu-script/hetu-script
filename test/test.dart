@@ -25,24 +25,24 @@ void main() {
     final typename = 'person'
 ''', fullName: 'source1.ht');
   final source2 = HTSource(r'''
-    import 'source1.ht'
+    import 'json_data.json' as jsonData
     struct Person {
       construct {
-        this.name = typename
+        this.name = jsonData.name
         this.race = 'han'
       }
     }
 // ''', fullName: 'source2.ht');
   final source3 = HTSource(r'''
-    import 'source2.ht'
-    struct Jimmy extends Person {
-      construct : super() {
-        this.age = 17
-      }
-    }
+    import 'json_data.json' as jsonData
+    // import 'source2.ht'
+    // struct Jimmy extends Person {
+    //   construct : super() {
+    //     this.age = 17
+    //   }
+    // }
     fun test {
-      final p = Jimmy()
-      print(p)
+      print(jsonData.type)
     }
 ''', fullName: 'source3.ht');
   sourceContext.addResource(source1.fullName, source1);
@@ -52,16 +52,19 @@ void main() {
   hetu.interpreter.bindExternalFunction('test', () {
     print('dart function called');
   });
-  // final jsonData = {
-  //   "name": "Aleph",
-  //   "type": "novel",
-  //   "volumes": 7,
-  // };
+  final jsonData = HTSource(r'''{
+    "name": "Aleph",
+    "type": "novel",
+    "volumes": 7,
+  }''', fullName: 'json_data.json', type: HTResourceType.hetuValue);
+  sourceContext.addResource('json_data.json', jsonData);
+
   final result = hetu.eval(
     r'''
       import 'source2.ht'
+      import 'source3.ht'
 
-      final p = Person()
+      test()
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],

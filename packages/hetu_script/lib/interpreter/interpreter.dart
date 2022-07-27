@@ -545,8 +545,7 @@ class HTInterpreter {
   void bindExternalClass(HTExternalClass externalClass,
       {bool override = false}) {
     if (externClasses.containsKey(externalClass.id) && !override) {
-      throw HTError.defined(
-          externalClass.id, Semantic.interpreter, ErrorType.runtimeError);
+      throw HTError.defined(externalClass.id, ErrorType.runtimeError);
     }
     externClasses[externalClass.id] = externalClass;
   }
@@ -569,7 +568,7 @@ class HTInterpreter {
   void bindExternalFunction(String id, Function function,
       {bool override = false}) {
     if (externFunctions.containsKey(id) && !override) {
-      throw HTError.defined(id, Semantic.interpreter, ErrorType.runtimeError);
+      throw HTError.defined(id, ErrorType.runtimeError);
     }
     externFunctions[id] = function;
   }
@@ -586,7 +585,7 @@ class HTInterpreter {
   void bindExternalFunctionType(String id, HTExternalFunctionTypedef function,
       {bool override = false}) {
     if (externFunctionTypedefs.containsKey(id) && !override) {
-      throw HTError.defined(id, Semantic.interpreter, ErrorType.runtimeError);
+      throw HTError.defined(id, ErrorType.runtimeError);
     }
     externFunctionTypedefs[id] = function;
   }
@@ -1545,7 +1544,8 @@ class HTInterpreter {
           // TODO: import binary bytes
           final value = _currentBytecodeModule.expressions[fromPath];
           assert(value != null);
-          _currentNamespace.define(alias!, HTVariable(id: alias, value: value));
+          _currentNamespace.defineImport(
+              alias!, HTVariable(id: alias, value: value));
           if (isExported) {
             _currentNamespace.declareExport(alias);
           }

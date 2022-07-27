@@ -65,7 +65,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
       symbols[varName] = decl;
     } else {
       if (throws) {
-        throw HTError.defined(varName, fullName, ErrorType.staticWarning);
+        throw HTError.defined(varName, ErrorType.staticWarning);
       }
     }
   }
@@ -120,7 +120,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
     if (!importedSymbols.containsKey(key)) {
       importedSymbols[key] = decl;
     } else {
-      throw HTError.defined(key, fullName, ErrorType.runtimeError);
+      throw HTError.defined(key, ErrorType.runtimeError);
     }
   }
 
