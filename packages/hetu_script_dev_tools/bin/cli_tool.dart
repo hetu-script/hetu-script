@@ -111,14 +111,11 @@ Interpret a Hetu script file and print its result to terminal.
   }
 }
 
-void enterReplMode({String? prompt}) {
+void enterReplMode({dynamic prompt}) {
   hetu.init();
   print(replInfo);
-  print(kSeperator);
   if (prompt != null) {
-    print('Module execution result:\n');
     print(hetu.lexicon.stringify(prompt));
-    print(kSeperator);
   }
   while (true) {
     stdout.write('>>>');
@@ -215,7 +212,7 @@ void run(List<String> args, {bool enterRepl = false}) {
     }
   }
   final prompt =
-      'Loaded module: [${args.first}] with execution result:\n[$result]';
+      'Loaded module: [${args.first}] with execution result:\n${hetu.lexicon.stringify(result)}';
   if (enterRepl) {
     enterReplMode(prompt: prompt);
   } else {
