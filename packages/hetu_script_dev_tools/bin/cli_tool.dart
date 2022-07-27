@@ -71,10 +71,11 @@ void main(List<String> arguments) {
         switch (cmd.name) {
           case 'run':
             if (cmd['help']) {
-              print(
-                  'hetu run [path] [option]\nInterpret a Hetu script file and print its result to terminal.');
+              print(r'''hetu run [path] [option]
+Interpret a Hetu script file and print its result to terminal.
+''');
             } else {
-              run(cmd.arguments, enterRepl: cmd['repl']);
+              run(cmd.rest, enterRepl: cmd['repl']);
             }
             break;
           case 'analyze':
@@ -82,14 +83,14 @@ void main(List<String> arguments) {
               print(
                   'hetu analyze [path] [option]\nAnalyze a Hetu script file.');
             } else {
-              analyze(cmd.arguments);
+              analyze(cmd.rest);
             }
             break;
           case 'format':
             if (cmd['help']) {
               print('hetu format [path] [option]\nFormat a Hetu script file.');
             } else {
-              format(cmd.arguments, cmd['out']);
+              format(cmd.rest, cmd['out']);
             }
             break;
           case 'compile':
@@ -97,12 +98,7 @@ void main(List<String> arguments) {
               print(
                   'hetu compile [path] [output_path] [option]\nCompile a Hetu script file.');
             } else {
-              final outPath = cmd['out'];
-              if (outPath == null) {
-                throw 'Error: Outpath argument is required for \'compile\' command.';
-              }
-              compile(cmd.arguments, outPath,
-                  compileToIntArrayWithName: cmd['array']);
+              compile(cmd.rest, compileToIntArrayWithName: cmd['array']);
             }
             break;
         }
@@ -267,8 +263,7 @@ void analyze(List<String> args) {
   }
 }
 
-void compile(List<String> args, String? outPath,
-    {String? compileToIntArrayWithName}) {
+void compile(List<String> args, {String? compileToIntArrayWithName}) {
   if (args.isEmpty) {
     throw 'Error: Path argument is required for \'compile\' command.';
   }
@@ -287,7 +282,8 @@ void compile(List<String> args, String? outPath,
 
     final curPath = path.dirname(source.fullName);
     late String outName;
-    if (outPath != null) {
+    if (args.length >= 2) {
+      final outPath = args[1];
       if (!path.isAbsolute(outPath)) {
         final joined = path.join(sourceContext.root, outPath);
         outName = sourceContext.getAbsolutePath(key: joined);
