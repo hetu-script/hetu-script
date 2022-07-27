@@ -37,15 +37,13 @@ The key must be either a identifier, or a string literal (not includes string in
 
 ## Named struct
 
-Named struct's declaration are like class, you can have constructors, getter and setters.
+Named struct's declaration are like class, you can have constructors, getter and setters, and use redirecting constructors & this initialization syntax in the parameter list.
 
 You don't have to declare the fields before assign it like you must do in Class declarations. This is useful for constructor.
 
 ```javascript
 struct Named {
-  construct (name: str) {
-    this.name = name
-  }
+  construct (this.name) {} // a empty brackets is needed
 }
 ```
 

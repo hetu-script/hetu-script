@@ -8,6 +8,8 @@ If a class have a getter or setter function. You can use 'class_name.func_name' 
 
 Constructors can be with no function name and cannot return values. When calling they will always return a instance.
 
+You can use `this` syntax in the parameter to quick initialize the member on instance just like in Dart.
+
 ```typescript
 // class definition
 class Calculator {
@@ -29,11 +31,15 @@ class Calculator {
   // instance member
   var x: num
   var y: num
+
+  var birthDate
   // constructor with parameters
-  construct (x: num, y: num) {
+  // you can use `this` syntax in the parameter to
+  // quick initialize the member on instance
+  // just like in Dart
+  construct (this.x: num, this.y: num, age: int) {
     // use this to access instance members shadowed by function parameters
-    this.x = x
-    this.y = y
+    this.birthDate = Now() + age
   }
   fun meaning -> num {
     // when there's no shadowing, `this` keyword can be omitted

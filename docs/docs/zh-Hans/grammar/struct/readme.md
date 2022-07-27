@@ -38,15 +38,13 @@ var obj = {
 
 ## 命名结构体（named struct）
 
-命名结构体的声明方式类似 class。可以包含 cosntruct/get/set 等 class 特有的方法关键字。
+命名结构体的声明方式类似 class。可以包含 cosntruct/get/set 等 class 特有的方法关键字。也可以在构造函数声明中重定向到其他构造函数或者父类构造函数（通过 this 和 super），以及在构造函数的参数列表中使用 `this` 来快速初始化实例成员。
 
 在命名结构体的构造函数中，可以通过 this 关键字，省略掉成员声明，而直接给一个不存在的成员赋值。
 
 ```javascript
 struct Named {
-  construct (name: str) {
-    this.name = name
-  }
+  construct (this.name) {} // 需要保留空括号作为函数体
 }
 ```
 
