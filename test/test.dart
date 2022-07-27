@@ -34,13 +34,13 @@ void main() {
     }
 // ''', fullName: 'source2.ht');
   final source3 = HTSource(r'''
-    import 'json_data.json' as jsonData
-    // import 'source2.ht'
+    import 'source2.ht'
     // struct Jimmy extends Person {
     //   construct : super() {
     //     this.age = 17
     //   }
     // }
+    export { Person }
     fun test {
       print(jsonData.type)
     }
@@ -61,10 +61,9 @@ void main() {
 
   final result = hetu.eval(
     r'''
-      import 'source2.ht'
-      import 'source3.ht'
+      import { Person } from 'source3.ht'
 
-      test()
+      final p = Person()
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:math' as math;
 
+import 'package:hetu_script/declaration/declaration.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -753,10 +754,14 @@ class HTInterpreter {
         nsp.import(importedNamespace, export: decl.isExported);
       } else {
         for (final id in decl.showList) {
-          if (!importedNamespace.symbols.containsKey(id)) {
+          HTDeclaration decl;
+          if (importedNamespace.symbols.containsKey(id)) {
+            decl = importedNamespace.symbols[id]!;
+          } else if (importedNamespace.exports.contains(id)) {
+            decl = importedNamespace.importedSymbols[id]!;
+          } else {
             throw HTError.undefined(id);
           }
-          final decl = importedNamespace.symbols[id]!;
           nsp.defineImport(id, decl);
         }
       }
