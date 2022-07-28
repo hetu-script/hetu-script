@@ -13,13 +13,23 @@ part 'visitor/abstract_ast_visitor.dart';
 abstract class ASTNode {
   final String type;
 
-  List<ASTDocumentation> precedings = [];
+  List<ASTAnnotation> precedings = [];
 
-  ASTDocumentation? trailing;
+  ASTAnnotation? trailing;
 
-  ASTDocumentation? trailingAfterComma;
+  ASTAnnotation? trailingAfterComma;
 
-  List<ASTDocumentation> succeedings = [];
+  List<ASTAnnotation> succeedings = [];
+
+  String get documentation {
+    final documentation = StringBuffer();
+    for (final line in precedings) {
+      if (line.isDocumentation) {
+        documentation.writeln(line.content);
+      }
+    }
+    return documentation.toString();
+  }
 
   final bool isStatement;
 
@@ -67,12 +77,15 @@ abstract class ASTNode {
 /// Comments or empty lines. Which has no meaning when interpreting,
 /// but they have meanings in formatting,
 /// so we keeps them as a special ASTNode.
-abstract class ASTDocumentation extends ASTNode {
+abstract class ASTAnnotation extends ASTNode {
   final String content;
 
-  ASTDocumentation(
+  final bool isDocumentation;
+
+  ASTAnnotation(
     super.type, {
     required this.content,
+    required this.isDocumentation,
     super.source,
     super.line = 0,
     super.column = 0,
@@ -81,11 +94,9 @@ abstract class ASTDocumentation extends ASTNode {
   });
 }
 
-class ASTComment extends ASTDocumentation {
+class ASTComment extends ASTAnnotation {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitComment(this);
-
-  final bool isDocumentation;
 
   final bool isMultiLine;
 
@@ -93,7 +104,7 @@ class ASTComment extends ASTDocumentation {
 
   ASTComment({
     required String content,
-    required this.isDocumentation,
+    required super.isDocumentation,
     required this.isMultiLine,
     required this.isTrailing,
     super.source,
@@ -112,7 +123,7 @@ class ASTComment extends ASTDocumentation {
         );
 }
 
-class ASTEmptyLine extends ASTDocumentation {
+class ASTEmptyLine extends ASTAnnotation {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitEmptyLine(this);
 
@@ -122,7 +133,11 @@ class ASTEmptyLine extends ASTDocumentation {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.emptyLine, content: '\n');
+  }) : super(
+          Semantic.emptyLine,
+          content: '\n',
+          isDocumentation: false,
+        );
 }
 
 /// Parse result of a single file
@@ -954,7 +969,7 @@ class CallExpr extends ASTNode {
 
   final ASTNode callee;
 
-  final ASTDocumentation? documentationsWithinEmptyContent;
+  final ASTAnnotation? documentationsWithinEmptyContent;
 
   final List<ASTNode> positionalArgs;
 

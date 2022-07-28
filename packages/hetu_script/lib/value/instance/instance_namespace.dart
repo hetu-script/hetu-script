@@ -86,8 +86,13 @@ class HTInstanceNamespace extends HTNamespace {
   /// If [isRecursive] is false, then it won't continue to
   /// try assigning variable from enclosed namespace.
   @override
-  bool memberSet(String varName, dynamic varValue,
-      {String? from, bool isRecursive = true, bool throws = true}) {
+  bool memberSet(
+    String varName,
+    dynamic varValue, {
+    String? from,
+    bool isRecursive = true,
+    bool throws = true,
+  }) {
     final setter = '${InternalIdentifier.getter}$varName';
 
     if (isRecursive) {

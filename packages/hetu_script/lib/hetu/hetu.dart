@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:hetu_script/ast/ast.dart';
 import 'package:hetu_script/declarations.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer/analyzer.dart';
 import '../interpreter/interpreter.dart';
@@ -29,56 +30,77 @@ import '../error/error_handler.dart';
 
 class HetuConfig
     implements ParserConfig, AnalyzerConfig, CompilerConfig, InterpreterConfig {
-  bool debugPerformance;
+  /// defaults to `true`
+  bool printPerformanceStatistics;
 
+  /// defaults to `true`
+  bool normalizeImportPath;
+
+  /// defaults to `false`
   @override
   bool explicitEndOfStatement;
 
+  /// defaults to `false`
   @override
   bool computeConstantExpression;
 
+  /// defaults to `false`
   @override
   bool doStaticAnalysis;
 
+  /// defaults to `false`
   @override
-  bool compileWithoutLineInfo;
+  bool removeLineInfo;
 
+  /// defaults to `false`
   @override
-  bool ignoreAssertionStatement;
+  bool removeAssertion;
 
+  /// defaults to `false`
+  @override
+  bool removeDocumentation;
+
+  /// defaults to `false`
   @override
   bool showDartStackTrace;
 
+  /// defaults to `false`
   @override
   bool showHetuStackTrace;
 
+  /// defaults to `false`
   @override
   int stackTraceDisplayCountLimit;
 
+  /// defaults to `true`
   @override
   bool processError;
 
+  /// defaults to `true`
   @override
   bool allowVariableShadowing;
 
+  /// defaults to `false`
   @override
   bool allowImplicitVariableDeclaration;
 
+  /// defaults to `false`
   @override
   bool allowImplicitNullToZeroConversion;
 
+  /// defaults to `false`
   @override
   bool allowImplicitEmptyValueToFalseConversion;
 
-  bool normalizeImportPath;
-
   HetuConfig({
-    this.debugPerformance = true,
+    this.printPerformanceStatistics = true,
+    this.normalizeImportPath = true,
     this.explicitEndOfStatement = false,
     this.doStaticAnalysis = false,
     this.computeConstantExpression = false,
-    this.compileWithoutLineInfo = false,
-    this.ignoreAssertionStatement = false,
+    this.removeLineInfo = false,
+    this.removeAssertion = false,
+    this.removeDocumentation = false,
     this.showDartStackTrace = false,
     this.showHetuStackTrace = false,
     this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
@@ -87,13 +109,14 @@ class HetuConfig
     this.allowImplicitVariableDeclaration = false,
     this.allowImplicitNullToZeroConversion = false,
     this.allowImplicitEmptyValueToFalseConversion = false,
-    this.normalizeImportPath = true,
   });
 }
 
 /// A wrapper class for sourceContext, lexicon, parser, bundler, analyzer, compiler and interpreter to make them work together.
 class Hetu {
   HetuConfig config;
+
+  Version? verison;
 
   final HTResourceContext<HTSource> sourceContext;
 
@@ -191,7 +214,12 @@ class Hetu {
       interpreter.bindExternalClass(HTHetuClassBinding());
       // load precompiled core module.
       final coreModule = Uint8List.fromList(hetuCoreModule);
-      loadBytecode(bytes: coreModule, moduleName: 'hetu', globallyImport: true);
+      interpreter.loadBytecode(
+          bytes: coreModule, moduleName: 'hetu', globallyImport: true);
+
+      verison = interpreter.currentBytecodeModule.version;
+
+      interpreter.define('kHetuVersion', verison.toString());
 
       interpreter.invoke('initHetuEnv', positionalArgs: [this]);
 
@@ -301,7 +329,7 @@ class Hetu {
       source: source,
       parser: _currentParser,
       normalizePath: config.normalizeImportPath,
-      debugPerformance: config.debugPerformance,
+      debugPerformance: config.printPerformanceStatistics,
     );
     if (compilation.errors.isNotEmpty) {
       for (final error in compilation.errors) {
@@ -347,7 +375,7 @@ class Hetu {
       if (config.doStaticAnalysis) {
         final result = analyzer.analyzeCompilation(
           compilation,
-          debugPerformance: config.debugPerformance,
+          debugPerformance: config.printPerformanceStatistics,
         );
         if (result.errors.isNotEmpty) {
           for (final error in result.errors) {
@@ -365,7 +393,7 @@ class Hetu {
       }
       bytes = compiler.compile(
         compilation,
-        debugPerformance: config.debugPerformance,
+        debugPerformance: config.printPerformanceStatistics,
       );
       return bytes;
     } catch (error, stackTrace) {
@@ -395,7 +423,7 @@ class Hetu {
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
-      debugPerformance: config.debugPerformance,
+      debugPerformance: config.printPerformanceStatistics,
     );
     if (config.doStaticAnalysis &&
         interpreter.currentBytecodeModule.namespaces.isNotEmpty) {
@@ -439,16 +467,42 @@ class Hetu {
     return nsp;
   }
 
+  /// Add a declaration to certain namespace.
+  bool define(
+    String varName,
+    dynamic value, {
+    bool isMutable = false,
+    bool override = false,
+    bool throws = true,
+    String? moduleName,
+    String? sourceName,
+  }) =>
+      interpreter.define(
+        varName,
+        value,
+        isMutable: isMutable,
+        override: override,
+        throws: throws,
+        moduleName: moduleName,
+      );
+
+  String? help(
+    dynamic id, {
+    String? moduleName,
+  }) =>
+      interpreter.help(
+        id,
+        moduleName: moduleName,
+      );
+
   /// Get a top level variable defined in a certain namespace in the interpreter.
   dynamic fetch(
     String varName, {
     String? moduleName,
-    String? sourceName,
   }) =>
       interpreter.fetch(
         varName,
         moduleName: moduleName,
-        sourceName: sourceName,
       );
 
   /// Assign value to a top level variable defined in a certain namespace in the interpreter.
@@ -456,26 +510,22 @@ class Hetu {
     String varName,
     dynamic value, {
     String? moduleName,
-    String? sourceName,
   }) =>
       interpreter.assign(
         varName,
         value,
         moduleName: moduleName,
-        sourceName: sourceName,
       );
 
   /// Invoke a top level function defined in a certain namespace in the interpreter.
   dynamic invoke(String funcName,
           {String? moduleName,
-          String? sourceName,
           List<dynamic> positionalArgs = const [],
           Map<String, dynamic> namedArgs = const {},
           List<HTType> typeArgs = const []}) =>
       interpreter.invoke(
         funcName,
         moduleName: moduleName,
-        sourceName: sourceName,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
         typeArgs: typeArgs,

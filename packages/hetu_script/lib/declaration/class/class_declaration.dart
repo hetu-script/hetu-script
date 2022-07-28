@@ -44,6 +44,7 @@ class HTClassDeclaration extends HTDeclaration
     super.classId,
     super.closure,
     super.source,
+    super.documentation,
     this.genericTypeParameters = const [],
     HTType? superType,
     this.implementsTypes = const [],

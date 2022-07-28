@@ -33,8 +33,8 @@ final argParser = ArgParser();
 
 final hetu = Hetu(
     config: HetuConfig(
-      debugPerformance: false,
-      compileWithoutLineInfo: true,
+      printPerformanceStatistics: false,
+      removeLineInfo: true,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
       // showDartStackTrace: true,
@@ -280,7 +280,7 @@ void compile(List<String> args, {String? compileToIntArrayWithName}) {
     }
     throw 'Syntactic error(s) occurred while parsing.';
   } else {
-    final compileConfig = CompilerConfig(compileWithoutLineInfo: true);
+    final compileConfig = CompilerConfig(removeLineInfo: true);
     final compiler = HTCompiler(config: compileConfig);
     final bytes = compiler.compile(module);
 

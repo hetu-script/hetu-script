@@ -29,6 +29,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
     required String fileName,
     required String moduleName,
     super.closure,
+    super.documentation,
     this.prototypeId,
     this.mixinIds = const [],
     super.source,

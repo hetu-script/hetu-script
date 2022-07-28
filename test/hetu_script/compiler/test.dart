@@ -5,7 +5,7 @@ void main() {
   final sourceContext = HTFileSystemResourceContext(root: 'script/');
   final hetu = Hetu(
       config: HetuConfig(
-        debugPerformance: false,
+        printPerformanceStatistics: false,
         doStaticAnalysis: true,
         computeConstantExpression: true,
       ),

@@ -19,9 +19,27 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       super.classId,
       HTNamespace? closure,
       super.source,
+      super.documentation,
       bool isTopLevel = false})
       : _closure = closure,
         super(closure: closure);
+
+  String? help(String varName) {
+    if (symbols.containsKey(varName)) {
+      final decl = symbols[varName]!;
+      return decl.documentation;
+    } else if (importedSymbols.containsKey(varName)) {
+      final decl = importedSymbols[varName]!;
+      return decl.documentation;
+    } else if (closure != null) {
+      final decl =
+          closure!.memberGet(varName, isRecursive: true, throws: false);
+      if (decl != null) {
+        return (decl as HTDeclaration).documentation;
+      }
+    }
+    throw HTError.undefined(varName);
+  }
 
   @override
   dynamic memberGet(String varName,
@@ -56,8 +74,13 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
   /// then assign the value to that declaration.
   /// If [isRecursive] is true, means this is not a 'memberset operator' search.
   @override
-  bool memberSet(String varName, dynamic varValue,
-      {String? from, bool isRecursive = false, bool throws = true}) {
+  bool memberSet(
+    String varName,
+    dynamic varValue, {
+    String? from,
+    bool isRecursive = false,
+    bool throws = true,
+  }) {
     if (symbols.containsKey(varName)) {
       final decl = symbols[varName]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {

@@ -34,6 +34,7 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
       String? moduleName,
       super.classId,
       HTNamespace? closure,
+      super.documentation,
       super.declType,
       dynamic value,
       super.isPrivate = false,

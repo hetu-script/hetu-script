@@ -9,6 +9,8 @@ external class Hetu {
   fun eval(code: str) -> any
 
   fun require(path: str)
+
+  fun help(id: str)
 }
 
 var _isInitialized = false
@@ -65,4 +67,11 @@ fun require(path: str) {
     throw 'Hetu environment is not initialized!'
   }
   return _hetu.require(path)
+}
+
+fun help(id: str) {
+  if (!_isInitialized) {
+    throw 'Hetu environment is not initialized!'
+  }
+  return _hetu.help(id)
 }

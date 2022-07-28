@@ -60,6 +60,12 @@ class HTHetuClassBinding extends HTExternalClass {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             hetu.require(positionalArgs.first);
+      case 'help':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            hetu.help(positionalArgs.first);
       default:
         throw HTError.undefined(varName);
     }

@@ -47,6 +47,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     super.classId,
     HTNamespace? closure,
     super.source,
+    super.documentation,
     super.genericTypeParameters = const [],
     super.superType,
     super.withTypes = const [],

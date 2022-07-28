@@ -61,8 +61,13 @@ class HTClassNamespace extends HTNamespace {
   }
 
   @override
-  bool memberSet(String varName, dynamic varValue,
-      {String? from, bool isRecursive = true, bool throws = true}) {
+  bool memberSet(
+    String varName,
+    dynamic varValue, {
+    String? from,
+    bool isRecursive = true,
+    bool throws = true,
+  }) {
     final setter = '${InternalIdentifier.setter}$varName';
     if (symbols.containsKey(varName)) {
       final decl = symbols[varName]!;

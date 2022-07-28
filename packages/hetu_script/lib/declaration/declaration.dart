@@ -51,20 +51,23 @@ abstract class HTDeclaration {
 
   bool get isResolved => true;
 
-  const HTDeclaration(
-      {this.id,
-      this.classId,
-      this.closure,
-      this.source,
-      this.idRange = SourceRange.empty,
-      this.sourceRange = SourceRange.empty,
-      bool isPrivate = false,
-      this.isExternal = false,
-      this.isStatic = false,
-      this.isConst = false,
-      this.isMutable = false,
-      this.isTopLevel = false})
-      : _isPrivate = isPrivate;
+  final String? documentation;
+
+  const HTDeclaration({
+    this.id,
+    this.classId,
+    this.closure,
+    this.source,
+    this.idRange = SourceRange.empty,
+    this.sourceRange = SourceRange.empty,
+    bool isPrivate = false,
+    this.isExternal = false,
+    this.isStatic = false,
+    this.isConst = false,
+    this.isMutable = false,
+    this.isTopLevel = false,
+    this.documentation,
+  }) : _isPrivate = isPrivate;
 
   void resolve() {}
 

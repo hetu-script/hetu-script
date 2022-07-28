@@ -13,9 +13,11 @@ class HTBytecodeModule with BytecodeReader, HTGlobalConstantTable {
 
   final String id;
 
+  /// a interpreted source is exist as a namespace in bytecode module.
   final Map<String, HTNamespace> namespaces = {};
 
-  final Map<String, dynamic> expressions = {};
+  /// a interpreted non-source, such as JSON, is exist as a value in bytecode module.
+  final Map<String, dynamic> values = {};
 
   String getConstString() {
     final index = readUint16();

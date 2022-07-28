@@ -9,15 +9,16 @@ class HTConstantValue extends HTDeclaration {
 
   final Type type;
 
-  final HTGlobalConstantTable module;
+  final HTGlobalConstantTable globalConstantTable;
 
   HTConstantValue({
     required String id,
     required this.type,
     required this.index,
     super.classId,
+    super.documentation,
     super.isTopLevel = false,
-    required this.module,
+    required this.globalConstantTable,
   }) : super(id: id);
 
   @override
@@ -25,7 +26,7 @@ class HTConstantValue extends HTDeclaration {
 
   @override
   dynamic get value {
-    return module.getGlobalConstant(type, index);
+    return globalConstantTable.getGlobalConstant(type, index);
   }
 
   @override

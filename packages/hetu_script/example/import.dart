@@ -4,7 +4,7 @@ void main() {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
-      compileWithoutLineInfo: false,
+      removeLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
       showDartStackTrace: true,

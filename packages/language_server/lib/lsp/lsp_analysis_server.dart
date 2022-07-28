@@ -188,7 +188,7 @@ class LspAnalysisServer {
   }
 
   LineInfo getLineInfo(String path) {
-    return contextManager.getResource(path)!.lineInfo;
+    return contextManager.getResource(path)!.removeLineInfo;
   }
 
   /// Gets the version of a document known to the server, returning a

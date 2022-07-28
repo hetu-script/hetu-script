@@ -203,13 +203,22 @@ class HTLexer {
             }
           } while (iter.moveNext());
           final lexeme = buffer.toString();
+          final isDocumentation =
+              lexeme.startsWith(lexicon.documentationCommentStart);
+          String literal;
+          if (isDocumentation) {
+            literal = lexeme.substring(3);
+          } else {
+            literal = lexeme.substring(2);
+          }
+          literal = literal.trim();
           final token = TokenComment(
               lexeme: lexeme,
               line: line,
               column: column,
               offset: offset,
-              isDocumentation:
-                  currentString.startsWith(lexicon.documentationCommentStart),
+              literal: literal,
+              isDocumentation: isDocumentation,
               isMultiLine: false,
               isTrailing: lastTokenOfCurrentLine != null ? true : false);
           addToken(token);
@@ -233,11 +242,14 @@ class HTLexer {
             }
           } while (iter.moveNext());
           final lexeme = buffer.toString();
+          String literal;
+          literal = lexeme.substring(2, lexeme.length - 2);
           final token = TokenComment(
               lexeme: lexeme,
               line: line,
               column: column,
               offset: offset,
+              literal: literal,
               isMultiLine: true,
               isTrailing: lastTokenOfCurrentLine != null ? true : false);
           addToken(token);

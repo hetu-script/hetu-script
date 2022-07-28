@@ -42,6 +42,9 @@ class TokenComment extends Token {
   @override
   String get type => Semantic.comment;
 
+  @override
+  final String literal;
+
   final bool isDocumentation;
 
   final bool isMultiLine;
@@ -55,6 +58,7 @@ class TokenComment extends Token {
     required super.offset,
     super.previous,
     super.next,
+    required this.literal,
     this.isDocumentation = false,
     this.isMultiLine = false,
     this.isTrailing = false,

@@ -60,7 +60,7 @@ abstract class HTParser with TokenReader {
   // All import decl in this list must have non-null [fromPath]
   late List<ImportExportDecl> currentModuleImports;
 
-  List<ASTDocumentation> currentPrecedings = [];
+  List<ASTAnnotation> currentPrecedings = [];
 
   HTSource? currentSource;
 
@@ -103,7 +103,7 @@ abstract class HTParser with TokenReader {
   }
 
   // save current preceding comments & empty lines
-  List<ASTDocumentation> savePrecedings() {
+  List<ASTAnnotation> savePrecedings() {
     final saved = currentPrecedings;
     currentPrecedings = [];
     return saved;
@@ -124,7 +124,7 @@ abstract class HTParser with TokenReader {
     bool handled = false;
     while (curTok is TokenComment || curTok is TokenEmptyLine) {
       handled = true;
-      ASTDocumentation documentation;
+      ASTAnnotation documentation;
       if (curTok is TokenComment) {
         documentation = ASTComment.fromCommentToken(advance() as TokenComment);
       } else {

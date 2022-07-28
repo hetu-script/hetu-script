@@ -404,31 +404,69 @@ class HTInterpreter {
     }
   }
 
+  /// Get a namespace in certain module with a certain name.
+  HTNamespace getNamespace({String? moduleName}) {
+    var nsp = globalNamespace;
+    if (moduleName != null) {
+      final bytecodeModule = cachedModules[moduleName]!;
+      assert(bytecodeModule.namespaces.isNotEmpty);
+      nsp = bytecodeModule.namespaces.values.last;
+    }
+    return nsp;
+  }
+
+  /// Add a declaration to certain namespace.
+  /// if the value is not a declaration, will create one with [isMutable] value.
+  /// if not, the [isMutable] will be ignored.
+  bool define(
+    String varName,
+    dynamic value, {
+    bool isMutable = false,
+    bool override = false,
+    bool throws = true,
+    String? moduleName,
+  }) {
+    final nsp = getNamespace(moduleName: moduleName);
+    if (value is HTDeclaration) {
+      return nsp.define(varName, value, override: override, throws: throws);
+    } else {
+      final decl = HTVariable(id: varName, value: value, isMutable: isMutable);
+      return nsp.define(varName, decl, override: override, throws: throws);
+    }
+  }
+
+  /// Get the documentation of a declaration in a certain namespace.
+  String? help(
+    dynamic id, {
+    String? moduleName,
+  }) {
+    try {
+      if (id is HTDeclaration) {
+        return id.documentation;
+      } else if (id is String) {
+        HTNamespace nsp = getNamespace(moduleName: moduleName);
+        return nsp.help(id);
+      } else {
+        throw 'The argument of the `help` api [$id] is neither a defined symbol nor a string.';
+      }
+    } catch (error, stackTrace) {
+      if (config.processError) {
+        processError(error, stackTrace);
+        return null;
+      } else {
+        rethrow;
+      }
+    }
+  }
+
   /// Get a top level variable defined in a certain namespace.
   dynamic fetch(
     String varName, {
     String? moduleName,
-    String? sourceName,
   }) {
     try {
       final savedModuleName = _currentBytecodeModule.id;
-      HTNamespace nsp = globalNamespace;
-      if (moduleName != null) {
-        if (_currentBytecodeModule.id != moduleName) {
-          _currentBytecodeModule = cachedModules[moduleName]!;
-        }
-        if (sourceName != null) {
-          if (nsp.fullName != sourceName) {
-            assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
-            nsp = _currentBytecodeModule.namespaces[sourceName]!;
-          }
-        } else if (_currentBytecodeModule.namespaces.isNotEmpty) {
-          nsp = _currentBytecodeModule.namespaces.values.last;
-        }
-      } else if (sourceName != null) {
-        assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
-        nsp = _currentBytecodeModule.namespaces[sourceName]!;
-      }
+      HTNamespace nsp = getNamespace(moduleName: moduleName);
       final result = nsp.memberGet(varName, isRecursive: false);
       if (_currentBytecodeModule.id != savedModuleName) {
         _currentBytecodeModule = cachedModules[savedModuleName]!;
@@ -448,27 +486,10 @@ class HTInterpreter {
     String varName,
     dynamic value, {
     String? moduleName,
-    String? sourceName,
   }) {
     try {
       final savedModuleName = _currentBytecodeModule.id;
-      HTNamespace nsp = globalNamespace;
-      if (moduleName != null) {
-        if (_currentBytecodeModule.id != moduleName) {
-          _currentBytecodeModule = cachedModules[moduleName]!;
-        }
-        if (sourceName != null) {
-          if (nsp.fullName != sourceName) {
-            assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
-            nsp = _currentBytecodeModule.namespaces[sourceName]!;
-          }
-        } else if (_currentBytecodeModule.namespaces.isNotEmpty) {
-          nsp = _currentBytecodeModule.namespaces.values.last;
-        }
-      } else if (sourceName != null) {
-        assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
-        nsp = _currentBytecodeModule.namespaces[sourceName]!;
-      }
+      HTNamespace nsp = getNamespace(moduleName: moduleName);
       nsp.memberSet(varName, value, isRecursive: false);
       if (_currentBytecodeModule.id != savedModuleName) {
         _currentBytecodeModule = cachedModules[savedModuleName]!;
@@ -487,7 +508,6 @@ class HTInterpreter {
   /// name as a contruct call, you will get a [HTInstance] or [HTStruct] as return value.
   dynamic invoke(String funcName,
       {String? moduleName,
-      String? sourceName,
       bool isConstructorCall = false,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -500,17 +520,8 @@ class HTInterpreter {
         if (_currentBytecodeModule.id != moduleName) {
           _currentBytecodeModule = cachedModules[moduleName]!;
         }
-        if (sourceName != null) {
-          if (nsp.fullName != sourceName) {
-            assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
-            nsp = _currentBytecodeModule.namespaces[sourceName]!;
-          }
-        } else if (_currentBytecodeModule.namespaces.isNotEmpty) {
-          nsp = _currentBytecodeModule.namespaces.values.last;
-        }
-      } else if (sourceName != null) {
-        assert(_currentBytecodeModule.namespaces.containsKey(sourceName));
-        nsp = _currentBytecodeModule.namespaces[sourceName]!;
+        assert(_currentBytecodeModule.namespaces.isNotEmpty);
+        nsp = _currentBytecodeModule.namespaces.values.last;
       }
       final callee = nsp.memberGet(funcName, isRecursive: false);
       final result = _call(
@@ -855,7 +866,7 @@ class HTInterpreter {
         if (result is HTNamespace && result != globalNamespace) {
           _currentBytecodeModule.namespaces[result.id!] = result;
         } else if (result is HTValueSource) {
-          _currentBytecodeModule.expressions[result.id] = result.value;
+          _currentBytecodeModule.values[result.id] = result.value;
         } else {
           assert(result == globalNamespace);
         }
@@ -908,22 +919,6 @@ class HTInterpreter {
       }
     }
   }
-
-  // Set<String> _getExportList({String? sourceName, required String moduleName}) {
-  //   final module = cachedModules[moduleName]!;
-  //   sourceName ??= module.namespaces.values.last.fullName;
-  //   final namespace = module.namespaces[sourceName]!;
-  //   if (namespace.willExportAll) {
-  //     final list = <String>{};
-  //     for (final symbol in namespace.symbols.keys) {
-  //       if (_lexicon.isPrivate(symbol)) continue;
-  //       list.add(symbol);
-  //     }
-  //     return list;
-  //   } else {
-  //     return namespace.exports;
-  //   }
-  // }
 
   /// Get the current context of the interpreter,
   /// parameter determines wether to store certain items.
@@ -1211,6 +1206,11 @@ class HTInterpreter {
             _handleConstDecl();
             break;
           case HTOpCode.namespaceDecl:
+            final hasDoc = _currentBytecodeModule.readBool();
+            String? documentation;
+            if (hasDoc) {
+              documentation = _currentBytecodeModule.readUtf8String();
+            }
             final id = _currentBytecodeModule.getConstString();
             String? classId;
             final hasClassId = _currentBytecodeModule.readBool();
@@ -1223,6 +1223,7 @@ class HTInterpreter {
               id: id,
               classId: classId,
               closure: _currentNamespace,
+              documentation: documentation,
               isTopLevel: isTopLevel,
             );
             break;
@@ -1547,7 +1548,7 @@ class HTInterpreter {
         final ext = path.extension(fromPath);
         if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
           // TODO: import binary bytes
-          final value = _currentBytecodeModule.expressions[fromPath];
+          final value = _currentBytecodeModule.values[fromPath];
           assert(value != null);
           _currentNamespace.defineImport(
               alias!, HTVariable(id: alias, value: value));
@@ -2174,6 +2175,11 @@ class HTInterpreter {
   }
 
   void _handleTypeAliasDecl() {
+    final hasDoc = _currentBytecodeModule.readBool();
+    String? documentation;
+    if (hasDoc) {
+      documentation = _currentBytecodeModule.readUtf8String();
+    }
     final id = _currentBytecodeModule.getConstString();
     String? classId;
     final hasClassId = _currentBytecodeModule.readBool();
@@ -2186,12 +2192,22 @@ class HTInterpreter {
     }
     final value = _handleTypeExpr();
     final decl = HTVariable(
-        id: id, classId: classId, closure: _currentNamespace, value: value);
+      id: id,
+      classId: classId,
+      closure: _currentNamespace,
+      documentation: documentation,
+      value: value,
+    );
     _currentNamespace.define(id, decl);
     _localValue = value;
   }
 
   void _handleConstDecl() {
+    final hasDoc = _currentBytecodeModule.readBool();
+    String? documentation;
+    if (hasDoc) {
+      documentation = _currentBytecodeModule.readUtf8String();
+    }
     final id = _currentBytecodeModule.getConstString();
     String? classId;
     final hasClassId = _currentBytecodeModule.readBool();
@@ -2210,12 +2226,18 @@ class HTInterpreter {
         type: getConstantType(type),
         index: index,
         classId: classId,
-        module: _currentBytecodeModule);
+        documentation: documentation,
+        globalConstantTable: _currentBytecodeModule);
     _currentNamespace.define(id, decl, override: config.allowVariableShadowing);
     // _localValue = _currentBytecodeModule.getGlobalConstant(type, index);
   }
 
   void _handleVarDecl() {
+    final hasDoc = _currentBytecodeModule.readBool();
+    String? documentation;
+    if (hasDoc) {
+      documentation = _currentBytecodeModule.readUtf8String();
+    }
     final id = _currentBytecodeModule.getConstString();
     String? classId;
     final hasClassId = _currentBytecodeModule.readBool();
@@ -2254,6 +2276,7 @@ class HTInterpreter {
             moduleName: _currentBytecodeModule.id,
             classId: classId,
             closure: _currentNamespace,
+            documentation: documentation,
             declType: declType,
             isExternal: isExternal,
             isStatic: isStatic,
@@ -2270,6 +2293,7 @@ class HTInterpreter {
             moduleName: _currentBytecodeModule.id,
             classId: classId,
             closure: _currentNamespace,
+            documentation: documentation,
             declType: declType,
             value: initValue,
             isExternal: isExternal,
@@ -2284,6 +2308,7 @@ class HTInterpreter {
           moduleName: _currentBytecodeModule.id,
           classId: classId,
           closure: _currentNamespace,
+          documentation: documentation,
           declType: declType,
           isExternal: isExternal,
           isStatic: isStatic,
@@ -2397,6 +2422,11 @@ class HTInterpreter {
   }
 
   void _handleFuncDecl() {
+    final hasDoc = _currentBytecodeModule.readBool();
+    String? documentation;
+    if (hasDoc) {
+      documentation = _currentBytecodeModule.readUtf8String();
+    }
     final internalName = _currentBytecodeModule.getConstString();
     String? id;
     final hasId = _currentBytecodeModule.readBool();
@@ -2490,6 +2520,7 @@ class HTInterpreter {
         id: id,
         classId: classId,
         closure: _currentNamespace,
+        documentation: documentation,
         isAsync: isAsync,
         isField: isField,
         isExternal: isExternal,
@@ -2519,6 +2550,11 @@ class HTInterpreter {
   }
 
   void _handleClassDecl() {
+    final hasDoc = _currentBytecodeModule.readBool();
+    String? documentation;
+    if (hasDoc) {
+      documentation = _currentBytecodeModule.readUtf8String();
+    }
     final id = _currentBytecodeModule.getConstString();
     final isExternal = _currentBytecodeModule.readBool();
     final isAbstract = _currentBytecodeModule.readBool();
@@ -2544,6 +2580,7 @@ class HTInterpreter {
       this,
       id: id,
       closure: _currentNamespace,
+      documentation: documentation,
       superType: superType,
       isExternal: isExternal,
       isAbstract: isAbstract,
@@ -2555,17 +2592,28 @@ class HTInterpreter {
   }
 
   void _handleExternalEnumDecl() {
+    final hasDoc = _currentBytecodeModule.readBool();
+    String? documentation;
+    if (hasDoc) {
+      documentation = _currentBytecodeModule.readUtf8String();
+    }
     final id = _currentBytecodeModule.getConstString();
     final isTopLevel = _currentBytecodeModule.readBool();
     if (isTopLevel && _currentNamespace.willExportAll) {
       _currentNamespace.declareExport(id);
     }
-    final enumClass = HTExternalEnum(this, id: id);
+    final enumClass =
+        HTExternalEnum(this, id: id, documentation: documentation);
     _currentNamespace.define(id, enumClass);
     _localValue = enumClass;
   }
 
   void _handleStructDecl() {
+    final hasDoc = _currentBytecodeModule.readBool();
+    String? documentation;
+    if (hasDoc) {
+      documentation = _currentBytecodeModule.readUtf8String();
+    }
     final id = _currentBytecodeModule.getConstString();
     final isTopLevel = _currentBytecodeModule.readBool();
     if (isTopLevel && _currentNamespace.willExportAll) {
@@ -2595,6 +2643,7 @@ class HTInterpreter {
       fileName: _currentFileName,
       moduleName: _currentBytecodeModule.id,
       closure: _currentNamespace,
+      documentation: documentation,
       prototypeId: prototypeId,
       mixinIds: mixinIds,
       staticDefinitionIp: staticDefinitionIp,

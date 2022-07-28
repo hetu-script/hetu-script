@@ -29,6 +29,7 @@ class HTTypeAliasDeclaration extends HTDeclaration
     super.classId,
     super.closure,
     super.source,
+    super.documentation,
     this.genericTypeParameters = const [],
     super.isExternal = false,
     super.isStatic = false,

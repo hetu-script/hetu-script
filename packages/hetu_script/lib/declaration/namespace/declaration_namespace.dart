@@ -29,6 +29,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
     super.classId,
     super.closure,
     super.source,
+    super.documentation,
     required this.lexicon,
   }) {
     // calculate the full name of this namespace
@@ -57,17 +58,19 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   }
 
   /// define a declaration in this namespace,
-  /// the defined id could be different from
-  /// declaration's id
-  void define(String varName, T decl,
+  /// the defined id could be different from declaration's id
+  bool define(String varName, T decl,
       {bool override = false, bool throws = true}) {
     if (!symbols.containsKey(varName) || override) {
       symbols[varName] = decl;
+      return true;
     } else {
       if (throws) {
         throw HTError.defined(varName, ErrorType.staticWarning);
       }
     }
+
+    return false;
   }
 
   void delete(String varName, {bool throws = true}) {

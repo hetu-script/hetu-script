@@ -24,6 +24,7 @@ class HTVariableDeclaration extends HTDeclaration {
       super.classId,
       super.closure,
       super.source,
+      super.documentation,
       HTType? declType,
       super.isPrivate = false,
       super.isExternal = false,

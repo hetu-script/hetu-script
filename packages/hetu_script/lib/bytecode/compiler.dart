@@ -33,13 +33,16 @@ class HTRegIdx {
 }
 
 class CompilerConfig {
-  bool compileWithoutLineInfo;
+  bool removeLineInfo;
 
-  bool ignoreAssertionStatement;
+  bool removeAssertion;
+
+  bool removeDocumentation;
 
   CompilerConfig({
-    this.compileWithoutLineInfo = false,
-    this.ignoreAssertionStatement = false,
+    this.removeLineInfo = false,
+    this.removeAssertion = false,
+    this.removeDocumentation = false,
   });
 }
 
@@ -176,7 +179,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   Uint8List _lineInfo(int line, int column) {
     final bytesBuilder = BytesBuilder();
-    if (!config.compileWithoutLineInfo) {
+    if (!config.removeLineInfo) {
       _curLine = line;
       _curColumn = column;
       bytesBuilder.addByte(HTOpCode.lineInfo);
@@ -1106,7 +1109,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitAssertStmt(AssertStmt stmt) {
     final bytesBuilder = BytesBuilder();
-    if (!config.ignoreAssertionStatement) {
+    if (!config.removeAssertion) {
       bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
       final bytes = compileAST(stmt.expr);
       bytesBuilder.add(bytes);
@@ -1524,6 +1527,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitNamespaceDecl(NamespaceDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.namespaceDecl);
+    final docs = stmt.documentation;
+    if (docs.isNotEmpty && !config.removeDocumentation) {
+      bytesBuilder.addByte(1); // bool: has doc
+      bytesBuilder.add(_utf8String(docs));
+    } else {
+      bytesBuilder.addByte(0); // bool: has doc
+    }
     bytesBuilder.add(_parseIdentifier(stmt.id.id));
     if (stmt.classId != null) {
       bytesBuilder.addByte(1); // bool: has class id
@@ -1542,6 +1552,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitTypeAliasDecl(TypeAliasDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.typeAliasDecl);
+    final docs = stmt.documentation;
+    if (docs.isNotEmpty && !config.removeDocumentation) {
+      bytesBuilder.addByte(1); // bool: has doc
+      bytesBuilder.add(_utf8String(docs));
+    } else {
+      bytesBuilder.addByte(0); // bool: has doc
+    }
     bytesBuilder.add(_parseIdentifier(stmt.id.id));
     if (stmt.classId != null) {
       bytesBuilder.addByte(1); // bool: has class id
@@ -1559,12 +1576,19 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitVarDecl(VarDecl stmt) {
     final bytesBuilder = BytesBuilder();
+    final docs = stmt.documentation;
     // Only const declaration with a const expression as initializer
     // can be compiled into a const declaration,
     // otherwise will be compiled as a normal variable declaration,
     // with a static warning output.
     if (stmt.isConstValue) {
       bytesBuilder.addByte(HTOpCode.constDecl);
+      if (docs.isNotEmpty && !config.removeDocumentation) {
+        bytesBuilder.addByte(1); // bool: has doc
+        bytesBuilder.add(_utf8String(docs));
+      } else {
+        bytesBuilder.addByte(0); // bool: has doc
+      }
       bytesBuilder.add(_parseIdentifier(stmt.id.id));
       if (stmt.classId != null) {
         bytesBuilder.addByte(1); // bool: has class id
@@ -1591,6 +1615,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.add(_uint16(index));
     } else {
       bytesBuilder.addByte(HTOpCode.varDecl);
+      if (docs.isNotEmpty && !config.removeDocumentation) {
+        bytesBuilder.addByte(1); // bool: has doc
+        bytesBuilder.add(_utf8String(docs));
+      } else {
+        bytesBuilder.addByte(0); // bool: has doc
+      }
       bytesBuilder.add(_parseIdentifier(stmt.id.id));
       if (stmt.classId != null) {
         bytesBuilder.addByte(1); // bool: has class id
@@ -1713,6 +1743,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     // TODO: generic param
     if (stmt.category != FunctionCategory.literal) {
       bytesBuilder.addByte(HTOpCode.funcDecl);
+      final docs = stmt.documentation;
+      if (docs.isNotEmpty && !config.removeDocumentation) {
+        bytesBuilder.addByte(1); // bool: has doc
+        bytesBuilder.add(_utf8String(docs));
+      } else {
+        bytesBuilder.addByte(0); // bool: has doc
+      }
       // funcBytesBuilder.addByte(HTOpCode.funcDecl);
       bytesBuilder.add(_parseIdentifier(stmt.internalName));
       if (stmt.id != null) {
@@ -1802,6 +1839,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitClassDecl(ClassDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.classDecl);
+    final docs = stmt.documentation;
+    if (docs.isNotEmpty && !config.removeDocumentation) {
+      bytesBuilder.addByte(1); // bool: has doc
+      bytesBuilder.add(_utf8String(docs));
+    } else {
+      bytesBuilder.addByte(0); // bool: has doc
+    }
     bytesBuilder.add(_parseIdentifier(stmt.id.id));
     // TODO: generic param
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
@@ -1827,8 +1871,15 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitEnumDecl(EnumDecl stmt) {
     final bytesBuilder = BytesBuilder();
+    final docs = stmt.documentation;
     if (!stmt.isExternal) {
       bytesBuilder.addByte(HTOpCode.classDecl);
+      if (docs.isNotEmpty && !config.removeDocumentation) {
+        bytesBuilder.addByte(1); // bool: has doc
+        bytesBuilder.add(_utf8String(docs));
+      } else {
+        bytesBuilder.addByte(0); // bool: has doc
+      }
       bytesBuilder.add(_parseIdentifier(stmt.id.id));
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(0); // bool: is abstract
@@ -1902,6 +1953,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(HTOpCode.classDeclEnd);
     } else {
       bytesBuilder.addByte(HTOpCode.externalEnumDecl);
+      if (docs.isNotEmpty && !config.removeDocumentation) {
+        bytesBuilder.addByte(1); // bool: has doc
+        bytesBuilder.add(_utf8String(docs));
+      } else {
+        bytesBuilder.addByte(0); // bool: has doc
+      }
       bytesBuilder.add(_parseIdentifier(stmt.id.id));
       bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     }
@@ -1913,6 +1970,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitStructDecl(StructDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.structDecl);
+    final docs = stmt.documentation;
+    if (docs.isNotEmpty && !config.removeDocumentation) {
+      bytesBuilder.addByte(1); // bool: has doc
+      bytesBuilder.add(_utf8String(docs));
+    } else {
+      bytesBuilder.addByte(0); // bool: has doc
+    }
     bytesBuilder.add(_parseIdentifier(stmt.id.id));
     bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     if (stmt.prototypeId != null) {

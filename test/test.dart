@@ -4,8 +4,8 @@ void main() {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
-      debugPerformance: false,
-      compileWithoutLineInfo: false,
+      printPerformanceStatistics: false,
+      removeLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
       showHetuStackTrace: true,
@@ -61,9 +61,16 @@ void main() {
 
   final result = hetu.eval(
     r'''
-      import { Person } from 'source3.ht'
 
-      final p = Person()
+      /// This is a documentation
+      /// Line 1
+      /// Line 2
+      /// Line 3
+      namespace nsp {
+
+      }
+
+      print(help(nsp))
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],

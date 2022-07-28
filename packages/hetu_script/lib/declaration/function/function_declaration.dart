@@ -72,6 +72,7 @@ class HTFunctionDeclaration extends HTDeclaration
     super.classId,
     super.closure,
     super.source,
+    super.documentation,
     super.isExternal = false,
     super.isStatic = false,
     super.isConst = false,

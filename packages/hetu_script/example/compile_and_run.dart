@@ -8,9 +8,7 @@ void main() {
     fun main {
       print('hello', 'world!')
     }
-    ''',
-      moduleName: moduleName,
-      config: CompilerConfig(compileWithoutLineInfo: true));
+    ''', moduleName: moduleName, config: CompilerConfig(removeLineInfo: false));
 
   hetu.interpreter
       .loadBytecode(bytes: bytes, moduleName: moduleName, invokeFunc: 'main');
