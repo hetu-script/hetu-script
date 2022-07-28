@@ -251,7 +251,7 @@ void format(List<String> args, String outPath) {
     outFile.createSync(recursive: true);
   }
   outFile.writeAsStringSync(fmtResult);
-  stdout.writeln('done!');
+  stdout.writeln('saved file to [$outPath]');
 }
 
 void analyze(List<String> args) {
@@ -299,17 +299,17 @@ void compile(List<String> args,
     final bytes = compiler.compile(module, printPerformanceStatistics: true);
 
     final curPath = path.dirname(source.fullName);
-    late String outName;
+    late String outPath;
     if (args.length >= 2) {
-      final outPath = args[1];
-      if (!path.isAbsolute(outPath)) {
-        final joined = path.join(sourceContext.root, outPath);
-        outName = sourceContext.getAbsolutePath(key: joined);
+      final outArg = args[1];
+      if (!path.isAbsolute(outArg)) {
+        final joined = path.join(sourceContext.root, outArg);
+        outPath = sourceContext.getAbsolutePath(key: joined);
       } else {
-        outName = outPath;
+        outPath = outArg;
       }
     } else {
-      outName = path.join(
+      outPath = path.join(
           curPath,
           path.basenameWithoutExtension(source.fullName) +
               (compileToIntArrayWithName != null ? '.dart' : '.out'));
@@ -331,21 +331,21 @@ final $compileToIntArrayWithName = [''');
       output.writeln('];');
 
       final content = output.toString();
-      final outFile = File(outName);
+      final outFile = File(outPath);
       if (!outFile.existsSync()) {
         stdout.write('path not exist, creating file ...');
         outFile.createSync(recursive: true);
       }
       outFile.writeAsStringSync(content);
-      print('done!');
+      stdout.writeln('saved file to [$outPath]');
     } else {
-      final outFile = File(outName);
+      final outFile = File(outPath);
       if (!outFile.existsSync()) {
         stdout.write('path not exist, creating file ...');
         outFile.createSync(recursive: true);
       }
       outFile.writeAsBytesSync(bytes);
-      print('done!');
+      stdout.writeln('saved file to [$outPath]');
     }
   }
 }
