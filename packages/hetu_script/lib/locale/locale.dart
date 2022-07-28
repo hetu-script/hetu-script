@@ -23,6 +23,8 @@ abstract class HTLocale {
   String get errorExternal;
   String get errorNestedClass;
   String get errorConstInClass;
+  String get errorMisplacedThis;
+  String get errorMisplacedSuper;
   String get errorMisplacedReturn;
   String get errorMisplacedContinue;
   String get errorMisplacedBreak;

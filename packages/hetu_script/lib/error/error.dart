@@ -19,6 +19,8 @@ enum ErrorCode {
   external,
   nestedClass,
   constInClass,
+  misplacedThis,
+  misplacedSuper,
   misplacedReturn,
   misplacedContinue,
   misplacedBreak,
@@ -419,6 +421,44 @@ class HTError {
       int? length})
       : this(ErrorCode.constInClass, ErrorType.syntacticError,
             message: HTLocale.current.errorConstInClass,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: this appeared outside of a instance method.
+  HTError.misplacedThis(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.misplacedThis, ErrorType.syntacticError,
+            message: HTLocale.current.errorMisplacedThis,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: super appeared outside of a inherited class's instance method.
+  HTError.misplacedSuper(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.misplacedSuper, ErrorType.syntacticError,
+            message: HTLocale.current.errorMisplacedSuper,
             extra: extra,
             correction: correction,
             filename: filename,

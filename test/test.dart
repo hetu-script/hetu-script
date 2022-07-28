@@ -64,8 +64,8 @@ void main() {
     r'''
         import 'data.json' as jsonData
         
-        for (final id in jsonData.keys) {
-          print(id)
+        var test = () {
+          print(this)
         }
           ''',
     // invokeFunc: 'fromJsonTest',

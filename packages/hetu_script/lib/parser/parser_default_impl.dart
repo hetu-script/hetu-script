@@ -1445,8 +1445,19 @@ class HTDefaultParser extends HTParser {
           length: token.length);
     }
 
-    // a this expression
+    // this expression
     if (expr == null && curTok.type == lexicon.kThis) {
+      if (_currentFunctionCategory == null ||
+          (_currentFunctionCategory != FunctionCategory.literal &&
+              _currentClassDeclaration == null)) {
+        final err = HTError.misplacedThis(
+            filename: currrentFileName,
+            line: curTok.line,
+            column: curTok.column,
+            offset: curTok.offset,
+            length: curTok.length);
+        errors.add(err);
+      }
       final keyword = advance();
       _isLegalLeftValue = false;
       expr = IdentifierExpr(keyword.lexeme,
@@ -1457,8 +1468,19 @@ class HTDefaultParser extends HTParser {
           length: keyword.length);
     }
 
-    // a super constructor call
+    // super constructor call
     if (curTok.type == lexicon.kSuper) {
+      if (_currentClassDeclaration == null ||
+          _currentFunctionCategory == null ||
+          _currentClassDeclaration?.superType == null) {
+        final err = HTError.misplacedThis(
+            filename: currrentFileName,
+            line: curTok.line,
+            column: curTok.column,
+            offset: curTok.offset,
+            length: curTok.length);
+        errors.add(err);
+      }
       final keyword = advance();
       _isLegalLeftValue = false;
       expr = IdentifierExpr(keyword.lexeme,
@@ -1469,7 +1491,7 @@ class HTDefaultParser extends HTParser {
           length: keyword.length);
     }
 
-    // a constructor call
+    // constructor call
     if (expr == null && curTok.type == lexicon.kNew) {
       final keyword = advance();
       _isLegalLeftValue = false;
@@ -1500,13 +1522,13 @@ class HTDefaultParser extends HTParser {
       expr = _parseIf(isStatement: false);
     }
 
-    // a when expression
+    // when expression
     if (expr == null && curTok.type == lexicon.kWhen) {
       _isLegalLeftValue = false;
       expr = _parseWhen(isStatement: false);
     }
 
-    // a literal function expression
+    // literal function expression
     if (expr == null && curTok.type == lexicon.functionParameterStart) {
       final tokenAfterGroupExprStart = curTok.next;
       final tokenAfterGroupExprEnd = seekGroupClosing(
@@ -1541,7 +1563,7 @@ class HTDefaultParser extends HTParser {
           length: end.offset + end.length - start.offset);
     }
 
-    // a literal list value
+    // literal list value
     if (expr == null && curTok.type == lexicon.listStart) {
       final start = advance();
       final listExprs = parseExprList(

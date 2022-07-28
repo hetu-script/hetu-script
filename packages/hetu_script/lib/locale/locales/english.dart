@@ -40,6 +40,12 @@ class HTLocaleEnglish implements HTLocale {
   @override
   final String errorConstInClass = 'Const value in class must be also static.';
   @override
+  final String errorMisplacedThis =
+      'Unexpected this keyword outside of a instance method.';
+  @override
+  final String errorMisplacedSuper =
+      'Unexpected super keyword outside of a inherited class\'s instance method.';
+  @override
   final String errorMisplacedReturn =
       'Unexpected return statement outside of a function.';
   @override
