@@ -16,7 +16,7 @@ Type annotation is optional. Type is annotated **with a colon after the identifi
 
 ## Some keyword are different
 
-Use **when** instead of **switch**, with [more complex usage](../control_flow/readme.md#when) to match the condition value. This is borrowed from kotlin.
+Use **when** instead of **switch**, with [more complex usage](control_flow/readme.md#when) to match the condition value. This is borrowed from kotlin.
 
 ## Comments
 

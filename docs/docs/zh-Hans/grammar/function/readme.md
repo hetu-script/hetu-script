@@ -23,7 +23,8 @@ fun main {
 fun closure(func) {
   var i = 42
   fun nested {
-    return i = i + 1
+    i = i + 1
+    return(func(i))
   }
   return nested
 }

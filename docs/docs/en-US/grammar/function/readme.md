@@ -25,7 +25,8 @@ Return type is marked by a single arrow ('->') after the parameters brackets.
 fun closure(func) {
   var i = 42
   fun nested {
-    return i = i + 1
+    i = i + 1
+    return(func(i))
   }
   return nested
 }

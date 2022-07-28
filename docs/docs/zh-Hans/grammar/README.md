@@ -18,7 +18,7 @@
 
 ## 模式匹配
 
-河图没有使用 switch，而是使用 [when 语句](../control_flow/readme.md#when) 进行简单的模式匹配。
+河图没有使用 switch，而是使用 [when 语句](control_flow/readme.md#when) 进行简单的模式匹配。
 
 ## 注释
 
