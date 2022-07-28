@@ -1449,7 +1449,7 @@ class HTDefaultParser extends HTParser {
     if (expr == null && curTok.type == lexicon.kThis) {
       if (_currentFunctionCategory == null ||
           (_currentFunctionCategory != FunctionCategory.literal &&
-              _currentClassDeclaration == null)) {
+              (_currentClassDeclaration == null && _currentStructId == null))) {
         final err = HTError.misplacedThis(
             filename: currrentFileName,
             line: curTok.line,

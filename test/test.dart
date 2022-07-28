@@ -64,9 +64,12 @@ void main() {
     r'''
         import 'data.json' as jsonData
         
-        var test = () {
-          print(this)
+        struct T {
+          construct {
+            this.name = 'test'
+          }
         }
+        T()
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],
