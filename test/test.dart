@@ -57,13 +57,16 @@ void main() {
     "name": "Aleph",
     "type": "novel",
     "volumes": 7,
-  }''', fullName: 'json_data.json', type: HTResourceType.hetuValue);
-  sourceContext.addResource('json_data.json', jsonData);
+  }''', fullName: 'data.json', type: HTResourceType.hetuValue);
+  sourceContext.addResource('data.json', jsonData);
 
   final result = hetu.eval(
     r'''
-        import 'source3.ht'
-      test()
+        import 'data.json' as jsonData
+        
+        for (final id in jsonData.keys) {
+          print(id)
+        }
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],

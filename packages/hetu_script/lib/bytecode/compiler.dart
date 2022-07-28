@@ -245,6 +245,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bool lateInitialize = false}) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.varDecl);
+    bytesBuilder.addByte(0); // bool: hasDoc
     bytesBuilder.add(_parseIdentifier(id));
     bytesBuilder.addByte(0); // bool: hasClassId
     bytesBuilder.addByte(0);
