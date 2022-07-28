@@ -15,18 +15,14 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
   final Map<String, HTSource> _cached;
 
   @override
-  final List<String> expressionModuleExtensions;
-
-  @override
-  final List<String> binaryModuleExtensions;
+  final List<String> binaryFileExtensions;
 
   HTFileSystemResourceContext(
       {String? root,
       Map<String, HTSource>? cache,
       List<HTFilterConfig> includedFilter = const [],
       List<HTFilterConfig> excludedFilter = const [],
-      this.expressionModuleExtensions = const [],
-      this.binaryModuleExtensions = const [],
+      this.binaryFileExtensions = const [],
       bool doScanRoot = false})
       : _cached = cache ?? <String, HTSource>{} {
     if (root != null) {

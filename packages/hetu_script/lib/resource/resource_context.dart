@@ -80,8 +80,12 @@ abstract class HTResourceContext<T> {
   //   }
   // }
 
-  List<String> get expressionModuleExtensions => const [];
-  List<String> get binaryModuleExtensions => const [];
+  static const List<String> _predefinedCompatibleHetuValueExtensions = [
+    HTResource.json,
+    HTResource.json5
+  ];
+
+  List<String> get binaryFileExtensions => const [];
 
   void init() {}
 
@@ -90,12 +94,12 @@ abstract class HTResourceContext<T> {
       return HTResourceType.hetuModule;
     } else if (ext == HTResource.hetuScript) {
       return HTResourceType.hetuScript;
-    } else if (expressionModuleExtensions.contains(ext)) {
+    } else if (_predefinedCompatibleHetuValueExtensions.contains(ext)) {
       return HTResourceType.hetuValue;
-    } else if (binaryModuleExtensions.contains(ext)) {
+    } else if (binaryFileExtensions.contains(ext)) {
       return HTResourceType.binary;
     } else {
-      return HTResourceType.unkown;
+      return HTResourceType.unknown;
     }
   }
 

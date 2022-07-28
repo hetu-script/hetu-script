@@ -34,13 +34,14 @@ void main() {
     }
 // ''', fullName: 'source2.ht');
   final source3 = HTSource(r'''
-    import 'source2.ht'
+    // import 'source2.ht'
+    import 'json_data.json' as jsonData
     // struct Jimmy extends Person {
     //   construct : super() {
     //     this.age = 17
     //   }
     // }
-    export { Person }
+    // export { Person }
     fun test {
       print(jsonData.type)
     }
@@ -61,16 +62,8 @@ void main() {
 
   final result = hetu.eval(
     r'''
-
-      /// This is a documentation
-      /// Line 1
-      /// Line 2
-      /// Line 3
-      namespace nsp {
-
-      }
-
-      print(help(nsp))
+        import 'source3.ht'
+      test()
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],

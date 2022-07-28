@@ -4,7 +4,7 @@ enum HTResourceType {
   hetuLiteralCode,
   hetuValue,
   binary,
-  unkown,
+  unknown,
 }
 
 abstract class HTResource {
@@ -12,5 +12,5 @@ abstract class HTResource {
   static const hetuModule = '.ht';
   static const hetuScript = '.hts';
   static const json = '.json';
-  static const jsonWithComments = '.jsonc';
+  static const json5 = '.json5';
 }

@@ -3,11 +3,7 @@ import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
   const root = 'example/script';
-  final sourceContext =
-      HTFileSystemResourceContext(root: root, expressionModuleExtensions: [
-    HTResource.json,
-    HTResource.jsonWithComments,
-  ]);
+  final sourceContext = HTFileSystemResourceContext(root: root);
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
 

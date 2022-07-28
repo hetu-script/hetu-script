@@ -44,14 +44,10 @@ class _MyHomePageState extends State<MyHomePage> {
       HTResource.hetuModule,
       HTResource.hetuScript,
       HTResource.json,
-      HTResource.jsonWithComments,
+      HTResource.json5,
     ]);
-    final sourceContext = HTAssetResourceContext(root: root, includedFilter: [
-      filterConfig
-    ], expressionModuleExtensions: [
-      HTResource.json,
-      HTResource.jsonWithComments,
-    ]);
+    final sourceContext =
+        HTAssetResourceContext(root: root, includedFilter: [filterConfig]);
     hetu = Hetu(sourceContext: sourceContext);
     await hetu.initFlutter();
     _isHetuReady = true;

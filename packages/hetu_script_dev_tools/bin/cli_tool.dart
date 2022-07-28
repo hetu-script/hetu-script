@@ -43,10 +43,7 @@ final hetu = Hetu(
       allowImplicitEmptyValueToFalseConversion: true,
     ),
     sourceContext: sourceContext);
-final sourceContext = HTFileSystemResourceContext(expressionModuleExtensions: [
-  HTResource.json,
-  HTResource.jsonWithComments,
-]);
+final sourceContext = HTFileSystemResourceContext();
 final analyzer = HTAnalyzer(sourceContext: sourceContext);
 final parser = HTDefaultParser();
 final bundler = HTBundler(sourceContext: sourceContext);

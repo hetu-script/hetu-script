@@ -16,9 +16,7 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
   final List<HTFilterConfig> _includedFilter;
   final List<HTFilterConfig> _excludedFilter;
   @override
-  final List<String> expressionModuleExtensions;
-  @override
-  final List<String> binaryModuleExtensions;
+  final List<String> binaryFileExtensions;
 
   /// Create a [HTAssetResourceContext] with every script file
   /// placed under folder of [root], which defaults to 'scripts/'
@@ -26,8 +24,7 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
       {this.root = 'scripts/',
       List<HTFilterConfig> includedFilter = const [],
       List<HTFilterConfig> excludedFilter = const [],
-      this.expressionModuleExtensions = const [],
-      this.binaryModuleExtensions = const []})
+      this.binaryFileExtensions = const []})
       : _includedFilter = includedFilter,
         _excludedFilter = excludedFilter;
 
