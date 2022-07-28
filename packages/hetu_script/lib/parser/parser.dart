@@ -217,7 +217,8 @@ abstract class HTParser with TokenReader {
   }
 
   /// Convert string content into [ASTSource] by a certain grammar rules set.
-  ASTSource parseSource(HTSource source, {bool debugPerformance = false}) {
+  ASTSource parseSource(HTSource source,
+      {bool printPerformanceStatistics = false}) {
     final tik = DateTime.now().millisecondsSinceEpoch;
     currrentFileName = source.fullName;
     resetFlags();
@@ -230,7 +231,7 @@ abstract class HTParser with TokenReader {
         imports: currentModuleImports,
         errors: errors); // copy the list);
     final tok = DateTime.now().millisecondsSinceEpoch;
-    if (debugPerformance) {
+    if (printPerformanceStatistics) {
       print('hetu: ${tok - tik}ms\tto parse\t[${source.fullName}]');
     }
     return result;

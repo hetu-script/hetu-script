@@ -21,10 +21,10 @@ class HTBundler {
     required HTSource source,
     required HTParser parser,
     bool normalizePath = true,
-    bool debugPerformance = false,
+    bool printPerformanceStatistics = false,
   }) {
-    final sourceParseResult =
-        parser.parseSource(source, debugPerformance: debugPerformance);
+    final sourceParseResult = parser.parseSource(source,
+        printPerformanceStatistics: printPerformanceStatistics);
     final tik = DateTime.now().millisecondsSinceEpoch;
     final sourceParseErrors = sourceParseResult.errors;
     final values = <String, ASTSource>{};
@@ -53,8 +53,8 @@ class HTBundler {
           if (sources.keys.contains(importFullName) ||
               cachedParsingTargets.contains(importFullName)) continue;
           final source2 = sourceContext.getResource(importFullName);
-          importedSource =
-              parser.parseSource(source2, debugPerformance: debugPerformance);
+          importedSource = parser.parseSource(source2,
+              printPerformanceStatistics: printPerformanceStatistics);
           // final parser2 = HTParser(sourceContext: sourceContext);
           // importedSource = parser2.parseSource(source2);
           sourceParseErrors.addAll(importedSource.errors);
@@ -97,7 +97,7 @@ class HTBundler {
         entryResourceType: source.type,
         errors: sourceParseErrors);
     final tok = DateTime.now().millisecondsSinceEpoch;
-    if (debugPerformance) {
+    if (printPerformanceStatistics) {
       print('hetu: ${tok - tik}ms\tto bundle\t[${source.fullName}]');
     }
     return compilation;

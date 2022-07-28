@@ -215,7 +215,11 @@ class Hetu {
       // load precompiled core module.
       final coreModule = Uint8List.fromList(hetuCoreModule);
       interpreter.loadBytecode(
-          bytes: coreModule, moduleName: 'hetu', globallyImport: true);
+        bytes: coreModule,
+        moduleName: 'hetu',
+        globallyImport: true,
+        printPerformanceStatistics: config.printPerformanceStatistics,
+      );
 
       verison = interpreter.currentBytecodeModule.version;
 
@@ -329,7 +333,7 @@ class Hetu {
       source: source,
       parser: _currentParser,
       normalizePath: config.normalizeImportPath,
-      debugPerformance: config.printPerformanceStatistics,
+      printPerformanceStatistics: config.printPerformanceStatistics,
     );
     if (compilation.errors.isNotEmpty) {
       for (final error in compilation.errors) {
@@ -375,7 +379,7 @@ class Hetu {
       if (config.doStaticAnalysis) {
         final result = analyzer.analyzeCompilation(
           compilation,
-          debugPerformance: config.printPerformanceStatistics,
+          printPerformanceStatistics: config.printPerformanceStatistics,
         );
         if (result.errors.isNotEmpty) {
           for (final error in result.errors) {
@@ -393,7 +397,7 @@ class Hetu {
       }
       bytes = compiler.compile(
         compilation,
-        debugPerformance: config.printPerformanceStatistics,
+        printPerformanceStatistics: config.printPerformanceStatistics,
       );
       return bytes;
     } catch (error, stackTrace) {
@@ -423,7 +427,7 @@ class Hetu {
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
-      debugPerformance: config.printPerformanceStatistics,
+      printPerformanceStatistics: config.printPerformanceStatistics,
     );
     if (config.doStaticAnalysis &&
         interpreter.currentBytecodeModule.namespaces.isNotEmpty) {

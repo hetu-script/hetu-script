@@ -805,7 +805,7 @@ class HTInterpreter {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
     List<HTType> typeArgs = const [],
-    bool debugPerformance = false,
+    bool printPerformanceStatistics = false,
   }) {
     try {
       final tik = DateTime.now().millisecondsSinceEpoch;
@@ -905,9 +905,9 @@ class HTInterpreter {
         result = _stackFrames.last.first;
       }
       final tok = DateTime.now().millisecondsSinceEpoch;
-      if (debugPerformance) {
+      if (printPerformanceStatistics) {
         print(
-            'hetu: ${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.id}] (version: \'${_currentBytecodeModule.version}\', compiled at: ${_currentBytecodeModule.compiledAt})');
+            'hetu: ${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.id}] (version: \'${_currentBytecodeModule.version}\', compiled at: ${_currentBytecodeModule.compiledAt}');
       }
       stackTraceList.clear();
       return result;

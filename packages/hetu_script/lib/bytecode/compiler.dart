@@ -92,12 +92,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   Uint8List compile(
     ASTCompilation compilation, {
-    bool debugPerformance = false,
+    bool printPerformanceStatistics = false,
   }) {
     final tik = DateTime.now().millisecondsSinceEpoch;
     final bytes = compilation.accept(this);
     final tok = DateTime.now().millisecondsSinceEpoch;
-    if (debugPerformance) {
+    if (printPerformanceStatistics) {
       print('hetu: ${tok - tik}ms\tto compile\t[${compilation.entryFullname}]');
     }
     return bytes;
@@ -338,9 +338,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     for (final item in kHetuVersion.build) {
       mainBytesBuilder.add(_utf8String(item.toString()));
     }
-    final compiledAt = DateTime.now();
+    final compiledAt = DateTime.now().toUtc();
     final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-    mainBytesBuilder.add(_utf8String(formatter.format(compiledAt)));
+    final compiledAtString = '${formatter.format(compiledAt)} UTC)';
+    mainBytesBuilder.add(_utf8String(compiledAtString));
     // entry file name
     mainBytesBuilder.add(_utf8String(compilation.entryFullname));
     // index: ResourceType

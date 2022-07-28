@@ -111,7 +111,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     ASTCompilation compilation, {
     String? moduleName,
     bool globallyImport = false,
-    bool debugPerformance = false,
+    bool printPerformanceStatistics = false,
   }) {
     final tik = DateTime.now().millisecondsSinceEpoch;
     // _currentCompilation = compilation;
@@ -148,7 +148,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
       compilation: compilation,
     );
     final tok = DateTime.now().millisecondsSinceEpoch;
-    if (debugPerformance) {
+    if (printPerformanceStatistics) {
       print('analyzed [${compilation.entryFullname}]\t${tok - tik}ms');
     }
     return result;
