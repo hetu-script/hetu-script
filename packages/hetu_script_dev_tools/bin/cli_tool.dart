@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:args/args.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script/analyzer.dart';
@@ -33,7 +34,7 @@ final argParser = ArgParser();
 
 final hetu = Hetu(
     config: HetuConfig(
-      printPerformanceStatistics: false,
+      printPerformanceStatistics: true,
       removeLineInfo: true,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
@@ -97,7 +98,11 @@ Interpret a Hetu script file and print its result to terminal.
               print(
                   'hetu compile [path] [output_path] [option]\nCompile a Hetu script file.');
             } else {
-              compile(cmd.rest, compileToIntArrayWithName: cmd['array']);
+              compile(
+                cmd.rest,
+                compileToIntArrayWithName: cmd['array'],
+                versionString: cmd['version'],
+              );
             }
             break;
         }
@@ -168,6 +173,8 @@ ArgResults parseArg(List<String> args) {
       abbr: 'h', negatable: false, help: 'Show compile command help.');
   compileCmd.addOption('out', abbr: 'o', help: 'Save compile result to file.');
   compileCmd.addOption('array', abbr: 'a', help: 'Compile to dart array.');
+  compileCmd.addOption('version',
+      abbr: 'v', help: 'Set the version string for this module.');
   return argParser.parse(args);
 }
 
@@ -264,13 +271,23 @@ void analyze(List<String> args) {
   }
 }
 
-void compile(List<String> args, {String? compileToIntArrayWithName}) {
+void compile(List<String> args,
+    {String? compileToIntArrayWithName, String? versionString}) {
   if (args.isEmpty) {
     throw 'Error: Path argument is required for \'compile\' command.';
   }
+  Version? version;
+  if (versionString != null) {
+    version = Version.parse(versionString);
+  }
   final source = sourceContext.getResource(args.first);
-  stdout.write('Compiling [${source.fullName}] ...');
-  final module = bundler.bundle(source: source, parser: parser);
+  print('Compiling [${source.fullName}] ...');
+  final module = bundler.bundle(
+    source: source,
+    parser: parser,
+    version: version,
+    printPerformanceStatistics: true,
+  );
   if (module.errors.isNotEmpty) {
     for (final err in module.errors) {
       print(err);
@@ -279,7 +296,7 @@ void compile(List<String> args, {String? compileToIntArrayWithName}) {
   } else {
     final compileConfig = CompilerConfig(removeLineInfo: true);
     final compiler = HTCompiler(config: compileConfig);
-    final bytes = compiler.compile(module);
+    final bytes = compiler.compile(module, printPerformanceStatistics: true);
 
     final curPath = path.dirname(source.fullName);
     late String outName;

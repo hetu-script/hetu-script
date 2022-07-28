@@ -324,24 +324,29 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final mainBytesBuilder = BytesBuilder();
     // hetu bytecode signature
     mainBytesBuilder.add(hetuSignatureData);
-    // hetu bytecode version
-    mainBytesBuilder.addByte(kHetuVersion.major);
-    mainBytesBuilder.addByte(kHetuVersion.minor);
-    mainBytesBuilder.add(_uint16(kHetuVersion.patch));
-    // pre-release id length
-    mainBytesBuilder.addByte(kHetuVersion.preRelease.length);
-    for (final item in kHetuVersion.preRelease) {
-      mainBytesBuilder.add(_utf8String(item.toString()));
+    if (compilation.version != null) {
+      mainBytesBuilder.addByte(1); // bool: hasVersion
+      // hetu bytecode version
+      mainBytesBuilder.addByte(kHetuVersion.major);
+      mainBytesBuilder.addByte(kHetuVersion.minor);
+      mainBytesBuilder.add(_uint16(kHetuVersion.patch));
+      // pre-release id length
+      mainBytesBuilder.addByte(kHetuVersion.preRelease.length);
+      for (final item in kHetuVersion.preRelease) {
+        mainBytesBuilder.add(_utf8String(item.toString()));
+      }
+      // build id length
+      mainBytesBuilder.addByte(kHetuVersion.build.length);
+      for (final item in kHetuVersion.build) {
+        mainBytesBuilder.add(_utf8String(item.toString()));
+      }
+      final compiledAt = DateTime.now().toUtc();
+      final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+      final compiledAtString = '${formatter.format(compiledAt)} UTC)';
+      mainBytesBuilder.add(_utf8String(compiledAtString));
+    } else {
+      mainBytesBuilder.addByte(0); // bool: hasVersion
     }
-    // build id length
-    mainBytesBuilder.addByte(kHetuVersion.build.length);
-    for (final item in kHetuVersion.build) {
-      mainBytesBuilder.add(_utf8String(item.toString()));
-    }
-    final compiledAt = DateTime.now().toUtc();
-    final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-    final compiledAtString = '${formatter.format(compiledAt)} UTC)';
-    mainBytesBuilder.add(_utf8String(compiledAtString));
     // entry file name
     mainBytesBuilder.add(_utf8String(compilation.entryFullname));
     // index: ResourceType

@@ -62,14 +62,9 @@ void main() {
 
   final result = hetu.eval(
     r'''
-        import 'data.json' as jsonData
-        
-        struct T {
-          construct {
-            this.name = 'test'
-          }
-        }
-        T()
+        import 'source1.ht'
+
+        print(typename)
           ''',
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],

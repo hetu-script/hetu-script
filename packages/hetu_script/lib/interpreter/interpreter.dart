@@ -816,41 +816,47 @@ class HTInterpreter {
         throw HTError.bytecode(
             filename: _currentFileName, line: _currentLine, column: _column);
       }
-      final major = _currentBytecodeModule.read();
-      final minor = _currentBytecodeModule.read();
-      final patch = _currentBytecodeModule.readUint16();
-      final preReleaseLength = _currentBytecodeModule.read();
-      String? preRelease;
-      for (var i = 0; i < preReleaseLength; ++i) {
-        preRelease ??= '';
-        preRelease += _currentBytecodeModule.readUtf8String();
-      }
-      final buildLength = _currentBytecodeModule.read();
-      String? build;
-      for (var i = 0; i < buildLength; ++i) {
-        build ??= '';
-        build += _currentBytecodeModule.readUtf8String();
-      }
-      _currentBytecodeModule.version =
-          Version(major, minor, patch, pre: preRelease, build: build);
-      _currentBytecodeModule.compiledAt =
-          _currentBytecodeModule.readUtf8String();
+      final hasVersion = _currentBytecodeModule.readBool();
+      if (hasVersion) {
+        final major = _currentBytecodeModule.read();
+        final minor = _currentBytecodeModule.read();
+        final patch = _currentBytecodeModule.readUint16();
+        final preReleaseLength = _currentBytecodeModule.read();
+        String? preRelease;
+        for (var i = 0; i < preReleaseLength; ++i) {
+          preRelease ??= '';
+          preRelease += _currentBytecodeModule.readUtf8String();
+        }
+        final buildLength = _currentBytecodeModule.read();
+        String? build;
+        for (var i = 0; i < buildLength; ++i) {
+          build ??= '';
+          build += _currentBytecodeModule.readUtf8String();
+        }
+        _currentBytecodeModule.version =
+            Version(major, minor, patch, pre: preRelease, build: build);
+        _currentBytecodeModule.compiledAt =
+            _currentBytecodeModule.readUtf8String();
 
-      var incompatible = false;
-      if (major > 0) {
-        if (major != kHetuVersion.major) {
-          incompatible = true;
+        var incompatible = false;
+        if (major > 0) {
+          if (major > kHetuVersion.major) {
+            incompatible = true;
+          }
+        } else {
+          if (_currentBytecodeModule.version != kHetuVersion) {
+            incompatible = true;
+          }
         }
-      } else {
-        if (major != kHetuVersion.major ||
-            minor != kHetuVersion.minor ||
-            patch != kHetuVersion.patch) {
-          incompatible = true;
+        if (incompatible) {
+          throw HTError.version(
+            _currentBytecodeModule.version.toString(),
+            kHetuVersion.toString(),
+            filename: _currentFileName,
+            line: _currentLine,
+            column: _column,
+          );
         }
-      }
-      if (incompatible) {
-        throw HTError.version('$major.$minor.$patch', '$kHetuVersion',
-            filename: _currentFileName, line: _currentLine, column: _column);
       }
       _currentFileName = _currentBytecodeModule.readUtf8String();
       final sourceType =
@@ -906,8 +912,14 @@ class HTInterpreter {
       }
       final tok = DateTime.now().millisecondsSinceEpoch;
       if (printPerformanceStatistics) {
-        print(
-            'hetu: ${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.id}] (version: \'${_currentBytecodeModule.version}\', compiled at: ${_currentBytecodeModule.compiledAt}');
+        if (_currentBytecodeModule.version != null &&
+            _currentBytecodeModule.compiledAt != null) {
+          print(
+              'hetu: ${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.id}] (version: \'${_currentBytecodeModule.version}\', compiled at: ${_currentBytecodeModule.compiledAt}');
+        } else {
+          print(
+              'hetu: ${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.id}]');
+        }
       }
       stackTraceList.clear();
       return result;

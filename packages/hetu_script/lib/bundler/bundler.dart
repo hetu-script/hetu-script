@@ -1,4 +1,5 @@
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 import '../resource/resource.dart';
 import '../resource/resource_context.dart';
@@ -22,6 +23,7 @@ class HTBundler {
     required HTParser parser,
     bool normalizePath = true,
     bool printPerformanceStatistics = false,
+    Version? version,
   }) {
     final sourceParseResult = parser.parseSource(source,
         printPerformanceStatistics: printPerformanceStatistics);
@@ -91,11 +93,13 @@ class HTBundler {
       sources[sourceParseResult.fullName] = sourceParseResult;
     }
     final compilation = ASTCompilation(
-        values: values,
-        sources: sources,
-        entryFullname: source.fullName,
-        entryResourceType: source.type,
-        errors: sourceParseErrors);
+      values: values,
+      sources: sources,
+      entryFullname: source.fullName,
+      entryResourceType: source.type,
+      errors: sourceParseErrors,
+      version: version,
+    );
     final tok = DateTime.now().millisecondsSinceEpoch;
     if (printPerformanceStatistics) {
       print('hetu: ${tok - tik}ms\tto bundle\t[${source.fullName}]');

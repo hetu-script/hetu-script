@@ -1,3 +1,5 @@
+import 'package:pub_semver/pub_semver.dart';
+
 import '../declaration/namespace/declaration_namespace.dart';
 import '../parser/token.dart';
 import '../grammar/constant.dart';
@@ -211,6 +213,8 @@ class ASTCompilation extends ASTNode {
 
   final List<HTError> errors;
 
+  final Version? version;
+
   ASTCompilation({
     required this.values,
     required this.sources,
@@ -222,6 +226,7 @@ class ASTCompilation extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
+    this.version,
   }) : super(Semantic.compilation, isStatement: true) {
     // for (final decl in values.values) {
     //   decl.parent = this;

@@ -314,7 +314,7 @@ class Hetu {
     if (source.content.trim().isEmpty) {
       return null;
     }
-    final bytes = _compileSource(source, moduleName: moduleName);
+    final bytes = _compileSource(source);
     final result = interpreter.loadBytecode(
         bytes: bytes,
         moduleName: moduleName ?? source.fullName,
@@ -328,12 +328,14 @@ class Hetu {
 
   /// Process the import declaration within several sources,
   /// generate a single [ASTCompilation] for [HTCompiler] to compile.
-  ASTCompilation bundle(HTSource source, {bool errorHandled = false}) {
+  ASTCompilation bundle(HTSource source,
+      {Version? version, bool errorHandled = false}) {
     final compilation = bundler.bundle(
       source: source,
       parser: _currentParser,
       normalizePath: config.normalizeImportPath,
       printPerformanceStatistics: config.printPerformanceStatistics,
+      version: version,
     );
     if (compilation.errors.isNotEmpty) {
       for (final error in compilation.errors) {
@@ -349,32 +351,50 @@ class Hetu {
 
   /// Compile a string into bytecode.
   /// This won't execute the code, so runtime errors will not be reported.
-  Uint8List compile(String content,
-      {String? filename,
-      String? moduleName,
-      CompilerConfig? config,
-      bool isModuleEntryScript = false}) {
+  Uint8List compile(
+    String content, {
+    String? sourceName,
+    CompilerConfig? config,
+    bool isModuleEntryScript = false,
+    Version? version,
+  }) {
     final source = HTSource(content,
-        fullName: filename,
+        fullName: sourceName,
         type: isModuleEntryScript
             ? HTResourceType.hetuScript
             : HTResourceType.hetuModule);
-    return _compileSource(source, moduleName: moduleName);
+    return _compileSource(
+      source,
+      version: version,
+    );
   }
 
   /// Compile a source within current [sourceContext].
   /// This won't execute the code, so runtime errors will not be reported.
-  Uint8List compileFile(String key,
-      {String? moduleName, CompilerConfig? config}) {
+  Uint8List compileFile(
+    String key, {
+    CompilerConfig? config,
+    Version? version,
+  }) {
     final source = sourceContext.getResource(key);
-    return _compileSource(source, moduleName: moduleName);
+    return _compileSource(
+      source,
+      version: version,
+    );
   }
 
   /// Compile a [HTSource] into bytecode for later use.
-  Uint8List _compileSource(HTSource source,
-      {String? moduleName, bool errorHandled = false}) {
+  Uint8List _compileSource(
+    HTSource source, {
+    Version? version,
+    bool errorHandled = false,
+  }) {
     try {
-      final compilation = bundle(source, errorHandled: true);
+      final compilation = bundle(
+        source,
+        version: version,
+        errorHandled: true,
+      );
       Uint8List bytes;
       if (config.doStaticAnalysis) {
         final result = analyzer.analyzeCompilation(
@@ -463,7 +483,7 @@ class Hetu {
     final source = sourceContext.getResource(key);
     // Because we are loading it dynamically, it has to be a script rather than a module.
     source.type = HTResourceType.hetuScript;
-    final bytes = _compileSource(source, moduleName: key);
+    final bytes = _compileSource(source);
     final HTContext storedContext = interpreter.getContext();
     interpreter.loadBytecode(bytes: bytes, moduleName: key);
     final nsp = interpreter.currentBytecodeModule.namespaces.values.last;
