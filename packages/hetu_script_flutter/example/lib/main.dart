@@ -44,7 +44,6 @@ class _MyHomePageState extends State<MyHomePage> {
       HTResource.hetuModule,
       HTResource.hetuScript,
       HTResource.json,
-      HTResource.json5,
     ]);
     final sourceContext =
         HTAssetResourceContext(root: root, includedFilter: [filterConfig]);

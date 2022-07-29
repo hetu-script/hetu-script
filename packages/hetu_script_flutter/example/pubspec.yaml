@@ -15,6 +15,7 @@ dependencies:
   hetu_script: '^0.4.1+1'
   # hetu_script:
   #   path: ../../hetu_script
+  hetu_script_flutter: '^0.1.0+1'
   # hetu_script_flutter:
   #   path: ../
 
