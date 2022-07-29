@@ -923,7 +923,7 @@ class HTInterpreter {
           message += '@${_currentBytecodeModule.version}';
         }
         message +=
-            ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu version $compilerVersion)';
+            ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu@$compilerVersion)';
         print(message);
       }
       stackTraceList.clear();
