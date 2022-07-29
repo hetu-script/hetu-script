@@ -2,7 +2,9 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:intl/intl.dart';
+import 'package:pub_semver/pub_semver.dart';
 
+import '../version.dart';
 import '../ast/ast.dart';
 import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
@@ -316,6 +318,25 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
+  Uint8List _compileVersionString(Version version) {
+    final bytesBuilder = BytesBuilder();
+    // hetu bytecode version
+    bytesBuilder.addByte(version.major);
+    bytesBuilder.addByte(version.minor);
+    bytesBuilder.add(_uint16(version.patch));
+    // pre-release id length
+    bytesBuilder.addByte(version.preRelease.length);
+    for (final item in version.preRelease) {
+      bytesBuilder.add(_utf8String(item.toString()));
+    }
+    // build id length
+    bytesBuilder.addByte(version.build.length);
+    for (final item in version.build) {
+      bytesBuilder.add(_utf8String(item.toString()));
+    }
+    return bytesBuilder.toBytes();
+  }
+
   @override
   Uint8List visitCompilation(ASTCompilation compilation) {
     _currentConstantTable = HTGlobalConstantTable();
@@ -323,26 +344,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final mainBytesBuilder = BytesBuilder();
     // hetu bytecode signature
     mainBytesBuilder.add(hetuSignatureData);
+    mainBytesBuilder.add(_compileVersionString(kHetuVersion));
     if (compilation.version != null) {
-      final version = compilation.version!;
       mainBytesBuilder.addByte(1); // bool: hasVersion
-      // hetu bytecode version
-      mainBytesBuilder.addByte(version.major);
-      mainBytesBuilder.addByte(version.minor);
-      mainBytesBuilder.add(_uint16(version.patch));
-      // pre-release id length
-      mainBytesBuilder.addByte(version.preRelease.length);
-      for (final item in version.preRelease) {
-        mainBytesBuilder.add(_utf8String(item.toString()));
-      }
-      // build id length
-      mainBytesBuilder.addByte(version.build.length);
-      for (final item in version.build) {
-        mainBytesBuilder.add(_utf8String(item.toString()));
-      }
+      mainBytesBuilder.add(_compileVersionString(compilation.version!));
       final compiledAt = DateTime.now().toUtc();
       final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-      final compiledAtString = '${formatter.format(compiledAt)} UTC)';
+      final compiledAtString = formatter.format(compiledAt);
       mainBytesBuilder.add(_utf8String(compiledAtString));
     } else {
       mainBytesBuilder.addByte(0); // bool: hasVersion
