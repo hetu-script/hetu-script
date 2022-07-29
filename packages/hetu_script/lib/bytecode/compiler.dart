@@ -9,7 +9,6 @@ import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../shared/constants.dart';
 import '../constant/global_constant_table.dart';
-import '../version.dart';
 // import '../parser/parser.dart';
 
 class HTRegIdx {
@@ -325,19 +324,20 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     // hetu bytecode signature
     mainBytesBuilder.add(hetuSignatureData);
     if (compilation.version != null) {
+      final version = compilation.version!;
       mainBytesBuilder.addByte(1); // bool: hasVersion
       // hetu bytecode version
-      mainBytesBuilder.addByte(kHetuVersion.major);
-      mainBytesBuilder.addByte(kHetuVersion.minor);
-      mainBytesBuilder.add(_uint16(kHetuVersion.patch));
+      mainBytesBuilder.addByte(version.major);
+      mainBytesBuilder.addByte(version.minor);
+      mainBytesBuilder.add(_uint16(version.patch));
       // pre-release id length
-      mainBytesBuilder.addByte(kHetuVersion.preRelease.length);
-      for (final item in kHetuVersion.preRelease) {
+      mainBytesBuilder.addByte(version.preRelease.length);
+      for (final item in version.preRelease) {
         mainBytesBuilder.add(_utf8String(item.toString()));
       }
       // build id length
-      mainBytesBuilder.addByte(kHetuVersion.build.length);
-      for (final item in kHetuVersion.build) {
+      mainBytesBuilder.addByte(version.build.length);
+      for (final item in version.build) {
         mainBytesBuilder.add(_utf8String(item.toString()));
       }
       final compiledAt = DateTime.now().toUtc();

@@ -1,4 +1,5 @@
 import 'package:hetu_script/hetu_script.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 void main() {
   final sourceContext = HTOverlayContext();
@@ -60,15 +61,29 @@ void main() {
   }''', fullName: 'data.json', type: HTResourceType.hetuValue);
   sourceContext.addResource('data.json', jsonData);
 
-  final result = hetu.eval(
+  // final result = hetu.eval(
+  //   r'''
+  //       import 'source1.ht'
+
+  //       print(typename)
+  //         ''',
+  //   // invokeFunc: 'fromJsonTest',
+  //   // positionalArgs: [jsonData],
+  // );
+
+  final bytes = hetu.compile(
     r'''
         import 'source1.ht'
 
         print(typename)
           ''',
+    isModuleEntryScript: true,
     // invokeFunc: 'fromJsonTest',
     // positionalArgs: [jsonData],
+    version: Version(0, 1, 0),
   );
+
+  final result = hetu.loadBytecode(bytes: bytes, moduleName: 'test');
 
   if (result is Future) {
     result.then((value) => print(hetu.lexicon.stringify(value)));
