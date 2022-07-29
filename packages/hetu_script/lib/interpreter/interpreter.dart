@@ -860,9 +860,9 @@ class HTInterpreter {
       final hasVersion = _currentBytecodeModule.readBool();
       if (hasVersion) {
         _currentBytecodeModule.version = _handleVersion();
-        _currentBytecodeModule.compiledAt =
-            _currentBytecodeModule.readUtf8String();
       }
+      _currentBytecodeModule.compiledAt =
+          _currentBytecodeModule.readUtf8String();
       _currentFileName = _currentBytecodeModule.readUtf8String();
       final sourceType =
           HTResourceType.values.elementAt(_currentBytecodeModule.read());
@@ -918,12 +918,12 @@ class HTInterpreter {
       final tok = DateTime.now().millisecondsSinceEpoch;
       if (printPerformanceStatistics) {
         var message =
-            'hetu: ${tok - tik}ms\tto load\t\t[${_currentBytecodeModule.id}]';
+            'hetu: ${tok - tik}ms\tto load module\t${_currentBytecodeModule.id}';
         if (_currentBytecodeModule.version != null) {
-          message += ' version ${_currentBytecodeModule.version}';
+          message += '@${_currentBytecodeModule.version}';
         }
         message +=
-            ' compiled at ${_currentBytecodeModule.compiledAt} (UTC) with hetu version $compilerVersion';
+            ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu version $compilerVersion)';
         print(message);
       }
       stackTraceList.clear();

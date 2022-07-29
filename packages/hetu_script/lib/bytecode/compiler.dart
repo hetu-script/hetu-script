@@ -348,13 +348,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (compilation.version != null) {
       mainBytesBuilder.addByte(1); // bool: hasVersion
       mainBytesBuilder.add(_compileVersionString(compilation.version!));
-      final compiledAt = DateTime.now().toUtc();
-      final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-      final compiledAtString = formatter.format(compiledAt);
-      mainBytesBuilder.add(_utf8String(compiledAtString));
     } else {
       mainBytesBuilder.addByte(0); // bool: hasVersion
     }
+    final compiledAt = DateTime.now().toUtc();
+    final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    final compiledAtString = formatter.format(compiledAt);
+    mainBytesBuilder.add(_utf8String(compiledAtString));
     // entry file name
     mainBytesBuilder.add(_utf8String(compilation.entryFullname));
     // index: ResourceType
