@@ -73,9 +73,12 @@ void main() {
 
   final bytes = hetu.compile(
     r'''
-        import 'source1.ht'
+        fun test(...args, {namedArg}) {
+          print('variadic args:', args)
+          print('namedArg:', namedArg)
+        }
 
-        print(typename)
+        test(1,namedArg: 'wtf',2,3,4)
           ''',
     isModuleEntryScript: true,
     // invokeFunc: 'fromJsonTest',

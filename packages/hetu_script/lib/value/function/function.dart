@@ -385,7 +385,6 @@ class HTFunction extends HTFunctionDeclaration
           if (paramDecl.isVariadic) {
             variadicStart = i;
             variadicParam = paramDecl;
-            break;
           } else {
             if (i < maxArity) {
               if (i < positionalArgs.length) {
@@ -602,7 +601,7 @@ class HTFunction extends HTFunctionDeclaration
             if (decl.isVariadic) {
               variadicStart = i;
               // variadicParam = decl;
-              break;
+              // break;
             } else {
               if (i < maxArity) {
                 if (i < positionalArgs.length) {
