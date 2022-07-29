@@ -316,13 +316,15 @@ class Hetu {
     }
     final bytes = _compileSource(source);
     final result = interpreter.loadBytecode(
-        bytes: bytes,
-        moduleName: moduleName ?? source.fullName,
-        globallyImport: globallyImport,
-        invokeFunc: invokeFunc,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        typeArgs: typeArgs);
+      bytes: bytes,
+      moduleName: moduleName ?? source.fullName,
+      globallyImport: globallyImport,
+      invokeFunc: invokeFunc,
+      positionalArgs: positionalArgs,
+      namedArgs: namedArgs,
+      typeArgs: typeArgs,
+      printPerformanceStatistics: config.printPerformanceStatistics,
+    );
     return result;
   }
 
