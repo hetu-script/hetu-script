@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:hetu_script/ast/ast.dart';
-import 'package:hetu_script/declarations.dart';
-import 'package:hetu_script/hetu_script.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../version.dart';
+import '../ast/ast.dart';
+import '../value/namespace/namespace.dart';
 import '../analyzer/analyzer.dart';
 import '../interpreter/interpreter.dart';
 import '../resource/resource.dart' show HTResourceType;
