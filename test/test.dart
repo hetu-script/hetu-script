@@ -73,12 +73,7 @@ void main() {
 
   final bytes = hetu.compile(
     r'''
-        fun test(...args, {namedArg}) {
-          print('variadic args:', args)
-          print('namedArg:', namedArg)
-        }
-
-        test(1,namedArg: 'wtf',2,3,4)
+        print(kHetuVersion)
           ''',
     isModuleEntryScript: true,
     // invokeFunc: 'fromJsonTest',

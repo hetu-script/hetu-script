@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:hetu_script/ast/ast.dart';
 import 'package:hetu_script/declarations.dart';
+import 'package:hetu_script/hetu_script.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer/analyzer.dart';
@@ -221,9 +222,7 @@ class Hetu {
         printPerformanceStatistics: config.printPerformanceStatistics,
       );
 
-      verison = interpreter.currentBytecodeModule.version;
-
-      interpreter.define('kHetuVersion', verison.toString());
+      interpreter.define('kHetuVersion', kHetuVersion.toString());
 
       interpreter.invoke('initHetuEnv', positionalArgs: [this]);
 

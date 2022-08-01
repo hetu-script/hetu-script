@@ -34,7 +34,7 @@ final argParser = ArgParser();
 
 final hetu = Hetu(
     config: HetuConfig(
-      printPerformanceStatistics: true,
+      printPerformanceStatistics: false,
       removeLineInfo: true,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
