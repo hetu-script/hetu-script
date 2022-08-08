@@ -73,7 +73,7 @@ void main() {
 
   final bytes = hetu.compile(
     r'''
-        print(kHetuVersion)
+        (-5).abs()
           ''',
     isModuleEntryScript: true,
     // invokeFunc: 'fromJsonTest',
