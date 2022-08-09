@@ -73,7 +73,10 @@ void main() {
 
   final bytes = hetu.compile(
     r'''
-        print(kHetuVersion)
+        final map = Map()
+        map['sdf'] = 223
+
+        print(map['sdf'])
           ''',
     isModuleEntryScript: true,
     // invokeFunc: 'fromJsonTest',

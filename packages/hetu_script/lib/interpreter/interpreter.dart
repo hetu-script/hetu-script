@@ -1418,21 +1418,23 @@ class HTInterpreter {
                     object.subGet(key, from: _currentNamespace.fullName);
               } else {
                 if (object is List) {
-                  if (key is! int) {
-                    if (key.toInt() != key) {
-                      throw HTError.subGetKey(key,
-                          filename: _currentFileName,
-                          line: _currentLine,
-                          column: _column);
-                    }
-                  } else if (key < 0 || key >= object.length) {
-                    throw HTError.outOfRange(key, object.length,
+                  if (key is! num) {
+                    throw HTError.subGetKey(key,
                         filename: _currentFileName,
                         line: _currentLine,
                         column: _column);
                   }
+                  final intValue = key.toInt();
+                  if (intValue != key) {
+                    throw HTError.subGetKey(key,
+                        filename: _currentFileName,
+                        line: _currentLine,
+                        column: _column);
+                  }
+                  _localValue = object[intValue];
+                } else {
+                  _localValue = object[key];
                 }
-                _localValue = object[key.toInt()];
               }
             }
             break;
