@@ -17,6 +17,8 @@ class HTFilterConfig {
       {this.extension = const [
         HTResource.hetuModule,
         HTResource.hetuScript,
+        HTResource.json,
+        HTResource.json5,
       ],
       this.recursive = true});
 
