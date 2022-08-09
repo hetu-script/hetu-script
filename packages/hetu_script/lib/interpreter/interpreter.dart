@@ -1488,23 +1488,27 @@ class HTInterpreter {
               if (object is HTEntity) {
                 object.subSet(key, value);
               } else {
-                if (object is List) {
-                  if (key is! int) {
-                    if (key.toInt() != key) {
+                if (object is HTEntity) {
+                  object.subSet(key, value, from: _currentNamespace.fullName);
+                } else {
+                  if (object is List) {
+                    if (key is! num) {
                       throw HTError.subGetKey(key,
                           filename: _currentFileName,
                           line: _currentLine,
                           column: _column);
                     }
-                  } else if (key < 0 || key >= object.length) {
-                    throw HTError.outOfRange(key, object.length,
-                        filename: _currentFileName,
-                        line: _currentLine,
-                        column: _column);
+                    final intValue = key.toInt();
+                    if (intValue != key) {
+                      throw HTError.subGetKey(key,
+                          filename: _currentFileName,
+                          line: _currentLine,
+                          column: _column);
+                    }
+                    object[intValue] = value;
+                  } else {
+                    object[key] = value;
                   }
-                  object[key.toInt()] = value;
-                } else if (object is Map) {
-                  object[key] = value;
                 }
               }
               _localValue = value;
