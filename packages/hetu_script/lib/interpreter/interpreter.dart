@@ -906,15 +906,6 @@ class HTInterpreter {
       //   }
       // }
       cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
-      dynamic result;
-      if (invokeFunc != null) {
-        result = invoke(invokeFunc,
-            moduleName: _currentBytecodeModule.id,
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs);
-      } else if (_isModuleEntryScript) {
-        result = _stackFrames.last.first;
-      }
       final tok = DateTime.now().millisecondsSinceEpoch;
       if (printPerformanceStatistics) {
         var message =
@@ -925,6 +916,15 @@ class HTInterpreter {
         message +=
             ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu@$compilerVersion)';
         print(message);
+      }
+      dynamic result;
+      if (invokeFunc != null) {
+        result = invoke(invokeFunc,
+            moduleName: _currentBytecodeModule.id,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs);
+      } else if (_isModuleEntryScript) {
+        result = _stackFrames.last.first;
       }
       stackTraceList.clear();
       return result;
