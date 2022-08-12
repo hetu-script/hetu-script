@@ -1114,12 +1114,12 @@ class HTInterpreter {
           case HTOpCode.clearAnchor:
             assert(_anchors.isNotEmpty);
             _anchors.removeLast();
+            --_anchorCount;
             break;
           case HTOpCode.goto:
             assert(_anchors.isNotEmpty);
             final distance = _currentBytecodeModule.readInt16();
             _currentBytecodeModule.ip = _anchors.last + distance;
-            --_anchorCount;
             break;
           case HTOpCode.assertion:
             assert(_localValue is bool);
