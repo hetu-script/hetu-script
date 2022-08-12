@@ -1,3 +1,8 @@
+## 0.4.3
+
+- Add help() api for get the documentation comments content of a certain identifier.
+- Add clone() api on List for deepcopy a list.
+
 ## 0.4.1
 
 - Add api for dynamically import a source: `final { a, b } = require(path)`
@@ -10,7 +15,7 @@
   custom lexicon & grammar that compiles into the bytecode and runs with Hetu.
 - Add this syntax in constructor's parameter list to quick initialize a instance member on class or named struct.
 - Named arguments can be placed anywhere in the function call arguments list, just like in Dart 2.17.
-- ** BREAKING CHANGE **: 
+- ** BREAKING CHANGE **:
   Bytecode has changes so the bytecode module compiled by earlier version is not compatible for this version.
   SDK dependency has UPGRADE to Dart 2.17.
   Changed Math.random() related api to separated Random class binding (this is for support of random seed).

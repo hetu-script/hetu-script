@@ -453,6 +453,9 @@ external class List extends Iterable {
 
   /// Replaces a range of elements with the elements of [replacements].
   fun replaceRange(start: int, end: int, replacements: List)
+
+  /// Return a deep copy of this List.
+  fun clone()
 }
 
 external class Set extends Iterable {

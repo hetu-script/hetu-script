@@ -12,7 +12,6 @@ export 'version.dart';
 export 'type/type.dart';
 export 'value/entity.dart';
 export 'hetu/hetu.dart';
-export 'interpreter/interpreter.dart' show InterpreterConfig;
 export 'lexer/lexer.dart';
 export 'bytecode/compiler.dart';
 export 'interpreter/interpreter.dart';

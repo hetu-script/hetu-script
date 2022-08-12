@@ -73,18 +73,26 @@ void main() {
 
   final bytes = hetu.compile(
     r'''
-        final map = Map()
-        map['sdf'] = 223
+        fun main {
+          final list1 = [1,2,3]
+          final list2 = list1.clone()
 
-        print(map['sdf'])
+          list2[2] = 42
+          print(list1)
+          print(list2)
+
+          help([].clone)
+        }
           ''',
-    isModuleEntryScript: true,
-    // invokeFunc: 'fromJsonTest',
-    // positionalArgs: [jsonData],
+    // isModuleEntryScript: true,
     version: Version(0, 1, 0),
   );
 
-  final result = hetu.loadBytecode(bytes: bytes, moduleName: 'test');
+  final result = hetu.loadBytecode(
+    bytes: bytes,
+    moduleName: 'test',
+    invokeFunc: 'main',
+  );
 
   if (result is Future) {
     result.then((value) => print(hetu.lexicon.stringify(value)));

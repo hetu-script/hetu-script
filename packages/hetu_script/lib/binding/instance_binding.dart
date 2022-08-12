@@ -9,6 +9,7 @@ import '../locale/locale.dart';
 import '../error/error.dart';
 import '../shared/jsonify.dart';
 import '../value/function/function.dart';
+import '../value/struct/struct.dart';
 
 extension NumBinding on num {
   dynamic htFetch(String varName) {
@@ -821,6 +822,12 @@ extension ListBinding on List {
                 List<HTType> typeArgs = const []}) =>
             replaceRange(
                 positionalArgs[0], positionalArgs[1], positionalArgs[2]);
+      case 'clone':
+        return (HTEntity entity,
+                {List<dynamic> positionalArgs = const [],
+                Map<String, dynamic> namedArgs = const {},
+                List<HTType> typeArgs = const []}) =>
+            deepCopy(this);
       default:
         // ignore: unnecessary_cast
         return (this as Iterable).htFetch(varName);
