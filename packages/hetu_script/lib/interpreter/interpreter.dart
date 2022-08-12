@@ -192,9 +192,10 @@ class HTInterpreter {
       _stackFrames[_currentStackIndex][HTRegIdx.loopCount] = value;
   int get _loopCount =>
       _stackFrames[_currentStackIndex][HTRegIdx.loopCount] ?? 0;
-  set _anchor(int value) =>
-      _stackFrames[_currentStackIndex][HTRegIdx.anchor] = value;
-  int get _anchor => _stackFrames[_currentStackIndex][HTRegIdx.anchor] ?? 0;
+  set _anchorCount(int value) =>
+      _stackFrames[_currentStackIndex][HTRegIdx.anchorCount] = value;
+  int get _anchorCount =>
+      _stackFrames[_currentStackIndex][HTRegIdx.anchorCount] ?? 0;
 
   /// Loop point is stored as stack form.
   /// Break statement will jump to the last loop point,
@@ -202,6 +203,8 @@ class HTInterpreter {
   /// Return statement will clear loop points by
   /// [_loopCount] in current stack frame.
   final _loops = <_LoopInfo>[];
+
+  final _anchors = <int>[];
 
   /// A bytecode interpreter.
   HTInterpreter(
@@ -1069,14 +1072,6 @@ class HTInterpreter {
             final distance = _currentBytecodeModule.readInt16();
             _currentBytecodeModule.ip += distance;
             break;
-          // store the current ip position
-          case HTOpCode.anchor:
-            _anchor = _currentBytecodeModule.ip;
-            break;
-          case HTOpCode.goto:
-            final distance = _currentBytecodeModule.readInt16();
-            _currentBytecodeModule.ip = _anchor + distance;
-            break;
           case HTOpCode.file:
             _currentFileName = _currentBytecodeModule.getConstString();
             final resourceTypeIndex = _currentBytecodeModule.read();
@@ -1091,6 +1086,7 @@ class HTInterpreter {
               _currentNamespace = globalNamespace;
             }
             break;
+          // store the loop jump point
           case HTOpCode.loopPoint:
             final continueLength = _currentBytecodeModule.readUint16();
             final breakLength = _currentBytecodeModule.readUint16();
@@ -1109,6 +1105,21 @@ class HTInterpreter {
             break;
           case HTOpCode.continueLoop:
             _currentBytecodeModule.ip = _loops.last.continueIp;
+            break;
+          // store the goto jump point
+          case HTOpCode.anchor:
+            _anchors.add(_currentBytecodeModule.ip);
+            ++_anchorCount;
+            break;
+          case HTOpCode.clearAnchor:
+            assert(_anchors.isNotEmpty);
+            _anchors.removeLast();
+            break;
+          case HTOpCode.goto:
+            assert(_anchors.isNotEmpty);
+            final distance = _currentBytecodeModule.readInt16();
+            _currentBytecodeModule.ip = _anchors.last + distance;
+            --_anchorCount;
             break;
           case HTOpCode.assertion:
             assert(_localValue is bool);
@@ -1135,11 +1146,14 @@ class HTInterpreter {
           case HTOpCode.endOfExec:
             return _localValue;
           case HTOpCode.endOfFunc:
-            final loopCount = _loopCount;
-            for (var i = 0; i < loopCount; ++i) {
+            for (var i = 0; i < _loopCount; ++i) {
               _loops.removeLast();
             }
             _loopCount = 0;
+            for (var i = 0; i < _anchorCount; ++i) {
+              _anchors.removeLast();
+            }
+            _anchorCount = 0;
             return _localValue;
           case HTOpCode.endOfFile:
             if (_currentFileResourceType == HTResourceType.hetuValue) {

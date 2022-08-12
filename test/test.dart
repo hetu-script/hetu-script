@@ -73,15 +73,16 @@ void main() {
 
   final bytes = hetu.compile(
     r'''
-        fun main {
-          final list1 = [1,2,3]
-          final list2 = list1.clone()
+        fun main(arg) {
+          when(arg) {
+            42 -> {
+              when(arg) {
+                42 -> print(arg)
+              }
+            }
+          }
 
-          list2[2] = 42
-          print(list1)
-          print(list2)
-
-          help([].clone)
+          print('end of when')
         }
           ''',
     // isModuleEntryScript: true,
@@ -92,6 +93,7 @@ void main() {
     bytes: bytes,
     moduleName: 'test',
     invokeFunc: 'main',
+    positionalArgs: [42],
   );
 
   if (result is Future) {

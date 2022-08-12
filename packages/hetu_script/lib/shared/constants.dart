@@ -1,11 +1,12 @@
 /// Operation code used by compiler.
 abstract class HTOpCode {
   static const endOfCode = -1;
-  static const local = 1;
-  static const register = 2;
-  static const copy = 3;
-  static const skip = 4;
-  static const anchor = 5;
+  static const local = 0;
+  static const register = 1;
+  static const copy = 2;
+  static const skip = 3;
+  static const anchor = 4;
+  static const clearAnchor = 5;
   static const goto = 6;
   static const moveReg = 7;
   static const leftValue = 8;

@@ -2025,7 +2025,7 @@ class HTDefaultParser extends HTParser {
 
   ASTNode _parseExprOrStmtOrBlock({bool isStatement = true}) {
     if (curTok.type == lexicon.codeBlockStart) {
-      return _parseBlockStmt(id: Semantic.elseBranch);
+      return _parseBlockStmt(id: Semantic.blockStmt);
     } else {
       if (isStatement) {
         final startTok = curTok;

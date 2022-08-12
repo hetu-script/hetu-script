@@ -20,7 +20,7 @@ class HTRegIdx {
   // static const refType = 3;
   static const typeArgs = 4;
   static const loopCount = 5;
-  static const anchor = 6;
+  static const anchorCount = 6;
   static const assign = 7;
   static const orLeft = 8;
   static const andLeft = 9;
@@ -1454,6 +1454,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (elseBranch != null) {
       bytesBuilder.add(elseBranch);
     }
+    bytesBuilder.addByte(HTOpCode.clearAnchor);
     return bytesBuilder.toBytes();
   }
 
