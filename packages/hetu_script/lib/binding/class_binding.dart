@@ -368,16 +368,30 @@ class HTMathClassBinding extends HTExternalClass {
         };
       case 'Math.min':
         return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            math.min(positionalArgs[0] as num, positionalArgs[1] as num);
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          if (positionalArgs.first == null) {
+            return positionalArgs.last;
+          }
+          if (positionalArgs.last == null) {
+            return positionalArgs.first;
+          }
+          return math.min(positionalArgs[0] as num, positionalArgs[1] as num);
+        };
       case 'Math.max':
         return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            math.max(positionalArgs[0] as num, positionalArgs[1] as num);
+            {List<dynamic> positionalArgs = const [],
+            Map<String, dynamic> namedArgs = const {},
+            List<HTType> typeArgs = const []}) {
+          if (positionalArgs.first == null) {
+            return positionalArgs.last;
+          }
+          if (positionalArgs.last == null) {
+            return positionalArgs.first;
+          }
+          return math.min(positionalArgs[0] as num, positionalArgs[1] as num);
+        };
       case 'Math.sqrt':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
