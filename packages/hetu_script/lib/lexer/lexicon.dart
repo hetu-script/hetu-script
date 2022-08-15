@@ -356,7 +356,6 @@ abstract class HTLexicon {
   Set<String> get unaryPrefixsThatChangeTheValue => {
         preIncrement,
         preDecrement,
-        kAwait,
       };
 
   String get logicalNot;

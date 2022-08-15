@@ -167,35 +167,28 @@ class HTInterpreter {
   var _column = 0;
   int get currentColumn => _column;
 
-  var _currentStackIndex = -1;
-
   /// Register values are stored by groups.
   /// Every group have 16 values, they are HTRegIdx.
   /// A such group can be understanded as the stack frame of a runtime function.
-  final _stackFrames = <List>[];
+  final _stackFrames = [List<dynamic>.filled(HTRegIdx.length, null)];
 
-  void _setRegVal(int index, dynamic value) =>
-      _stackFrames[_currentStackIndex][index] = value;
-  dynamic _getRegVal(int index) => _stackFrames[_currentStackIndex][index];
-  set _localValue(dynamic value) =>
-      _stackFrames[_currentStackIndex][HTRegIdx.value] = value;
-  dynamic get _localValue => _stackFrames[_currentStackIndex][HTRegIdx.value];
+  List<dynamic> getRegVals() => _stackFrames.last;
+  void _setRegVal(int index, dynamic value) => _stackFrames.last[index] = value;
+  dynamic _getRegVal(int index) => _stackFrames.last[index];
+  set _localValue(dynamic value) => _stackFrames.last[HTRegIdx.value] = value;
+  dynamic get _localValue => _stackFrames.last[HTRegIdx.value];
   set _localSymbol(String? value) =>
-      _stackFrames[_currentStackIndex][HTRegIdx.identifier] = value;
-  String? get localSymbol =>
-      _stackFrames[_currentStackIndex][HTRegIdx.identifier];
+      _stackFrames.last[HTRegIdx.identifier] = value;
+  String? get localSymbol => _stackFrames.last[HTRegIdx.identifier];
   set _localTypeArgs(List<HTType> value) =>
-      _stackFrames[_currentStackIndex][HTRegIdx.typeArgs] = value;
+      _stackFrames.last[HTRegIdx.typeArgs] = value;
   List<HTType> get _localTypeArgs =>
-      _stackFrames[_currentStackIndex][HTRegIdx.typeArgs] ?? const [];
-  set _loopCount(int value) =>
-      _stackFrames[_currentStackIndex][HTRegIdx.loopCount] = value;
-  int get _loopCount =>
-      _stackFrames[_currentStackIndex][HTRegIdx.loopCount] ?? 0;
+      _stackFrames.last[HTRegIdx.typeArgs] ?? const [];
+  set _loopCount(int value) => _stackFrames.last[HTRegIdx.loopCount] = value;
+  int get _loopCount => _stackFrames.last[HTRegIdx.loopCount] ?? 0;
   set _anchorCount(int value) =>
-      _stackFrames[_currentStackIndex][HTRegIdx.anchorCount] = value;
-  int get _anchorCount =>
-      _stackFrames[_currentStackIndex][HTRegIdx.anchorCount] ?? 0;
+      _stackFrames.last[HTRegIdx.anchorCount] = value;
+  int get _anchorCount => _stackFrames.last[HTRegIdx.anchorCount] ?? 0;
 
   /// Loop point is stored as stack form.
   /// Break statement will jump to the last loop point,
@@ -875,14 +868,25 @@ class HTInterpreter {
       if (sourceType == HTResourceType.hetuLiteralCode) {
         _currentNamespace = globalNamespace;
       }
+      dynamic result;
       while (_currentBytecodeModule.ip < _currentBytecodeModule.bytes.length) {
-        final result = execute(retractStackFrame: false);
-        if (result is HTNamespace && result != globalNamespace) {
-          _currentBytecodeModule.namespaces[result.id!] = result;
-        } else if (result is HTValueSource) {
-          _currentBytecodeModule.values[result.id] = result.value;
+        final codeResult = execute(retractStackFrame: false);
+        if (codeResult is HTNamespace && codeResult != globalNamespace) {
+          _currentBytecodeModule.namespaces[codeResult.id!] = codeResult;
+        } else if (codeResult is HTValueSource) {
+          _currentBytecodeModule.values[codeResult.id] = codeResult.value;
+        } else if (codeResult is FutureExecution) {
+          result = codeResult.future.then((value) {
+            return execute(
+              createStackFrame: false,
+              context: codeResult.context,
+              localValue: value,
+            );
+          });
+          break;
         } else {
-          assert(result == globalNamespace);
+          /// A literal code execution result
+          assert(codeResult == globalNamespace);
         }
         // TODO: import binary bytes
       }
@@ -894,11 +898,9 @@ class HTInterpreter {
           }
         }
       }
-      if (_currentBytecodeModule.namespaces.isNotEmpty) {
+      if (globallyImport && _currentBytecodeModule.namespaces.isNotEmpty) {
         _currentNamespace = _currentBytecodeModule.namespaces.values.last;
-        if (globallyImport) {
-          globalNamespace.import(_currentNamespace);
-        }
+        globalNamespace.import(_currentNamespace);
       }
       // resolve each declaration after we get all declarations
       // if (!_isModuleEntryScript) {
@@ -908,9 +910,8 @@ class HTInterpreter {
       //     }
       //   }
       // }
-      cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
-      final tok = DateTime.now().millisecondsSinceEpoch;
       if (printPerformanceStatistics) {
+        final tok = DateTime.now().millisecondsSinceEpoch;
         var message =
             'hetu: ${tok - tik}ms\tto load module\t${_currentBytecodeModule.id}';
         if (_currentBytecodeModule.version != null) {
@@ -920,10 +921,9 @@ class HTInterpreter {
             ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu@$compilerVersion)';
         print(message);
       }
-      dynamic result;
       if (invokeFunc != null) {
         result = invoke(invokeFunc,
-            moduleName: _currentBytecodeModule.id,
+            moduleName: _isModuleEntryScript ? null : _currentBytecodeModule.id,
             positionalArgs: positionalArgs,
             namedArgs: namedArgs);
       } else if (_isModuleEntryScript) {
@@ -962,9 +962,19 @@ class HTInterpreter {
     );
   }
 
+  void _retractStackFrame() {
+    if (_stackFrames.isNotEmpty) {
+      _stackFrames.removeLast();
+    }
+    if (_stackFrames.isEmpty) {
+      _stackFrames.first = List<dynamic>.filled(HTRegIdx.length, null);
+    }
+  }
+
   /// Change the current context of the bytecode interpreter to a new one.
   void setContext(
       {StackFrameStrategy stackFrameStrategy = StackFrameStrategy.none,
+      List<dynamic>? stackFrame,
       HTContext? context}) {
     if (context != null) {
       var libChanged = false;
@@ -999,17 +1009,11 @@ class HTInterpreter {
       }
     }
     if (stackFrameStrategy == StackFrameStrategy.retract) {
-      if (_currentStackIndex > 0) {
-        --_currentStackIndex;
-        _stackFrames.removeLast();
-      } else {
-        _stackFrames.first.fillRange(0, _stackFrames.first.length, null);
-      }
+      _retractStackFrame();
     } else if (stackFrameStrategy == StackFrameStrategy.create) {
-      ++_currentStackIndex;
-      if (_stackFrames.length <= _currentStackIndex) {
-        _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
-      }
+      _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
+    } else if (stackFrame != null) {
+      _stackFrames.last = stackFrame;
     }
   }
 
@@ -1021,8 +1025,10 @@ class HTInterpreter {
   /// Changing library will create new stack frame for new register values.
   /// Such as currrent value, current symbol, current line & column, etc.
   dynamic execute({
+    bool createStackFrame = true,
     bool retractStackFrame = true,
     HTContext? context,
+    List<dynamic>? stackFrame,
     dynamic localValue,
   }) {
     final savedContext = getContext(
@@ -1033,8 +1039,12 @@ class HTInterpreter {
       line: context?.line != null,
       column: context?.column != null,
     );
-    setContext(stackFrameStrategy: StackFrameStrategy.create, context: context);
-    _localValue = localValue;
+    setContext(
+        stackFrameStrategy: createStackFrame
+            ? StackFrameStrategy.create
+            : StackFrameStrategy.none,
+        context: context);
+    if (localValue != null) _localValue = localValue;
     final result = _execute();
     setContext(
         stackFrameStrategy: retractStackFrame
@@ -1228,7 +1238,124 @@ class HTInterpreter {
             _handleStructDecl();
             break;
           case HTOpCode.varDecl:
-            _handleVarDecl();
+            final hasDoc = _currentBytecodeModule.readBool();
+            String? documentation;
+            if (hasDoc) {
+              documentation = _currentBytecodeModule.readUtf8String();
+            }
+            final id = _currentBytecodeModule.getConstString();
+            String? classId;
+            final hasClassId = _currentBytecodeModule.readBool();
+            if (hasClassId) {
+              classId = _currentBytecodeModule.getConstString();
+            }
+            final isField = _currentBytecodeModule.readBool();
+            final isExternal = _currentBytecodeModule.readBool();
+            final isStatic = _currentBytecodeModule.readBool();
+            final isMutable = _currentBytecodeModule.readBool();
+            final isTopLevel = _currentBytecodeModule.readBool();
+            if (isTopLevel && _currentNamespace.willExportAll) {
+              _currentNamespace.declareExport(id);
+            }
+            final lateFinalize = _currentBytecodeModule.readBool();
+            final lateInitialize = _currentBytecodeModule.readBool();
+            HTType? declType;
+            final hasTypeDecl = _currentBytecodeModule.readBool();
+            if (hasTypeDecl) {
+              declType = _handleTypeExpr();
+            }
+            late final HTVariable decl;
+            final hasInitializer = _currentBytecodeModule.readBool();
+            dynamic initValue;
+            FutureExecution? futureExecution;
+            if (hasInitializer) {
+              if (lateInitialize) {
+                final definitionLine = _currentBytecodeModule.readUint16();
+                final definitionColumn = _currentBytecodeModule.readUint16();
+                final length = _currentBytecodeModule.readUint16();
+                final definitionIp = _currentBytecodeModule.ip;
+                _currentBytecodeModule.skip(length);
+                decl = HTVariable(
+                    id: id,
+                    interpreter: this,
+                    fileName: _currentFileName,
+                    moduleName: _currentBytecodeModule.id,
+                    classId: classId,
+                    closure: _currentNamespace,
+                    documentation: documentation,
+                    declType: declType,
+                    isExternal: isExternal,
+                    isStatic: isStatic,
+                    isMutable: isMutable,
+                    definitionIp: definitionIp,
+                    definitionLine: definitionLine,
+                    definitionColumn: definitionColumn);
+              } else {
+                final length = _currentBytecodeModule.readUint16();
+                final definitionIp = _currentBytecodeModule.ip;
+                final initValue = execute();
+                if (initValue is FutureExecution) {
+                  _currentBytecodeModule.ip = definitionIp + length;
+                  decl = HTVariable(
+                    id: id,
+                    interpreter: this,
+                    fileName: _currentFileName,
+                    moduleName: _currentBytecodeModule.id,
+                    classId: classId,
+                    closure: _currentNamespace,
+                    documentation: documentation,
+                    declType: declType,
+                    isExternal: isExternal,
+                    isStatic: isStatic,
+                    isMutable: isMutable,
+                  );
+                  final storedContext = getContext();
+                  futureExecution = FutureExecution(
+                    context: storedContext,
+                    future: waitForAllFutureExucution(initValue).then((value) {
+                      decl.value = value;
+                    }),
+                  );
+                } else {
+                  decl = HTVariable(
+                    id: id,
+                    interpreter: this,
+                    fileName: _currentFileName,
+                    moduleName: _currentBytecodeModule.id,
+                    classId: classId,
+                    closure: _currentNamespace,
+                    documentation: documentation,
+                    declType: declType,
+                    value: initValue,
+                    isExternal: isExternal,
+                    isStatic: isStatic,
+                    isMutable: isMutable,
+                  );
+                }
+              }
+            } else {
+              decl = HTVariable(
+                  id: id,
+                  interpreter: this,
+                  fileName: _currentFileName,
+                  moduleName: _currentBytecodeModule.id,
+                  classId: classId,
+                  closure: _currentNamespace,
+                  documentation: documentation,
+                  declType: declType,
+                  isExternal: isExternal,
+                  isStatic: isStatic,
+                  isMutable: isMutable,
+                  lateFinalize: lateFinalize);
+            }
+            if (!isField) {
+              _currentNamespace.define(id, decl,
+                  override: config.allowVariableShadowing);
+            }
+            _localValue = initValue;
+            if (futureExecution != null) {
+              return futureExecution;
+            }
             break;
           case HTOpCode.destructuringDecl:
             _handleDestructuringDecl();
@@ -1380,7 +1507,11 @@ class HTInterpreter {
             break;
           case HTOpCode.awaitedValue:
             // handle the possible future execution request raised by await keyword and Future value.
-            // final object = _localValue;
+            if (_localValue is Future) {
+              final HTContext storedContext = getContext();
+              return FutureExecution(
+                  future: _localValue, context: storedContext);
+            }
             break;
           case HTOpCode.memberGet:
             final object = _getRegVal(HTRegIdx.postfixObject);
@@ -1540,6 +1671,34 @@ class HTInterpreter {
         instruction = _currentBytecodeModule.read();
       }
     } while (true);
+  }
+
+  Future<dynamic> waitForAllFutureExucution(
+    FutureExecution exec, {
+    HTContext? context,
+    List<dynamic>? stackFrame,
+  }) async {
+    final value = await exec.future.then((value) async {
+      final f = execute(
+        createStackFrame: false,
+        retractStackFrame: false,
+        context: context ?? exec.context,
+        stackFrame: stackFrame,
+        localValue: value,
+      );
+      if (f is FutureExecution) {
+        final r = await waitForAllFutureExucution(
+          f,
+          context: f.context,
+          stackFrame: getRegVals(),
+        );
+        return r;
+      } else {
+        _retractStackFrame();
+        return f;
+      }
+    });
+    return value;
   }
 
   void _handleImportExport() {
@@ -2045,7 +2204,7 @@ class HTInterpreter {
     }
   }
 
-  FutureExecution? _handleUnaryPrefixOp(int op) {
+  void _handleUnaryPrefixOp(int op) {
     final object = _localValue;
     switch (op) {
       case HTOpCode.negative:
@@ -2069,7 +2228,6 @@ class HTInterpreter {
         }
         break;
     }
-    return null;
   }
 
   void _handleCallExpr() {
@@ -2267,96 +2425,6 @@ class HTInterpreter {
         globalConstantTable: _currentBytecodeModule);
     _currentNamespace.define(id, decl, override: config.allowVariableShadowing);
     // _localValue = _currentBytecodeModule.getGlobalConstant(type, index);
-  }
-
-  void _handleVarDecl() {
-    final hasDoc = _currentBytecodeModule.readBool();
-    String? documentation;
-    if (hasDoc) {
-      documentation = _currentBytecodeModule.readUtf8String();
-    }
-    final id = _currentBytecodeModule.getConstString();
-    String? classId;
-    final hasClassId = _currentBytecodeModule.readBool();
-    if (hasClassId) {
-      classId = _currentBytecodeModule.getConstString();
-    }
-    final isField = _currentBytecodeModule.readBool();
-    final isExternal = _currentBytecodeModule.readBool();
-    final isStatic = _currentBytecodeModule.readBool();
-    final isMutable = _currentBytecodeModule.readBool();
-    final isTopLevel = _currentBytecodeModule.readBool();
-    if (isTopLevel && _currentNamespace.willExportAll) {
-      _currentNamespace.declareExport(id);
-    }
-    final lateFinalize = _currentBytecodeModule.readBool();
-    final lateInitialize = _currentBytecodeModule.readBool();
-    HTType? declType;
-    final hasTypeDecl = _currentBytecodeModule.readBool();
-    if (hasTypeDecl) {
-      declType = _handleTypeExpr();
-    }
-    late final HTVariable decl;
-    final hasInitializer = _currentBytecodeModule.readBool();
-    dynamic initValue;
-    if (hasInitializer) {
-      if (lateInitialize) {
-        final definitionLine = _currentBytecodeModule.readUint16();
-        final definitionColumn = _currentBytecodeModule.readUint16();
-        final length = _currentBytecodeModule.readUint16();
-        final definitionIp = _currentBytecodeModule.ip;
-        _currentBytecodeModule.skip(length);
-        decl = HTVariable(
-            id: id,
-            interpreter: this,
-            fileName: _currentFileName,
-            moduleName: _currentBytecodeModule.id,
-            classId: classId,
-            closure: _currentNamespace,
-            documentation: documentation,
-            declType: declType,
-            isExternal: isExternal,
-            isStatic: isStatic,
-            isMutable: isMutable,
-            definitionIp: definitionIp,
-            definitionLine: definitionLine,
-            definitionColumn: definitionColumn);
-      } else {
-        initValue = execute();
-        decl = HTVariable(
-            id: id,
-            interpreter: this,
-            fileName: _currentFileName,
-            moduleName: _currentBytecodeModule.id,
-            classId: classId,
-            closure: _currentNamespace,
-            documentation: documentation,
-            declType: declType,
-            value: initValue,
-            isExternal: isExternal,
-            isStatic: isStatic,
-            isMutable: isMutable);
-      }
-    } else {
-      decl = HTVariable(
-          id: id,
-          interpreter: this,
-          fileName: _currentFileName,
-          moduleName: _currentBytecodeModule.id,
-          classId: classId,
-          closure: _currentNamespace,
-          documentation: documentation,
-          declType: declType,
-          isExternal: isExternal,
-          isStatic: isStatic,
-          isMutable: isMutable,
-          lateFinalize: lateFinalize);
-    }
-    if (!isField) {
-      _currentNamespace.define(id, decl,
-          override: config.allowVariableShadowing);
-    }
-    _localValue = initValue;
   }
 
   void _handleDestructuringDecl() {

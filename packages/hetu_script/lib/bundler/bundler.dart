@@ -100,8 +100,8 @@ class HTBundler {
       errors: sourceParseErrors,
       version: version,
     );
-    final tok = DateTime.now().millisecondsSinceEpoch;
     if (printPerformanceStatistics) {
+      final tok = DateTime.now().millisecondsSinceEpoch;
       print('hetu: ${tok - tik}ms\tto bundle\t[${source.fullName}]');
     }
     return compilation;

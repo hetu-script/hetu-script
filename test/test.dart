@@ -54,12 +54,12 @@ void main() {
   hetu.interpreter.bindExternalFunction('test', () {
     print('dart function called');
   });
-  final jsonData = HTSource(r'''{
+  final jsonSource = HTSource(r'''{
     "name": "Aleph",
     "type": "novel",
     "volumes": 7,
   }''', fullName: 'data.json', type: HTResourceType.hetuValue);
-  sourceContext.addResource('data.json', jsonData);
+  sourceContext.addResource('data.json', jsonSource);
 
   // final result = hetu.eval(
   //   r'''
@@ -71,21 +71,27 @@ void main() {
   //   // positionalArgs: [jsonData],
   // );
 
+  final jsonData = {
+    "name": "Aleph",
+    "type": "novel",
+    "volumes": 7,
+  };
+
   final bytes = hetu.compile(
     r'''
-        fun main(arg) {
-          when(arg) {
-            42 -> {
-              when(arg) {
-                42 -> print(arg)
-              }
-            }
-          }
+        // fun test(a) async {
+        //   return a
+        // }
 
-          print('end of when')
+        // final a = await test(7) * await test(8)
+        // print('hello!')
+        // print(a)
+        fun main(data) {
+          final obj = prototype.fromJson(data)
+          print(obj.name)
         }
           ''',
-    // isModuleEntryScript: true,
+    isModuleEntryScript: true,
     version: Version(0, 1, 0),
   );
 
@@ -93,7 +99,7 @@ void main() {
     bytes: bytes,
     moduleName: 'test',
     invokeFunc: 'main',
-    positionalArgs: [42],
+    positionalArgs: [jsonData],
   );
 
   if (result is Future) {

@@ -41,6 +41,8 @@ abstract class ASTNode {
   /// i.e. its value can be computed before compile into bytecode.
   bool get isConstValue => value != null;
 
+  final bool isAsyncValue;
+
   /// If this is a constant expressions, the constant interpreter will compute the value
   /// and assign to this property, otherwise, this peoperty is null.
   dynamic value;
@@ -68,6 +70,7 @@ abstract class ASTNode {
   ASTNode(
     this.type, {
     this.isStatement = false,
+    this.isAsyncValue = false,
     this.source,
     this.line = 0,
     this.column = 0,
@@ -782,6 +785,7 @@ class UnaryPrefixExpr extends ASTNode {
   UnaryPrefixExpr(
     this.op,
     this.object, {
+    super.isAsyncValue,
     super.source,
     super.line = 0,
     super.column = 0,
@@ -841,7 +845,10 @@ class BinaryExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.binaryExpr);
+  }) : super(
+          Semantic.binaryExpr,
+          isAsyncValue: left.isAsyncValue || right.isAsyncValue,
+        );
 }
 
 class TernaryExpr extends ASTNode {
@@ -870,7 +877,12 @@ class TernaryExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.binaryExpr);
+  }) : super(
+          Semantic.binaryExpr,
+          isAsyncValue: condition.isAsyncValue ||
+              thenBranch.isAsyncValue ||
+              elseBranch.isAsyncValue,
+        );
 }
 
 class AssignExpr extends ASTNode {

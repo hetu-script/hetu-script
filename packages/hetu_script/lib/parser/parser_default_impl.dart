@@ -981,6 +981,15 @@ class HTDefaultParser extends HTParser {
     ASTNode? expr;
     final left = _parserTernaryExpr();
     if (lexicon.assignments.contains(curTok.type)) {
+      if (!_isLegalLeftValue) {
+        final err = HTError.invalidLeftValue(
+            filename: currrentFileName,
+            line: left.line,
+            column: left.column,
+            offset: left.offset,
+            length: left.length);
+        errors.add(err);
+      }
       final op = advance();
       final right = parseExpr();
       expr = AssignExpr(left, op.lexeme, right,
@@ -1183,10 +1192,8 @@ class HTDefaultParser extends HTParser {
     if (!(lexicon.unaryPrefixs.contains(curTok.type))) {
       return _parseUnaryPostfixExpr();
     } else {
+      _isLegalLeftValue = false;
       final op = advance();
-      // if (op.type == lexicon.kAwait) {
-      // TODO: check if await is allowed
-      // }
       final value = _parseUnaryPostfixExpr();
       if (lexicon.unaryPrefixsThatChangeTheValue.contains(op.type)) {
         if (!_isLegalLeftValue) {
@@ -1200,6 +1207,7 @@ class HTDefaultParser extends HTParser {
         }
       }
       return UnaryPrefixExpr(op.lexeme, value,
+          isAsyncValue: op.type == lexicon.kAwait,
           source: currentSource,
           line: op.line,
           column: op.column,
@@ -1471,9 +1479,8 @@ class HTDefaultParser extends HTParser {
     // super constructor call
     if (curTok.type == lexicon.kSuper) {
       if (_currentClassDeclaration == null ||
-          _currentFunctionCategory == null ||
-          _currentClassDeclaration?.superType == null) {
-        final err = HTError.misplacedThis(
+          _currentFunctionCategory == null) {
+        final err = HTError.misplacedSuper(
             filename: currrentFileName,
             line: curTok.line,
             column: curTok.column,

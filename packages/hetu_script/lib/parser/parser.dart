@@ -230,8 +230,8 @@ abstract class HTParser with TokenReader {
         source: source,
         imports: currentModuleImports,
         errors: errors); // copy the list);
-    final tok = DateTime.now().millisecondsSinceEpoch;
     if (printPerformanceStatistics) {
+      final tok = DateTime.now().millisecondsSinceEpoch;
       print('hetu: ${tok - tik}ms\tto parse\t[${source.fullName}]');
     }
     return result;

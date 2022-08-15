@@ -97,8 +97,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   }) {
     final tik = DateTime.now().millisecondsSinceEpoch;
     final bytes = compilation.accept(this);
-    final tok = DateTime.now().millisecondsSinceEpoch;
     if (printPerformanceStatistics) {
+      final tok = DateTime.now().millisecondsSinceEpoch;
       print('hetu: ${tok - tik}ms\tto compile\t[${compilation.entryFullname}]');
     }
     return bytes;
@@ -262,8 +262,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       if (lateInitialize) {
         bytesBuilder.add(_uint16(line));
         bytesBuilder.add(_uint16(column));
-        bytesBuilder.add(_uint16(initializer.length));
       }
+      bytesBuilder.add(_uint16(initializer.length));
       bytesBuilder.add(initializer);
     } else {
       bytesBuilder.addByte(0);
@@ -1664,8 +1664,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         if (stmt.lateInitialize) {
           bytesBuilder.add(_uint16(stmt.initializer!.line));
           bytesBuilder.add(_uint16(stmt.initializer!.column));
-          bytesBuilder.add(_uint16(initializer.length));
         }
+        bytesBuilder.add(_uint16(initializer.length));
         bytesBuilder.add(initializer);
       } else {
         bytesBuilder.addByte(0); // bool: has initializer

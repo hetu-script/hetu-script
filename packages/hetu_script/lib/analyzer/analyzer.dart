@@ -147,8 +147,8 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
       errors: _currentErrors,
       compilation: compilation,
     );
-    final tok = DateTime.now().millisecondsSinceEpoch;
     if (printPerformanceStatistics) {
+      final tok = DateTime.now().millisecondsSinceEpoch;
       print('analyzed [${compilation.entryFullname}]\t${tok - tik}ms');
     }
     return result;
