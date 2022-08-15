@@ -84,6 +84,8 @@ class HTLocaleEnglish implements HTLocale {
   @override
   final String errorConstMustInit =
       'Constant declaration [{0}] must be initialized.';
+  @override
+  final String errorAwaitExpression = 'Unexpected `await` expressions.';
 
   // compile time errors
   @override

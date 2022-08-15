@@ -1325,7 +1325,15 @@ class HTDefaultParser extends HTParser {
             length: curTok.offset - expr.offset);
       } else if (op.type == lexicon.postIncrement ||
           op.type == lexicon.postDecrement) {
-        _isLegalLeftValue = false;
+        if (!_isLegalLeftValue) {
+          final err = HTError.invalidLeftValue(
+              filename: currrentFileName,
+              line: expr.line,
+              column: expr.column,
+              offset: expr.offset,
+              length: expr.length);
+          errors.add(err);
+        }
         expr = UnaryPostfixExpr(expr, op.lexeme,
             source: currentSource,
             line: expr.line,
@@ -1407,8 +1415,9 @@ class HTDefaultParser extends HTParser {
       final savedEnd = endOfFile;
       final savedLine = line;
       final savedColumn = column;
+      final parser = HTDefaultParser();
       for (final token in token.interpolations) {
-        final nodes = parseTokens(token,
+        final nodes = parser.parseTokens(token,
             source: currentSource, style: ParseStyle.expression);
         ASTNode? expr;
         for (final node in nodes) {
@@ -1968,7 +1977,22 @@ class HTDefaultParser extends HTParser {
     if (isLoop) _isInLoop = true;
     final statements = parseExprList(
       endToken: lexicon.codeBlockEnd,
-      parseFunction: () => parseStmt(style: sourceType),
+      parseFunction: () {
+        final stmt = parseStmt(style: sourceType);
+        if (stmt != null) {
+          if (sourceType != ParseStyle.functionDefinition &&
+              stmt.isAsyncValue) {
+            final err = HTError.awaitExpression(
+                filename: currrentFileName,
+                line: stmt.line,
+                column: stmt.column,
+                offset: stmt.offset,
+                length: stmt.length);
+            errors.add(err);
+          }
+        }
+        return stmt;
+      },
       handleComma: false,
     );
     if (statements.isEmpty) {
@@ -2756,6 +2780,15 @@ class HTDefaultParser extends HTParser {
         if (expect([lexicon.assign], consume: true)) {
           if (isOptional || isNamed) {
             initializer = parseExpr();
+            if (initializer.isAsyncValue) {
+              final err = HTError.awaitExpression(
+                  filename: currrentFileName,
+                  line: initializer.line,
+                  column: initializer.column,
+                  offset: initializer.offset,
+                  length: initializer.length);
+              errors.add(err);
+            }
           } else {
             final lastTok = peek(-1);
             final err = HTError.argInit(

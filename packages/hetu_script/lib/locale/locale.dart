@@ -40,6 +40,7 @@ abstract class HTLocale {
   String get errorNullableAssign;
   String get errorPrivateMember;
   String get errorConstMustInit;
+  String get errorAwaitExpression;
 
   // compile time errors
   String get errorDefined;

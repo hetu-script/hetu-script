@@ -381,7 +381,10 @@ class ASTStringInterpolation extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.literalStringInterpolation) {
+  }) : super(
+          Semantic.literalStringInterpolation,
+          isAsyncValue: interpolations.any((element) => element.isAsyncValue),
+        ) {
     // for (final ast in interpolations) {
     //   ast.parent = this;
     // }
@@ -448,7 +451,10 @@ class SpreadExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.spreadExpr);
+  }) : super(
+          Semantic.spreadExpr,
+          isAsyncValue: collection.isAsyncValue,
+        );
 }
 
 class CommaExpr extends ASTNode {
@@ -474,7 +480,10 @@ class CommaExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.commaExpr);
+  }) : super(
+          Semantic.commaExpr,
+          isAsyncValue: list.any((element) => element.isAsyncValue),
+        );
 }
 
 class ListExpr extends ASTNode {
@@ -497,7 +506,10 @@ class ListExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.literalList);
+  }) : super(
+          Semantic.literalList,
+          isAsyncValue: list.any((element) => element.isAsyncValue),
+        );
 }
 
 class InOfExpr extends ASTNode {
@@ -521,7 +533,10 @@ class InOfExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.inExpr);
+  }) : super(
+          Semantic.inExpr,
+          isAsyncValue: collection.isAsyncValue,
+        );
 }
 
 class GroupExpr extends ASTNode {
@@ -542,7 +557,10 @@ class GroupExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.groupExpr);
+  }) : super(
+          Semantic.groupExpr,
+          isAsyncValue: inner.isAsyncValue,
+        );
 }
 
 abstract class TypeExpr extends ASTNode {
@@ -910,7 +928,10 @@ class AssignExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.assignExpr);
+  }) : super(
+          Semantic.assignExpr,
+          isAsyncValue: right.isAsyncValue,
+        );
 }
 
 class MemberExpr extends ASTNode {
@@ -938,7 +959,10 @@ class MemberExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.memberGetExpr);
+  }) : super(
+          Semantic.memberGetExpr,
+          isAsyncValue: object.isAsyncValue,
+        );
 }
 
 class SubExpr extends ASTNode {
@@ -966,7 +990,10 @@ class SubExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.subGetExpr);
+  }) : super(
+          Semantic.subGetExpr,
+          isAsyncValue: object.isAsyncValue || key.isAsyncValue,
+        );
 }
 
 class CallExpr extends ASTNode {
@@ -1008,17 +1035,20 @@ class CallExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.callExpr);
+  }) : super(
+          Semantic.callExpr,
+          isAsyncValue: callee.isAsyncValue ||
+              positionalArgs.any((element) => element.isAsyncValue) ||
+              namedArgs.values.any((element) => element.isAsyncValue),
+        );
 }
 
 abstract class Statement extends ASTNode {
-  // final bool isAsync;
-
   final bool hasEndOfStmtMark;
 
   Statement(
     super.type, {
-    // this.isAsync = false,
+    super.isAsyncValue,
     this.hasEndOfStmtMark = false,
     super.isStatement = true,
     super.source,
@@ -1042,14 +1072,16 @@ class AssertStmt extends Statement {
 
   AssertStmt(
     this.expr, {
-    // super.isAsync = false,
     super.hasEndOfStmtMark = false,
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.assertStmt);
+  }) : super(
+          Semantic.assertStmt,
+          isAsyncValue: expr.isAsyncValue,
+        );
 }
 
 class ThrowStmt extends Statement {
@@ -1060,14 +1092,16 @@ class ThrowStmt extends Statement {
 
   ThrowStmt(
     this.message, {
-    // super.isAsync = false,
     super.hasEndOfStmtMark = false,
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.throwStmt);
+  }) : super(
+          Semantic.throwStmt,
+          isAsyncValue: message.isAsyncValue,
+        );
 }
 
 class ExprStmt extends Statement {
@@ -1083,14 +1117,16 @@ class ExprStmt extends Statement {
 
   ExprStmt(
     this.expr, {
-    // super.isAsync = false,
     super.hasEndOfStmtMark = false,
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.exprStmt);
+  }) : super(
+          Semantic.exprStmt,
+          isAsyncValue: expr.isAsyncValue,
+        );
 }
 
 class BlockStmt extends Statement {
@@ -1113,14 +1149,16 @@ class BlockStmt extends Statement {
   BlockStmt(
     this.statements, {
     this.isCodeBlock = true,
-    // super.isAsync = false,
     this.id,
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.blockStmt);
+  }) : super(
+          Semantic.blockStmt,
+          isAsyncValue: statements.any((element) => element.isAsyncValue),
+        );
 }
 
 class ReturnStmt extends Statement {
@@ -1139,14 +1177,16 @@ class ReturnStmt extends Statement {
   ReturnStmt(
     this.keyword, {
     this.returnValue,
-    // super.isAsync = false,
     super.hasEndOfStmtMark = false,
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.returnStmt);
+  }) : super(
+          Semantic.returnStmt,
+          isAsyncValue: returnValue?.isAsyncValue ?? false,
+        );
 }
 
 class IfStmt extends Statement {
@@ -1177,7 +1217,12 @@ class IfStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.ifStmt);
+  }) : super(
+          Semantic.ifStmt,
+          isAsyncValue: condition.isAsyncValue ||
+              thenBranch.isAsyncValue ||
+              (elseBranch?.isAsyncValue ?? false),
+        );
 }
 
 class WhileStmt extends Statement {
@@ -1205,7 +1250,10 @@ class WhileStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.whileStmt);
+  }) : super(
+          Semantic.whileStmt,
+          isAsyncValue: condition.isAsyncValue || loop.isAsyncValue,
+        );
 }
 
 class DoStmt extends Statement {
@@ -1231,7 +1279,10 @@ class DoStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.doStmt);
+  }) : super(
+          Semantic.doStmt,
+          isAsyncValue: loop.isAsyncValue || (condition?.isAsyncValue ?? false),
+        );
 }
 
 class ForStmt extends Statement {
@@ -1269,7 +1320,13 @@ class ForStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.forStmt);
+  }) : super(
+          Semantic.forStmt,
+          isAsyncValue: (init?.isAsyncValue ?? false) ||
+              (condition?.isAsyncValue ?? false) ||
+              (increment?.isAsyncValue ?? false) ||
+              loop.isAsyncValue,
+        );
 }
 
 class ForRangeStmt extends Statement {
@@ -1309,7 +1366,10 @@ class ForRangeStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.forInStmt);
+  }) : super(
+          Semantic.forInStmt,
+          isAsyncValue: collection.isAsyncValue || loop.isAsyncValue,
+        );
 }
 
 class WhenStmt extends Statement {
@@ -1343,7 +1403,13 @@ class WhenStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.whenStmt);
+  }) : super(
+          Semantic.whenStmt,
+          isAsyncValue: (condition?.isAsyncValue ?? false) ||
+              (elseBranch?.isAsyncValue ?? false) ||
+              cases.keys.any((element) => element.isAsyncValue) ||
+              cases.values.any((element) => element.isAsyncValue),
+        );
 }
 
 class BreakStmt extends Statement {

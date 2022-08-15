@@ -70,6 +70,8 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   final String errorPrivateMember = '无法访问私有成员：[{0}]。';
   @override
   final String errorConstMustInit = '常量声明 [{0}] 必须初始化。';
+  @override
+  final String errorAwaitExpression = '意料之外的 `await` 表达式。';
 
   // compile time errors
   @override

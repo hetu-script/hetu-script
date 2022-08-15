@@ -79,17 +79,16 @@ void main() {
 
   final bytes = hetu.compile(
     r'''
-        // fun test(a) async {
-        //   return a
-        // }
-
-        // final a = await test(7) * await test(8)
-        // print('hello!')
-        // print(a)
-        fun main(data) {
-          final obj = prototype.fromJson(data)
-          print(obj.name)
+        fun test(a) async {
+          return a
         }
+        
+        fun test2() {
+          final v= await test(7) * await test(8)
+          print(v)
+        }
+
+        test2()
           ''',
     isModuleEntryScript: true,
     version: Version(0, 1, 0),
@@ -98,8 +97,8 @@ void main() {
   final result = hetu.loadBytecode(
     bytes: bytes,
     moduleName: 'test',
-    invokeFunc: 'main',
-    positionalArgs: [jsonData],
+    // invokeFunc: 'main',
+    // positionalArgs: [jsonData],
   );
 
   if (result is Future) {
