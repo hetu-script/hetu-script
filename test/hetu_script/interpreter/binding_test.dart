@@ -133,7 +133,8 @@ void main() {
     PersonClassBinding()
   ]);
 
-  hetu.eval(r'''
+  hetu.eval(
+    r'''
   external class Name {
     var familyName: str;
     var firstName: str;
@@ -149,7 +150,10 @@ void main() {
     static get profile -> Profile
     static set profile(p: Profile)
   }
-  ''', globallyImport: true);
+  ''',
+    globallyImport: true,
+    type: HTResourceType.hetuModule,
+  );
 
   group('binding -', () {
     test('get & set', () {

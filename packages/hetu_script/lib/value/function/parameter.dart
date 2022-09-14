@@ -26,7 +26,7 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
   /// Create a standard [HTParameter].
   HTParameter({
     required super.id,
-    super.interpreter,
+    required super.interpreter,
     super.fileName,
     super.moduleName,
     super.closure,

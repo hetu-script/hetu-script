@@ -430,7 +430,12 @@ class HTInterpreter {
     if (value is HTDeclaration) {
       return nsp.define(varName, value, override: override, throws: throws);
     } else {
-      final decl = HTVariable(id: varName, value: value, isMutable: isMutable);
+      final decl = HTVariable(
+        id: varName,
+        interpreter: this,
+        value: value,
+        isMutable: isMutable,
+      );
       return nsp.define(varName, decl, override: override, throws: throws);
     }
   }
@@ -1754,7 +1759,12 @@ class HTInterpreter {
           final value = _currentBytecodeModule.values[fromPath];
           assert(value != null);
           _currentNamespace.defineImport(
-              alias!, HTVariable(id: alias, value: value));
+              alias!,
+              HTVariable(
+                id: alias,
+                interpreter: this,
+                value: value,
+              ));
           if (isExported) {
             _currentNamespace.declareExport(alias);
           }
@@ -2405,6 +2415,7 @@ class HTInterpreter {
     final value = _handleTypeExpr();
     final decl = HTVariable(
       id: id,
+      interpreter: this,
       classId: classId,
       closure: _currentNamespace,
       documentation: documentation,

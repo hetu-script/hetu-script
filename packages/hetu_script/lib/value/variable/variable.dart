@@ -29,7 +29,7 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
   /// before it can be acessed within a script.
   HTVariable(
       {required super.id,
-      HTInterpreter? interpreter,
+      required HTInterpreter interpreter,
       String? fileName,
       String? moduleName,
       super.classId,

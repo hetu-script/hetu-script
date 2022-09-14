@@ -361,13 +361,21 @@ class HTFunction extends HTFunctionDeclaration
         if (instance != null) {
           if (namespace is HTInstanceNamespace) {
             callClosure.define(
-                interpreter.lexicon.kSuper,
-                HTVariable(
-                    id: interpreter.lexicon.kSuper,
-                    value: (namespace as HTInstanceNamespace).next));
+              interpreter.lexicon.kSuper,
+              HTVariable(
+                id: interpreter.lexicon.kSuper,
+                interpreter: interpreter,
+                value: (namespace as HTInstanceNamespace).next,
+              ),
+            );
           }
-          callClosure.define(interpreter.lexicon.kThis,
-              HTVariable(id: interpreter.lexicon.kThis, value: instance));
+          callClosure.define(
+              interpreter.lexicon.kThis,
+              HTVariable(
+                id: interpreter.lexicon.kThis,
+                interpreter: interpreter,
+                value: instance,
+              ));
         }
 
         var variadicStart = -1;

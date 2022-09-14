@@ -60,8 +60,14 @@ class HTStruct with HTEntity {
         _fields = fields ?? {} {
     namespace = HTNamespace(
         lexicon: interpreter.lexicon, id: this.id, closure: closure);
-    namespace.define(interpreter.lexicon.kThis,
-        HTVariable(id: interpreter.lexicon.kThis, value: this));
+    namespace.define(
+      interpreter.lexicon.kThis,
+      HTVariable(
+        id: interpreter.lexicon.kThis,
+        interpreter: interpreter,
+        value: this,
+      ),
+    );
   }
 
   Map<String, dynamic> toJson() => util.jsonifyStruct(this);
