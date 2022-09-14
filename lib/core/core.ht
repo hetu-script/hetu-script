@@ -13,17 +13,14 @@ external class Hetu {
   fun help(id: str)
 }
 
-var _isInitialized = false
-
 late _hetu
 
 fun initHetuEnv(hetu) {
   _hetu = hetu
-  _isInitialized = true
 }
 
 fun createStructfromJson(data) {
-  if (!_isInitialized) {
+  if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
   _hetu.createStructfromJson(data)
@@ -31,23 +28,26 @@ fun createStructfromJson(data) {
 
 external fun _print(obj: any)
 
+/// Stringify and print one or several objects to standard output stream.
 fun print(... args: any) {
-  if (!_isInitialized) {
+  if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
   final mapped = args.map((e) => _hetu.stringify(e)).join(' ')
   _print(mapped)
 }
 
+/// Convert an object into a string.
 fun stringify(obj: any) {
-  if (!_isInitialized) {
+  if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
   return _hetu.stringify(obj)
 }
 
+/// Convert an object into a json (a Map object).
 fun jsonify(obj: any) {
-  if (!_isInitialized) {
+  if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
   return _hetu.jsonify(obj)
@@ -55,20 +55,28 @@ fun jsonify(obj: any) {
 
 external fun range(startOrStop: num, [stop: num, step: num]) -> Iterable
 
+/// dynamically eval a string content of hetu script code.
 fun eval(code: str) {
-  if (!_isInitialized) {
+  if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
   return _hetu.eval(code)
 }
 
+/// dynamically eval a source on current sourceContext,
+/// `path` is the fullname of this source.
+/// Usage:
+///   final nsp = require('source1.ht')
 fun require(path: str) {
-  if (!_isInitialized) {
+  if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
   return _hetu.require(path)
 }
 
+/// Print the documentation of an identifier.
+/// Usage:
+///   help(require)
 fun help(id: str) {
   if (!_isInitialized) {
     throw 'Hetu environment is not initialized!'

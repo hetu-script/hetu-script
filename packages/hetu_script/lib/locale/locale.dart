@@ -1,6 +1,7 @@
 part 'locales/english.dart';
 part 'locales/simplified_chinese.dart';
 
+/// An abstract interface for a locale that contains error messages.
 abstract class HTLocale {
   static HTLocale current = HTLocaleEnglish();
 

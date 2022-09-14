@@ -38,7 +38,7 @@ import '../shared/constants.dart';
 import '../bytecode/bytecode_module.dart';
 import '../bytecode/compiler.dart';
 import '../version.dart';
-import '../value/unresolved_import_statement.dart';
+import '../value/unresolved_import.dart';
 import '../locale/locale.dart';
 import '../analyzer/analyzer.dart' show AnalyzerImplConfig;
 
@@ -76,7 +76,7 @@ class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
   InterpreterConfig(
       {this.showDartStackTrace = false,
       this.showHetuStackTrace = false,
-      this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
+      this.stackTraceDisplayCountLimit = 5,
       this.processError = true,
       this.allowVariableShadowing = true,
       this.allowImplicitVariableDeclaration = false,
@@ -742,7 +742,7 @@ class HTInterpreter {
     return struct;
   }
 
-  void _handleNamespaceImport(HTNamespace nsp, UnresolvedImportStatement decl) {
+  void _handleNamespaceImport(HTNamespace nsp, UnresolvedImport decl) {
     final importedNamespace = _currentBytecodeModule.namespaces[decl.fromPath]!;
 
     // for script and literal code, namespaces are resolved immediately.
@@ -810,7 +810,7 @@ class HTInterpreter {
     return Version(major, minor, patch, pre: preRelease, build: build);
   }
 
-  /// Load a pre-compiled bytecode file as a module.
+  /// Load a pre-compiled bytecode module.
   /// If [invokeFunc] is true, execute the bytecode immediately.
   dynamic loadBytecode({
     required Uint8List bytes,
@@ -865,9 +865,6 @@ class HTInterpreter {
       _isModuleEntryScript = sourceType == HTResourceType.hetuScript ||
           sourceType == HTResourceType.hetuLiteralCode ||
           sourceType == HTResourceType.hetuValue;
-      if (sourceType == HTResourceType.hetuLiteralCode) {
-        _currentNamespace = globalNamespace;
-      }
       dynamic result;
       while (_currentBytecodeModule.ip < _currentBytecodeModule.bytes.length) {
         final codeResult = execute(retractStackFrame: false);
@@ -891,14 +888,15 @@ class HTInterpreter {
         // TODO: import binary bytes
       }
       if (!_isModuleEntryScript) {
-        // handles imports
+        /// deal with import statement within every namespace of this module.
         for (final nsp in _currentBytecodeModule.namespaces.values) {
           for (final decl in nsp.imports.values) {
             _handleNamespaceImport(nsp, decl);
           }
         }
       }
-      if (globallyImport && _currentBytecodeModule.namespaces.isNotEmpty) {
+      if (globallyImport) {
+        assert(_currentBytecodeModule.namespaces.isNotEmpty);
         _currentNamespace = _currentBytecodeModule.namespaces.values.last;
         globalNamespace.import(_currentNamespace);
       }
@@ -1723,6 +1721,9 @@ class HTInterpreter {
     if (hasAlias) {
       alias = _currentBytecodeModule.getConstString();
     }
+
+    // If the import path starts with 'module:', then the module should be
+    // already loaded by the loadBytecode() method.
     if (isPreloadedModule) {
       assert(fromPath != null);
       final importedModule = cachedModules[fromPath]!;
@@ -1739,7 +1740,9 @@ class HTInterpreter {
         }
         _currentNamespace.defineImport(alias, aliasNamespace);
       }
-    } else {
+    }
+    // TODO: If the import path starts with 'package:', will try to fetch the source file from '.hetu_packages' under root.
+    else {
       if (fromPath != null) {
         final ext = path.extension(fromPath);
         if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
@@ -1752,7 +1755,7 @@ class HTInterpreter {
             _currentNamespace.declareExport(alias);
           }
         } else {
-          final decl = UnresolvedImportStatement(fromPath,
+          final decl = UnresolvedImport(fromPath,
               alias: alias, showList: showList, isExported: isExported);
           if (_currentFileResourceType == HTResourceType.hetuModule) {
             _currentNamespace.declareImport(decl);

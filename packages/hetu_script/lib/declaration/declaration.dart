@@ -8,8 +8,7 @@ import 'namespace/declaration_namespace.dart';
 /// Declaration is a semantic entity in the program that
 /// represents things that are declared with a name
 /// and hence can be referenced elsewhere in the code.
-///
-/// Declaration is not necessarily exists in actual source,
+/// Declaration is not necessarily exists in actual namespaces,
 /// some declaration are generated purely for analysis purpose.
 abstract class HTDeclaration {
   final String? id;

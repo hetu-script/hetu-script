@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import '../shared/constants.dart';
 
+/// An utility class to read bytes and return the actual value.
 class BytecodeReader {
   /// The bytecode, stores as uint8 list
   late Uint8List bytes;

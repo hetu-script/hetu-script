@@ -6,6 +6,7 @@ import '../resource/resource.dart';
 // import 'file_system/file_system_context.dart';
 // import 'overlay/overlay_context.dart';
 
+/// A filter used by source context for reading files with certain extensions and/or within certain folders.
 class HTFilterConfig {
   String folder;
 
@@ -57,12 +58,6 @@ class HTFilterConfig {
 /// It could be a physical folder, a virtual collection in memory,
 /// an URL, or a remote database... any thing that provide
 /// create, read, update, delete services could be a resource context.
-///
-/// If the import path starts with 'package:',
-/// will try to fetch the source file from '.hetu_modules' under root
-///
-/// If the import path starts with 'module:', then the module should be
-/// already loaded by the loadBytecode() method.
 abstract class HTResourceContext<T> {
   static const hetuPreloadedModulesPrefix = 'module:';
   static const hetuLocalPackagePrefix = 'package:';

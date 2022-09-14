@@ -10,6 +10,7 @@ import '../grammar/constant.dart';
 import '../declaration/class/class_declaration.dart';
 import '../ast/ast.dart';
 import '../parser/parser.dart';
+import '../version.dart';
 
 /// Default parser implementation used by Hetu.
 class HTDefaultParser extends HTParser {
@@ -420,6 +421,16 @@ class HTDefaultParser extends HTParser {
         break;
       case ParseStyle.classDefinition:
         final isOverrided = expect([lexicon.kOverride], consume: true);
+        if (isOverrided) {
+          final err = HTError.unsupported(
+              lexicon.kOverride, kHetuVersion.toString(),
+              filename: currrentFileName,
+              line: curTok.line,
+              column: curTok.column,
+              offset: curTok.offset,
+              length: curTok.length);
+          errors.add(err);
+        }
         final isExternal = expect([lexicon.kExternal], consume: true) ||
             (_currentClassDeclaration?.isExternal ?? false);
         final isStatic = expect([lexicon.kStatic], consume: true);
@@ -2973,7 +2984,8 @@ class HTDefaultParser extends HTParser {
       definition = parseExpr();
       hasEndOfStmtMark = expect([lexicon.endOfStatementMark], consume: true);
     } else if (expect([lexicon.assign], consume: true)) {
-      final err = HTError.unsupported(Semantic.redirectingFunctionDefinition,
+      final err = HTError.unsupported(
+          Semantic.redirectingFunctionDefinition, kHetuVersion.toString(),
           filename: currrentFileName,
           line: curTok.line,
           column: curTok.column,

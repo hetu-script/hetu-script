@@ -1,5 +1,6 @@
 part of '../locale.dart';
 
+/// The Chinese locale for Hetu, contains error messages.
 class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String percentageMark = '%';
@@ -87,7 +88,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
 
   // runtime errors
   @override
-  final String errorUnsupported = '不支持的操作：[{0}]。';
+  final String errorUnsupported = '在当前河图版本（{1}）中尚不支持[{0}]。';
   @override
   final String errorUnknownOpCode = '未知的字节码操作符：[{0}]。';
   @override

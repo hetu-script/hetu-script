@@ -1,4 +1,4 @@
-class UnresolvedImportStatement {
+class UnresolvedImport {
   final String fromPath;
 
   final String? alias;
@@ -7,7 +7,7 @@ class UnresolvedImportStatement {
 
   final bool isExported;
 
-  UnresolvedImportStatement(
+  UnresolvedImport(
     this.fromPath, {
     this.alias,
     this.showList = const {},

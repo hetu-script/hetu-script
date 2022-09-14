@@ -1,5 +1,6 @@
 part of '../locale.dart';
 
+/// The English locale for Hetu, contains error messages.
 class HTLocaleEnglish implements HTLocale {
   @override
   final String percentageMark = '%';
@@ -102,7 +103,8 @@ class HTLocaleEnglish implements HTLocale {
 
   // runtime errors
   @override
-  final String errorUnsupported = 'Unsupported operation: [{0}].';
+  final String errorUnsupported =
+      '[{0}] is not supported in currect Hetu version: [{1}].';
   @override
   final String errorUnknownOpCode = 'Unknown opcode [{0}].';
   @override

@@ -15,13 +15,14 @@ class FormatterConfig {
   final bool removeSemicolon;
   final String indent;
 
-  const FormatterConfig(
-      {this.pageWidth = 80,
-      this.formatStringMark = true,
-      this.preferApostrophe = true,
-      this.removeTrailingComma = true,
-      this.removeSemicolon = true,
-      this.indent = '  '});
+  const FormatterConfig({
+    this.pageWidth = 80,
+    this.formatStringMark = true,
+    this.preferApostrophe = true,
+    this.removeTrailingComma = true,
+    this.removeSemicolon = true,
+    this.indent = '  ',
+  });
 }
 
 /// Class for printing out formatted string content of a ast root

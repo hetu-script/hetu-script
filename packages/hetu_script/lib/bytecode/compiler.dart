@@ -13,6 +13,7 @@ import '../shared/constants.dart';
 import '../constant/global_constant_table.dart';
 // import '../parser/parser.dart';
 
+/// Register values exists as groups, and the index determines a certain value within this group.
 class HTRegIdx {
   static const value = 0;
   static const identifier = 1;
@@ -33,6 +34,7 @@ class HTRegIdx {
   static const length = 16;
 }
 
+/// Collection of config of a compiler.
 class CompilerConfig {
   bool removeLineInfo;
 
@@ -48,14 +50,9 @@ class CompilerConfig {
 }
 
 /// Compiles source code into bytecode.
-///
-/// DON'T USE THIS CLASS DIRECTLY!
-///
-/// Rather, use interpreter or
-/// command line tools to compile,
-/// they would use analyzer to try to find errors,
-/// and compute constant values,
-/// before actual compilation.
+/// Normally we won't use this class directly.
+/// Rather, we would use the interpreter class or command line tools to compile,
+/// they would use analyzer to try to find errors and compute constant values before actual compilation.
 class HTCompiler implements AbstractASTVisitor<Uint8List> {
   static const constStringLengthLimit = 128;
 

@@ -896,7 +896,7 @@ class HTError {
             length: length);
 
   /// Error: unsupported runtime operation
-  HTError.unsupported(String name,
+  HTError.unsupported(String name, String version,
       {String? extra,
       String? correction,
       String? filename,
@@ -906,7 +906,7 @@ class HTError {
       int? length})
       : this(ErrorCode.unsupported, ErrorType.syntacticError,
             message: HTLocale.current.errorUnsupported,
-            interpolations: [name],
+            interpolations: [name, version],
             extra: extra,
             correction: correction,
             filename: filename,

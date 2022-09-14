@@ -5,8 +5,8 @@ import 'lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 
+/// Utility methods on String to check whether it's empty, i.e. contains only white space characters.
 extension on String {
-  /// Whether this string is empty or contains only white space characters.
   bool get isBlank => isEmpty || trim() == '';
   bool get isNotBlank => !isBlank;
 }

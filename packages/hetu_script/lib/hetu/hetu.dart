@@ -27,8 +27,8 @@ import '../parser/parser.dart';
 import '../parser/parser_default_impl.dart';
 import '../resource/resource.dart';
 import '../bundler/bundler.dart';
-import '../error/error_handler.dart';
 
+/// The config of hetu environment, this implements all config of components used by this environment.
 class HetuConfig
     implements ParserConfig, AnalyzerConfig, CompilerConfig, InterpreterConfig {
   /// defaults to `true`
@@ -104,7 +104,7 @@ class HetuConfig
     this.removeDocumentation = false,
     this.showDartStackTrace = false,
     this.showHetuStackTrace = false,
-    this.stackTraceDisplayCountLimit = kStackTraceDisplayCountLimit,
+    this.stackTraceDisplayCountLimit = 5,
     this.processError = true,
     this.allowVariableShadowing = true,
     this.allowImplicitVariableDeclaration = false,
@@ -176,6 +176,9 @@ class Hetu {
   /// Initialize the interpreter,
   /// prepare it with preincluded modules,
   /// bind it with HTExternalFunction, HTExternalFunctionTypedef, HTExternalClass, etc.
+  ///
+  /// A uninitted Hetu can still eval certain script,
+  /// it cannot use any of the pre-included functions like `print` and the Dart apis on number & string, etc.
   void init({
     bool useDefaultModuleAndBinding = true,
     HTLocale? locale,
@@ -460,7 +463,7 @@ class Hetu {
   }
 
   /// Load a source into current bytecode dynamically.
-  HTNamespace require(String path) {
+  HTNamespace require(String path, [bool isScript = true]) {
     final key = config.normalizeImportPath
         ? sourceContext.getAbsolutePath(key: path)
         : path;
@@ -469,7 +472,8 @@ class Hetu {
     if (interpreter.currentBytecodeModule.namespaces.containsKey(key)) {
       return interpreter.currentBytecodeModule.namespaces[key]!;
     }
-    // Then try to search it in any loaded modules.
+
+    // If the source is not in current module, then try to search it in any loaded modules.
     else {
       for (final module in interpreter.cachedModules.values) {
         for (final nsp in module.namespaces.values) {
@@ -480,13 +484,13 @@ class Hetu {
       }
     }
 
-    // Then we have to load the source dynamically
+    // If the source has not been evaled at all, then we have to load the source dynamically.
     final source = sourceContext.getResource(key);
-    // Because we are loading it dynamically, it has to be a script rather than a module.
-    source.type = HTResourceType.hetuScript;
     final bytes = _compileSource(source);
     final HTContext storedContext = interpreter.getContext();
+
     interpreter.loadBytecode(bytes: bytes, moduleName: key);
+
     final nsp = interpreter.currentBytecodeModule.namespaces.values.last;
     interpreter.setContext(context: storedContext);
     return nsp;
@@ -511,6 +515,7 @@ class Hetu {
         moduleName: moduleName,
       );
 
+  /// Get the documentation of an identifier.
   String? help(
     dynamic id, {
     String? moduleName,

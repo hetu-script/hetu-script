@@ -18,4 +18,7 @@ typedef HTExternalFunction = dynamic Function(HTEntity entity,
 /// native function as parameter.
 typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
+/// Accept an object and return the type name of it in the form of String.
+/// This is normally used to check the type of a Dart Object, and return the human-friendly type name of it.
+/// For example, the underlying typename of the Map could be LinkedHashMap, however we tend to call it a Map instead.
 typedef HTExternalTypeReflection = String? Function(Object object);

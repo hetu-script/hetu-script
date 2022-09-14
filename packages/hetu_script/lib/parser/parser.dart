@@ -52,7 +52,7 @@ abstract class HTParser with TokenReader {
   ParserConfig config;
 
   /// Lexicon definition used by this parser.
-  late final HTLexicon lexicon;
+  final HTLexicon lexicon;
 
   /// Lexer used by this parser, created from [lexicon].
   late final HTLexer lexer;

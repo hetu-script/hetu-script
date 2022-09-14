@@ -3,6 +3,8 @@ import '../error/error_severity.dart';
 import 'diagnostic.dart';
 import '../locale/locale.dart';
 
+/// An implementation of [HTError] that used by [HTAnalyzer].
+/// The format of the printed error content is different from [HTError].
 class HTAnalysisError implements HTError {
   @override
   final ErrorCode code;

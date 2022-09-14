@@ -21,7 +21,7 @@ void main() {
 
   final source1 = HTSource(r'''
     var name = 'Richard Byson'
-    var _age = 42
+    var age = 42
 ''', fullName: 'source1.ht');
   final source2 = HTSource(r'''
     export 'source1.ht'
@@ -49,13 +49,8 @@ void main() {
   // print(hetu.lexicon.stringify(r));
 
   final r = hetu.eval(r'''
-    // final { name, age } = require('source1.ht');
-    // print(name, age)
-    import 'source2.ht' as nsp
-    nsp.greeting()
-
-    final s3 = require('source3.ht')
-    s3.tutorial()
+    final { name, age } = require('source1.ht');
+    print(name, age)
   ''');
 
   print(hetu.lexicon.stringify(r));

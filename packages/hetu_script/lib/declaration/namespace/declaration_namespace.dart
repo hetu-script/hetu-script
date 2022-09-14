@@ -2,7 +2,7 @@ import '../../error/error.dart';
 // import '../../source/source.dart';
 import '../../declaration/declaration.dart';
 import '../../value/entity.dart';
-import '../../value/unresolved_import_statement.dart';
+import '../../value/unresolved_import.dart';
 import '../../lexer/lexicon.dart';
 
 /// A semantic namespace that holds symbol for resolving.
@@ -18,7 +18,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
 
   final importedSymbols = <String, T>{};
 
-  final imports = <String, UnresolvedImportStatement>{};
+  final imports = <String, UnresolvedImport>{};
 
   final exports = <String>{};
 
@@ -111,7 +111,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
     }
   }
 
-  void declareImport(UnresolvedImportStatement decl) {
+  void declareImport(UnresolvedImport decl) {
     imports[decl.fromPath] = decl;
   }
 
