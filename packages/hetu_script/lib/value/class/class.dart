@@ -10,6 +10,7 @@ import '../../value/instance/instance.dart';
 import '../../declaration/class/class_declaration.dart';
 import '../entity.dart';
 import 'class_namespace.dart';
+import '../../type/nominal.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
 class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
@@ -33,6 +34,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   /// and the re-definition must be of the same function signature.
   // final Iterable<HTClass> implementedClass;
   // final Iterable<HTType> implementedType;
+
+  HTType? valueType;
 
   /// The [HTNamespace] for this class,
   /// for searching for static variables.
@@ -82,6 +85,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     // for (final decl in namespace.declarations.values) {
     //   decl.resolve();
     // }
+
+    valueType = HTNominalType(this);
   }
 
   @override

@@ -123,7 +123,9 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
 
   @override
   void resolve({bool resolveType = false}) {
-    super.resolve(resolveType: false);
+    super.resolve(
+        resolveType:
+            resolveType || interpreter.config.checkTypeAnnotationAtRuntime);
   }
 
   // dynamic _computeValue(dynamic value, HTType type) {

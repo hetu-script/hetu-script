@@ -610,6 +610,8 @@ class NominalTypeExpr extends TypeExpr {
 
   final IdentifierExpr id;
 
+  final List<IdentifierExpr> namespacesWithin;
+
   final List<TypeExpr> arguments;
 
   final bool isNullable;
@@ -619,6 +621,7 @@ class NominalTypeExpr extends TypeExpr {
 
   NominalTypeExpr({
     required this.id,
+    this.namespacesWithin = const [],
     this.arguments = const [],
     this.isNullable = false,
     this.isLocal = true,

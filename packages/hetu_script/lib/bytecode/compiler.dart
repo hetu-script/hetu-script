@@ -168,7 +168,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _parseIdentifier(String value) {
+  Uint8List _identifier(String value) {
     final bytesBuilder = BytesBuilder();
     final index = _currentConstantTable.addGlobalConstant<String>(value);
     bytesBuilder.add(_uint16(index));
@@ -226,7 +226,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     }
     bytesBuilder.addByte(namedArgBytesList.length);
     for (final name in namedArgBytesList.keys) {
-      final nameExpr = _parseIdentifier(name);
+      final nameExpr = _identifier(name);
       bytesBuilder.add(nameExpr);
       final argExpr = namedArgBytesList[name]!;
       if (hasLength) {
@@ -244,7 +244,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.varDecl);
     bytesBuilder.addByte(0); // bool: hasDoc
-    bytesBuilder.add(_parseIdentifier(id));
+    bytesBuilder.add(_identifier(id));
     bytesBuilder.addByte(0); // bool: hasClassId
     bytesBuilder.addByte(0);
     bytesBuilder.addByte(0); // bool: isExternal
@@ -400,7 +400,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(HTOpCode.file);
     // if the relativeName is null then it is the entry file of this module.
-    bytesBuilder.add(_parseIdentifier(unit.fullName));
+    bytesBuilder.add(_identifier(unit.fullName));
     bytesBuilder.addByte(unit.resourceType.index);
     // final convertedNodes = _convertPossibleAwaitedBlockToCallBack(unit.nodes);
     // for (final node in convertedNodes) {
@@ -544,7 +544,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has isSpread
       // normal key: value field
-      bytesBuilder.add(_parseIdentifier(field.key!.id));
+      bytesBuilder.add(_identifier(field.key!.id));
     }
     final valueBytes = compileAST(field.fieldValue, endOfExec: true);
     bytesBuilder.add(valueBytes);
@@ -558,13 +558,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(HTValueTypeCode.struct);
     if (obj.id != null) {
       bytesBuilder.addByte(1); // bool: has id
-      bytesBuilder.add(_parseIdentifier(obj.id!.id));
+      bytesBuilder.add(_identifier(obj.id!.id));
     } else {
       bytesBuilder.addByte(0); // bool: has id
     }
     if (obj.prototypeId != null) {
       bytesBuilder.addByte(1); // bool: has prototype
-      bytesBuilder.add(_parseIdentifier(obj.prototypeId!.id));
+      bytesBuilder.add(_identifier(obj.prototypeId!.id));
     } else {
       bytesBuilder.addByte(0); // bool: has prototype
     }
@@ -611,7 +611,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     }
     bytesBuilder.addByte(HTOpCode.local);
     bytesBuilder.addByte(HTValueTypeCode.identifier);
-    bytesBuilder.add(_parseIdentifier(symbolId));
+    bytesBuilder.add(_identifier(symbolId));
     bytesBuilder.addByte(expr.isLocal ? 1 : 0);
     // if (expr.typeArgs.isNotEmpty) {
     //   bytesBuilder.addByte(1);
@@ -633,7 +633,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(HTOpCode.local);
     }
     bytesBuilder.addByte(HTValueTypeCode.intrinsicType);
-    bytesBuilder.add(_parseIdentifier(expr.id.id));
+    bytesBuilder.add(_identifier(expr.id.id));
     bytesBuilder.addByte(expr.isTop ? 1 : 0);
     bytesBuilder.addByte(expr.isBottom ? 1 : 0);
     return bytesBuilder.toBytes();
@@ -646,7 +646,11 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(HTOpCode.local);
     }
     bytesBuilder.addByte(HTValueTypeCode.nominalType);
-    bytesBuilder.add(_parseIdentifier(expr.id.id));
+    bytesBuilder.add(_identifier(expr.id.id));
+    bytesBuilder.addByte(expr.namespacesWithin.length); // max 255
+    for (final id in expr.namespacesWithin) {
+      bytesBuilder.add(_identifier(id.id));
+    }
     bytesBuilder.addByte(expr.arguments.length); // max 255
     for (final expr in expr.arguments) {
       final typeArg = compileAST(expr); // dont' need end of exec mark here
@@ -666,7 +670,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(expr.isVariadic ? 1 : 0);
     if (expr.id != null) {
       bytesBuilder.addByte(1); // bool: isNamed
-      bytesBuilder.add(_parseIdentifier(expr.id!.id));
+      bytesBuilder.add(_identifier(expr.id!.id));
     } else {
       bytesBuilder.addByte(0); // bool: isNamed
     }
@@ -694,7 +698,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitFieldTypeExpr(FieldTypeExpr expr) {
     final bytesBuilder = BytesBuilder();
-    final idBytes = _parseIdentifier(expr.id);
+    final idBytes = _identifier(expr.id);
     bytesBuilder.add(idBytes);
     Uint8List typeBytes;
     if (expr.fieldType is FuncTypeExpr) {
@@ -1128,7 +1132,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(HTOpCode.assertion);
       final content = stmt.source!.content;
       final text = content.substring(stmt.expr.offset, stmt.expr.end);
-      bytesBuilder.add(_parseIdentifier(text.trim()));
+      bytesBuilder.add(_identifier(text.trim()));
       bytesBuilder.addByte(HTOpCode.endOfStmt);
     }
     return bytesBuilder.toBytes();
@@ -1160,9 +1164,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (block.isCodeBlock) {
       bytesBuilder.addByte(HTOpCode.codeBlock);
       if (block.id != null) {
-        bytesBuilder.add(_parseIdentifier(block.id!));
+        bytesBuilder.add(_identifier(block.id!));
       } else {
-        bytesBuilder.add(_parseIdentifier(InternalIdentifier.anonymousBlock));
+        bytesBuilder.add(_identifier(InternalIdentifier.anonymousBlock));
       }
     }
     for (final stmt in block.statements) {
@@ -1262,7 +1266,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.codeBlock);
-    bytesBuilder.add(_parseIdentifier(Semantic.forStmtInit));
+    bytesBuilder.add(_identifier(Semantic.forStmtInit));
     late Uint8List condition;
     Uint8List? increment;
     ASTNode? capturedDecl;
@@ -1320,7 +1324,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.codeBlock);
-    bytesBuilder.add(_parseIdentifier(Semantic.forStmtInit));
+    bytesBuilder.add(_identifier(Semantic.forStmtInit));
 
     final collection = stmt.iterateValue
         ? MemberExpr(stmt.collection,
@@ -1477,7 +1481,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(HTOpCode.delete);
     bytesBuilder.addByte(DeletingTypeCode.local);
-    bytesBuilder.add(_parseIdentifier(stmt.symbol));
+    bytesBuilder.add(_identifier(stmt.symbol));
     bytesBuilder.addByte(HTOpCode.endOfStmt);
     return bytesBuilder.toBytes();
   }
@@ -1490,7 +1494,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(DeletingTypeCode.member);
     final objectBytes = compileAST(stmt.object, endOfExec: true);
     bytesBuilder.add(objectBytes);
-    bytesBuilder.add(_parseIdentifier(stmt.key));
+    bytesBuilder.add(_identifier(stmt.key));
     return bytesBuilder.toBytes();
   }
 
@@ -1517,18 +1521,18 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         .addByte(stmt.isPreloadedModule ? 1 : 0); // bool: isPreloadedModule
     bytesBuilder.addByte(stmt.showList.length);
     for (final id in stmt.showList) {
-      bytesBuilder.add(_parseIdentifier(id.id));
+      bytesBuilder.add(_identifier(id.id));
     }
     if (stmt.fromPath != null) {
       bytesBuilder.addByte(1); // bool: hasFromPath
       // use the normalized absolute name here instead of relative path
-      bytesBuilder.add(_parseIdentifier(stmt.fullFromPath!));
+      bytesBuilder.add(_identifier(stmt.fullFromPath!));
     } else {
       bytesBuilder.addByte(0); // bool: hasFromPath
     }
     if (stmt.alias != null) {
       bytesBuilder.addByte(1); // bool: has alias id
-      bytesBuilder.add(_parseIdentifier(stmt.alias!.id));
+      bytesBuilder.add(_identifier(stmt.alias!.id));
     } else {
       bytesBuilder.addByte(0); // bool: has alias id
     }
@@ -1547,10 +1551,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has doc
     }
-    bytesBuilder.add(_parseIdentifier(stmt.id.id));
+    bytesBuilder.add(_identifier(stmt.id.id));
     if (stmt.classId != null) {
       bytesBuilder.addByte(1); // bool: has class id
-      bytesBuilder.add(_parseIdentifier(stmt.classId!));
+      bytesBuilder.add(_identifier(stmt.classId!));
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
@@ -1572,10 +1576,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has doc
     }
-    bytesBuilder.add(_parseIdentifier(stmt.id.id));
+    bytesBuilder.add(_identifier(stmt.id.id));
     if (stmt.classId != null) {
       bytesBuilder.addByte(1); // bool: has class id
-      bytesBuilder.add(_parseIdentifier(stmt.classId!));
+      bytesBuilder.add(_identifier(stmt.classId!));
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
@@ -1602,10 +1606,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else {
         bytesBuilder.addByte(0); // bool: has doc
       }
-      bytesBuilder.add(_parseIdentifier(stmt.id.id));
+      bytesBuilder.add(_identifier(stmt.id.id));
       if (stmt.classId != null) {
         bytesBuilder.addByte(1); // bool: has class id
-        bytesBuilder.add(_parseIdentifier(stmt.classId!));
+        bytesBuilder.add(_identifier(stmt.classId!));
       } else {
         bytesBuilder.addByte(0); // bool: has class id
       }
@@ -1634,10 +1638,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else {
         bytesBuilder.addByte(0); // bool: has doc
       }
-      bytesBuilder.add(_parseIdentifier(stmt.id.id));
+      bytesBuilder.add(_identifier(stmt.id.id));
       if (stmt.classId != null) {
         bytesBuilder.addByte(1); // bool: has class id
-        bytesBuilder.add(_parseIdentifier(stmt.classId!));
+        bytesBuilder.add(_identifier(stmt.classId!));
       } else {
         bytesBuilder.addByte(0); // bool: has class id
       }
@@ -1681,7 +1685,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     bytesBuilder.addByte(stmt.ids.length);
     for (final id in stmt.ids.keys) {
-      bytesBuilder.add(_parseIdentifier(id.id));
+      bytesBuilder.add(_identifier(id.id));
       final typeExpr = stmt.ids[id];
       if (typeExpr != null) {
         bytesBuilder.addByte(1); // bool: has type decl
@@ -1702,7 +1706,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitParamDecl(ParamDecl stmt) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.add(_parseIdentifier(stmt.id.id));
+    bytesBuilder.add(_identifier(stmt.id.id));
     bytesBuilder.addByte(stmt.isOptional ? 1 : 0);
     bytesBuilder.addByte(stmt.isVariadic ? 1 : 0);
     bytesBuilder.addByte(stmt.isNamed ? 1 : 0);
@@ -1736,10 +1740,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitReferConstructCallExpr(RedirectingConstructorCallExpr stmt) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.add(_parseIdentifier(stmt.callee.id));
+    bytesBuilder.add(_identifier(stmt.callee.id));
     if (stmt.key != null) {
       bytesBuilder.addByte(1); // bool: has constructor name
-      bytesBuilder.add(_parseIdentifier(stmt.key!.id));
+      bytesBuilder.add(_identifier(stmt.key!.id));
     } else {
       bytesBuilder.addByte(0); // bool: has constructor name
     }
@@ -1764,22 +1768,22 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.addByte(0); // bool: has doc
       }
       // funcBytesBuilder.addByte(HTOpCode.funcDecl);
-      bytesBuilder.add(_parseIdentifier(stmt.internalName));
+      bytesBuilder.add(_identifier(stmt.internalName));
       if (stmt.id != null) {
         bytesBuilder.addByte(1); // bool: hasId
-        bytesBuilder.add(_parseIdentifier(stmt.id!.id));
+        bytesBuilder.add(_identifier(stmt.id!.id));
       } else {
         bytesBuilder.addByte(0); // bool: hasId
       }
       if (stmt.classId != null) {
         bytesBuilder.addByte(1); // bool: hasClassId
-        bytesBuilder.add(_parseIdentifier(stmt.classId!));
+        bytesBuilder.add(_identifier(stmt.classId!));
       } else {
         bytesBuilder.addByte(0); // bool: hasClassId
       }
       if (stmt.externalTypeId != null) {
         bytesBuilder.addByte(1); // bool: hasExternalTypedef
-        bytesBuilder.add(_parseIdentifier(stmt.externalTypeId!));
+        bytesBuilder.add(_identifier(stmt.externalTypeId!));
       } else {
         bytesBuilder.addByte(0); // bool: hasExternalTypedef
       }
@@ -1793,10 +1797,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(HTOpCode.local);
       bytesBuilder.addByte(HTValueTypeCode.function);
-      bytesBuilder.add(_parseIdentifier(stmt.internalName));
+      bytesBuilder.add(_identifier(stmt.internalName));
       if (stmt.externalTypeId != null) {
         bytesBuilder.addByte(1);
-        bytesBuilder.add(_parseIdentifier(stmt.externalTypeId!));
+        bytesBuilder.add(_identifier(stmt.externalTypeId!));
       } else {
         bytesBuilder.addByte(0);
       }
@@ -1859,7 +1863,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has doc
     }
-    bytesBuilder.add(_parseIdentifier(stmt.id.id));
+    bytesBuilder.add(_identifier(stmt.id.id));
     // TODO: generic param
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
     bytesBuilder.addByte(stmt.isAbstract ? 1 : 0);
@@ -1893,7 +1897,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else {
         bytesBuilder.addByte(0); // bool: has doc
       }
-      bytesBuilder.add(_parseIdentifier(stmt.id.id));
+      bytesBuilder.add(_identifier(stmt.id.id));
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(0); // bool: is abstract
       bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
@@ -1972,7 +1976,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else {
         bytesBuilder.addByte(0); // bool: has doc
       }
-      bytesBuilder.add(_parseIdentifier(stmt.id.id));
+      bytesBuilder.add(_identifier(stmt.id.id));
       bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     }
 
@@ -1990,17 +1994,17 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has doc
     }
-    bytesBuilder.add(_parseIdentifier(stmt.id.id));
+    bytesBuilder.add(_identifier(stmt.id.id));
     bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     if (stmt.prototypeId != null) {
       bytesBuilder.addByte(1); // bool: hasPrototypeId
-      bytesBuilder.add(_parseIdentifier(stmt.prototypeId!.id));
+      bytesBuilder.add(_identifier(stmt.prototypeId!.id));
     } else {
       bytesBuilder.addByte(0); // bool: hasPrototypeId
     }
     bytesBuilder.addByte(stmt.mixinIds.length);
     for (final mixinId in stmt.mixinIds) {
-      bytesBuilder.add(_parseIdentifier(mixinId.id));
+      bytesBuilder.add(_identifier(mixinId.id));
     }
     final staticFields = <StructObjField>[];
     final fields = <StructObjField>[];

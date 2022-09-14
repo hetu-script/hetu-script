@@ -16,6 +16,7 @@ void main() {
       allowImplicitVariableDeclaration: false,
       allowImplicitNullToZeroConversion: true,
       allowImplicitEmptyValueToFalseConversion: true,
+      checkTypeAnnotationAtRuntime: true,
       normalizeImportPath: false,
     ),
     sourceContext: sourceContext,
@@ -25,6 +26,7 @@ void main() {
   final source1 = HTSource(r'''
     final typename = 'person'
 ''', fullName: 'source1.ht');
+
   final source2 = HTSource(r'''
     import 'json_data.json' as jsonData
     struct Person {
@@ -34,17 +36,15 @@ void main() {
       }
     }
 // ''', fullName: 'source2.ht');
+
   final source3 = HTSource(r'''
-    // import 'source2.ht'
-    import 'json_data.json' as jsonData
-    // struct Jimmy extends Person {
-    //   construct : super() {
-    //     this.age = 17
-    //   }
-    // }
-    // export { Person }
-    fun test {
-      print(jsonData.type)
+    namespace Person {
+      class PersonImpl {
+        var name
+        construct {
+          name = 'Jimmy'
+        }
+      }
     }
 ''', fullName: 'source3.ht');
   sourceContext.addResource(source1.fullName, source1);
@@ -79,16 +79,10 @@ void main() {
 
   final bytes = hetu.compile(
     r'''
-        fun test(a) async {
-          return a
-        }
-        
-        fun test2() {
-          final v= await test(7) * await test(8)
-          print(v)
-        }
-
-        test2()
+      import 'source3.ht' as PP
+      
+      final p: PP.Person.PersonImpl = PP.Person.PersonImpl()
+      print(p.name)
           ''',
     isModuleEntryScript: true,
     version: Version(0, 1, 0),

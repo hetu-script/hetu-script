@@ -93,6 +93,13 @@ class HetuConfig
   @override
   bool allowImplicitEmptyValueToFalseConversion;
 
+  /// Wether check the nominal typename validity at runtime,
+  /// will slightly affect the efficiency of the interpreter.
+  ///
+  /// defaults to `false`
+  @override
+  bool checkTypeAnnotationAtRuntime;
+
   HetuConfig({
     this.printPerformanceStatistics = true,
     this.normalizeImportPath = true,
@@ -110,6 +117,7 @@ class HetuConfig
     this.allowImplicitVariableDeclaration = false,
     this.allowImplicitNullToZeroConversion = false,
     this.allowImplicitEmptyValueToFalseConversion = false,
+    this.checkTypeAnnotationAtRuntime = false,
   });
 }
 

@@ -73,15 +73,19 @@ class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
   @override
   bool allowImplicitEmptyValueToFalseConversion;
 
-  InterpreterConfig(
-      {this.showDartStackTrace = false,
-      this.showHetuStackTrace = false,
-      this.stackTraceDisplayCountLimit = 5,
-      this.processError = true,
-      this.allowVariableShadowing = true,
-      this.allowImplicitVariableDeclaration = false,
-      this.allowImplicitNullToZeroConversion = false,
-      this.allowImplicitEmptyValueToFalseConversion = false});
+  bool checkTypeAnnotationAtRuntime;
+
+  InterpreterConfig({
+    this.showDartStackTrace = false,
+    this.showHetuStackTrace = false,
+    this.stackTraceDisplayCountLimit = 5,
+    this.processError = true,
+    this.allowVariableShadowing = true,
+    this.allowImplicitVariableDeclaration = false,
+    this.allowImplicitNullToZeroConversion = false,
+    this.allowImplicitEmptyValueToFalseConversion = false,
+    this.checkTypeAnnotationAtRuntime = false,
+  });
 }
 
 class _LoopInfo {
@@ -2308,6 +2312,12 @@ class HTInterpreter {
 
   HTUnresolvedType _handleNominalType() {
     final typeName = _currentBytecodeModule.getConstString();
+    final namespacesLength = _currentBytecodeModule.read();
+    final namespacesWithin = <String>[];
+    for (var i = 0; i < namespacesLength; ++i) {
+      final id = _currentBytecodeModule.getConstString();
+      namespacesWithin.add(id);
+    }
     final typeArgsLength = _currentBytecodeModule.read();
     final typeArgs = <HTUnresolvedType>[];
     for (var i = 0; i < typeArgsLength; ++i) {
@@ -2315,8 +2325,12 @@ class HTInterpreter {
       typeArgs.add(typearg);
     }
     final isNullable = (_currentBytecodeModule.read() == 0) ? false : true;
-    return HTUnresolvedType(typeName,
-        typeArgs: typeArgs, isNullable: isNullable);
+    return HTUnresolvedType(
+      typeName,
+      typeArgs: typeArgs,
+      isNullable: isNullable,
+      namespacesWithin: namespacesWithin,
+    );
   }
 
   HTFunctionType _handleFunctionType() {

@@ -1855,7 +1855,7 @@ class HTDefaultParser extends HTParser {
     else {
       handlePrecedings();
       final idTok = match(Semantic.identifier);
-      final id = IdentifierExpr.fromToken(idTok, source: currentSource);
+      var id = IdentifierExpr.fromToken(idTok, source: currentSource);
       if (id.id == lexicon.typeAny) {
         final typeExpr = IntrinsicTypeExpr(
           id: id,
@@ -1941,6 +1941,7 @@ class HTDefaultParser extends HTParser {
         setPrecedings(typeExpr);
         return typeExpr;
       } else {
+        List<IdentifierExpr> namespacesWithin = [];
         List<TypeExpr> typeArgs = [];
         if (expect([lexicon.typeListStart], consume: true)) {
           typeArgs = parseExprList(
@@ -1957,10 +1958,17 @@ class HTDefaultParser extends HTParser {
                 length: curTok.end - idTok.offset);
             errors.add(err);
           }
+        } else if (expect([lexicon.memberGet], consume: false)) {
+          while (expect([lexicon.memberGet], consume: true)) {
+            namespacesWithin.add(id);
+            final nextIdTok = match(Semantic.identifier);
+            id = IdentifierExpr.fromToken(nextIdTok, source: currentSource);
+          }
         }
         final isNullable = expect([lexicon.nullableTypePostfix], consume: true);
         final nominalType = NominalTypeExpr(
           id: id,
+          namespacesWithin: namespacesWithin,
           arguments: typeArgs,
           isNullable: isNullable,
           isLocal: isLocal,

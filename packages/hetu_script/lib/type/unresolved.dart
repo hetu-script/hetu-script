@@ -7,29 +7,36 @@ import 'function.dart';
 import 'nominal.dart';
 import 'type.dart';
 
-/// A supposed type, could be a type alias or a nominal type.
+/// A supposed type, could be a type alias or a nominal type or a type within a namespace.
 ///
-/// The interpreter will later trying to resolved it
-/// to a concrete type.
-///
-/// For types other than nominal type, it will resolve to itself.
+/// The interpreter will later trying to resolved it to a concrete type.
 class HTUnresolvedType extends HTType {
   @override
   bool get isResolved => false;
 
   final List<HTType> typeArgs;
   final bool isNullable;
+  final List<String> namespacesWithin;
 
   @override
   String get id => super.id!;
 
-  const HTUnresolvedType(super.id,
-      {this.typeArgs = const [], this.isNullable = false});
+  const HTUnresolvedType(
+    super.id, {
+    this.typeArgs = const [],
+    this.isNullable = false,
+    this.namespacesWithin = const [],
+  });
 
   @override
   HTType resolve(HTDeclarationNamespace namespace) {
-    var type =
-        namespace.memberGet(id, from: namespace.fullName, isRecursive: true);
+    HTDeclarationNamespace nsp = namespace;
+    if (namespacesWithin.isNotEmpty) {
+      for (final id in namespacesWithin) {
+        nsp = nsp.memberGet(id, from: namespace.fullName, isRecursive: true);
+      }
+    }
+    var type = nsp.memberGet(id, from: namespace.fullName, isRecursive: true);
     if (type is HTType && type.isResolved) {
       return type;
     } else if (type is HTAbstractTypeDeclaration) {
