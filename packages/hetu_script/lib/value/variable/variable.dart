@@ -7,10 +7,10 @@ import '../../declaration/variable/variable_declaration.dart';
 
 /// Variable is a binding between an symbol and a value
 class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
-  final HTNamespace? _closure;
+  final HTNamespace _closure;
 
   @override
-  HTNamespace? get closure => _closure;
+  HTNamespace get closure => _closure;
 
   // Use dynamic type to save external values
   dynamic _value;
@@ -27,31 +27,29 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
   /// If it has initializer code, it will
   /// have to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be acessed within a script.
-  HTVariable(
-      {required super.id,
-      required HTInterpreter interpreter,
-      String? fileName,
-      String? moduleName,
-      super.classId,
-      HTNamespace? closure,
-      super.documentation,
-      super.declType,
-      dynamic value,
-      super.isPrivate = false,
-      super.isExternal = false,
-      super.isStatic = false,
-      super.isConst = false,
-      super.isMutable = false,
-      super.isTopLevel = false,
-      super.lateFinalize = false,
-      int? definitionIp,
-      int? definitionLine,
-      int? definitionColumn})
-      : _closure = closure,
+  HTVariable({
+    required super.id,
+    required HTInterpreter interpreter,
+    String? fileName,
+    String? moduleName,
+    super.classId,
+    required HTNamespace closure,
+    super.documentation,
+    super.declType,
+    dynamic value,
+    super.isPrivate = false,
+    super.isExternal = false,
+    super.isStatic = false,
+    super.isConst = false,
+    super.isMutable = false,
+    super.isTopLevel = false,
+    super.lateFinalize = false,
+    int? definitionIp,
+    int? definitionLine,
+    int? definitionColumn,
+  })  : _closure = closure,
         super(closure: closure) {
-    if (interpreter != null) {
-      this.interpreter = interpreter;
-    }
+    this.interpreter = interpreter;
     if (fileName != null) {
       this.fileName = fileName;
     }
@@ -63,8 +61,7 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
     this.definitionColumn = definitionColumn;
 
     if (value != null) {
-      _value = value;
-      _isInitialized = true;
+      this.value = value;
     }
   }
 
@@ -99,6 +96,22 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
   set value(dynamic value) {
     if (!isMutable && _isInitialized) {
       throw HTError.immutable(id!);
+    }
+    if (interpreter.config.checkTypeAnnotationAtRuntime) {
+      if (declType != null) {
+        // final resolvedType =
+        //     declType!.isResolved ? declType : declType!.resolve(closure);
+        final valueType = interpreter.typeof(value);
+        if (valueType.isNotA(declType!)) {
+          final err = HTError.assignType(
+            id!,
+            interpreter.lexicon.stringify(valueType),
+            interpreter.lexicon.stringify(declType),
+          );
+          print(
+              "hetu: (warning) - ${err.message} (at [${interpreter.currentFileName}:${interpreter.currentLine}:${interpreter.currentColumn}])");
+        }
+      }
     }
     _value = value;
     _isInitialized = true;

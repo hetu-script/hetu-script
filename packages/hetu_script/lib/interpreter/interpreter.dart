@@ -435,6 +435,7 @@ class HTInterpreter {
         interpreter: this,
         value: value,
         isMutable: isMutable,
+        closure: nsp,
       );
       return nsp.define(varName, decl, override: override, throws: throws);
     }
@@ -627,6 +628,18 @@ class HTInterpreter {
 
   String stringify(dynamic object) {
     return _lexicon.stringify(object);
+  }
+
+  /// Get a object's type at runtime.
+  HTType typeof(dynamic object) {
+    final encap = encapsulate(object);
+    HTType type;
+    if (encap == HTEntity.nullValue) {
+      type = HTTypeNull(_lexicon.kNull);
+    } else {
+      type = encap.valueType ?? HTTypeUnknown(_lexicon.typeUnknown);
+    }
+    return type;
   }
 
   /// Encapsulate any value to a Hetu object, for members accessing and type check.
@@ -1764,6 +1777,7 @@ class HTInterpreter {
                 id: alias,
                 interpreter: this,
                 value: value,
+                closure: _currentNamespace,
               ));
           if (isExported) {
             _currentNamespace.declareExport(alias);
@@ -2232,17 +2246,7 @@ class HTInterpreter {
         _localValue = !truthValue;
         break;
       case HTOpCode.typeOf:
-        final encap = encapsulate(object);
-        if (encap == HTEntity.nullValue) {
-          _localValue = HTTypeNull(_lexicon.kNull);
-        } else {
-          final type = encap.valueType;
-          if (type != null) {
-            _localValue = type;
-          } else {
-            _localValue = HTTypeUnknown(_lexicon.typeUnknown);
-          }
-        }
+        _localValue = typeof(object);
         break;
     }
   }

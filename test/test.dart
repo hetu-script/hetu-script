@@ -81,8 +81,10 @@ void main() {
     r'''
       import 'source3.ht' as PP
       
-      final p: PP.Person.PersonImpl = PP.Person.PersonImpl()
-      print(p.name)
+      // final p: str = PP.Person.PersonImpl()
+      // print(p.name)
+
+      final value: str = 3.3
           ''',
     isModuleEntryScript: true,
     version: Version(0, 1, 0),

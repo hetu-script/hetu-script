@@ -366,6 +366,7 @@ class HTFunction extends HTFunctionDeclaration
                 id: interpreter.lexicon.kSuper,
                 interpreter: interpreter,
                 value: (namespace as HTInstanceNamespace).next,
+                closure: callClosure,
               ),
             );
           }
@@ -375,6 +376,7 @@ class HTFunction extends HTFunctionDeclaration
                 id: interpreter.lexicon.kThis,
                 interpreter: interpreter,
                 value: instance,
+                closure: callClosure,
               ));
         }
 

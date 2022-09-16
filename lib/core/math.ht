@@ -18,9 +18,9 @@ external class Random {
 }
 
 external class Math {
-  static const e: num = 2.718281828459045
+  static const e: float = 2.718281828459045
   
-  static const pi: num = 3.1415926535897932
+  static const pi: float = 3.1415926535897932
 
   /// Convert [radians] to degrees.
   static fun degrees(radians)

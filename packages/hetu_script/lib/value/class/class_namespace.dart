@@ -52,7 +52,8 @@ class HTClassNamespace extends HTNamespace {
     }
 
     if (isRecursive && (closure != null)) {
-      return closure!.memberGet(varName, from: from, isRecursive: isRecursive);
+      return closure!.memberGet(varName,
+          from: from, isRecursive: isRecursive, throws: throws);
     }
 
     if (throws) {
@@ -89,7 +90,8 @@ class HTClassNamespace extends HTNamespace {
     }
 
     if (isRecursive && closure != null) {
-      return closure!.memberSet(varName, varValue, from: from);
+      return closure!.memberSet(varName, varValue,
+          from: from, isRecursive: isRecursive, throws: throws);
     }
 
     if (throws) {

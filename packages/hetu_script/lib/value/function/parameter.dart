@@ -1,4 +1,3 @@
-import '../../value/namespace/namespace.dart';
 import '../variable/variable.dart';
 import '../../declaration/function/abstract_parameter.dart';
 
@@ -6,11 +5,6 @@ import '../../declaration/function/abstract_parameter.dart';
 
 /// An implementation of [HTVariable] for function parameter declaration.
 class HTParameter extends HTVariable implements HTAbstractParameter {
-  final HTNamespace? _closure;
-
-  @override
-  HTNamespace? get closure => _closure;
-
   @override
   final bool isVariadic;
 
@@ -29,7 +23,7 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
     required super.interpreter,
     super.fileName,
     super.moduleName,
-    super.closure,
+    required super.closure,
     super.declType,
     super.definitionIp,
     super.definitionLine,
@@ -38,8 +32,7 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
     this.isOptional = false,
     this.isNamed = false,
     this.isInitialization = false,
-  })  : _closure = closure,
-        super(isMutable: true);
+  }) : super(isMutable: true);
 
   // @override
   // String toString() {

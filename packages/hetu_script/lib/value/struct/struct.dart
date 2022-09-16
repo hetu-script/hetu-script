@@ -66,6 +66,7 @@ class HTStruct with HTEntity {
         id: interpreter.lexicon.kThis,
         interpreter: interpreter,
         value: this,
+        closure: namespace,
       ),
     );
   }

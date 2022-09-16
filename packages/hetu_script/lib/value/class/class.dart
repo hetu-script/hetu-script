@@ -35,6 +35,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   // final Iterable<HTClass> implementedClass;
   // final Iterable<HTType> implementedType;
 
+  @override
   HTType? valueType;
 
   /// The [HTNamespace] for this class,

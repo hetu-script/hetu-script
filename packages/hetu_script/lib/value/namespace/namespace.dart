@@ -62,7 +62,8 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       decl.resolve();
       return decl.value;
     } else if (isRecursive && (closure != null)) {
-      return closure!.memberGet(varName, from: from, isRecursive: true);
+      return closure!.memberGet(varName,
+          from: from, isRecursive: isRecursive, throws: throws);
     }
     if (throws) {
       throw HTError.undefined(varName);

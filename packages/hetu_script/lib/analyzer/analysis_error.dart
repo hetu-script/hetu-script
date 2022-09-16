@@ -107,16 +107,39 @@ class HTAnalysisError implements HTError {
             offset: offset,
             length: length);
 
-  HTAnalysisError.importSelf(
-      {String? extra,
-      String? correction,
-      required String filename,
-      required int line,
-      required int column,
-      required int offset,
-      required int length})
-      : this(ErrorCode.importSelf, ErrorType.staticWarning,
+  HTAnalysisError.importSelf({
+    String? extra,
+    String? correction,
+    required String filename,
+    required int line,
+    required int column,
+    required int offset,
+    required int length,
+  }) : this(ErrorCode.importSelf, ErrorType.staticWarning,
             message: HTLocale.current.errorImportSelf,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Type check failed.
+  HTAnalysisError.assignType(
+    String id,
+    String valueType,
+    String declValue, {
+    String? extra,
+    String? correction,
+    required String filename,
+    required int line,
+    required int column,
+    required int offset,
+    required int length,
+  }) : this(ErrorCode.assignType, ErrorType.staticTypeWarning,
+            message: HTLocale.current.errorAssignType,
+            interpolations: [id, valueType, declValue],
             extra: extra,
             correction: correction,
             filename: filename,

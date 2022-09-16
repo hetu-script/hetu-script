@@ -120,7 +120,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorOutOfRange = '下标操作的 key [{0}] 超出了范围：[0..{1}]。';
   @override
-  final String errorAssignType = '值类型 [{1}] 和声明 [{0}] 的类型 [{2}] 不匹配。';
+  final String errorAssignType = '值类型 [{1}] 和变量 [{0}] 声明的类型 [{2}] 不匹配。';
   @override
   final String errorImmutable = '[{0}] 的值不可改变。';
   @override

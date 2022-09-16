@@ -1,3 +1,4 @@
+import 'package:hetu_script/type/unresolved.dart';
 import 'package:quiver/core.dart';
 
 import '../declaration/class/class_declaration.dart';
@@ -68,26 +69,31 @@ class HTNominalType extends HTType {
 
     if (other.isBottom) return false;
 
-    if (other is! HTNominalType) return false;
-
-    if (isNullable != other.isNullable) return false;
-    if (typeArgs.length != other.typeArgs.length) return false;
-    for (final arg in typeArgs) {
-      if (arg.isNotA(other)) return false;
-    }
-
-    if (id == other.id) {
-      return true;
-    } else {
-      var curSuperType = klass.superType;
-      while (curSuperType != null) {
-        var curSuperClass = (curSuperType as HTNominalType).klass;
-        if (curSuperType.isA(other)) {
-          return true;
+    if (other is HTUnresolvedType || other is HTNominalType) {
+      if (other is HTNominalType) {
+        if (isNullable != other.isNullable) return false;
+        if (typeArgs.length != other.typeArgs.length) return false;
+        for (var i = 0; i < typeArgs.length; ++i) {
+          final arg = typeArgs[i];
+          if (arg.isNotA(other.typeArgs[i])) return false;
         }
-        curSuperType = curSuperClass.superType;
       }
-      return false;
+
+      if (id == other.id) {
+        return true;
+      } else {
+        var curSuperType = klass.superType;
+        while (curSuperType != null) {
+          var curSuperClass = (curSuperType as HTNominalType).klass;
+          if (curSuperType.isA(other)) {
+            return true;
+          }
+          curSuperType = curSuperClass.superType;
+        }
+        return false;
+      }
     }
+
+    return false;
   }
 }
