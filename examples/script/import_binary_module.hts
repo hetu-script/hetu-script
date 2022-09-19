@@ -1,0 +1,5 @@
+import 'module:actor' as actor
+
+var p: Person = actor.Person()
+
+print(p.name)
