@@ -1,31 +1,31 @@
 # Dart API 参考
 
-## 解释器
+## 河图类
 
-使用河图脚本库的时候，在 Dart 中的最常用类是解释器（interpreter）。它的名字就叫做 **Hetu**。下面是一些解释器上的常用方法。
+Hetu 是一个集合了多个不同的编程语言工具（sourceContext, lexicon, parser, bundler, analyzer, compiler and interpreter）的默认实现的工具类。对于普通用户，可以直接创建一个 Hetu 对象，然后就可以开始使用脚本功能了。下面介绍的一些函数接口，实际上分别定义在 compiler 或者 interpreter 上，但我们可以通过 Hetu 类来方便的统一访问。
 
 ### init()
 
-这个方法会初始化河图脚本内置的一些 Dart 类的绑定。用户也可以向这个方法传入参数来同时初始化一些自定义绑定。
-
 ```dart
 void init({
-  Map<String, String> includes = const {},
+  bool useDefaultModuleAndBinding = true,
+  HTLocale? locale,
   Map<String, Function> externalFunctions = const {},
   Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
-  List<HTExternalClass> externalClasses = const ****,
+  List<HTExternalClass> externalClasses = const [],
+  List<HTExternalTypeReflection> externalTypeReflections = const [],
 })
 ```
 
-- **preincludes**: 载入一些以 Dart 字符串形式保存的代码文件。效果等同于在 **init()** 执行完毕后，手动调用 **eval()**。
+这个方法会初始化河图脚本内置的一些 Dart 类的绑定。用户也可以向这个方法传入参数来同时初始化一些自定义绑定。
 
 - **externalFunctions**: 载入一些 Dart 函数，用以在脚本中调用。效果等同于在 **init()** 执行完毕后，手动调用 **bindExternalFunction()**.
 
-- **HTExternalFunctionTypedef**: 载入一些 Dart 的函数定义，以及对应的解绑函数。之后可以便捷的将一个脚本函数解析为 Dart 函数，以用于 Dart 的对象的构造函数等需要 Dart Lambda 的场合。。效果等同于在 **init()** 执行完毕后，手动调用 **bindExternalFunctionType**.
+- **externalFunctionTypedef**: 载入一些 Dart 的函数定义，以及对应的解绑函数。之后可以便捷的将一个脚本函数解析为 Dart 函数，以用于 Dart 的对象的构造函数等需要 Dart Lambda 的场合。。效果等同于在 **init()** 执行完毕后，手动调用 **bindExternalFunctionType**.
 
-- **HTExternalClass**: 载入一些 Dart 类的绑定定义。之后可以在脚本中直接获得一个 Dart 对象，或者调用某个 Dart 对象的函数。 效果等同于在 **init()** 执行完毕后，手动调用 **bindExternalClass**.
+- **externalClasses**: 载入一些 Dart 类的绑定定义。之后可以在脚本中直接获得一个 Dart 对象，或者调用某个 Dart 对象的函数。 效果等同于在 **init()** 执行完毕后，手动调用 **bindExternalClass**.
 
-### eval()
+### eval(), evalFile()
 
 解释一个字符串形式的代码文件。使用这个方法会在内部经历完整的 parse, analyze, compile 的过程，最终以字节码形式保存在内存中。后续调用以字节码形式执行。
 
@@ -34,12 +34,11 @@ dynamic eval(String content,
     {String? fileName,
     String? moduleName,
     bool globallyImport = false,
-    ResourceType type = ResourceType.hetuLiteralCode,
+    HTResourceType type = HTResourceType.hetuLiteralCode,
     String? invokeFunc,
-    List<dynamic> positionalArgs = const ****,
+    List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const ****,
-    bool errorHandled = false})
+    List<HTType> typeArgs = const []})
 ```
 
 - **content**: Dart 字符串形式的代码文件内容。
@@ -49,7 +48,7 @@ dynamic eval(String content,
 - **type**: [**代码文件类型**](../../guide/package/README.md#资源类型)。决定了解释器的行为模式
 - **invokeFunc**: 在解析完毕后，直接执行这个代码文件中的一个函数。函数的参数用 **positionalArgs** 和 **namedArgs** 传递。效果等同于在 **eval()** 执行过后，再手动调用 **invoke()**。
 
-### compile(), loadBytecode()
+### compile(), compileFile(), loadBytecode()
 
 这一对方法可以用于需要更高运行效率的场合。**compile()** 将一个代码文件编码为字节码。随后可以在另外的场合获取这段字节码然后调用 **loadBytecode()** 执行。在执行时，将无需再进行 parse, analyze, compile 的过程。
 
@@ -57,7 +56,7 @@ dynamic eval(String content,
 
 ### invoke()
 
-在解释器对象上用这个方法来调用某个代码文件中定义的函数。类似的，也有一些其他的调用存在与脚本的 **HTClass**，**HTInstance**, **HTFunction** 等对象上。如果你讲这些脚本中的对象直接传回了 Dart 代码，就可以使用这个接口来调用函数。
+在解释器对象上用这个方法来调用某个代码文件中定义的函数。类似的，也有一些其他的调用存在与脚本的 **HTClass**，**HTInstance**, **HTFunction** 等对象上。如果你将这些脚本中的对象直接传回了 Dart 代码，就可以使用这个接口来调用脚本函数。
 
 ## 代码空间
 

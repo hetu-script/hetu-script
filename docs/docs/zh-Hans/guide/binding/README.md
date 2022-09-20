@@ -411,6 +411,6 @@ typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
 ### 自动绑定工具
 
-_这个工具的贡献者目前很久没有更新了，并不适用于当前版本的河图和 Flutter。我们可能会在晚些时候更新它。_
+感谢[rockingdice](https://github.com/rockingdice)和[CJChen98](https://github.com/CJChen98)的贡献，我们现在有一个自动化工具 [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding) 用来生成一个 Dart 类的完整外部类绑定定义。
 
-感谢[rockingdice](https://github.com/rockingdice)的贡献，我们现在有一个自动化工具 [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding) 用来生成一个 Dart 类的完整外部类绑定定义。
+_这个工具由第三方开发者贡献和更新。我们不能保证它一定适用于最新版本的 Hetu，有关问题请在对应的 repository [发起 issue](https://github.com/hetu-script/hetu-script-autobinding/issues) 。_

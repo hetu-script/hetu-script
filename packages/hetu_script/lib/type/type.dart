@@ -115,6 +115,7 @@ class HTTypeNull extends HTIntrinsicType {
   const HTTypeNull(super.id) : super(isTop: false, isBottom: false);
 }
 
+/// A `function` type. It's the same to type `() -> any`.
 class HTTypeFunction extends HTIntrinsicType {
   const HTTypeFunction(super.id) : super(isTop: false, isBottom: false);
 }

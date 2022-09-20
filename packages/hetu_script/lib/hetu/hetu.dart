@@ -504,6 +504,16 @@ class Hetu {
     return nsp;
   }
 
+  /// Get the documentation of an identifier.
+  String? help(
+    dynamic id, {
+    String? moduleName,
+  }) =>
+      interpreter.help(
+        id,
+        moduleName: moduleName,
+      );
+
   /// Add a declaration to certain namespace.
   bool define(
     String varName,
@@ -520,16 +530,6 @@ class Hetu {
         isMutable: isMutable,
         override: override,
         throws: throws,
-        moduleName: moduleName,
-      );
-
-  /// Get the documentation of an identifier.
-  String? help(
-    dynamic id, {
-    String? moduleName,
-  }) =>
-      interpreter.help(
-        id,
         moduleName: moduleName,
       );
 

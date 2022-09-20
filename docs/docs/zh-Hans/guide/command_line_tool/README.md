@@ -54,18 +54,18 @@ hetu format [path] [option]
       --out(-o) [outpath]
 ```
 
-## analyze
-
-对一个字符串形式的脚本代码进行静态分析，然后打印所有的警告或者错误。
-
-```
-hetu analyze [path]
-```
-
 ## compile
 
 将一个字符串形式的脚本编译为字节码形式的代码。
 
 ```
 hetu compile [path] [output_path] [option]
+```
+
+## analyze
+
+对一个字符串形式的脚本代码进行静态分析，然后打印所有的警告或者错误。
+
+```
+hetu analyze [path]
 ```

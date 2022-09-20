@@ -81,10 +81,11 @@ void main() {
     r'''
       import 'source3.ht' as PP
       
-      // final p: str = PP.Person.PersonImpl()
-      // print(p.name)
+      fun getter -> PP.Person.PersonImpl {
+        return PP.Person.PersonImpl()
+      }
 
-      final value: str = 3.3
+      print(typeof getter)
           ''',
     isModuleEntryScript: true,
     version: Version(0, 1, 0),

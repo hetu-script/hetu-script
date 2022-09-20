@@ -3,7 +3,13 @@
 Most of the preincluded values' apis are kept the same name as the Dart SDK:
 **num**, **int**, **double**, **bool**, **String**, **List**, **Set** and **Map**
 
-There are also some hetu exclusive methods, like **List.random**, to get a random item out of a List.
+And most of the common apis from Dart are already binded in the script.
+
+For instance, we can use the map api just like in Dart on an Iterable:
+
+```dart
+final result = range(10).map((value) => 'row: ${value}')
+```
 
 ## Global functions
 
@@ -28,8 +34,7 @@ void main() {
   final hetu = Hetu();
   hetu.init();
   final result = hetu.eval(r'''
-      var meaning
-      eval("meaning = 'hello from a deeper dream!'")
+      final meaning = eval("6 * 7")
       meaning
     ''');
 
@@ -37,15 +42,9 @@ void main() {
 }
 ```
 
-## object
-
-```javascript
-abstract class object {
-  external fun toString() -> str
-}
-```
-
 ## struct
+
+Hetu have a prototyped based struct object like the literal object syntax in Javascript.
 
 ````typescript
 
@@ -92,11 +91,29 @@ struct prototype {
 }
 ````
 
+All struct object can use those pre-defined methods defined on this root prototype:
+
+```javascript
+final obj = { a: 42 }
+
+obj.contains('a') // true
+```
+
+For static methods, you need to explicitly call by the prototype:
+
+```dart
+final book = prototype.fromJson(data);
+```
+
 ## Math
+
+The script provides the binding of Random object in Dart. And there's some original api on it, for example we can easily create random colors.
+
+The script combined the math library into a static class.
 
 ```javascript
 external class Random {
-  
+
   construct ([seed: int])
 
   fun nextBool -> bool
@@ -116,7 +133,7 @@ external class Random {
 
 external class Math {
   static const e: num = 2.718281828459045
-  
+
   static const pi: num = 3.1415926535897932
 
   /// Convert [radians] to degrees.
@@ -126,7 +143,7 @@ external class Math {
   static fun radians(degrees)
 
   static fun radiusToSigma(radius: float) -> float
-  
+
   // Box–Muller transform for generating normally distributed random numbers between [min : max].
   static fun gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float, randomGenerator}) -> float
 
@@ -176,9 +193,11 @@ external class Math {
 
 ## Hash
 
+Some utility method about hash & crypto are defined in the static class Hash.
+
 ```javascript
 external class Hash {
-  
+
   static fun uid4([repeat: int?]) -> str
 
   static fun crcString(data: str, [crc: str = 0]) -> str

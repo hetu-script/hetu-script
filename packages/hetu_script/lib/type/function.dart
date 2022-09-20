@@ -18,11 +18,12 @@ class HTParameterType {
   /// Wether this is a named parameter.
   final String? id;
 
-  const HTParameterType(
-      {this.id,
-      required this.declType,
-      required this.isOptional,
-      required this.isVariadic});
+  const HTParameterType({
+    this.id,
+    required this.declType,
+    required this.isOptional,
+    required this.isVariadic,
+  });
 }
 
 class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {

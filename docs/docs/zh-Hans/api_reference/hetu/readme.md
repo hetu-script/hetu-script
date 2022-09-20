@@ -2,7 +2,11 @@
 
 河图中的一些基础类型本身是 Dart 类型，同时也默认绑定了大多数 Dart 中的 api。例如下面这些类型和其对象都可以在脚本中直接使用：**num**, **int**, **double**, **bool**, **String**, **List**, **Set**, **Map**。
 
-为了方便，河图中也添加了一些额外的接口，例如 **Iterable.random** 用以获得某个数组中的一个随机对象。
+例如，我们可以在脚本中使用 dart 中的列表上提供的 map 接口：
+
+```dart
+final result = range(10).map((value) => 'row: ${value}')
+```
 
 ## 全局函数
 
@@ -29,8 +33,7 @@ void main() {
   final hetu = Hetu();
   hetu.init();
   final result = hetu.eval(r'''
-      var meaning
-      eval("meaning = 'hello from a deeper dream!'")
+      final meaning = eval("6 * 7")
       meaning
     ''');
 
@@ -105,11 +108,13 @@ final book = prototype.fromJson(data);
 
 ## Math
 
-脚本中定义了一个静态类 Math ，内置了一些数学相关的常数和接口。
+脚本中提供了 Dart 中 Random 对象的绑定，用来生成随机数，并且提供了一些额外的辅助 api，例如获取随机颜色，以及获取一个列表中的随机对象等。
+
+脚本中将 Dart 的 Math 库，绑定为了一个静态类，内置了一些数学相关的常数和接口。
 
 ```javascript
 external class Random {
-  
+
   construct ([seed: int])
 
   fun nextBool -> bool
@@ -128,9 +133,9 @@ external class Random {
 }
 
 external class Math {
-  static const e: num = 2.718281828459045
-  
-  static const pi: num = 3.1415926535897932
+  static const e: float = 2.718281828459045
+
+  static const pi: float = 3.1415926535897932
 
   /// Convert [radians] to degrees.
   static fun degrees(radians)
@@ -139,16 +144,20 @@ external class Math {
   static fun radians(degrees)
 
   static fun radiusToSigma(radius: float) -> float
-  
-  // Box–Muller transform for generating normally distributed random numbers between [min : max].
+
+  /// Box–Muller transform for generating normally distributed random numbers between [min : max].
   static fun gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float, randomGenerator}) -> float
 
-  // Noise generation function provided by [fast_noise](https://pub.dev/packages/fast_noise) package.
-  // Noise types: perlin, perlinFractal, cubic, cubicFractal
+  /// Noise generation function provided by [fast_noise](https://pub.dev/packages/fast_noise) package.
+  /// Noise types: perlin, perlinFractal, cubic, cubicFractal
   static fun noise2d(size, {seed, noiseType = 'cubic', frequency = 0.01})
 
+  /// Return the smaller value between a & b.
+  /// If one of them is null, return the other value.
   static fun min(a, b)
 
+  /// Return the greater value between a & b.
+  /// If one of them is null, return the other value.
   static fun max(a, b)
 
   static fun sqrt(x: num) -> num
@@ -185,6 +194,7 @@ external class Math {
 
   static fun bitXor(x: int, y: int) -> bool
 }
+
 ```
 
 ## Hash
@@ -193,11 +203,12 @@ external class Math {
 
 ```javascript
 external class Hash {
-  
+
   static fun uid4([repeat: int?]) -> str
 
   static fun crcString(data: str, [crc: str = 0]) -> str
 
   static fun crcInt(data: str, [crc: str = 0]) -> int
 }
+
 ```

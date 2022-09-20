@@ -10,7 +10,7 @@ import 'type.dart';
 /// A supposed type, could be a type alias or a nominal type or a type within a namespace.
 ///
 /// The interpreter will later trying to resolved it to a concrete type.
-class HTUnresolvedType extends HTType {
+class HTUnresolvedNominalType extends HTType {
   @override
   bool get isResolved => false;
 
@@ -21,12 +21,12 @@ class HTUnresolvedType extends HTType {
   @override
   String get id => super.id!;
 
-  const HTUnresolvedType(
-    super.id, {
+  const HTUnresolvedNominalType(
+    String id, {
     this.typeArgs = const [],
     this.isNullable = false,
     this.namespacesWithin = const [],
-  });
+  }) : super(id);
 
   @override
   HTType resolve(HTDeclarationNamespace namespace) {
@@ -41,23 +41,59 @@ class HTUnresolvedType extends HTType {
       return type;
     } else if (type is HTAbstractTypeDeclaration) {
       if (type is HTTypeAliasDeclaration) {
-        type = type.declType;
-      }
-      final resolvedTypeArgs = <HTType>[];
-      for (final arg in typeArgs) {
-        final resolved = arg.resolve(namespace);
-        resolvedTypeArgs.add(resolved);
-      }
-      if (type is HTClassDeclaration) {
+        type.resolve();
+        return type.declType;
+      } else if (type is HTClassDeclaration) {
+        final resolvedTypeArgs = <HTType>[];
+        for (final arg in typeArgs) {
+          final resolved = arg.resolve(namespace);
+          resolvedTypeArgs.add(resolved);
+        }
         return HTNominalType(type, typeArgs: resolvedTypeArgs);
-      } else if (type is HTFunctionType) {
-        return type;
-      } // TODO: interface type, union type, literal type etc...
-      else {
-        throw HTError.notType(id);
       }
-    } else {
-      throw HTError.notType(id);
     }
+
+    throw HTError.notType(id);
   }
+}
+
+/// A supposed parameter type.
+///
+/// The interpreter will later trying to resolved it to a concrete type.
+class HTUnresolvedParameterType {
+  final HTType declType;
+
+  /// Wether this is an optional parameter.
+  final bool isOptional;
+
+  /// Wether this is a variadic parameter.
+  final bool isVariadic;
+
+  bool get isNamed => id != null;
+
+  /// Wether this is a named parameter.
+  final String? id;
+
+  const HTUnresolvedParameterType({
+    this.id,
+    required this.declType,
+    required this.isOptional,
+    required this.isVariadic,
+  });
+}
+
+/// A supposed function type.
+///
+/// The interpreter will later trying to resolved it to a concrete type.
+class HTUnresolvedFunctionType extends HTType {
+  @override
+  bool get isResolved => false;
+}
+
+/// A supposed structure type.
+///
+/// The interpreter will later trying to resolved it to a concrete type.
+class HTUnresolvedStructuralType extends HTType {
+  @override
+  bool get isResolved => false;
 }

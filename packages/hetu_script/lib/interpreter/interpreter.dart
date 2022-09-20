@@ -1237,8 +1237,8 @@ class HTInterpreter {
             if (!klass.isAbstract &&
                 !klass.hasUserDefinedConstructor &&
                 !klass.isExternal) {
-              final ctorType =
-                  HTFunctionType(returnType: HTTypeAny(_lexicon.typeAny));
+              final ctorType = HTFunctionType(
+                  returnType: HTUnresolvedNominalType(klass.id!));
               final ctor = HTFunction(
                   _currentFileName, _currentBytecodeModule.id, this,
                   internalName: InternalIdentifier.defaultConstructor,
@@ -2324,7 +2324,7 @@ class HTInterpreter {
     return HTIntrinsicType(typeName, isTop: isTop, isBottom: isBottom);
   }
 
-  HTUnresolvedType _handleNominalType() {
+  HTUnresolvedNominalType _handleNominalType() {
     final typeName = _currentBytecodeModule.getConstString();
     final namespacesLength = _currentBytecodeModule.read();
     final namespacesWithin = <String>[];
@@ -2333,13 +2333,13 @@ class HTInterpreter {
       namespacesWithin.add(id);
     }
     final typeArgsLength = _currentBytecodeModule.read();
-    final typeArgs = <HTUnresolvedType>[];
+    final typeArgs = <HTUnresolvedNominalType>[];
     for (var i = 0; i < typeArgsLength; ++i) {
-      final typearg = _handleTypeExpr() as HTUnresolvedType;
+      final typearg = _handleTypeExpr() as HTUnresolvedNominalType;
       typeArgs.add(typearg);
     }
     final isNullable = (_currentBytecodeModule.read() == 0) ? false : true;
-    return HTUnresolvedType(
+    return HTUnresolvedNominalType(
       typeName,
       typeArgs: typeArgs,
       isNullable: isNullable,

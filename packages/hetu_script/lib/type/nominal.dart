@@ -1,8 +1,8 @@
-import 'package:hetu_script/type/unresolved.dart';
 import 'package:quiver/core.dart';
 
 import '../declaration/class/class_declaration.dart';
 import 'type.dart';
+import 'unresolved.dart';
 
 /// A type checks ids and its super types.
 class HTNominalType extends HTType {
@@ -69,7 +69,7 @@ class HTNominalType extends HTType {
 
     if (other.isBottom) return false;
 
-    if (other is HTUnresolvedType || other is HTNominalType) {
+    if (other is HTUnresolvedNominalType || other is HTNominalType) {
       if (other is HTNominalType) {
         if (isNullable != other.isNullable) return false;
         if (typeArgs.length != other.typeArgs.length) return false;

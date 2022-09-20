@@ -8,14 +8,21 @@
 - int
 - double
 - String
+- Iterable
 - List\<dynamic\>
 - Set\<dynamic\>
 - Map\<dynamic, dynamic\>
 - Function (the Dart function object)
 
+例如，我们可以在脚本中使用 dart 中的 Iterable 上提供的 map 接口：
+
+```dart
+final result = range(10).map((value) => 'row: ${value}')
+```
+
 注意：
 
-1, 浮点数类型名字使用 float，而不是 double，（实际类型的数值大小会根据平台而定）。
+1, 河图中浮点数类型名字使用 float，而不是 double，（实际类型的数值大小会根据平台而定）。
 
 3, 河图中没有提供 Set 和 Map 的字面量写法。你需要通过普通构造函数的形式来创建他们的对象。
 

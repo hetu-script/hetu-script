@@ -407,6 +407,8 @@ typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
 **This tool is outdated and not suitable for this version of Hetu, we may fix it some time in the future.**
 
-Thanks to [rockingdice](https://github.com/rockingdice) we now have an automated tool for auto-generate both Dart-side and Hetu-side binding declarations for any Dart classes.
+Thanks to [rockingdice](https://github.com/rockingdice) & [CJChen98](https://github.com/CJChen98) we now have an automated tool for auto-generate both Dart-side and Hetu-side binding declarations for any Dart classes.
 
 Please check out this repository: [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding)
+
+_This tool is maintained by third party, thus we cannot guarantee it is updated to the latest version of Hetu. If you have any questions, you can [create an issue](https://github.com/hetu-script/hetu-script-autobinding/issues)._

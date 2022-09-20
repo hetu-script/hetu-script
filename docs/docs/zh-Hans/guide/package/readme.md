@@ -57,28 +57,24 @@ final result = calculate.calculate()
 
 ## 导入 JSON 文件
 
-因为和 Javascript 一样，河图中的对象字面量语法和 JSON 完全兼容，因此你可以直接导入一个 JSON 文件，而无需进行任何类型转换。
+和 Javascript 一样，河图中的对象字面量语法和 JSON 完全兼容，因此你可以直接导入一个 JSON 文件，而无需进行任何类型转换。
 
-要做到这点，你需要在创建 **HTResourceContext** 对象时指定 **expressionModuleExtensions**：
+河图提供的 ResourceContext 会默认载入 json 和 json5 类型的文件作为代码文件。
 
 ```dart
 import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
-  const root = 'example/script';
-  final sourceContext = HTFileSystemResourceContext(
-      root: root,
-      expressionModuleExtensions: [HTResource.json, HTResource.jsonWithComments]);
+  final sourceContext = HTFileSystemResourceContext(root: 'example/script');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
-  hetu.eval('readjson.hts');
+
+  hetu.eval('''
+    import 'values.json' as json
+    print(json.name) // use json value like a struct
+  ''');
 }
 ```
 
 注意，json 资源文件并非代码文件，没有命名空间，因此在导入时必须指定一个别名才可以使用。
-
-```dart
-import 'values.json' as json
-print(json.name) // use json value like a struct
-```

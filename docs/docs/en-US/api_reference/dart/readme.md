@@ -1,23 +1,25 @@
 # API for use in Dart
 
-## Interpreter
+## Hetu helper class
 
-The most common class you will be using is the Interpreter, it is named as 'Hetu' in this library.
+Hetu is a wrapper class that integreted sourceContext, lexicon, parser, bundler, analyzer, compiler and interpreter's default implementation. For normal users, you can just create an instance of Hetu, and use the method on it.
+
+In fact, Hetu will call method with same name on compiler or interpreter separately.
 
 ### init()
 
-A convenient way to load some shared modules all together when Hetu initted.
-
 ```dart
 void init({
-  Map<String, String> includes = const {},
+  bool useDefaultModuleAndBinding = true,
+  HTLocale? locale,
   Map<String, Function> externalFunctions = const {},
   Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
-  List<HTExternalClass> externalClasses = const ****,
+  List<HTExternalClass> externalClasses = const [],
+  List<HTExternalTypeReflection> externalTypeReflections = const [],
 })
 ```
 
-- **preincludes**: Hetu source in String literal form. You can also use **eval** methods to load them later.
+A convenient way to load some shared modules all together when Hetu initted.
 
 - **externalFunctions**: Dart functions to be binded with a external function declaration in Hetu. You can also use **bindExternalFunction** methods to load them later.
 
@@ -25,21 +27,20 @@ void init({
 
 - **HTExternalClass**: Dart class bindings to be used by Hetu to get class definitions. You can also use **bindExternalClass** methods to load them later.
 
-### eval()
+### eval(), evalFile()
 
-To parse, analyze, compile and load a Hetu source from a String literal.
+To parse, analyze, compile and load a Hetu source from a String literal. The script functions will be compiled into bytecode form, and won't need to be parsed again on later execution.
 
 ```dart
 dynamic eval(String content,
     {String? fileName,
     String? moduleName,
     bool globallyImport = false,
-    ResourceType type = ResourceType.hetuLiteralCode,
+    HTResourceType type = HTResourceType.hetuLiteralCode,
     String? invokeFunc,
-    List<dynamic> positionalArgs = const ****,
+    List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const ****,
-    bool errorHandled = false})
+    List<HTType> typeArgs = const []})
 ```
 
 - **content**: Hetu source as String literal.
@@ -49,7 +50,7 @@ dynamic eval(String content,
 - **type**: How the interpreter evaluate this source. For more information, check [**source type**](../../guide/package/readme.md#resource-type).
 - **invokeFunc**: Invoke a function immediately after evaluation. The function's name and parameter can be of any form. The arguments of this function call are provided by **positionalArgs** and **namedArgs**. You can also use the separate method **invoke** to do the same thing.
 
-### compile(), loadBytecode()
+### compile(), compileFile(), loadBytecode()
 
 These methods is useful if you want a more efficient runtime for the script. You can compile a source into bytecode. And run it at another time so that the interpreter will skip the parsing, analyzing and compiling process.
 

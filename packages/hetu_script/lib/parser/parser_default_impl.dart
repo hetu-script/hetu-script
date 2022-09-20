@@ -1942,6 +1942,13 @@ class HTDefaultParser extends HTParser {
         return typeExpr;
       } else {
         List<IdentifierExpr> namespacesWithin = [];
+        if (curTok.type == lexicon.memberGet) {
+          while (expect([lexicon.memberGet], consume: true)) {
+            namespacesWithin.add(id);
+            final nextIdTok = match(Semantic.identifier);
+            id = IdentifierExpr.fromToken(nextIdTok, source: currentSource);
+          }
+        }
         List<TypeExpr> typeArgs = [];
         if (expect([lexicon.typeListStart], consume: true)) {
           typeArgs = parseExprList(
@@ -1957,12 +1964,6 @@ class HTDefaultParser extends HTParser {
                 offset: curTok.offset,
                 length: curTok.end - idTok.offset);
             errors.add(err);
-          }
-        } else if (expect([lexicon.memberGet], consume: false)) {
-          while (expect([lexicon.memberGet], consume: true)) {
-            namespacesWithin.add(id);
-            final nextIdTok = match(Semantic.identifier);
-            id = IdentifierExpr.fromToken(nextIdTok, source: currentSource);
           }
         }
         final isNullable = expect([lexicon.nullableTypePostfix], consume: true);

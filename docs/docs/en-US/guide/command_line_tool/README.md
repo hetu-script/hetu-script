@@ -54,18 +54,18 @@ hetu format [path] [option]
       --out(-o) [outpath]
 ```
 
-## Analyze
-
-Analyze a Hetu source file on your disk. List all warnings and errors.
-
-```
-hetu analyze [path]
-```
-
 ## Compile
 
 Compile a Hetu source file on your disk into bytecode.
 
 ```
 hetu compile [path] [output_path] [option]
+```
+
+## Analyze
+
+Analyze a Hetu source file on your disk. List all warnings and errors.
+
+```
+hetu analyze [path]
 ```

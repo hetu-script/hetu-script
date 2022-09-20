@@ -57,7 +57,7 @@ void main() {
 
 Sometimes we need to import a non-hetu source in your code. For example, if you imported a JSON file, you will get a HTStruct object from it. Because the syntax of a JSON is fully compatible with Hetu's struct object.
 
-To do so, there are some extra work to be done. You have to tell the **HTResourceContext** to includes JSON files in the beginning. And you have to give the imported JSON a alias name in your namespace.
+The two implementation of HTResourceContext (HTFileSystemResourceContext & HTAssetResourceContext) will automatically include json and json5 file extensions, and you can import them as normal source files.
 
 Example code (dart part):
 
@@ -66,16 +66,15 @@ import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
 
 void main() {
-  const root = 'example/script';
-  final sourceContext = HTFileSystemResourceContext(
-      root: root,
-      expressionModuleExtensions: [HTResource.json, HTResource.jsonWithComments]);
+  final sourceContext = HTFileSystemResourceContext(root: 'example/script');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
 
   hetu.eval('''
     import 'values.json' as json
-    print(json)
+    print(json.name) // use json value like a struct
   ''');
 }
 ```
+
+Note that you **have to** provide a alias name for this imported json file.

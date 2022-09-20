@@ -13,6 +13,12 @@ Most of the common primitive types in Hetu is in fact Dart values, you can use m
 - Map\<dynamic, dynamic\>
 - Function (the Dart function object)
 
+For instance, we can use the map api just like in Dart on an Iterable:
+
+```dart
+final result = range(10).map((value) => 'row: ${value}')
+```
+
 Note:
 
 1, The type name for float numbers in Hetu is 'float'.
