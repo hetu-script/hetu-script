@@ -87,7 +87,7 @@ class HTDefaultParser extends HTParser {
           stmt = _parseImportDecl();
         } else if (curTok.lexeme == lexicon.kExport) {
           stmt = _parseExportStmt();
-        } else if (curTok.lexeme == lexicon.kType) {
+        } else if (curTok.lexeme == lexicon.kTypedef) {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexicon.kNamespace) {
           stmt = _parseNamespaceDecl(isTopLevel: true);
@@ -218,7 +218,7 @@ class HTDefaultParser extends HTParser {
           stmt = _parseImportDecl();
         } else if (curTok.lexeme == lexicon.kExport) {
           stmt = _parseExportStmt();
-        } else if (curTok.lexeme == lexicon.kType) {
+        } else if (curTok.lexeme == lexicon.kTypedef) {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexicon.kNamespace) {
           stmt = _parseNamespaceDecl(isTopLevel: true);
@@ -320,7 +320,7 @@ class HTDefaultParser extends HTParser {
         }
         break;
       case ParseStyle.namespace:
-        if (curTok.lexeme == lexicon.kType) {
+        if (curTok.lexeme == lexicon.kTypedef) {
           stmt = _parseTypeAliasDecl();
         } else if (curTok.lexeme == lexicon.kNamespace) {
           stmt = _parseNamespaceDecl();
@@ -434,7 +434,7 @@ class HTDefaultParser extends HTParser {
         final isExternal = expect([lexicon.kExternal], consume: true) ||
             (_currentClassDeclaration?.isExternal ?? false);
         final isStatic = expect([lexicon.kStatic], consume: true);
-        if (curTok.lexeme == lexicon.kType) {
+        if (curTok.lexeme == lexicon.kTypedef) {
           if (isExternal) {
             final err = HTError.external(Semantic.typeAliasDeclaration,
                 filename: currrentFileName,
@@ -754,7 +754,7 @@ class HTDefaultParser extends HTParser {
         }
         break;
       case ParseStyle.functionDefinition:
-        if (curTok.lexeme == lexicon.kType) {
+        if (curTok.lexeme == lexicon.kTypedef) {
           stmt = _parseTypeAliasDecl();
         } else if (curTok.lexeme == lexicon.kNamespace) {
           stmt = _parseNamespaceDecl();

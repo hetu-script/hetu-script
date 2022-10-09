@@ -699,7 +699,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   @override
   String visitTypeAliasDecl(TypeAliasDecl stmt) {
     final output = StringBuffer();
-    output.write('${_lexicon.kType} ${stmt.id.id} ${_lexicon.assign} ');
+    output.write('${_lexicon.kTypedef} ${stmt.id.id} ${_lexicon.assign} ');
     final valueString = formatAST(stmt.typeValue);
     output.write(valueString);
     if (stmt.hasEndOfStmtMark) {

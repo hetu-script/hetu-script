@@ -34,8 +34,8 @@ Structural type are a kind of [duck typing system](https://en.wikipedia.org/wiki
 
 It's syntax like the struct literal, however, you have to write types rather than a expression value after the key:
 
-```javascript
-type structTypedef = {
+```dart
+typedef StructTypedef = {
   name: str,
   age: num,
 };
@@ -49,22 +49,22 @@ Unlike normal function declarations, You cannot omit any part in the function ty
 
 It should have a pair of brackets, a single arrow and a return type.
 
-```javascript
-type funcTypedef = (str) -> num
+```dart
+typedef FuncTypedef = (str) -> num
 ```
 
 ## Type declaration
 
-You can assign a type value to a name with **type** declaration.
+You can assign a type value to a name with **typedef** declaration.
 
 Type declaration is similar to a variable declaration, except it must has a initializer type expression.
 
-```typescript
+```dart
 class Person {}
 
-type PType = Person
-type funcTypedef = (str) -> num
-type structTypedef = {
+typedef PType = Person
+typedef FuncTypedef = (str) -> num
+typedef StructTypedef = {
   name: str,
   age: num,
 }
@@ -90,17 +90,17 @@ fun doSomething(value) {
 
 Use **typeof** keyword to dynamically get the runtime type of a value.
 
-```typescript
+```dart
 fun main {
   // decalre a function typedef
-  type funcTypedef = fun(str) -> num
+  typedef FuncTypedef = fun(str) -> num
   // assign a function to a value of a certain function type
-  var numparse: funcTypedef = fun(value: str) -> num { return num.parse(value) }
+  var numparse: FuncTypedef = fun(value: str) -> num { return num.parse(value) }
   // get a value's runtime type and return it from a function
   var getType = fun { return typeof numparse }
-  var funcTypedef2 = getType()
+  var FuncTypedef2 = getType()
   // use this new type
-  var strlength: funcTypedef2 = fun(value: str) -> num { return value.length }
+  var strlength: FuncTypedef2 = fun(value: str) -> num { return value.length }
   // expected output: 11
   print(strlength('hello world'))
 }
@@ -108,8 +108,7 @@ fun main {
 
 The type of a type is always 'type', no matter it's a primitive, instance, or function type.
 
-```typescript
-type functype = ()->any
+```dart
+typedef Functype = () -> any
 print(typeof functype) // type
->>>
 ```

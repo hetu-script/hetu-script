@@ -1,6 +1,8 @@
 import 'package:hetu_script/hetu_script.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import 'test_external_class.dart';
+
 void main() {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
@@ -21,7 +23,12 @@ void main() {
     ),
     sourceContext: sourceContext,
   );
-  hetu.init(locale: HTLocaleSimplifiedChinese());
+  hetu.init(
+    locale: HTLocaleSimplifiedChinese(),
+    externalClasses: [
+      PersonClassBinding(),
+    ],
+  );
 
   final source1 = HTSource(r'''
     final typename = 'person'
@@ -71,31 +78,35 @@ void main() {
   //   // positionalArgs: [jsonData],
   // );
 
-  final jsonData = {
-    "name": "Aleph",
-    "type": "novel",
-    "volumes": 7,
-  };
-
   final bytes = hetu.compile(
     r'''
-      import 'source3.ht' as PP
-      
-      fun getter -> PP.Person.PersonImpl {
-        return PP.Person.PersonImpl()
+      external class Person {
+        var name
+        construct
       }
-
-      print(typeof getter)
           ''',
-    isModuleEntryScript: true,
+    // isModuleEntryScript: true,
     version: Version(0, 1, 0),
   );
 
-  final result = hetu.loadBytecode(
+  hetu.loadBytecode(
     bytes: bytes,
     moduleName: 'test',
     // invokeFunc: 'main',
     // positionalArgs: [jsonData],
+  );
+
+  final result = hetu.eval(
+    '''
+    import 'module:test' as test
+
+    typedef mytype = {
+      name: str,
+    }
+
+    print(typeof mytype)
+    print(mytype is {name:str})
+''',
   );
 
   if (result is Future) {

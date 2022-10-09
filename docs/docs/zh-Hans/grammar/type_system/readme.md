@@ -34,8 +34,8 @@ class Person {}
 
 它的语法类似于 struct 字面量，但在键名冒号后面跟着的一定是一个类型，而不是表达式。
 
-```javascript
-type structTypedef = {
+```dart
+typedef StructTypedef = {
   name: str,
   age: num,
 };
@@ -47,20 +47,20 @@ type structTypedef = {
 
 它一定要包含一个圆括号括起来的参数列表（但可以为空），以及一个单箭头后面的返回值类型。
 
-```javascript
-type funcTypedef = (str) -> num
+```dart
+typedef FuncTypedef = (str) -> num
 ```
 
 ## 类型声明
 
-类型声明以 type 作为关键字，用法类似变量声明，但类型声明必须提供一个初始化值。
+类型声明以 typedef 作为关键字，用法类似变量声明，但类型声明必须提供一个初始化值。
 
-```typescript
+```dart
 class Person {}
 
-type PType = Person
-type funcTypedef = fun(str) -> num
-type structTypedef = {
+typedef PType = Person
+typedef FuncTypedef = (str) -> num
+typedef StructTypedef = {
   name: str,
   age: num,
 }
@@ -86,17 +86,17 @@ fun doSomething(value) {
 
 使用 **typeof** 关键字可以在运行时动态获取某个值对应的类型。
 
-```typescript
+```dart
 fun main {
   // decalre a function typedef
-  type funcTypedef = fun(str) -> num
+  typedef FuncTypedef = fun(str) -> num
   // assign a function to a value of a certain function type
-  var numparse: funcTypedef = fun(value: str) -> num { return num.parse(value) }
+  var numparse: FuncTypedef = fun(value: str) -> num { return num.parse(value) }
   // get a value's runtime type and return it from a function
   var getType = fun { return typeof numparse }
-  var funcTypedef2 = getType()
+  var FuncTypedef2 = getType()
   // use this new type
-  var strlength: funcTypedef2 = fun(value: str) -> num { return value.length }
+  var strlength: FuncTypedef2 = fun(value: str) -> num { return value.length }
   // expected output: 11
   print(strlength('hello world'))
 }
@@ -104,8 +104,7 @@ fun main {
 
 类型本身的类型永远是 'type'。
 
-```typescript
-type functype = ()->any
+```dart
+typedef Functype = ()->any
 print(typeof functype) // type
->>>
 ```

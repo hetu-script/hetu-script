@@ -169,7 +169,7 @@
 //   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
 //     var element = node.writeOrReadElement;
 //     if (element is LocalVariableElement) {
-//       var elementType = element.kType;
+//       var elementType = element.type;
 //       if (elementType?.isDynamic == true) {
 //         var type = node.inDeclarationContext()
 //             ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
@@ -178,7 +178,7 @@
 //       }
 //     }
 //     if (element is ParameterElement) {
-//       var elementType = element.kType;
+//       var elementType = element.type;
 //       if (elementType?.isDynamic == true) {
 //         var type = node.inDeclarationContext()
 //             ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION

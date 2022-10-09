@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script_flutter/hetu_script_flutter.dart';
 import 'package:code_text_field/code_text_field.dart';
 import 'package:flutter_highlight/themes/monokai-sublime.dart';
 // import 'package:highlight/languages/dart.dart';
@@ -13,10 +14,7 @@ class CodeEditor extends StatefulWidget {
   static const _helloWorld =
       r'''range(10).map((value) => print('hello, ${value}'))''';
 
-  const CodeEditor(
-      {required this.interpreter, this.initialValue = _helloWorld, super.key});
-
-  final Hetu interpreter;
+  const CodeEditor({this.initialValue = _helloWorld, super.key});
 
   final String initialValue;
 
@@ -25,7 +23,7 @@ class CodeEditor extends StatefulWidget {
 }
 
 class _CodeEditorState extends State<CodeEditor> {
-  Hetu get hetu => widget.interpreter;
+  late final Hetu hetu;
 
   final _toolbarHeight = 60.0;
   final _outputPanelHeight = 300.0;
@@ -74,6 +72,9 @@ class _CodeEditorState extends State<CodeEditor> {
   @override
   void initState() {
     super.initState();
+    hetu = Hetu();
+    hetu.initFlutter();
+
     hetu.interpreter.bindExternalFunction('print', (HTEntity entity,
         {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},

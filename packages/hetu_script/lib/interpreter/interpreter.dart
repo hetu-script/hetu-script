@@ -636,6 +636,8 @@ class HTInterpreter {
     HTType type;
     if (encap == HTEntity.nullValue) {
       type = HTTypeNull(_lexicon.kNull);
+    } else if (encap is HTType) {
+      type = HTTypeType(_lexicon.kType);
     } else {
       type = encap.valueType ?? HTTypeUnknown(_lexicon.typeUnknown);
     }
@@ -2060,15 +2062,19 @@ class HTInterpreter {
 
   void _handleTypeCheck({bool isNot = false}) {
     final object = _getRegVal(HTRegIdx.relationLeft);
-    final type = (_localValue as HTType).resolve(_currentNamespace);
-    HTType valueType;
+    final rightType = (_localValue as HTType).resolve(_currentNamespace);
+    HTType leftType;
     if (object != null) {
-      final encapsulated = encapsulate(object);
-      valueType = encapsulated.valueType!;
+      if (object is HTType) {
+        leftType = object;
+      } else {
+        final encapsulated = encapsulate(object);
+        leftType = encapsulated.valueType!;
+      }
     } else {
-      valueType = HTTypeNull(_lexicon.kNull);
+      leftType = HTTypeNull(_lexicon.kNull);
     }
-    final result = valueType.isA(type);
+    final result = leftType.isA(rightType);
     _localValue = isNot ? !result : result;
   }
 

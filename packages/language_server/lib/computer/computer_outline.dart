@@ -244,7 +244,7 @@
 //     var nameNode = node.name;
 //     var name = nameNode.name;
 
-//     var aliasedType = node.kType;
+//     var aliasedType = node.type;
 //     var aliasedFunctionType =
 //         aliasedType is GenericFunctionType ? aliasedType : null;
 
@@ -383,7 +383,7 @@
 //       if (classMember is FieldDeclaration) {
 //         var fieldDeclaration = classMember;
 //         var fields = fieldDeclaration.unresolvedFields;
-//         var fieldType = fields.kType;
+//         var fieldType = fields.type;
 //         var fieldTypeName = _safeToSource(fieldType);
 //         for (var field in fields.variables) {
 //           memberOutlines.add(_newVariableOutline(fieldTypeName,

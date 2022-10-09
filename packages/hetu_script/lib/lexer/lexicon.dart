@@ -196,13 +196,14 @@ abstract class HTLexicon {
       };
 
   String get kType;
+  String get kTypedef;
+  String get kTypeof;
 
   String get kImport;
   String get kExport;
   String get kFrom;
 
   String get kAssert;
-  String get kTypeof;
   String get kAs;
   String get kNamespace;
   String get kClass;
