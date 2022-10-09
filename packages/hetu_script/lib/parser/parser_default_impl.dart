@@ -1639,10 +1639,10 @@ class HTDefaultParser extends HTParser {
       expr = _parseFunction(category: FunctionCategory.literal);
     }
 
-    // if (expr == null && curTok.type == lexicon.kAsync) {
-    //   _isLegalLeftValue = false;
-    //   expr = _parseFunction(category: FunctionCategory.literal, isAsync: true);
-    // }
+    if (expr == null && curTok.type == lexicon.kType) {
+      _isLegalLeftValue = false;
+      expr = _parseTypeExpr(handleDeclKeyword: true, isLocal: true);
+    }
 
     if (expr == null && curTok.type == Semantic.identifier) {
       final id = advance() as TokenIdentifier;
@@ -1700,7 +1700,11 @@ class HTDefaultParser extends HTParser {
         length: curTok.offset - collection.offset);
   }
 
-  TypeExpr _parseTypeExpr({bool isLocal = false}) {
+  TypeExpr _parseTypeExpr(
+      {bool handleDeclKeyword = false, bool isLocal = false}) {
+    if (handleDeclKeyword) {
+      match(lexicon.kType);
+    }
     // function type
     if (curTok.type == lexicon.groupExprStart) {
       final savedPrecedings = savePrecedings();

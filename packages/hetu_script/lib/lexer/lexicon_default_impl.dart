@@ -747,7 +747,7 @@ class HTDefaultLexicon extends HTLexicon {
   String _stringifyType(HTType type, {bool showTypeKeyword = false}) {
     final output = StringBuffer();
     if (type is HTFunctionType) {
-      if (showTypeKeyword) output.write('$kType $typeFunction ');
+      if (showTypeKeyword) output.write('$kType ');
       if (type.genericTypeParameters.isNotEmpty) {
         output.write(typeListStart);
         for (var i = 0; i < type.genericTypeParameters.length; ++i) {
@@ -794,7 +794,7 @@ class HTDefaultLexicon extends HTLexicon {
       output.write(
           '$functionParameterEnd $functionReturnTypeIndicator $returnTypeString');
     } else if (type is HTStructuralType) {
-      if (showTypeKeyword) output.write('$kType $kStruct ');
+      if (showTypeKeyword) output.write('$kType ');
       if (type.fieldTypes.isEmpty) {
         output.write('$structStart$structEnd');
       } else {
@@ -812,10 +812,10 @@ class HTDefaultLexicon extends HTLexicon {
         output.write(structEnd);
       }
     } else if (type is HTExternalType) {
-      if (showTypeKeyword) output.write('$kType $kExternal ');
-      output.write('${InternalIdentifier.externalType} ${type.id}');
+      if (showTypeKeyword) output.write('$kExternal $kType ');
+      output.write('${type.id}');
     } else if (type is HTNominalType) {
-      if (showTypeKeyword) output.write('$kType $kClass ');
+      if (showTypeKeyword) output.write('$kType ');
       output.write(type.id);
       if (type.typeArgs.isNotEmpty) {
         output.write(typeListStart);

@@ -100,12 +100,21 @@ void main() {
     '''
     import 'module:test' as test
 
-    typedef mytype = {
-      name: str,
+    fun checkType(t) {
+      when(t) {
+        type {} -> {
+          print('a structural type')
+        }
+        // the function won't match here
+        // you have to use the exact type value here for match
+        type ()->any -> {
+          print('a function type')
+        }
+      }
     }
 
-    print(typeof mytype)
-    print(mytype is {name:str})
+    checkType(type {})
+    checkType(type ()->any)
 ''',
   );
 

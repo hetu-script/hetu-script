@@ -6,7 +6,39 @@
 
 Type is a top class value in Hetu, it can be assigned and returned.
 
-However, you cannot use type value in normal expressions except class names. Normally you have to either use a type declaration to bind a type value to a identifier. Or to get a type value expression after is/as keyword.
+To use a type value in a normal expression, you have to lead it with a `type` keyword.
+
+```dart
+fun checkType(t) {
+  when(t) {
+    type {} -> {
+      print('a structural type')
+    }
+    // the function won't match here
+    // you have to use the exact type value here for match
+    type ()->any -> {
+      print('a function type')
+    }
+  }
+}
+```
+
+## Type declaration
+
+You can assign a type value to a name with **typedef** declaration.
+
+Type declaration is similar to a variable declaration, except it must has a initializer type expression.
+
+```dart
+class Person {}
+
+typedef PType = Person
+typedef FuncTypedef = (str) -> num
+typedef StructTypedef = {
+  name: str,
+  age: num,
+}
+```
 
 There are 4 kinds of type values:
 
@@ -53,26 +85,9 @@ It should have a pair of brackets, a single arrow and a return type.
 typedef FuncTypedef = (str) -> num
 ```
 
-## Type declaration
-
-You can assign a type value to a name with **typedef** declaration.
-
-Type declaration is similar to a variable declaration, except it must has a initializer type expression.
-
-```dart
-class Person {}
-
-typedef PType = Person
-typedef FuncTypedef = (str) -> num
-typedef StructTypedef = {
-  name: str,
-  age: num,
-}
-```
-
 ## Use is to check a type in run-time
 
-Use **is** to do a run-time type check. The expression after **is** will be parsed into a valid type value.
+Use **is** to do a run-time type check. The expression after **is** will be parsed into a valid type value, and you don't need to use `type` keyword after `is`.
 
 ```javascript
 fun doSomething(value) {

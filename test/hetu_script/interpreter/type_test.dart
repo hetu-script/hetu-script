@@ -84,7 +84,7 @@ void main() {
             this.name = name
           }
         }
-        type Alias = A
+        typedef Alias = A
         var aa = Alias('jimmy')
         aa.name
       ''');
@@ -95,7 +95,7 @@ void main() {
     });
     test('type alias function', () {
       final result = hetu.eval(r'''
-        type MyFuncType = (num, num) -> num
+        typedef MyFuncType = (num, num) -> num
         var func: MyFuncType = fun add(a: num, b: num) -> num => a + b
         func(6, 7)
       ''');
@@ -106,7 +106,7 @@ void main() {
     });
     test('structural type', () {
       final result = hetu.eval(r'''
-        type ObjType = {
+        typedef ObjType = {
           name: str,
           greeting: () -> any,
         }

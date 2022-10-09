@@ -6,7 +6,37 @@
 
 类型本身在河图中也是一个一等公民，可以作为表达式的值传递。
 
-除了 class 的名字之外，通常你不能在普通的表达式中使用类型值。你可以使用类型声明来将一个类型值绑定到一个变量，或者在关键字 **is/as** 之后获得一个类型值。
+如果你想要在值表达式中获取一个类型的值，你必须使用 `type` 关键字：
+
+```dart
+fun checkType(t) {
+  when(t) {
+    type {} -> {
+      print('a structural type')
+    }
+    // the function won't match here
+    // you have to use the exact type value here for match
+    type ()->any -> {
+      print('a function type')
+    }
+  }
+}
+```
+
+## 类型声明
+
+类型声明以 `typedef` 作为关键字，用法类似变量声明，但类型声明必须提供一个初始化值。
+
+```dart
+class Person {}
+
+typedef PType = Person
+typedef FuncTypedef = (str) -> num
+typedef StructTypedef = {
+  name: str,
+  age: num,
+}
+```
 
 河图中目前包括四种类型：
 
@@ -51,21 +81,6 @@ typedef StructTypedef = {
 typedef FuncTypedef = (str) -> num
 ```
 
-## 类型声明
-
-类型声明以 typedef 作为关键字，用法类似变量声明，但类型声明必须提供一个初始化值。
-
-```dart
-class Person {}
-
-typedef PType = Person
-typedef FuncTypedef = (str) -> num
-typedef StructTypedef = {
-  name: str,
-  age: num,
-}
-```
-
 ## 使用 is 在运行时动态检查类型
 
 使用 **is** 关键字可以在运行时动态检查某个值对应的类型。
@@ -106,5 +121,5 @@ fun main {
 
 ```dart
 typedef Functype = ()->any
-print(typeof functype) // type
+print(typeof (typeof functype)) // type
 ```
