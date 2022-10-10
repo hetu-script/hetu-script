@@ -98,23 +98,9 @@ void main() {
 
   final result = hetu.eval(
     '''
-    import 'module:test' as test
+    var t: () -> void = () {}
 
-    fun checkType(t) {
-      when(t) {
-        type {} -> {
-          print('a structural type')
-        }
-        // the function won't match here
-        // you have to use the exact type value here for match
-        type ()->any -> {
-          print('a function type')
-        }
-      }
-    }
-
-    checkType(type {})
-    checkType(type ()->any)
+    t
 ''',
   );
 

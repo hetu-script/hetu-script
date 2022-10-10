@@ -50,8 +50,11 @@ abstract class Semantic {
   static const identifier = 'identifier';
   static const punctuation = 'punctuation';
 
-  static const expression = 'expression';
+  static const module = 'source_module';
+
   static const statement = 'statement';
+  static const expression = 'expression';
+  static const primaryExpression = 'primary_expression';
 
   static const declStmt = 'declaration_statement';
   static const thenBranch = 'then_branch';
@@ -89,6 +92,8 @@ abstract class Semantic {
 
   static const typeParameters = 'type_parameters';
   static const typeArguments = 'type_arguments';
+  static const typeName = 'type_name';
+  static const typeExpr = 'type_expression';
   static const intrinsicTypeExpr = 'intrinsic_type_expression';
   static const nominalTypeExpr = 'nominal_type_expression';
   static const literalTypeExpr = 'literal_type_expression';

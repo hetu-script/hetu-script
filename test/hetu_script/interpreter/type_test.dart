@@ -123,5 +123,22 @@ void main() {
         true,
       );
     });
+    test('type in expression', () {
+      final result = hetu.eval(r'''
+        fun checkType(t) {
+          when(t) {
+            type {} -> 'a structural type'
+            // the function won't match here
+            // you have to use the exact type value here for match
+            type ()->any -> 'a function type'
+          }
+        }
+        checkType(type ()->any)
+      ''');
+      expect(
+        result,
+        'a function type',
+      );
+    });
   });
 }

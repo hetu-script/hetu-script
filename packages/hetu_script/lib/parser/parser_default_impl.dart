@@ -304,7 +304,7 @@ class HTDefaultParser extends HTParser {
           stmt = _parseStructDecl(isTopLevel: true);
         } else {
           final err = HTError.unexpected(
-              Semantic.declStmt, Semantic.declStmt, curTok.lexeme,
+              Semantic.module, Semantic.declStmt, curTok.lexeme,
               filename: currrentFileName,
               line: curTok.line,
               column: curTok.column,
@@ -404,7 +404,7 @@ class HTDefaultParser extends HTParser {
           stmt = _parseStructDecl();
         } else {
           final err = HTError.unexpected(
-              Semantic.declStmt, Semantic.declStmt, curTok.lexeme,
+              Semantic.namespace, Semantic.declStmt, curTok.lexeme,
               filename: currrentFileName,
               line: curTok.line,
               column: curTok.column,
@@ -1655,7 +1655,7 @@ class HTDefaultParser extends HTParser {
 
     if (expr == null) {
       final err = HTError.unexpected(
-          Semantic.expression, Semantic.expression, curTok.lexeme,
+          Semantic.primaryExpression, Semantic.expression, curTok.lexeme,
           filename: currrentFileName,
           line: curTok.line,
           column: curTok.column,
@@ -1700,8 +1700,11 @@ class HTDefaultParser extends HTParser {
         length: curTok.offset - collection.offset);
   }
 
-  TypeExpr _parseTypeExpr(
-      {bool handleDeclKeyword = false, bool isLocal = false}) {
+  TypeExpr _parseTypeExpr({
+    bool handleDeclKeyword = false,
+    bool isLocal = false,
+    bool isReturnType = false,
+  }) {
     if (handleDeclKeyword) {
       match(lexicon.kType);
     }
@@ -1805,7 +1808,7 @@ class HTDefaultParser extends HTParser {
       }
       match(lexicon.functionParameterEnd);
       match(lexicon.functionReturnTypeIndicator);
-      final returnType = _parseTypeExpr();
+      final returnType = _parseTypeExpr(isReturnType: true);
       final funcType = FuncTypeExpr(returnType,
           isLocal: isLocal,
           paramTypes: parameters,
@@ -1889,6 +1892,16 @@ class HTDefaultParser extends HTParser {
         setPrecedings(typeExpr);
         return typeExpr;
       } else if (id.id == lexicon.typeVoid) {
+        if (!isReturnType) {
+          final err = HTError.unexpected(
+              Semantic.typeExpr, Semantic.typeName, id.id,
+              filename: currrentFileName,
+              line: id.line,
+              column: id.column,
+              offset: id.offset,
+              length: id.length);
+          errors.add(err);
+        }
         final typeExpr = IntrinsicTypeExpr(
           id: id,
           isTop: false,
@@ -1903,6 +1916,16 @@ class HTDefaultParser extends HTParser {
         setPrecedings(typeExpr);
         return typeExpr;
       } else if (id.id == lexicon.typeNever) {
+        if (!isReturnType) {
+          final err = HTError.unexpected(
+              Semantic.typeExpr, Semantic.typeName, id.id,
+              filename: currrentFileName,
+              line: id.line,
+              column: id.column,
+              offset: id.offset,
+              length: id.length);
+          errors.add(err);
+        }
         final typeExpr = IntrinsicTypeExpr(
           id: id,
           isTop: false,

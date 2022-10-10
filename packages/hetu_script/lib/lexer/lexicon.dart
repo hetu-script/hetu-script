@@ -1,4 +1,4 @@
-/// Lexicon used by Hetu,
+/// Lexicon used by Hetu
 abstract class HTLexicon {
   /// the unique name of this lexicon.
   String get name;
