@@ -7,7 +7,7 @@ void main() {
   final sourceContext =
       HTFileSystemResourceContext(root: 'lib/zhongwen/test_script/');
   final lexicon = ZhongwenLexicon();
-  final lexer = HTLexer(lexicon: lexicon);
+  final lexer = HTDefaultLexer(lexicon: lexicon);
   final source = sourceContext.getResource('中文编程测试');
   Token? token = lexer.lex(source.content);
   do {

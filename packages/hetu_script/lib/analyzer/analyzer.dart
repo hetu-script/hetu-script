@@ -95,11 +95,11 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
   List<HTAnalysisError> _currentErrors = [];
   Map<String, HTSourceAnalysisResult> _currentAnalysisResults = {};
 
-  HTAnalyzer(
-      {AnalyzerConfig? config,
-      HTResourceContext<HTSource>? sourceContext,
-      HTLexicon? lexicon})
-      : config = config ?? AnalyzerConfig(),
+  HTAnalyzer({
+    AnalyzerConfig? config,
+    HTResourceContext<HTSource>? sourceContext,
+    HTLexicon? lexicon,
+  })  : config = config ?? AnalyzerConfig(),
         sourceContext = sourceContext ?? HTOverlayContext(),
         _lexicon = lexicon ?? HTDefaultLexicon() {
     globalNamespace =

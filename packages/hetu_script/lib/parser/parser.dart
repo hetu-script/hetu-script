@@ -2,8 +2,9 @@ import '../ast/ast.dart';
 import '../source/source.dart';
 import 'token.dart';
 import '../grammar/constant.dart';
-import '../lexer/lexer.dart';
 import '../lexer/lexicon.dart';
+import '../lexer/lexer.dart';
+import '../lexer/lexer_default_impl.dart';
 import 'token_reader.dart';
 import '../error/error.dart';
 import '../resource/resource.dart' show HTResourceType;
@@ -51,11 +52,8 @@ abstract class HTParser with TokenReader {
 
   ParserConfig config;
 
-  /// Lexicon definition used by this parser.
-  final HTLexicon lexicon;
-
-  /// Lexer used by this parser, created from [lexicon].
-  late final HTLexer lexer;
+  /// Lexer used by this parser.
+  HTLexer lexer;
 
   // All import decl in this list must have non-null [fromPath]
   late List<ImportExportDecl> currentModuleImports;
@@ -66,9 +64,10 @@ abstract class HTParser with TokenReader {
 
   HTParser({
     ParserConfig? config,
-    required this.lexicon,
+    HTLexicon? lexicon,
+    HTLexer? lexer,
   })  : config = config ?? ParserConfig(),
-        lexer = HTLexer(lexicon: lexicon);
+        lexer = lexer ?? HTDefaultLexer(lexicon: lexicon);
 
   /// A functional programming way to parse expression seperated by comma,
   /// such as parameter list, argumetn list, list, group... etc.
@@ -162,7 +161,7 @@ abstract class HTParser with TokenReader {
     _handleTrailing(expr);
     if (endMarkForCommaExpressions != null &&
         curTok.type != endMarkForCommaExpressions) {
-      if (handleComma) match(lexicon.comma);
+      if (handleComma) match(lexer.lexicon.comma);
       _handleTrailing(expr, afterComma: true);
     }
   }

@@ -9,15 +9,17 @@
 library hetu_script;
 
 export 'version.dart';
+export 'locale/locale.dart';
 export 'type/type.dart';
 export 'value/entity.dart';
 export 'hetu/hetu.dart';
-export 'lexer/lexer.dart';
 export 'bytecode/compiler.dart';
 export 'interpreter/interpreter.dart';
 export 'hetu/hetu.dart';
 export 'lexer/lexicon.dart';
 export 'lexer/lexicon_default_impl.dart';
+export 'lexer/lexer.dart';
+export 'lexer/lexer_default_impl.dart';
 export 'parser/parser.dart';
 export 'parser/parser_default_impl.dart';
 export 'bundler/bundler.dart';
@@ -33,4 +35,3 @@ export 'resource/overlay/overlay_manager.dart';
 export 'error/error.dart';
 export 'error/error_handler.dart';
 export 'error/error_severity.dart';
-export 'locale/locale.dart';

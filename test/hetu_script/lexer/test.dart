@@ -1,5 +1,4 @@
-import 'package:hetu_script/lexer/lexer.dart';
-import 'package:hetu_script/parser/token.dart';
+import 'package:hetu_script/parser.dart';
 
 void main() {
   final source = r'''
@@ -9,7 +8,7 @@ void main() {
 
     3
 ''';
-  final lexer = HTLexer();
+  final lexer = HTDefaultLexer();
   Token? token = lexer.lex(source);
   do {
     print(token?.lexeme);

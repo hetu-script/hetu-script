@@ -21,8 +21,8 @@ import '../external/external_function.dart';
 import '../external/external_class.dart';
 import '../binding/class_binding.dart';
 import '../binding/hetu_binding.dart';
+import '../lexer/lexer.dart';
 import '../lexer/lexicon.dart';
-import '../lexer/lexicon_default_impl.dart';
 import '../parser/parser.dart';
 import '../parser/parser_default_impl.dart';
 import '../resource/resource.dart';
@@ -129,13 +129,15 @@ class Hetu {
 
   final HTResourceContext<HTSource> sourceContext;
 
-  late final HTLexicon lexicon;
-
   final Map<String, HTParser> _parsers = {};
 
   late HTParser _currentParser;
 
   HTParser get parser => _currentParser;
+
+  HTLexer get lexer => _currentParser.lexer;
+
+  HTLexicon get lexicon => lexer.lexicon;
 
   late final HTBundler bundler;
 
@@ -149,19 +151,28 @@ class Hetu {
   bool get isInitted => _isInitted;
 
   /// Create a Hetu environment.
-  Hetu(
-      {HetuConfig? config,
-      HTResourceContext<HTSource>? sourceContext,
-      HTLexicon? lexicon,
-      String parserName = 'default',
-      HTParser? parser})
-      : config = config ?? HetuConfig(),
-        lexicon = lexicon ?? HTDefaultLexicon(),
+  Hetu({
+    HetuConfig? config,
+    HTResourceContext<HTSource>? sourceContext,
+    HTLexicon? lexicon,
+    HTLexer? lexer,
+    String parserName = 'default',
+    HTParser? parser,
+  })  : config = config ?? HetuConfig(),
         sourceContext = sourceContext ?? HTOverlayContext() {
-    _currentParser = parser ??
-        HTDefaultParser(
-          config: this.config,
-        );
+    if (parser != null) {
+      _currentParser = parser;
+    } else {
+      _currentParser = HTDefaultParser(
+        config: this.config,
+      );
+    }
+    if (lexer != null) {
+      _currentParser.lexer = lexer;
+    }
+    if (lexicon != null) {
+      _currentParser.lexer.lexicon = lexicon;
+    }
     bundler = HTBundler(
       sourceContext: this.sourceContext,
     );
@@ -169,6 +180,7 @@ class Hetu {
     analyzer = HTAnalyzer(
       config: this.config,
       sourceContext: this.sourceContext,
+      lexicon: lexicon,
     );
     compiler = HTCompiler(
       config: this.config,
@@ -256,6 +268,11 @@ class Hetu {
       interpreter.bindExternalReflection(value);
     }
     _isInitted = true;
+  }
+
+  /// Add a new parser.
+  void addParser(String name, HTParser parser) {
+    _parsers[name] = parser;
   }
 
   /// Change the current parser.

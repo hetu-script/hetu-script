@@ -142,7 +142,7 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
     return failure(rangeEnd);
   }
 
-  final lexer = HTLexer();
+  final lexer = HTDefaultLexer();
 
   // It shouldn't be the case that we can't parse the code but if it happens
   // fall back to a full replacement rather than fail.

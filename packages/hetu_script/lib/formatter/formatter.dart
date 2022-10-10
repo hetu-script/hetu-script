@@ -5,6 +5,7 @@ import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
 import '../lexer/lexer.dart';
+import '../lexer/lexer_default_impl.dart';
 import '../parser/parser.dart';
 
 class FormatterConfig {
@@ -40,10 +41,11 @@ class HTFormatter implements AbstractASTVisitor<String> {
   HTFormatter(
       {this.config = const FormatterConfig(),
       HTLexicon? lexicon,
+      HTLexer? lexer,
       HTParser? parser})
       : _lexicon = lexicon ?? HTDefaultLexicon(),
         _parser = parser ?? HTDefaultParser() {
-    _lexer = HTLexer(lexicon: _lexicon);
+    _lexer = lexer ?? HTDefaultLexer(lexicon: _lexicon);
   }
 
   String get curIndent {

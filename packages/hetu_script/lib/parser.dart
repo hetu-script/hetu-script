@@ -1,6 +1,7 @@
 export 'lexer/lexicon.dart';
 export 'lexer/lexicon_default_impl.dart';
 export 'lexer/lexer.dart';
+export 'lexer/lexer_default_impl.dart';
 export 'ast/ast.dart';
 export 'ast/visitor/recursive_ast_visitor.dart';
 export 'parser/token_reader.dart';
