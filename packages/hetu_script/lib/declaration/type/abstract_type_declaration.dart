@@ -1,5 +1,5 @@
 import '../generic/generic_type_parameter.dart';
 
-abstract class HTAbstractTypeDeclaration {
+abstract class HasGenericTypeParameter {
   List<HTGenericTypeParameter> get genericTypeParameters;
 }

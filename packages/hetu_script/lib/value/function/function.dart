@@ -159,7 +159,8 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  void resolve() {
+  void resolve({bool resolveType = false}) {
+    if (isResolved) return;
     super.resolve();
     if (closure != null && classId != null && klass == null && !isField) {
       klass = closure!.closure!.memberGet(classId!, isRecursive: true);

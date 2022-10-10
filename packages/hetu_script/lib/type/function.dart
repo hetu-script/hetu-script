@@ -26,18 +26,29 @@ class HTParameterType {
   });
 }
 
-class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
+class HTFunctionType extends HTType implements HasGenericTypeParameter {
   @override
   final List<HTGenericTypeParameter> genericTypeParameters;
 
-  final List<HTParameterType> parameterTypes;
+  final List<HTParameterType> _parameterTypes;
 
-  final HTType returnType;
+  List<HTParameterType>? _resolvedParameterTypes;
 
-  HTFunctionType(
-      {this.genericTypeParameters = const [],
-      this.parameterTypes = const [],
-      required this.returnType});
+  List<HTParameterType> get parameterTypes =>
+      _resolvedParameterTypes ?? _parameterTypes;
+
+  final HTType _returnType;
+
+  HTType? _resolvedReturnType;
+
+  HTType get returnType => _resolvedReturnType ?? _returnType;
+
+  HTFunctionType({
+    this.genericTypeParameters = const [],
+    List<HTParameterType> parameterTypes = const [],
+    required HTType returnType,
+  })  : _parameterTypes = parameterTypes,
+        _returnType = returnType;
 
   @override
   bool operator ==(Object other) {
@@ -62,6 +73,8 @@ class HTFunctionType extends HTType implements HTAbstractTypeDeclaration {
 
   @override
   bool isA(HTType? other) {
+    assert(other?.isResolved ?? true);
+
     if (other == null) return true;
 
     if (other.isTop) return true;

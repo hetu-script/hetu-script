@@ -22,7 +22,6 @@ import '../external/external_class.dart';
 import '../external/external_function.dart';
 import '../external/external_instance.dart';
 import '../type/type.dart';
-import '../type/unresolved.dart';
 import '../type/function.dart';
 import '../type/nominal.dart';
 import '../type/structural.dart';
@@ -1239,8 +1238,8 @@ class HTInterpreter {
             if (!klass.isAbstract &&
                 !klass.hasUserDefinedConstructor &&
                 !klass.isExternal) {
-              final ctorType = HTFunctionType(
-                  returnType: HTUnresolvedNominalType(klass.id!));
+              final ctorType =
+                  HTFunctionType(returnType: HTNominalType(id: klass.id!));
               final ctor = HTFunction(
                   _currentFileName, _currentBytecodeModule.id, this,
                   internalName: InternalIdentifier.defaultConstructor,
@@ -2330,7 +2329,7 @@ class HTInterpreter {
     return HTIntrinsicType(typeName, isTop: isTop, isBottom: isBottom);
   }
 
-  HTUnresolvedNominalType _handleNominalType() {
+  HTNominalType _handleNominalType() {
     final typeName = _currentBytecodeModule.getConstString();
     final namespacesLength = _currentBytecodeModule.read();
     final namespacesWithin = <String>[];
@@ -2339,14 +2338,14 @@ class HTInterpreter {
       namespacesWithin.add(id);
     }
     final typeArgsLength = _currentBytecodeModule.read();
-    final typeArgs = <HTUnresolvedNominalType>[];
+    final typeArgs = <HTType>[];
     for (var i = 0; i < typeArgsLength; ++i) {
-      final typearg = _handleTypeExpr() as HTUnresolvedNominalType;
+      final typearg = _handleTypeExpr();
       typeArgs.add(typearg);
     }
     final isNullable = (_currentBytecodeModule.read() == 0) ? false : true;
-    return HTUnresolvedNominalType(
-      typeName,
+    return HTNominalType(
+      id: typeName,
       typeArgs: typeArgs,
       isNullable: isNullable,
       namespacesWithin: namespacesWithin,
@@ -2715,7 +2714,7 @@ class HTInterpreter {
         final HTClass object = rootClass ??
             globalNamespace.memberGet(_lexicon.globalObjectId,
                 isRecursive: true);
-        superType = HTNominalType(object);
+        superType = HTNominalType(klass: object);
       }
     }
     final isEnum = _currentBytecodeModule.readBool();

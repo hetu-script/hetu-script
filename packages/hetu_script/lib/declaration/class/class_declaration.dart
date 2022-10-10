@@ -7,7 +7,7 @@ import '../type/abstract_type_declaration.dart';
 import '../generic/generic_type_parameter.dart';
 
 class HTClassDeclaration extends HTDeclaration
-    implements HTAbstractTypeDeclaration {
+    implements HasGenericTypeParameter {
   String get name => id ?? InternalIdentifier.anonymousClass;
 
   @override

@@ -11,7 +11,7 @@ import '../generic/generic_type_parameter.dart';
 import '../../value/entity.dart';
 
 class HTFunctionDeclaration extends HTDeclaration
-    implements HTAbstractTypeDeclaration {
+    implements HasGenericTypeParameter {
   final String internalName;
 
   final FunctionCategory category;
@@ -38,7 +38,11 @@ class HTFunctionDeclaration extends HTDeclaration
 
   HTType get returnType => declType.returnType;
 
-  final HTFunctionType declType;
+  final HTFunctionType _declType;
+
+  HTFunctionType? _resolvedDeclType;
+
+  HTFunctionType get declType => _resolvedDeclType ?? _declType;
 
   final bool isAsync;
 
@@ -76,7 +80,7 @@ class HTFunctionDeclaration extends HTDeclaration
     this.genericTypeParameters = const [],
     this.hasParamDecls = true,
     this.paramDecls = const {},
-    required this.declType,
+    required HTFunctionType declType,
     this.isAsync = false,
     this.isField = false,
     this.isAbstract = false,
@@ -84,16 +88,19 @@ class HTFunctionDeclaration extends HTDeclaration
     this.minArity = 0,
     this.maxArity = 0,
     this.namespace,
-  });
+  }) : _declType = declType;
 
   @override
   @mustCallSuper
-  void resolve() {
+  void resolve({bool resolveType = true}) {
     if (_isResolved) {
       return;
     }
     for (final param in paramDecls.values) {
       param.resolve();
+    }
+    if (resolveType && closure != null) {
+      _resolvedDeclType = _declType.resolve(closure!) as HTFunctionType;
     }
     _isResolved = true;
   }

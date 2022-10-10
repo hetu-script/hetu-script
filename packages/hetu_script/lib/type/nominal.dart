@@ -1,23 +1,43 @@
 import 'package:quiver/core.dart';
 
+import '../error/error.dart';
 import '../declaration/class/class_declaration.dart';
+import '../declaration/namespace/declaration_namespace.dart';
+import '../declaration/type/type_alias_declaration.dart';
 import 'type.dart';
-import 'unresolved.dart';
 
 /// A type checks ids and its super types.
+///
+/// Unresolved nominal type are type name generated in parsing process.
+/// Which could lead to a type alias or a type within a namespace or a simple nominal type.
+/// It would be syntactically correct, but not neccessarily actually exist.
+/// Thus it needs to be resolved to become a concrete type.
 class HTNominalType extends HTType {
-  final HTClassDeclaration klass;
+  bool _isResolved;
+
+  @override
+  bool get isResolved => _isResolved;
+
+  HTType? _resolvedType;
+
+  final HTClassDeclaration? klass;
   // late final Iterable<HTType> implemented;
   // late final Iterable<HTType> mixined;
 
   final List<HTType> typeArgs;
   final bool isNullable;
+  final List<String> namespacesWithin;
 
-  @override
-  String get id => super.id!;
-
-  HTNominalType(this.klass, {this.typeArgs = const [], this.isNullable = false})
-      : super(klass.id!);
+  HTNominalType({
+    String? id,
+    this.klass,
+    this.typeArgs = const [],
+    this.isNullable = false,
+    this.namespacesWithin = const [],
+  })  : _isResolved = klass != null,
+        super(klass?.id ?? id) {
+    assert(super.id != null);
+  }
 
   // HTNominalType.fromClass(HTClass klass,
   //     {Iterable<HTValueType> typeArgs = const [],
@@ -63,28 +83,28 @@ class HTNominalType extends HTType {
 
   @override
   bool isA(HTType? other) {
+    assert(other?.isResolved ?? true);
+
     if (other == null) return true;
 
     if (other.isTop) return true;
 
     if (other.isBottom) return false;
 
-    if (other is HTUnresolvedNominalType || other is HTNominalType) {
-      if (other is HTNominalType) {
-        if (isNullable != other.isNullable) return false;
-        if (typeArgs.length != other.typeArgs.length) return false;
-        for (var i = 0; i < typeArgs.length; ++i) {
-          final arg = typeArgs[i];
-          if (arg.isNotA(other.typeArgs[i])) return false;
-        }
+    if (other is HTNominalType) {
+      if (isNullable != other.isNullable) return false;
+      if (typeArgs.length != other.typeArgs.length) return false;
+      for (var i = 0; i < typeArgs.length; ++i) {
+        final arg = typeArgs[i];
+        if (arg.isNotA(other.typeArgs[i])) return false;
       }
 
       if (id == other.id) {
         return true;
-      } else {
-        var curSuperType = klass.superType;
+      } else if (klass != null) {
+        var curSuperType = klass!.superType;
         while (curSuperType != null) {
-          var curSuperClass = (curSuperType as HTNominalType).klass;
+          final curSuperClass = (curSuperType as HTNominalType).klass!;
           if (curSuperType.isA(other)) {
             return true;
           }
@@ -95,5 +115,38 @@ class HTNominalType extends HTType {
     }
 
     return false;
+  }
+
+  @override
+  HTType resolve(HTDeclarationNamespace namespace) {
+    if (_isResolved) return _resolvedType ?? this;
+
+    assert(id != null);
+    assert(klass == null);
+
+    HTDeclarationNamespace nsp = namespace;
+    if (namespacesWithin.isNotEmpty) {
+      for (final id in namespacesWithin) {
+        nsp = nsp.memberGet(id, from: namespace.fullName, isRecursive: true);
+      }
+    }
+    var type = nsp.memberGet(id!, from: namespace.fullName, isRecursive: true);
+    if (type is HTType) {
+      _resolvedType = type.resolve(nsp);
+    } else if (type is HTTypeAliasDeclaration) {
+      type.resolve();
+      _resolvedType = type.declType;
+    } else if (type is HTClassDeclaration) {
+      _resolvedType = HTNominalType(
+        klass: type,
+        typeArgs: typeArgs.map((e) => e.resolve(nsp)).toList(),
+        isNullable: isNullable,
+      );
+    } else {
+      throw HTError.notType(id!);
+    }
+
+    _isResolved = true;
+    return _resolvedType!;
   }
 }

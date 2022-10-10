@@ -24,18 +24,13 @@ abstract class HTType with HTEntity {
       other is HTType && hashCode == other.hashCode;
 
   /// Check wether value of this [HTType] can be assigned to other [HTType].
-  bool isA(HTType? other) {
-    if (other == null) return true;
-
-    if (id != other.id) return false;
-
-    return true;
-  }
+  bool isA(HTType? other);
 
   /// Wether object of this [HTType] cannot be assigned to other [HTType]
   bool isNotA(HTType? other) => !isA(other);
 }
 
+/// Types that predefined by the interpreter.
 class HTIntrinsicType extends HTType {
   @override
   final bool isTop;

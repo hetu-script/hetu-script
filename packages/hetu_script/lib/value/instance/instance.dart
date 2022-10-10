@@ -23,7 +23,7 @@ class HTInstance with HTEntity, InterpreterRef {
   @override
   final HTNominalType valueType;
 
-  String get classId => valueType.id;
+  String get classId => valueType.id!;
 
   /// A [HTInstance] has all members inherited from all super classes,
   /// Key is the id of a super class.
@@ -43,7 +43,7 @@ class HTInstance with HTEntity, InterpreterRef {
   HTInstance(HTClass klass, HTInterpreter interpreter,
       {List<HTType> typeArgs = const [], Map<String, dynamic>? jsonObject})
       : index = klass.instanceIndex,
-        valueType = HTNominalType(klass, typeArgs: typeArgs) {
+        valueType = HTNominalType(klass: klass, typeArgs: typeArgs) {
     this.interpreter = interpreter;
 
     HTClass? curKlass = klass;

@@ -45,7 +45,7 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
     //   enumClass = def;
     // }
     if (klass != null) {
-      valueType = HTNominalType(klass!);
+      valueType = HTNominalType(klass: klass!);
     } else {
       valueType = HTExternalType(typeString);
     }

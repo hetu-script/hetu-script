@@ -6,7 +6,7 @@ import 'abstract_type_declaration.dart';
 /// Similar to variable, but the value is a type.
 /// And can have generic type parameters.
 class HTTypeAliasDeclaration extends HTDeclaration
-    implements HTAbstractTypeDeclaration {
+    implements HasGenericTypeParameter {
   @override
   final List<HTGenericTypeParameter> genericTypeParameters;
 

@@ -1,4 +1,3 @@
-import '../type/unresolved.dart';
 // import '../type/nominal_type.dart';
 import '../ast/ast.dart';
 // import '../grammar/lexicon.dart';
@@ -6,6 +5,7 @@ import '../ast/ast.dart';
 import '../type/type.dart';
 import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
+import '../type/nominal.dart';
 
 /// A interpreter that compute [HTType] out of [ASTNode]
 class HTTypeChecker implements AbstractASTVisitor<HTType> {
@@ -48,27 +48,27 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
 
   @override
   HTType visitBooleanExpr(ASTLiteralBoolean node) {
-    return HTUnresolvedNominalType('bool');
+    return HTNominalType(id: 'bool');
   }
 
   @override
   HTType visitIntLiteralExpr(ASTLiteralInteger node) {
-    return HTUnresolvedNominalType('int');
+    return HTNominalType(id: 'int');
   }
 
   @override
   HTType visitFloatLiteralExpr(ASTLiteralFloat node) {
-    return HTUnresolvedNominalType('float');
+    return HTNominalType(id: 'float');
   }
 
   @override
   HTType visitStringLiteralExpr(ASTLiteralString node) {
-    return HTUnresolvedNominalType('str');
+    return HTNominalType(id: 'str');
   }
 
   @override
   HTType visitStringInterpolationExpr(ASTStringInterpolation node) {
-    return HTUnresolvedNominalType('str');
+    return HTNominalType(id: 'str');
   }
 
   @override

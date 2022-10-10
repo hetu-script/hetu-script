@@ -1,7 +1,6 @@
 import 'lexicon.dart';
 import '../value/struct/struct.dart';
 import '../types.dart';
-import '../grammar/constant.dart';
 
 /// Default lexicon implementation used by Hetu.
 class HTDefaultLexicon extends HTLexicon {

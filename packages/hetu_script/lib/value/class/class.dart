@@ -87,7 +87,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     //   decl.resolve();
     // }
 
-    valueType = HTNominalType(this);
+    valueType = HTNominalType(klass: this);
   }
 
   @override

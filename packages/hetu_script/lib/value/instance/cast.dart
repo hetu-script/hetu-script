@@ -20,7 +20,7 @@ class HTCast with HTEntity, InterpreterRef {
 
   HTCast(HTEntity castee, this.klass, HTInterpreter interpreter,
       {List<HTType> typeArgs = const []})
-      : valueType = HTNominalType(klass, typeArgs: typeArgs) {
+      : valueType = HTNominalType(klass: klass, typeArgs: typeArgs) {
     this.interpreter = interpreter;
     // final extended = <HTType>[];
 

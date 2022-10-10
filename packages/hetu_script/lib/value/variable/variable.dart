@@ -97,22 +97,22 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
     if (!isMutable && _isInitialized) {
       throw HTError.immutable(id!);
     }
-    if (interpreter.config.checkTypeAnnotationAtRuntime) {
-      if (declType != null) {
-        // final resolvedType =
-        //     declType!.isResolved ? declType : declType!.resolve(closure);
-        final valueType = interpreter.typeof(value);
-        if (valueType.isNotA(declType!)) {
-          final err = HTError.assignType(
-            id!,
-            interpreter.lexicon.stringify(valueType),
-            interpreter.lexicon.stringify(declType),
-          );
-          print(
-              "hetu: (warning) - ${err.message} (at [${interpreter.currentFileName}:${interpreter.currentLine}:${interpreter.currentColumn}])");
-        }
-      }
-    }
+    // if (interpreter.config.checkTypeAnnotationAtRuntime) {
+    //   if (declType != null) {
+    //     // final resolvedType =
+    //     //     declType!.isResolved ? declType : declType!.resolve(closure);
+    //     final valueType = interpreter.typeof(value);
+    //     if (valueType.isNotA(declType!)) {
+    //       final err = HTError.assignType(
+    //         id!,
+    //         interpreter.lexicon.stringify(valueType),
+    //         interpreter.lexicon.stringify(declType),
+    //       );
+    //       print(
+    //           "hetu: (warning) - ${err.message} (at [${interpreter.currentFileName}:${interpreter.currentLine}:${interpreter.currentColumn}])");
+    //     }
+    //   }
+    // }
     _value = value;
     _isInitialized = true;
   }

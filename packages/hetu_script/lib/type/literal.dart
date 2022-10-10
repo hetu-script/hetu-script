@@ -1,5 +1,5 @@
-import 'type.dart';
+// import 'type.dart';
 
-class HTLiteralType extends HTType {
-  const HTLiteralType() : super('literal');
-}
+// class HTLiteralType extends HTType {
+//   const HTLiteralType() : super('literal');
+// }

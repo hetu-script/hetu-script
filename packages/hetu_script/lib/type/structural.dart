@@ -13,6 +13,8 @@ class HTStructuralType extends HTType {
 
   @override
   bool isA(HTType? other) {
+    assert(other?.isResolved ?? true);
+
     if (other == null) return true;
 
     if (other.isTop) return true;
