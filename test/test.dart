@@ -101,6 +101,14 @@ void main() {
     for (i = 0; i < 5; ++i) {
       print(i)
     }
+
+    fun test {
+      return 'this is an error message.'
+    }
+
+    if (err = test()) {
+      print(err)
+    }
 ''',
   );
 

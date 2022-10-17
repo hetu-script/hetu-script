@@ -5,8 +5,6 @@ You can set some flag on Hetu's config, to change some behavior regarding strict
 ```dart
 final hetu = Hetu(
   config: InterpreterConfig(
-    checkTypeErrors: true,
-    computeConstantExpressionValue: true,
     allowVariableShadowing: true,
     allowImplicitVariableDeclaration: true,
     allowImplicitNullToZeroConversion: true,
@@ -28,15 +26,30 @@ var a = 'yay!' /// not an error, this is another variable
 
 ## Implicit variable declaration
 
-If config.allowImplicitVariableDeclaration == true, a new variable will be created when assigning to a non-exist id.
+if implicit variable declaration is allowed, you can write some converse while somewhat confusing code.
+
+Hetu doesn't encourage this style of coding by default, however you can turn on this style by the config.
 
 ```javascript
-a = 42; // a is created!.
+// new variable will be created when assigning to a non-exist id.
+a = 42;
+
+// you can omit the declaration keyword in for statement,
+// if allowImplicitVariableDeclaration is true.
+for (i in items) {
+  print(i);
+}
+
+// you can create a variable in expression,
+// and use it later.
+if ((err = func())) {
+  print(err);
+}
 ```
 
 ## Zero value
 
-If config.allowImplicitVariableDeclaration == true, null value will be treated as 0 in these situations: <, >, <=, >=, +, -, ++, --, *, /, ~/, %, +=, -=, *=, /=, ~/=, %=.
+If config.allowImplicitVariableDeclaration == true, null value will be treated as 0 in these situations: <, >, <=, >=, +, -, ++, --, _, /, ~/, %, +=, -=, _=, /=, ~/=, %=.
 
 ```javascript
 final obj = {}

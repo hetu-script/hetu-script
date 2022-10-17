@@ -5,8 +5,6 @@
 ```dart
 final hetu = Hetu(
   config: InterpreterConfig(
-    checkTypeErrors: true,
-    computeConstantExpressionValue: true,
     allowVariableShadowing: true,
     allowImplicitVariableDeclaration: true,
     allowImplicitNullToZeroConversion: true,
@@ -28,10 +26,23 @@ var a = 'yay!' /// not an error, this is another variable
 
 ## 隐式变量定义
 
-当 config.allowImplicitVariableDeclaration == true 时，对不存在的标识符赋值，将会自动创建新的变量：
+如果允许隐式变量定义，可以写出一些较为简洁，但有时候会令人难以看懂的代码。河图本身并不鼓励这种代码风格，但使用者可以通过 config 上的开关主动使用这种风格。在这种风格下，对不存在的标识符赋值，将会自动创建新的变量：
 
 ```javascript
-a = 42; // a is created!.
+// new variable will be created when assigning to a non-exist id.
+a = 42;
+
+// you can omit the declaration keyword in for statement,
+// if allowImplicitVariableDeclaration is true.
+for (i in items) {
+  print(i);
+}
+
+// you can create a variable in expression,
+// and use it later.
+if ((err = func())) {
+  print(err);
+}
 ```
 
 ## 空值和零
@@ -45,7 +56,7 @@ final obj = {}
 
 ## 布尔值
 
-当 config.allowImplicitEmptyValueToFalseConversion == true 时，下列表达式的值，如果为人类主观意义上的空值（包括空字符串等等，但不包括0）可以被隐式转换为布尔值。
+当 config.allowImplicitEmptyValueToFalseConversion == true 时，下列表达式的值，如果为人类主观意义上的空值（包括空字符串等等，但不包括 0）可以被隐式转换为布尔值。
 
 1, if (expr)
 
