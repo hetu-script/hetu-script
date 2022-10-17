@@ -38,8 +38,11 @@ enum ParseStyle {
 class ParserConfig {
   bool explicitEndOfStatement;
 
+  bool allowImplicitVariableDeclaration;
+
   ParserConfig({
     this.explicitEndOfStatement = false,
+    this.allowImplicitVariableDeclaration = false,
   });
 }
 
@@ -73,8 +76,6 @@ abstract class HTParser with TokenReader {
   /// such as parameter list, argumetn list, list, group... etc.
   /// the comma after the last expression is optional.
   /// Note that this method will not consume either the start or the end mark.
-  ///
-  /// [astListResult] is a predefined list, and this function will modify the list in the process.
   List<T> parseExprList<T extends ASTNode>({
     required String endToken,
     bool handleComma = true,

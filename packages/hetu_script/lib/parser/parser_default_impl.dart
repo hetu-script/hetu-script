@@ -2206,24 +2206,25 @@ class HTDefaultParser extends HTParser {
   ASTNode _parseForStmt() {
     final keyword = advance();
     final hasBracket = expect([lexer.lexicon.groupExprStart], consume: true);
-    final forStmtType = peek(2).lexeme;
     VarDecl? decl;
     ASTNode? condition;
     ASTNode? increment;
+    bool implicitVariableDeclaration = false;
+    if (config.allowImplicitVariableDeclaration &&
+        curTok.type == Semantic.identifier) {
+      implicitVariableDeclaration = true;
+    }
+    String forStmtType;
+    if (implicitVariableDeclaration) {
+      forStmtType = peek(1).lexeme;
+    } else {
+      forStmtType = peek(2).lexeme;
+    }
     if (forStmtType == lexer.lexicon.kIn || forStmtType == lexer.lexicon.kOf) {
-      if (!lexer.lexicon.forDeclarationKeywords.contains(curTok.type)) {
-        final err = HTError.unexpected(
-            Semantic.forStmt, Semantic.variableDeclaration, curTok.type,
-            filename: currrentFileName,
-            line: curTok.line,
-            column: curTok.column,
-            offset: curTok.offset,
-            length: curTok.length);
-        errors.add(err);
-      }
       decl = _parseVarDecl(
-          // typeInferrence: curTok.type != lexer.lexicon.VAR,
-          isMutable: curTok.type != lexer.lexicon.kFinal);
+        isMutable: curTok.type != lexer.lexicon.kFinal,
+        implicitVariableDeclaration: implicitVariableDeclaration,
+      );
       advance();
       final collection = parseExpr();
       if (hasBracket) {
@@ -2241,9 +2242,10 @@ class HTDefaultParser extends HTParser {
     } else {
       if (!expect([lexer.lexicon.endOfStatementMark], consume: false)) {
         decl = _parseVarDecl(
-            // typeInferrence: curTok.type != lexer.lexicon.VAR,
-            isMutable: curTok.type != lexer.lexicon.kFinal,
-            hasEndOfStatement: true);
+          isMutable: curTok.type != lexer.lexicon.kFinal,
+          hasEndOfStatement: true,
+          implicitVariableDeclaration: implicitVariableDeclaration,
+        );
       } else {
         match(lexer.lexicon.endOfStatementMark);
       }
@@ -2610,20 +2612,25 @@ class HTDefaultParser extends HTParser {
         length: curTok.offset - keyword.offset);
   }
 
-  VarDecl _parseVarDecl(
-      {String? classId,
-      bool isField = false,
-      bool isOverrided = false,
-      bool isExternal = false,
-      bool isStatic = false,
-      bool isConst = false,
-      bool isMutable = false,
-      bool isTopLevel = false,
-      bool lateFinalize = false,
-      bool lateInitialize = false,
-      ASTNode? additionalInitializer,
-      bool hasEndOfStatement = false}) {
-    final keyword = advance();
+  VarDecl _parseVarDecl({
+    String? classId,
+    bool isField = false,
+    bool isOverrided = false,
+    bool isExternal = false,
+    bool isStatic = false,
+    bool isConst = false,
+    bool isMutable = false,
+    bool isTopLevel = false,
+    bool lateFinalize = false,
+    bool lateInitialize = false,
+    ASTNode? additionalInitializer,
+    bool hasEndOfStatement = false,
+    bool implicitVariableDeclaration = false,
+  }) {
+    Token? keyword;
+    if (!implicitVariableDeclaration) {
+      keyword = advance();
+    }
     final idTok = match(Semantic.identifier);
     final id = IdentifierExpr.fromToken(idTok, source: currentSource);
     String? internalName;
@@ -2663,25 +2670,27 @@ class HTDefaultParser extends HTParser {
       hasEndOfStmtMark =
           expect([lexer.lexicon.endOfStatementMark], consume: true);
     }
-    return VarDecl(id,
-        internalName: internalName,
-        classId: classId,
-        declType: declType,
-        initializer: initializer,
-        hasEndOfStmtMark: hasEndOfStmtMark,
-        isField: isField,
-        isExternal: isExternal,
-        isStatic: isConst && classId != null ? true : isStatic,
-        isConst: isConst,
-        isMutable: !isConst && isMutable,
-        isTopLevel: isTopLevel,
-        lateFinalize: lateFinalize,
-        lateInitialize: lateInitialize,
-        source: currentSource,
-        line: keyword.line,
-        column: keyword.column,
-        offset: keyword.offset,
-        length: curTok.offset - keyword.offset);
+    return VarDecl(
+      id,
+      internalName: internalName,
+      classId: classId,
+      declType: declType,
+      initializer: initializer,
+      hasEndOfStmtMark: hasEndOfStmtMark,
+      isField: isField,
+      isExternal: isExternal,
+      isStatic: isConst && classId != null ? true : isStatic,
+      isConst: isConst,
+      isMutable: !isConst && isMutable,
+      isTopLevel: isTopLevel,
+      lateFinalize: lateFinalize,
+      lateInitialize: lateInitialize,
+      source: currentSource,
+      line: keyword?.line ?? idTok.line,
+      column: keyword?.column ?? idTok.column,
+      offset: keyword?.offset ?? idTok.offset,
+      length: curTok.offset - (keyword?.offset ?? idTok.offset),
+    );
   }
 
   DestructuringDecl _parseDestructuringDecl(

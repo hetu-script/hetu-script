@@ -15,7 +15,7 @@ void main() {
       showDartStackTrace: true,
       // stackTraceDisplayCountLimit: 20,
       allowVariableShadowing: true,
-      allowImplicitVariableDeclaration: false,
+      allowImplicitVariableDeclaration: true,
       allowImplicitNullToZeroConversion: true,
       allowImplicitEmptyValueToFalseConversion: true,
       checkTypeAnnotationAtRuntime: true,
@@ -98,9 +98,9 @@ void main() {
 
   final result = hetu.eval(
     '''
-    var t: () -> void = () {}
-
-    t
+    for (i = 0; i < 5; ++i) {
+      print(i)
+    }
 ''',
   );
 
