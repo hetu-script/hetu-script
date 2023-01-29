@@ -107,32 +107,22 @@ Future<void> main() async {
   hetu.eval('''
     external fun fetch() -> Future<int>;
     
-    fun test1() async {
-      print('before');
-      final result = await fetch();
-      print('after');
-      print(result);
+    fun test1 async {
+      return 6
     }
     
-    fun test2() -> Future<int> async {
-      print('before');
-      final result = await fetch();
-      print('after');
-      return result;
+    fun test2 async {
+      return 7
     }
+
+    fun calculate async {
+      final r = await test1() * await test2()
+
+      return r
+    }    
     
-    fun test3() -> Future<str> async {
-      print('before');
-      return fetch().then((result) {
-        print('after');
-        return result.toString() + ' - Three';
-      });
-    }
     ''');
 
-  await hetu.invoke('test1');
-  final r2 = await hetu.invoke('test2');
+  final r2 = await hetu.invoke('calculate');
   print(r2);
-  final r3 = await hetu.invoke('test3');
-  print(r3);
 }
