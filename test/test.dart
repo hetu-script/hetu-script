@@ -99,36 +99,40 @@ Future<void> main() async {
   hetu.interpreter.bindExternalFunction(
     'fetch',
     () => Future.delayed(const Duration(seconds: 3)).then((value) {
-      print('delayed');
+      // print('delayed');
       return 3;
     }),
   );
 
-  final result = hetu.eval(
-    '''
-    external fun fetch
-
-    fun test1 async {
-      print('before')
-      await fetch()
-      print('after')
+  hetu.eval('''
+    external fun fetch() -> Future<int>;
+    
+    fun test1() async {
+      print('before');
+      final result = await fetch();
+      print('after');
+      print(result);
     }
-
-
-      // print('before')
-      // await fetch();
-      // print('after')
-
-''',
-  );
+    
+    fun test2() -> Future<int> async {
+      print('before');
+      final result = await fetch();
+      print('after');
+      return result;
+    }
+    
+    fun test3() -> Future<str> async {
+      print('before');
+      return fetch().then((result) {
+        print('after');
+        return result.toString() + ' - Three';
+      });
+    }
+    ''');
 
   await hetu.invoke('test1');
-
-  // if (result is Future) {
-  //   result.then((value) {
-  //     print(hetu.lexicon.stringify(value));
-  //   });
-  // } else {
-  //   print(hetu.lexicon.stringify(result));
-  // }
+  final r2 = await hetu.invoke('test2');
+  print(r2);
+  final r3 = await hetu.invoke('test3');
+  print(r3);
 }
