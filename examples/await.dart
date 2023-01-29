@@ -10,7 +10,7 @@ Future<void> main() async {
   );
   hetu.eval(
     '''
-    external fun fetch() -> Future<int>;
+    // external fun fetch() -> Future<int>;
     
     fun test1 async {
       print('before');
@@ -20,7 +20,8 @@ Future<void> main() async {
     }
 
     await test1()
-      
+    
+
     ''',
     // type: HTResourceType.hetuModule,
   );

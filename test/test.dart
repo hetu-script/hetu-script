@@ -3,7 +3,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'test_external_class.dart';
 
-void main() {
+Future<void> main() async {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
@@ -96,25 +96,39 @@ void main() {
     // positionalArgs: [jsonData],
   );
 
+  hetu.interpreter.bindExternalFunction(
+    'fetch',
+    () => Future.delayed(const Duration(seconds: 3)).then((value) {
+      print('delayed');
+      return 3;
+    }),
+  );
+
   final result = hetu.eval(
     '''
-    for (i = 0; i < 5; ++i) {
-      print(i)
+    external fun fetch
+
+    fun test1 async {
+      print('before')
+      await fetch()
+      print('after')
     }
 
-    fun test {
-      return 'this is an error message.'
-    }
 
-    if (err = test()) {
-      print(err)
-    }
+      // print('before')
+      // await fetch();
+      // print('after')
+
 ''',
   );
 
-  if (result is Future) {
-    result.then((value) => print(hetu.lexicon.stringify(value)));
-  } else {
-    print(hetu.lexicon.stringify(result));
-  }
+  await hetu.invoke('test1');
+
+  // if (result is Future) {
+  //   result.then((value) {
+  //     print(hetu.lexicon.stringify(value));
+  //   });
+  // } else {
+  //   print(hetu.lexicon.stringify(result));
+  // }
 }

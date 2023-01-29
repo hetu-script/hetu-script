@@ -893,23 +893,20 @@ class HTInterpreter {
           sourceType == HTResourceType.hetuValue;
       dynamic result;
       while (_currentBytecodeModule.ip < _currentBytecodeModule.bytes.length) {
-        final codeResult = execute(retractStackFrame: false);
-        if (codeResult is HTNamespace && codeResult != globalNamespace) {
-          _currentBytecodeModule.namespaces[codeResult.id!] = codeResult;
-        } else if (codeResult is HTValueSource) {
-          _currentBytecodeModule.values[codeResult.id] = codeResult.value;
-        } else if (codeResult is FutureExecution) {
-          result = codeResult.future.then((value) {
-            return execute(
-              createStackFrame: false,
-              context: codeResult.context,
-              localValue: value,
-            );
-          });
-          break;
+        final codeResult = execute(
+          retractStackFrame: false,
+          endOfFileHandler: () {
+            if (globallyImport) {
+              globalNamespace.import(_currentNamespace);
+            }
+            stackTraceList.clear();
+          },
+        );
+        if (codeResult is FutureExecution) {
+          result = handleFutureExecution(codeResult);
+          return result;
         } else {
-          /// A literal code execution result
-          assert(codeResult == globalNamespace);
+          result = codeResult;
         }
         // TODO: import binary bytes
       }
@@ -920,11 +917,6 @@ class HTInterpreter {
             _handleNamespaceImport(nsp, decl);
           }
         }
-      }
-      if (globallyImport) {
-        assert(_currentBytecodeModule.namespaces.isNotEmpty);
-        _currentNamespace = _currentBytecodeModule.namespaces.values.last;
-        globalNamespace.import(_currentNamespace);
       }
       // resolve each declaration after we get all declarations
       // if (!_isModuleEntryScript) {
@@ -953,7 +945,7 @@ class HTInterpreter {
       } else if (_isModuleEntryScript) {
         result = _stackFrames.last.first;
       }
-      stackTraceList.clear();
+
       return result;
     } catch (error, stackTrace) {
       if (config.processError) {
@@ -1054,6 +1046,7 @@ class HTInterpreter {
     HTContext? context,
     List<dynamic>? stackFrame,
     dynamic localValue,
+    Function? endOfFileHandler,
   }) {
     final savedContext = getContext(
       filename: context?.filename != null,
@@ -1069,12 +1062,25 @@ class HTInterpreter {
             : StackFrameStrategy.none,
         context: context);
     if (localValue != null) _localValue = localValue;
-    final result = _execute();
+    final result = _execute(endOfFileHandler);
     setContext(
         stackFrameStrategy: retractStackFrame
             ? StackFrameStrategy.retract
             : StackFrameStrategy.none,
         context: context != null ? savedContext : null);
+    return result;
+  }
+
+  dynamic handleFutureExecution(FutureExecution futureExecution) {
+    final result = futureExecution.future.then((value) {
+      final r = execute(
+        createStackFrame: false,
+        context: futureExecution.context,
+        localValue: value,
+      );
+      return r;
+    });
+
     return result;
   }
 
@@ -1084,7 +1090,7 @@ class HTInterpreter {
     _localTypeArgs = [];
   }
 
-  dynamic _execute() {
+  dynamic _execute(Function? endOfFileHandler) {
     do {
       var instruction = _currentBytecodeModule.read();
       while (instruction != HTOpCode.endOfCode) {
@@ -1191,13 +1197,21 @@ class HTInterpreter {
             return _localValue;
           case HTOpCode.endOfFile:
             if (_currentFileResourceType == HTResourceType.hetuValue) {
-              return HTValueSource(
+              final valueSource = HTValueSource(
                   id: _currentFileName,
                   moduleName: _currentBytecodeModule.id,
                   value: _localValue);
-            } else {
-              return _currentNamespace;
+
+              _currentBytecodeModule.values[valueSource.id] = valueSource.value;
+            } else if (_currentFileResourceType == HTResourceType.hetuModule) {
+              _currentBytecodeModule.namespaces[_currentNamespace.id!] =
+                  _currentNamespace;
             }
+            dynamic fileResult;
+            if (endOfFileHandler != null) {
+              fileResult = endOfFileHandler();
+            }
+            return fileResult;
           case HTOpCode.constIntTable:
             final int64Length = _currentBytecodeModule.readUint16();
             for (var i = 0; i < int64Length; ++i) {
