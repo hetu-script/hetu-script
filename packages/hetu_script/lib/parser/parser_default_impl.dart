@@ -8,7 +8,6 @@ import '../resource/resource_context.dart';
 import '../grammar/constant.dart';
 import '../declaration/class/class_declaration.dart';
 import '../ast/ast.dart';
-import '../parser/parser.dart';
 import '../version.dart';
 
 /// Default parser implementation used by Hetu.

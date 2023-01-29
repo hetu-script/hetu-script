@@ -55,10 +55,7 @@ class _CodeEditorState extends State<CodeEditor> {
         .jumpTo(_resultScrollController.position.maxScrollExtent);
   }
 
-  final CodeController _codeController = CodeController(
-    language: hetuscript,
-    theme: monokaiSublimeTheme,
-  );
+  final CodeController _codeController = CodeController(language: hetuscript);
 
   final _textFieldFocusNode = FocusNode();
 
@@ -119,8 +116,8 @@ class _CodeEditorState extends State<CodeEditor> {
                         padding: const EdgeInsets.symmetric(horizontal: 10.0),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.white, // background
-                            onPrimary: Colors.blue, // foreground
+                            backgroundColor: Colors.white, // background
+                            foregroundColor: Colors.blue, // foreground
                           ),
                           onPressed: () {
                             setState(() {

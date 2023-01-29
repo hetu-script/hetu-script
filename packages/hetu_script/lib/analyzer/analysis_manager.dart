@@ -1,5 +1,3 @@
-import 'package:hetu_script/ast/ast.dart';
-
 import '../ast/ast.dart';
 import '../resource/resource_manager.dart';
 import '../resource/resource_context.dart';

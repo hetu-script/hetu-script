@@ -1,6 +1,5 @@
 export 'declaration/declaration.dart';
 export 'value/namespace/namespace.dart';
-export 'declaration/type/abstract_type_declaration.dart';
 export 'declaration/class/class_declaration.dart';
 export 'declaration/function/function_declaration.dart';
 export 'declaration/function/parameter_declaration.dart';

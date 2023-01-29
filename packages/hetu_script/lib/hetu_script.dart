@@ -15,7 +15,6 @@ export 'value/entity.dart';
 export 'hetu/hetu.dart';
 export 'bytecode/compiler.dart';
 export 'interpreter/interpreter.dart';
-export 'hetu/hetu.dart';
 export 'lexer/lexicon.dart';
 export 'lexer/lexicon_default_impl.dart';
 export 'lexer/lexer.dart';

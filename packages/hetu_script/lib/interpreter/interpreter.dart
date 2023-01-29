@@ -520,13 +520,16 @@ class HTInterpreter {
     try {
       stackTraceList.clear();
       final savedModuleName = _currentBytecodeModule.id;
-      HTNamespace nsp = globalNamespace;
+      HTNamespace nsp;
       if (moduleName != null) {
+        nsp = globalNamespace;
         if (_currentBytecodeModule.id != moduleName) {
           _currentBytecodeModule = cachedModules[moduleName]!;
         }
         assert(_currentBytecodeModule.namespaces.isNotEmpty);
         nsp = _currentBytecodeModule.namespaces.values.last;
+      } else {
+        nsp = currentNamespace;
       }
       final callee = nsp.memberGet(funcName, isRecursive: false);
       final result = _call(
