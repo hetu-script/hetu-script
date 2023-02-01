@@ -19,21 +19,23 @@ Future<void> main() async {
   );
   hetu.evalFile('test_async.ht');
 
-  // await check(name: 'test1');
-  // await check(name: 'test2');
-  // await check(name: 'test3');
-  // // await check(name: 'test4'); // manually throw error
-  // await check(name: 'test5');
-  // await check(name: 'test6');
-  // await check(name: 'test7');
-  // await check(name: 'test8');
-  // await check(name: 'test9', posArgs: [true]);
-  // await check(name: 'test9', posArgs: [false]);
-  // await check(name: 'test10');
-  // await check(name: 'test11');
-  // await check(name: 'test12');
-  // await check(name: 'test13');
+  await check(name: 'test1');
+  await check(name: 'test2');
+  await check(name: 'test3');
+  // await check(name: 'test4'); // manually throw error
+  await check(name: 'test5');
+  await check(name: 'test6');
+  await check(name: 'test7');
+  await check(name: 'test8');
+  await check(name: 'test9', posArgs: [true]);
+  await check(name: 'test9', posArgs: [false]);
+  await check(name: 'test10');
+  await check(name: 'test11');
+  await check(name: 'test12');
+  await check(name: 'test13');
   await check(name: 'test14');
+
+  print('ALL TEST FINISHED!');
 }
 
 Future<void> check({required String name, List posArgs = const []}) async {

@@ -166,9 +166,6 @@ fun test13() -> Future<int> async {
 }
 
 fun test14() -> Future<int> async {
-  final result = await fetch() * await sumAll();
-  // final result = await fetch() * await valueFuture() * await sumAll();
+  final result = await fetch() * await valueFuture() * await sumAll();
   return result;
 }
-
-
