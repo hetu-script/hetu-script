@@ -755,10 +755,6 @@ class HTFunction extends HTFunctionDeclaration
         interpreter.stackTraceList.removeLast();
       }
 
-      if (result is FutureExecution) {
-        result = interpreter.handleFutureExecution(result);
-      }
-
       return result;
     } catch (error, stackTrace) {
       if (interpreter.config.processError) {

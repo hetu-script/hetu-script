@@ -93,7 +93,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bool printPerformanceStatistics = false,
   }) {
     final tik = DateTime.now().millisecondsSinceEpoch;
-    final bytes = compilation.accept(this);
+    final bytes = visitCompilation(compilation);
     if (printPerformanceStatistics) {
       final tok = DateTime.now().millisecondsSinceEpoch;
       print('hetu: ${tok - tik}ms\tto compile\t[${compilation.entryFullname}]');
@@ -356,6 +356,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     mainBytesBuilder.add(_utf8String(compilation.entryFullname));
     // index: ResourceType
     mainBytesBuilder.addByte(compilation.entryResourceType.index);
+    // we have to compile source beforehand to get all the constants.
     final sourceBytesBuilder = BytesBuilder();
     for (final value in compilation.values.values) {
       final bytes = value.accept(this);
@@ -391,7 +392,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         continue;
       }
     }
+    // add source code after the constant table
     mainBytesBuilder.add(code);
+    mainBytesBuilder.addByte(HTOpCode.endOfModule);
     return mainBytesBuilder.toBytes();
   }
 

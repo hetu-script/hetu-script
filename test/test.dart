@@ -1,13 +1,13 @@
 import 'package:hetu_script/hetu_script.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import 'test_external_class.dart';
+import 'binding/test_external_class.dart';
 
 Future<void> main() async {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
-      printPerformanceStatistics: true,
+      printPerformanceStatistics: false,
       removeLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
@@ -105,24 +105,19 @@ Future<void> main() async {
   );
 
   hetu.eval('''
-    external fun fetch() -> Future<int>;
-    
-    fun test1 async {
-      return 6
-    }
-    
-    fun test2 async {
-      return 7
+    fun value1 async {
+      return Future.value(6)
     }
 
-    fun calculate async {
-      final r = await test1() * await test2()
+    fun value2 async {
+      return Future.value(7)
+    }
 
-      return r
-    }    
+    final v = await value1() + await value2()
     
+    print(v)
     ''');
 
-  final r2 = await hetu.invoke('calculate');
-  print(r2);
+  // final r2 = await hetu.invoke('valueFuture');
+  // print(r2);
 }

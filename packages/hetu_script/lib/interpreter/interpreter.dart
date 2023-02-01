@@ -122,11 +122,11 @@ class HTContext {
 }
 
 /// A wrapper class for the bytecode interpreter to run a certain task in a future.
-class FutureExecution {
+class _FutureExecution {
   Future future;
   HTContext context;
 
-  FutureExecution({
+  _FutureExecution({
     required this.future,
     required this.context,
   });
@@ -892,8 +892,8 @@ class HTInterpreter {
           sourceType == HTResourceType.hetuLiteralCode ||
           sourceType == HTResourceType.hetuValue;
       dynamic result;
-      while (_currentBytecodeModule.ip < _currentBytecodeModule.bytes.length) {
-        final codeResult = execute(
+      // TODO: import binary bytes
+      result = execute(
           retractStackFrame: false,
           endOfFileHandler: () {
             if (globallyImport) {
@@ -901,50 +901,47 @@ class HTInterpreter {
             }
             stackTraceList.clear();
           },
-        );
-        if (codeResult is FutureExecution) {
-          result = handleFutureExecution(codeResult);
-          return result;
-        } else {
-          result = codeResult;
-        }
-        // TODO: import binary bytes
-      }
-      if (!_isModuleEntryScript) {
-        /// deal with import statement within every namespace of this module.
-        for (final nsp in _currentBytecodeModule.namespaces.values) {
-          for (final decl in nsp.imports.values) {
-            _handleNamespaceImport(nsp, decl);
-          }
-        }
-      }
-      // resolve each declaration after we get all declarations
-      // if (!_isModuleEntryScript) {
-      //   for (final namespace in _currentBytecodeModule.namespaces.values) {
-      //     for (final decl in namespace.declarations.values) {
-      //       decl.resolve();
-      //     }
-      //   }
-      // }
-      if (printPerformanceStatistics) {
-        final tok = DateTime.now().millisecondsSinceEpoch;
-        var message =
-            'hetu: ${tok - tik}ms\tto load module\t${_currentBytecodeModule.id}';
-        if (_currentBytecodeModule.version != null) {
-          message += '@${_currentBytecodeModule.version}';
-        }
-        message +=
-            ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu@$compilerVersion)';
-        print(message);
-      }
-      if (invokeFunc != null) {
-        result = invoke(invokeFunc,
-            moduleName: _isModuleEntryScript ? null : _currentBytecodeModule.id,
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs);
-      } else if (_isModuleEntryScript) {
-        result = _stackFrames.last.first;
-      }
+          endOfModuleHandler: () {
+            if (!_isModuleEntryScript) {
+              /// deal with import statement within every namespace of this module.
+              for (final nsp in _currentBytecodeModule.namespaces.values) {
+                for (final decl in nsp.imports.values) {
+                  _handleNamespaceImport(nsp, decl);
+                }
+              }
+            }
+            // resolve each declaration after we get all declarations
+            // if (!_isModuleEntryScript) {
+            //   for (final namespace in _currentBytecodeModule.namespaces.values) {
+            //     for (final decl in namespace.declarations.values) {
+            //       decl.resolve();
+            //     }
+            //   }
+            // }
+            if (printPerformanceStatistics) {
+              final tok = DateTime.now().millisecondsSinceEpoch;
+              var message =
+                  'hetu: ${tok - tik}ms\tto load module\t${_currentBytecodeModule.id}';
+              if (_currentBytecodeModule.version != null) {
+                message += '@${_currentBytecodeModule.version}';
+              }
+              message +=
+                  ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu@$compilerVersion)';
+              print(message);
+            }
+            dynamic r;
+            if (invokeFunc != null) {
+              r = invoke(invokeFunc,
+                  moduleName:
+                      _isModuleEntryScript ? null : _currentBytecodeModule.id,
+                  positionalArgs: positionalArgs,
+                  namedArgs: namedArgs);
+              return r;
+            } else if (_isModuleEntryScript) {
+              r = _stackFrames.last.first;
+            }
+            return r;
+          });
 
       return result;
     } catch (error, stackTrace) {
@@ -983,7 +980,7 @@ class HTInterpreter {
       _stackFrames.removeLast();
     }
     if (_stackFrames.isEmpty) {
-      _stackFrames.first = List<dynamic>.filled(HTRegIdx.length, null);
+      _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
     }
   }
 
@@ -1046,7 +1043,8 @@ class HTInterpreter {
     HTContext? context,
     List<dynamic>? stackFrame,
     dynamic localValue,
-    Function? endOfFileHandler,
+    void Function()? endOfFileHandler,
+    dynamic Function()? endOfModuleHandler,
   }) {
     final savedContext = getContext(
       filename: context?.filename != null,
@@ -1062,25 +1060,23 @@ class HTInterpreter {
             : StackFrameStrategy.none,
         context: context);
     if (localValue != null) _localValue = localValue;
-    final result = _execute(endOfFileHandler);
+    var result = _execute(endOfFileHandler, endOfModuleHandler);
+    if (result is _FutureExecution) {
+      final futureExecution = result;
+      result = futureExecution.future.then((value) {
+        final r = execute(
+          createStackFrame: false,
+          context: futureExecution.context,
+          localValue: value,
+        );
+        return r;
+      });
+    }
     setContext(
         stackFrameStrategy: retractStackFrame
             ? StackFrameStrategy.retract
             : StackFrameStrategy.none,
         context: context != null ? savedContext : null);
-    return result;
-  }
-
-  dynamic handleFutureExecution(FutureExecution futureExecution) {
-    final result = futureExecution.future.then((value) {
-      final r = execute(
-        createStackFrame: false,
-        context: futureExecution.context,
-        localValue: value,
-      );
-      return r;
-    });
-
     return result;
   }
 
@@ -1090,7 +1086,10 @@ class HTInterpreter {
     _localTypeArgs = [];
   }
 
-  dynamic _execute(Function? endOfFileHandler) {
+  dynamic _execute(
+    void Function()? endOfFileHandler,
+    dynamic Function()? endOfModuleHandler,
+  ) {
     do {
       var instruction = _currentBytecodeModule.read();
       while (instruction != HTOpCode.endOfCode) {
@@ -1195,23 +1194,6 @@ class HTInterpreter {
             }
             _anchorCount = 0;
             return _localValue;
-          case HTOpCode.endOfFile:
-            if (_currentFileResourceType == HTResourceType.hetuValue) {
-              final valueSource = HTValueSource(
-                  id: _currentFileName,
-                  moduleName: _currentBytecodeModule.id,
-                  value: _localValue);
-
-              _currentBytecodeModule.values[valueSource.id] = valueSource.value;
-            } else if (_currentFileResourceType == HTResourceType.hetuModule) {
-              _currentBytecodeModule.namespaces[_currentNamespace.id!] =
-                  _currentNamespace;
-            }
-            dynamic fileResult;
-            if (endOfFileHandler != null) {
-              fileResult = endOfFileHandler();
-            }
-            return fileResult;
           case HTOpCode.constIntTable:
             final int64Length = _currentBytecodeModule.readUint16();
             for (var i = 0; i < int64Length; ++i) {
@@ -1235,6 +1217,28 @@ class HTInterpreter {
                   _currentBytecodeModule.readUtf8String());
             }
             break;
+          case HTOpCode.endOfFile:
+            if (_currentFileResourceType == HTResourceType.hetuValue) {
+              final valueSource = HTValueSource(
+                  id: _currentFileName,
+                  moduleName: _currentBytecodeModule.id,
+                  value: _localValue);
+
+              _currentBytecodeModule.values[valueSource.id] = valueSource.value;
+            } else if (_currentFileResourceType == HTResourceType.hetuModule) {
+              _currentBytecodeModule.namespaces[_currentNamespace.id!] =
+                  _currentNamespace;
+            }
+            if (endOfFileHandler != null) {
+              endOfFileHandler();
+            }
+            break;
+          case HTOpCode.endOfModule:
+            dynamic r;
+            if (endOfModuleHandler != null) {
+              r = endOfModuleHandler();
+            }
+            return r;
           case HTOpCode.importExportDecl:
             _handleImportExport();
             break;
@@ -1305,7 +1309,7 @@ class HTInterpreter {
             late final HTVariable decl;
             final hasInitializer = _currentBytecodeModule.readBool();
             dynamic initValue;
-            FutureExecution? futureExecution;
+            _FutureExecution? futureExecution;
             if (hasInitializer) {
               if (lateInitialize) {
                 final definitionLine = _currentBytecodeModule.readUint16();
@@ -1332,7 +1336,7 @@ class HTInterpreter {
                 final length = _currentBytecodeModule.readUint16();
                 final definitionIp = _currentBytecodeModule.ip;
                 final initValue = execute();
-                if (initValue is FutureExecution) {
+                if (initValue is _FutureExecution) {
                   _currentBytecodeModule.ip = definitionIp + length;
                   decl = HTVariable(
                     id: id,
@@ -1348,9 +1352,9 @@ class HTInterpreter {
                     isMutable: isMutable,
                   );
                   final storedContext = getContext();
-                  futureExecution = FutureExecution(
+                  futureExecution = _FutureExecution(
                     context: storedContext,
-                    future: waitForAllFutureExucution(initValue).then((value) {
+                    future: _waitForAllFutureExucution(initValue).then((value) {
                       decl.value = value;
                     }),
                   );
@@ -1547,7 +1551,7 @@ class HTInterpreter {
             // handle the possible future execution request raised by await keyword and Future value.
             if (_localValue is Future) {
               final HTContext storedContext = getContext();
-              return FutureExecution(
+              return _FutureExecution(
                   future: _localValue, context: storedContext);
             }
             break;
@@ -1711,8 +1715,8 @@ class HTInterpreter {
     } while (true);
   }
 
-  Future<dynamic> waitForAllFutureExucution(
-    FutureExecution exec, {
+  Future<dynamic> _waitForAllFutureExucution(
+    _FutureExecution exec, {
     HTContext? context,
     List<dynamic>? stackFrame,
   }) async {
@@ -1724,8 +1728,8 @@ class HTInterpreter {
         stackFrame: stackFrame,
         localValue: value,
       );
-      if (f is FutureExecution) {
-        final r = await waitForAllFutureExucution(
+      if (f is _FutureExecution) {
+        final r = await _waitForAllFutureExucution(
           f,
           context: f.context,
           stackFrame: getRegVals(),

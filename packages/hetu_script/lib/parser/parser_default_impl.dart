@@ -1849,6 +1849,14 @@ class HTDefaultParser extends HTParser {
             setPrecedings(expr);
             return expr;
           } else {
+            final err = HTError.structMemberId(curTok.lexeme,
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            advance();
             return null;
           }
         },
@@ -2385,7 +2393,7 @@ class HTDefaultParser extends HTParser {
     IdentifierExpr? alias;
     late bool hasEndOfStmtMark;
 
-    void _handleAlias() {
+    void handleAlias() {
       match(lexer.lexicon.kAs);
       final aliasId = match(Semantic.identifier);
       alias = IdentifierExpr.fromToken(aliasId, source: currentSource);
@@ -2401,7 +2409,7 @@ class HTDefaultParser extends HTParser {
       isPreloadedModule = true;
       fromPath = fromPathRaw
           .substring(HTResourceContext.hetuPreloadedModulesPrefix.length);
-      _handleAlias();
+      handleAlias();
     } else {
       fromPath = fromPathRaw;
       final ext = path.extension(fromPathTok.literal);
@@ -2415,10 +2423,10 @@ class HTDefaultParser extends HTParser {
               length: fromPathTok.length);
           errors.add(err);
         }
-        _handleAlias();
+        handleAlias();
       } else {
         if (curTok.type == lexer.lexicon.kAs) {
-          _handleAlias();
+          handleAlias();
         } else {
           hasEndOfStmtMark =
               expect([lexer.lexicon.endOfStatementMark], consume: true);

@@ -27,6 +27,7 @@ abstract class HTOpCode {
   static const endOfExec = 23;
   static const endOfFunc = 24;
   static const endOfFile = 25;
+  static const endOfModule = 26;
   static const constIntTable = 30;
   static const constFloatTable = 31;
   static const constStringTable = 32;
