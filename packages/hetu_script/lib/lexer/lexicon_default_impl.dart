@@ -63,10 +63,10 @@ class HTDefaultLexicon extends HTLexicon {
       };
 
   @override
-  String get globalObjectId => 'object';
+  String get globalObjectId => 'Object';
 
   @override
-  String get globalPrototypeId => 'prototype';
+  String get globalPrototypeId => 'Prototype';
 
   @override
   String get programEntryFunctionId => 'main';

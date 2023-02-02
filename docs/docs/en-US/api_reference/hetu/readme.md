@@ -52,7 +52,7 @@ struct prototype {
   /// Create a struct from a dart Json data
   /// Usage:
   /// ```
-  /// var obj = prototype.fromJson(jsonDataFromDart)
+  /// var obj = Prototype.fromJson(jsonDataFromDart)
   /// ```
   external static fun fromJson(data) -> {}
 
@@ -102,7 +102,7 @@ obj.contains('a') // true
 For static methods, you need to explicitly call by the prototype:
 
 ```dart
-final book = prototype.fromJson(data);
+final book = Prototype.fromJson(data);
 ```
 
 ## Math

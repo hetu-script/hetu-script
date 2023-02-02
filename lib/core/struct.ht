@@ -1,4 +1,4 @@
-struct prototype {
+struct Prototype {
   static fun fromJson(data) => createStructfromJson(data)
 
   external get keys -> Iterable

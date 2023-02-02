@@ -17,63 +17,63 @@ final Map<String, Function> preincludeFunctions = {
           Map<String, dynamic> namedArgs = const {},
           List<HTType> typeArgs = const []}) =>
       range(positionalArgs[0], positionalArgs[1], positionalArgs[2]),
-  'prototype.keys': (HTEntity object,
+  'Prototype.keys': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
     return obj.keys;
   },
-  'prototype.values': (HTEntity object,
+  'Prototype.values': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
     return obj.values;
   },
-  'prototype.contains': (HTEntity object,
+  'Prototype.contains': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
     return obj.contains(positionalArgs.first);
   },
-  'prototype.containsKey': (HTEntity object,
+  'Prototype.containsKey': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
     return obj.containsKey(positionalArgs.first);
   },
-  'prototype.isEmpty': (HTEntity object,
+  'Prototype.isEmpty': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
     return obj.isEmpty;
   },
-  'prototype.isNotEmpty': (HTEntity object,
+  'Prototype.isNotEmpty': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
     return obj.isNotEmpty;
   },
-  'prototype.length': (HTEntity object,
+  'Prototype.length': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
     return obj.length;
   },
-  'prototype.clone': (HTEntity object,
+  'Prototype.clone': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final obj = object as HTStruct;
     return obj.clone();
   },
-  'prototype.assign': (HTEntity object,
+  'Prototype.assign': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -81,7 +81,7 @@ final Map<String, Function> preincludeFunctions = {
     final other = positionalArgs.first as HTStruct;
     obj.assign(other);
   },
-  'object.toString': (HTEntity object,
+  'Object.toString': (HTEntity object,
       {List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {

@@ -131,7 +131,7 @@ void enterReplMode({dynamic prompt}) {
         input += '\n${stdin.readLineSync()!}';
       }
       try {
-        final result = hetu.eval(input, globallyImport: true);
+        final result = hetu.eval(input);
         print(hetu.lexicon.stringify(result));
       } catch (e) {
         if (e is HTError) {

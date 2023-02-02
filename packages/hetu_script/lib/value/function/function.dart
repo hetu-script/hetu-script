@@ -165,8 +165,10 @@ class HTFunction extends HTFunctionDeclaration
     if (closure != null && classId != null && klass == null && !isField) {
       klass = closure!.closure!.memberGet(classId!, isRecursive: true);
     }
-    if (klass != null) {
-      if (klass!.isExternal &&
+
+    if (isExternal) {
+      if (klass != null &&
+          klass!.isExternal &&
           category != FunctionCategory.getter &&
           category != FunctionCategory.setter) {
         if (isStatic || category == FunctionCategory.constructor) {
@@ -175,11 +177,11 @@ class HTFunction extends HTFunctionDeclaration
         } else {
           // for instance members, are handled within HTExternalInstance class.
         }
+      } else {
+        // free external function & external struct method are handled here.
+        final funcName = classId != null ? '$classId.$id' : id!;
+        externalFunc = interpreter.fetchExternalFunction(funcName);
       }
-    } else if (isExternal) {
-      // free external function & external struct method are handled here.
-      final funcName = classId != null ? '$classId.$id' : id!;
-      externalFunc = interpreter.fetchExternalFunction(funcName);
     }
   }
 

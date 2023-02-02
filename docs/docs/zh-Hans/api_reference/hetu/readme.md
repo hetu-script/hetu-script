@@ -53,7 +53,7 @@ struct prototype {
   /// Create a struct from a dart Json data
   /// Usage:
   /// ```
-  /// var obj = prototype.fromJson(jsonDataFromDart)
+  /// var obj = Prototype.fromJson(jsonDataFromDart)
   /// ```
   external static fun fromJson(data) -> {}
 
@@ -103,7 +103,7 @@ obj.contains('a') // true
 对于 static 方法，需要通过原型的名字来调用：
 
 ```dart
-final book = prototype.fromJson(data);
+final book = Prototype.fromJson(data);
 ```
 
 ## Math

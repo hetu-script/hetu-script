@@ -107,18 +107,9 @@ Future<void> main() async {
   final r = hetu.eval('''
     external fun fetch
 
-    fun value1 async {
-      return Future.value(6)
-    }
-
-    fun value2 async {
-      return await Future.value(7)
-    }
-
-    final v = await fetch() * await value2()
-    // final v = await value2()
+    class A{}
     
-    print(v)
+    var a = A()
     ''');
 
   if (r is Future) {
