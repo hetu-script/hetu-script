@@ -65,7 +65,7 @@ Future<void> main() async {
     "name": "Aleph",
     "type": "novel",
     "volumes": 7,
-  }''', fullName: 'data.json', type: HTResourceType.hetuValue);
+  }''', fullName: 'data.json', type: HTResourceType.json);
   sourceContext.addResource('data.json', jsonSource);
 
   // final result = hetu.eval(

@@ -92,7 +92,7 @@ abstract class HTResourceContext<T> {
     } else if (ext == HTResource.hetuScript) {
       return HTResourceType.hetuScript;
     } else if (_predefinedCompatibleHetuValueExtensions.contains(ext)) {
-      return HTResourceType.hetuValue;
+      return HTResourceType.json;
     } else if (binaryFileExtensions.contains(ext)) {
       return HTResourceType.binary;
     } else {

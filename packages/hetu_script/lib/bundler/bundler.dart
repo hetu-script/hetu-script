@@ -61,7 +61,7 @@ class HTBundler {
           // importedSource = parser2.parseSource(source2);
           sourceParseErrors.addAll(importedSource.errors);
           // _cachedParseResults[importFullName] = importedSource;
-          if (importedSource.resourceType == HTResourceType.hetuValue) {
+          if (importedSource.resourceType == HTResourceType.json) {
             values[importFullName] = importedSource;
           } else {
             handleImport(importedSource);
@@ -86,7 +86,7 @@ class HTBundler {
       cachedParsingTargets.remove(astSource.fullName);
     }
 
-    if (sourceParseResult.resourceType == HTResourceType.hetuValue) {
+    if (sourceParseResult.resourceType == HTResourceType.json) {
       values[sourceParseResult.fullName] = sourceParseResult;
     } else {
       handleImport(sourceParseResult);

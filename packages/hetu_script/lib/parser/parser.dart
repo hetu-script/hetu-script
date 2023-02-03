@@ -194,7 +194,7 @@ abstract class HTParser with TokenReader {
         } else if (sourceType == HTResourceType.hetuScript ||
             sourceType == HTResourceType.hetuLiteralCode) {
           style = ParseStyle.script;
-        } else if (sourceType == HTResourceType.hetuValue) {
+        } else if (sourceType == HTResourceType.json) {
           style = ParseStyle.expression;
         } else {
           return nodes;

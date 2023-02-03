@@ -2,7 +2,7 @@ enum HTResourceType {
   hetuModule,
   hetuScript,
   hetuLiteralCode,
-  hetuValue,
+  json,
   binary,
   unknown,
 }
