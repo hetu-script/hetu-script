@@ -216,36 +216,36 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
-  Uint8List _assembleVarDeclStmt(String id, int line, int column,
-      {Uint8List? initializer,
-      bool isMutable = true,
-      bool lateInitialize = false}) {
-    final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(HTOpCode.varDecl);
-    bytesBuilder.addByte(0); // bool: hasDoc
-    bytesBuilder.add(_identifier(id));
-    bytesBuilder.addByte(0); // bool: hasClassId
-    bytesBuilder.addByte(0);
-    bytesBuilder.addByte(0); // bool: isExternal
-    bytesBuilder.addByte(0); // bool: isStatic
-    bytesBuilder.addByte(isMutable ? 1 : 0); // bool: isMutable
-    bytesBuilder.addByte(0); // bool: isTopLevel
-    bytesBuilder.addByte(0); // bool: lateFinalize
-    bytesBuilder.addByte(lateInitialize ? 1 : 0); // bool: lateInitialize
-    bytesBuilder.addByte(0); // bool: has type decl
-    if (initializer != null) {
-      bytesBuilder.addByte(1); // bool: has initializer
-      if (lateInitialize) {
-        bytesBuilder.add(_uint16(line));
-        bytesBuilder.add(_uint16(column));
-      }
-      bytesBuilder.add(_uint16(initializer.length));
-      bytesBuilder.add(initializer);
-    } else {
-      bytesBuilder.addByte(0);
-    }
-    return bytesBuilder.toBytes();
-  }
+  // Uint8List _assembleVarDeclStmt(String id, int line, int column,
+  //     {Uint8List? initializer,
+  //     bool isMutable = true,
+  //     bool lateInitialize = false}) {
+  //   final bytesBuilder = BytesBuilder();
+  //   bytesBuilder.addByte(HTOpCode.varDecl);
+  //   bytesBuilder.addByte(0); // bool: hasDoc
+  //   bytesBuilder.add(_identifier(id));
+  //   bytesBuilder.addByte(0); // bool: hasClassId
+  //   bytesBuilder.addByte(0);
+  //   bytesBuilder.addByte(0); // bool: isExternal
+  //   bytesBuilder.addByte(0); // bool: isStatic
+  //   bytesBuilder.addByte(isMutable ? 1 : 0); // bool: isMutable
+  //   bytesBuilder.addByte(0); // bool: isTopLevel
+  //   bytesBuilder.addByte(0); // bool: lateFinalize
+  //   bytesBuilder.addByte(lateInitialize ? 1 : 0); // bool: lateInitialize
+  //   bytesBuilder.addByte(0); // bool: has type decl
+  //   if (initializer != null) {
+  //     bytesBuilder.addByte(1); // bool: has initializer
+  //     if (lateInitialize) {
+  //       bytesBuilder.add(_uint16(line));
+  //       bytesBuilder.add(_uint16(column));
+  //     }
+  //     bytesBuilder.add(_uint16(initializer.length));
+  //     bytesBuilder.add(initializer);
+  //   } else {
+  //     bytesBuilder.addByte(0);
+  //   }
+  //   return bytesBuilder.toBytes();
+  // }
 
   // If necessary, transform a statement with await keyword into a callback form.
   // for example, statement like this:
@@ -982,9 +982,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.addByte(HTOpCode.register);
         bytesBuilder.addByte(HTRegIdx.postfixObject);
         final key = compileAST(subExpr.key);
+        bytesBuilder.addByte(HTOpCode.createStackFrame);
         bytesBuilder.add(key);
-        bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.postfixKey);
+        bytesBuilder.addByte(HTOpCode.retractStackFrame);
         bytesBuilder.addByte(HTOpCode.subSet);
         bytesBuilder.addByte(subExpr.isNullable ? 1 : 0);
         // sub get key is after opcode
@@ -1075,9 +1075,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
     final key = compileAST(expr.key);
+    bytesBuilder.addByte(HTOpCode.createStackFrame);
     bytesBuilder.add(key);
-    bytesBuilder.addByte(HTOpCode.register);
-    bytesBuilder.addByte(HTRegIdx.postfixKey);
+    bytesBuilder.addByte(HTOpCode.retractStackFrame);
     bytesBuilder.addByte(HTOpCode.subGet);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
     return bytesBuilder.toBytes();
@@ -1270,14 +1270,18 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final userDecl = stmt.init as VarDecl;
       final markedId = '${_lexicon.internalPrefix}${userDecl.id.id}';
       newSymbolMap[userDecl.id.id] = markedId;
-      Uint8List? initializer;
-      if (userDecl.initializer != null) {
-        initializer = compileAST(userDecl.initializer!, endOfExec: true);
-      }
-      final initDecl = _assembleVarDeclStmt(
-          markedId, userDecl.line, userDecl.column,
-          initializer: initializer, isMutable: userDecl.isMutable);
-      bytesBuilder.add(initDecl);
+      // Uint8List? initializer;
+      // if (userDecl.initializer != null) {
+      //   initializer = compileAST(!, endOfExec: true);
+      // }
+      final initDecl = VarDecl(
+        IdentifierExpr(markedId),
+        initializer: userDecl.initializer,
+        isMutable: userDecl.isMutable,
+        line: userDecl.line,
+        column: userDecl.column,
+      );
+      bytesBuilder.add(visitVarDecl(initDecl));
       // 这里是为了实现将变量声明移动到for循环语句块内部的效果
       final capturedInit = IdentifierExpr(markedId);
       capturedDecl = VarDecl(userDecl.id, initializer: capturedInit);
@@ -1328,12 +1332,18 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     // declare the iterator
     final iterInit = MemberExpr(collection,
         IdentifierExpr(_lexicon.idIterableIterator, isLocal: false));
-    final iterInitBytes = compileAST(iterInit, endOfExec: true);
+    // final iterInitBytes = compileAST(iterInit, endOfExec: true);
     final iterId = '__iter${iterIndex++}';
-    final iterDecl = _assembleVarDeclStmt(
-        iterId, stmt.iterator.line, stmt.iterator.column,
-        initializer: iterInitBytes);
-    bytesBuilder.add(iterDecl);
+    final iterDecl = VarDecl(
+      IdentifierExpr(iterId),
+      initializer: iterInit,
+      line: stmt.iterator.line,
+      column: stmt.iterator.column,
+    );
+    // final iterDecl = _assembleVarDeclStmt(
+    //     iterId, stmt.iterator.line, stmt.iterator.column,
+    //     initializer: iterInitBytes);
+    bytesBuilder.add(visitVarDecl(iterDecl));
 
     // update iter move result
     // calls iterator.moveNext()

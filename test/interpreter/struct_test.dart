@@ -38,7 +38,7 @@ void main() {
       final result = hetu.eval(
           r'''
             fun fromJsonTest(data) {
-              final obj = prototype.fromJson(data)
+              final obj = Prototype.fromJson(data)
               return obj.volumes
             }
           ''',

@@ -28,6 +28,8 @@ abstract class HTOpCode {
   static const endOfFunc = 24;
   static const endOfFile = 25;
   static const endOfModule = 26;
+  static const createStackFrame = 27;
+  static const retractStackFrame = 28;
   static const constIntTable = 30;
   static const constFloatTable = 31;
   static const constStringTable = 32;
@@ -142,14 +144,14 @@ class HTRegIdx {
   static const typeArgs = 2;
   static const loopCount = 3;
   static const anchorCount = 4;
-  static const assignRight = 5;
-  static const orLeft = 6;
-  static const andLeft = 7;
-  static const equalLeft = 8;
-  static const relationLeft = 9;
-  static const addLeft = 10;
-  static const multiplyLeft = 11;
-  static const postfixObject = 12;
-  static const postfixKey = 13;
+  static const assignRight = 7;
+  static const orLeft = 8;
+  static const andLeft = 9;
+  static const equalLeft = 10;
+  static const relationLeft = 11;
+  static const addLeft = 12;
+  static const multiplyLeft = 13;
+  static const postfixObject = 14;
+  static const postfixKey = 15;
   static const length = 16;
 }

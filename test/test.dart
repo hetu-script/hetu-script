@@ -107,16 +107,18 @@ Future<void> main() async {
   final r = hetu.eval('''
     external fun fetch
 
-    final a = {
-      name: 'aleph42',
-      age: 17,
-      profile: {
-        experience: 0,
-        job: 'janitor',
-      }
-    }
-    a['profile']['job'] = 'security'
-    print(a)
+        class Ming {
+          var first = 'tom'
+        }
+        class Member {
+          var array = {'tom': 'kaine'}
+          var name = Ming()
+        }
+        var m = Member()
+        // m.array[m.name.first] = 'klaine'
+        // print(m.array)
+
+        m.name.first = 'Jimmy'
     ''');
 
   if (r is Future) {

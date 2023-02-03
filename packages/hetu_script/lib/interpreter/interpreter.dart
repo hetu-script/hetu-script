@@ -980,13 +980,20 @@ class HTInterpreter {
     );
   }
 
+  void _createStackFrame() {
+    _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
+  }
+
   void _retractStackFrame() {
+    dynamic localValue;
     if (_stackFrames.isNotEmpty) {
+      localValue = _localValue;
       _stackFrames.removeLast();
     }
     if (_stackFrames.isEmpty) {
-      _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
+      _createStackFrame();
     }
+    _localValue = localValue;
   }
 
   /// Change the current context of the bytecode interpreter to a new one.
@@ -1029,9 +1036,9 @@ class HTInterpreter {
     if (stackFrameStrategy == StackFrameStrategy.retract) {
       _retractStackFrame();
     } else if (stackFrameStrategy == StackFrameStrategy.create) {
-      _stackFrames.add(List<dynamic>.filled(HTRegIdx.length, null));
+      _createStackFrame();
     } else if (stackFrame != null) {
-      _stackFrames.last = stackFrame;
+      _stackFrames.add(stackFrame);
     }
   }
 
@@ -1069,7 +1076,7 @@ class HTInterpreter {
     if (localValue != null) _localValue = localValue;
     final result = _execute(endOfFileHandler, endOfModuleHandler);
     setContext(
-        stackFrameStrategy: retractStackFrame
+        stackFrameStrategy: (retractStackFrame || stackFrame != null)
             ? StackFrameStrategy.retract
             : StackFrameStrategy.none,
         context: context != null ? savedContext : null);
@@ -1190,6 +1197,12 @@ class HTInterpreter {
             }
             _anchorCount = 0;
             return _localValue;
+          case HTOpCode.createStackFrame:
+            _createStackFrame();
+            break;
+          case HTOpCode.retractStackFrame:
+            _retractStackFrame();
+            break;
           case HTOpCode.constIntTable:
             final int64Length = _currentBytecodeModule.readUint16();
             for (var i = 0; i < int64Length; ++i) {
@@ -1598,7 +1611,7 @@ class HTInterpreter {
               }
             } else {
               // final key = execute();
-              final key = _getRegVal(HTRegIdx.postfixKey);
+              final key = _localValue;
               if (object is HTEntity) {
                 _localValue =
                     object.subGet(key, from: _currentNamespace.fullName);
@@ -1669,7 +1682,7 @@ class HTInterpreter {
                     column: _column);
               }
             } else {
-              final key = _getRegVal(HTRegIdx.postfixKey);
+              final key = _localValue;
               final value = _getRegVal(HTRegIdx.assignRight);
               _localValue = value;
               if (object is HTEntity) {
