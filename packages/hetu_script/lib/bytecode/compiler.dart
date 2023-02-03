@@ -9,30 +9,9 @@ import '../ast/ast.dart';
 import '../lexer/lexicon.dart';
 import '../lexer/lexicon_default_impl.dart';
 import '../grammar/constant.dart';
-import '../shared/constants.dart';
+import 'shared.dart';
 import '../constant/global_constant_table.dart';
 // import '../parser/parser.dart';
-
-/// Register values exists as groups, and the index determines a certain value within this group.
-class HTRegIdx {
-  static const value = 0;
-  static const identifier = 1;
-  // static const leftValue = 2;
-  // static const refType = 3;
-  static const typeArgs = 4;
-  static const loopCount = 5;
-  static const anchorCount = 6;
-  static const assign = 7;
-  static const orLeft = 8;
-  static const andLeft = 9;
-  static const equalLeft = 10;
-  static const relationLeft = 11;
-  static const addLeft = 12;
-  static const multiplyLeft = 13;
-  static const postfixObject = 14;
-  static const postfixKey = 15;
-  static const length = 16;
-}
 
 /// Collection of config of a compiler.
 class CompilerConfig {
@@ -974,6 +953,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     if (expr.op == _lexicon.assign) {
       if (expr.left is MemberExpr) {
+        final value = compileAST(expr.right);
+        bytesBuilder.add(value);
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(HTRegIdx.assignRight);
         final memberExpr = expr.left as MemberExpr;
         final object = compileAST(memberExpr.object);
         bytesBuilder.add(object);
@@ -985,30 +968,36 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.addByte(HTRegIdx.postfixKey);
         bytesBuilder.addByte(HTOpCode.memberSet);
         bytesBuilder.addByte(memberExpr.isNullable ? 1 : 0);
-        final value = compileAST(expr.right, endOfExec: true);
-        bytesBuilder.add(_uint16(value.length));
-        bytesBuilder.add(value);
+        // final value = compileAST(expr.right, endOfExec: true);
+        // bytesBuilder.add(_uint16(value.length));
+        // bytesBuilder.add(value);
       } else if (expr.left is SubExpr) {
+        final value = compileAST(expr.right);
+        bytesBuilder.add(value);
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(HTRegIdx.assignRight);
         final subExpr = expr.left as SubExpr;
         final array = compileAST(subExpr.object);
         bytesBuilder.add(array);
         bytesBuilder.addByte(HTOpCode.register);
         bytesBuilder.addByte(HTRegIdx.postfixObject);
+        final key = compileAST(subExpr.key);
+        bytesBuilder.add(key);
+        bytesBuilder.addByte(HTOpCode.register);
+        bytesBuilder.addByte(HTRegIdx.postfixKey);
         bytesBuilder.addByte(HTOpCode.subSet);
         bytesBuilder.addByte(subExpr.isNullable ? 1 : 0);
         // sub get key is after opcode
         // it has to be exec with 'move reg index'
-        final key = compileAST(subExpr.key, endOfExec: true);
-        final value = compileAST(expr.right, endOfExec: true);
-        bytesBuilder.add(_uint16(key.length + value.length));
-        bytesBuilder.add(key);
-        bytesBuilder.add(value);
+        // bytesBuilder.add(_uint16(key.length + value.length));
+        // bytesBuilder.add(key);
+        // bytesBuilder.add(value);
       } else {
-        final left = compileAST(expr.left);
         final right = compileAST(expr.right);
         bytesBuilder.add(right);
         bytesBuilder.addByte(HTOpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assign);
+        bytesBuilder.addByte(HTRegIdx.assignRight);
+        final left = compileAST(expr.left);
         bytesBuilder.add(left);
         bytesBuilder.addByte(HTOpCode.assign);
       }
@@ -1052,11 +1041,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.add(object);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
+    final key = compileAST(expr.key);
+    bytesBuilder.add(key);
+    bytesBuilder.addByte(HTOpCode.register);
+    bytesBuilder.addByte(HTRegIdx.postfixKey);
     bytesBuilder.addByte(HTOpCode.memberGet);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
-    final key = compileAST(expr.key, endOfExec: true);
-    bytesBuilder.add(_uint16(key.length));
-    bytesBuilder.add(key);
     return bytesBuilder.toBytes();
   }
 
@@ -1084,11 +1074,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.add(array);
     bytesBuilder.addByte(HTOpCode.register);
     bytesBuilder.addByte(HTRegIdx.postfixObject);
-    final key = compileAST(expr.key, endOfExec: true);
+    final key = compileAST(expr.key);
+    bytesBuilder.add(key);
+    bytesBuilder.addByte(HTOpCode.register);
+    bytesBuilder.addByte(HTRegIdx.postfixKey);
     bytesBuilder.addByte(HTOpCode.subGet);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
-    bytesBuilder.add(_uint16(key.length));
-    bytesBuilder.add(key);
     return bytesBuilder.toBytes();
   }
 
@@ -1630,6 +1621,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else if (stmt.value is String) {
         type = HTConstantType.string.index;
         index = _currentConstantTable.addGlobalConstant<String>(stmt.value);
+      } else {
+        throw 'unsupported constant type: ${stmt.value.runtimeType}';
       }
       bytesBuilder.addByte(type);
       bytesBuilder.add(_uint16(index));

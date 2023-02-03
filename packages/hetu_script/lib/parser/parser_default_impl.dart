@@ -1244,7 +1244,8 @@ class HTDefaultParser extends HTParser {
         }
         _isLegalLeftValue = true;
         final name = match(Semantic.identifier);
-        final key = IdentifierExpr(name.lexeme,
+        final key = IdentifierExpr(
+            name.literal, // use literal here to strip the graves.
             isLocal: false,
             source: currentSource,
             line: name.line,
@@ -1261,7 +1262,8 @@ class HTDefaultParser extends HTParser {
       } else if (op.type == lexer.lexicon.nullableMemberGet) {
         _isLegalLeftValue = false;
         final name = match(Semantic.identifier);
-        final key = IdentifierExpr(name.lexeme,
+        final key = IdentifierExpr(
+            name.literal, // use literal here to strip the graves.
             isLocal: false,
             source: currentSource,
             line: name.line,

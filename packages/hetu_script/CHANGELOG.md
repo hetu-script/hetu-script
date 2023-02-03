@@ -1,3 +1,7 @@
+## 0.5.0
+
+- Add experimental support for async/await.
+
 ## 0.4.3
 
 - Add help() api for get the documentation comments content of a certain identifier.

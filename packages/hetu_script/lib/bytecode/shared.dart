@@ -102,11 +102,6 @@ abstract class HTValueTypeCode {
   static const future = 17;
 }
 
-abstract class StructObjFieldTypeCode {
-  static const normal = 0;
-  static const spread = 1;
-}
-
 abstract class DeletingTypeCode {
   static const local = 0;
   static const member = 1;
@@ -126,6 +121,7 @@ enum HTConstantType {
   string,
 }
 
+// Get a dart runtime type by mapping.
 Type getConstantType(HTConstantType type) {
   switch (type) {
     case HTConstantType.boolean:
@@ -137,4 +133,23 @@ Type getConstantType(HTConstantType type) {
     case HTConstantType.string:
       return String;
   }
+}
+
+/// Register values exists as groups, and the index determines a certain value within this group.
+class HTRegIdx {
+  static const value = 0;
+  static const identifier = 1;
+  static const typeArgs = 2;
+  static const loopCount = 3;
+  static const anchorCount = 4;
+  static const assignRight = 5;
+  static const orLeft = 6;
+  static const andLeft = 7;
+  static const equalLeft = 8;
+  static const relationLeft = 9;
+  static const addLeft = 10;
+  static const multiplyLeft = 11;
+  static const postfixObject = 12;
+  static const postfixKey = 13;
+  static const length = 16;
 }

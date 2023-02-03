@@ -33,7 +33,7 @@ import '../resource/resource.dart';
 import '../resource/resource_context.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
-import '../shared/constants.dart';
+import '../bytecode/shared.dart';
 import '../bytecode/bytecode_module.dart';
 import '../bytecode/compiler.dart';
 import '../version.dart';
@@ -1496,7 +1496,7 @@ class HTInterpreter {
             _handleWhen();
             break;
           case HTOpCode.assign:
-            final value = _getRegVal(HTRegIdx.assign);
+            final value = _getRegVal(HTRegIdx.assignRight);
             assert(localSymbol != null);
             final id = localSymbol!;
             final result = _currentNamespace.memberSet(id, value,
@@ -1555,10 +1555,10 @@ class HTInterpreter {
           case HTOpCode.memberGet:
             final object = _getRegVal(HTRegIdx.postfixObject);
             final isNullable = _currentBytecodeModule.readBool();
-            final keyBytesLength = _currentBytecodeModule.readUint16();
+            // final keyBytesLength = _currentBytecodeModule.readUint16();
             if (object == null) {
               if (isNullable) {
-                _currentBytecodeModule.skip(keyBytesLength);
+                // _currentBytecodeModule.skip(keyBytesLength);
                 _localValue = null;
               } else {
                 throw HTError.nullObject(
@@ -1568,7 +1568,8 @@ class HTInterpreter {
                     column: _column);
               }
             } else {
-              final key = execute();
+              // final key = execute();
+              final key = _getRegVal(HTRegIdx.postfixKey);
               _localSymbol = key;
               final encap = encapsulate(object);
               if (encap is HTNamespace) {
@@ -1583,10 +1584,10 @@ class HTInterpreter {
           case HTOpCode.subGet:
             final object = _getRegVal(HTRegIdx.postfixObject);
             final isNullable = _currentBytecodeModule.readBool();
-            final keyBytesLength = _currentBytecodeModule.readUint16();
+            // final keyBytesLength = _currentBytecodeModule.readUint16();
             if (object == null) {
               if (isNullable) {
-                _currentBytecodeModule.skip(keyBytesLength);
+                // _currentBytecodeModule.skip(keyBytesLength);
                 _localValue = null;
               } else {
                 throw HTError.nullObject(
@@ -1596,7 +1597,8 @@ class HTInterpreter {
                     column: _column);
               }
             } else {
-              final key = execute();
+              // final key = execute();
+              final key = _getRegVal(HTRegIdx.postfixKey);
               if (object is HTEntity) {
                 _localValue =
                     object.subGet(key, from: _currentNamespace.fullName);
@@ -1625,10 +1627,10 @@ class HTInterpreter {
           case HTOpCode.memberSet:
             final object = _getRegVal(HTRegIdx.postfixObject);
             final isNullable = _currentBytecodeModule.readBool();
-            final valueBytesLength = _currentBytecodeModule.readUint16();
+            // final valueBytesLength = _currentBytecodeModule.readUint16();
             if (object == null) {
               if (isNullable) {
-                _currentBytecodeModule.skip(valueBytesLength);
+                // _currentBytecodeModule.skip(valueBytesLength);
                 _localValue = null;
               } else {
                 throw HTError.nullObject(
@@ -1639,7 +1641,8 @@ class HTInterpreter {
               }
             } else {
               final key = _getRegVal(HTRegIdx.postfixKey);
-              final value = execute();
+              final value = _getRegVal(HTRegIdx.assignRight);
+              _localValue = value;
               final encap = encapsulate(object);
               encap.memberSet(key, value);
               if (encap is HTNamespace) {
@@ -1648,16 +1651,15 @@ class HTInterpreter {
               } else {
                 encap.memberSet(key, value, from: _currentNamespace.fullName);
               }
-              _localValue = value;
             }
             break;
           case HTOpCode.subSet:
             final object = _getRegVal(HTRegIdx.postfixObject);
             final isNullable = _currentBytecodeModule.readBool();
-            final keyAndValueBytesLength = _currentBytecodeModule.readUint16();
+            // final keyAndValueBytesLength = _currentBytecodeModule.readUint16();
             if (object == null) {
               if (isNullable) {
-                _currentBytecodeModule.skip(keyAndValueBytesLength);
+                // _currentBytecodeModule.skip(keyAndValueBytesLength);
                 _localValue = null;
               } else {
                 throw HTError.nullObject(
@@ -1667,8 +1669,9 @@ class HTInterpreter {
                     column: _column);
               }
             } else {
-              final key = execute();
-              final value = execute();
+              final key = _getRegVal(HTRegIdx.postfixKey);
+              final value = _getRegVal(HTRegIdx.assignRight);
+              _localValue = value;
               if (object is HTEntity) {
                 object.subSet(key, value);
               } else {
@@ -1695,7 +1698,6 @@ class HTInterpreter {
                   }
                 }
               }
-              _localValue = value;
             }
             break;
           case HTOpCode.call:

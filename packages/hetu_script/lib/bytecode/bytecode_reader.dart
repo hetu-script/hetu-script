@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import '../shared/constants.dart';
+import 'shared.dart';
 
 /// An utility class to read bytes and return the actual value.
 class BytecodeReader {

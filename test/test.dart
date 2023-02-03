@@ -107,9 +107,16 @@ Future<void> main() async {
   final r = hetu.eval('''
     external fun fetch
 
-    class A{}
-    
-    var a = A()
+    final a = {
+      name: 'aleph42',
+      age: 17,
+      profile: {
+        experience: 0,
+        job: 'janitor',
+      }
+    }
+    a['profile']['job'] = 'security'
+    print(a)
     ''');
 
   if (r is Future) {
