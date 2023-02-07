@@ -32,6 +32,7 @@ enum ErrorCode {
   resourceDoesNotExist,
   sourceProviderError,
   notAbsoluteError,
+  invalidDeclTypeOfValue,
   invalidLeftValue,
   nullableAssign,
   privateMember,
@@ -711,6 +712,25 @@ class HTError {
       int? length})
       : this(ErrorCode.nullableAssign, ErrorType.syntacticError,
             message: HTLocale.current.errorNullableAssign,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Illegal value appeared on left of assignment.
+  HTError.invalidDeclTypeOfValue(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.invalidDeclTypeOfValue, ErrorType.syntacticError,
+            message: HTLocale.current.errorInvalidDeclTypeOfValue,
             extra: extra,
             correction: correction,
             filename: filename,

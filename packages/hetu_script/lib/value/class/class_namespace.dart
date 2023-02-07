@@ -20,11 +20,14 @@ class HTClassNamespace extends HTNamespace {
   });
 
   @override
-  dynamic memberGet(String varName,
-      {bool isPrivate = false,
-      String? from,
-      bool isRecursive = true,
-      bool throws = true}) {
+  dynamic memberGet(
+    String varName, {
+    bool isPrivate = false,
+    String? from,
+    bool isRecursive = true,
+    bool throws = true,
+    bool asDeclaration = false,
+  }) {
     final getter = '${InternalIdentifier.getter}$varName';
     final externalStatic = '$id.$varName';
 

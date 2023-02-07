@@ -2,7 +2,7 @@ import '../error/error.dart';
 // import '../grammar/semantic.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
-// import '../type/type.dart';
+import '../type/type.dart';
 import 'namespace/declaration_namespace.dart';
 
 /// Declaration is a semantic entity in the program that
@@ -19,6 +19,8 @@ abstract class HTDeclaration {
 
   /// Wether this declaration is only accessible from the same namespace.
   bool get isPrivate => _isPrivate || (id == null);
+
+  HTType? get declType => null;
 
   final String? classId;
 

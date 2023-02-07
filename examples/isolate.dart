@@ -29,6 +29,8 @@ for (final i in range(100000)) {
 }
 '''); // this message will cause the script to consume longer time, and will cause the isolate be killed during script execution.
 
+  print('All messages have been sent.');
+
   sendMessage('exit');
 }
 

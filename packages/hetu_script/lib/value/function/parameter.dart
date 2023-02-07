@@ -45,8 +45,8 @@ class HTParameter extends HTVariable implements HTAbstractParameter {
   // }
 
   @override
-  void resolve({bool resolveType = false}) {
-    super.resolve(resolveType: false);
+  void resolve({bool resolveType = true}) {
+    super.resolve(resolveType: resolveType);
   }
 
   @override

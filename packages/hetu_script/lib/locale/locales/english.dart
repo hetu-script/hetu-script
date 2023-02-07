@@ -77,6 +77,9 @@ class HTLocaleEnglish implements HTLocale {
   final String errorNotAbsoluteError =
       'Adding source failed, not a absolute path: [{0}].';
   @override
+  final String errorInvalidDeclTypeOfValue =
+      'decltypeof can only be used on identifier.';
+  @override
   final String errorInvalidLeftValue = 'Value cannot be assigned.';
   @override
   final String errorNullableAssign = 'Cannot assign to a nullable value.';

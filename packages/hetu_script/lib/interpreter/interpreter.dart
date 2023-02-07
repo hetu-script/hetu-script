@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:math' as math;
 
 import 'package:hetu_script/declaration/declaration.dart';
+import 'package:hetu_script/declaration/variable/variable_declaration.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -651,6 +652,21 @@ class HTInterpreter {
       type = encap.valueType ?? HTTypeUnknown(_lexicon.typeUnknown);
     }
     return type;
+  }
+
+  HTType decltypeof(String id) {
+    final HTDeclaration decl =
+        currentNamespace.memberGet(id, isRecursive: true, asDeclaration: true);
+    decl.resolve();
+    var decltype = decl.declType;
+
+    if (decltype != null) {
+      return decltype;
+    } else if (decl is HTVariableDeclaration) {
+      return HTTypeAny(lexicon.typeAny);
+    } else {
+      return HTTypeUnknown(lexicon.typeUnknown);
+    }
   }
 
   /// Encapsulate any value to a Hetu object, for members accessing and type check.
@@ -1696,9 +1712,19 @@ class HTInterpreter {
           _localValue = left % right;
           break;
         case HTOpCode.negative:
+          _localValue = -_localValue;
+          break;
         case HTOpCode.logicalNot:
+          final truthValue = _truthy(_localValue);
+          _localValue = !truthValue;
+          break;
         case HTOpCode.typeOf:
-          _handleUnaryPrefixOp(instruction);
+          _localValue = typeof(_localValue);
+          break;
+        case HTOpCode.decltypeOf:
+          final symbol = localSymbol;
+          assert(symbol != null);
+          _localValue = decltypeof(symbol!);
           break;
         case HTOpCode.awaitedValue:
           // handle the possible future execution request raised by await keyword and Future value.
@@ -2250,22 +2276,6 @@ class HTInterpreter {
     }
     final result = leftType.isA(rightType);
     _localValue = isNot ? !result : result;
-  }
-
-  void _handleUnaryPrefixOp(int op) {
-    final object = _localValue;
-    switch (op) {
-      case HTOpCode.negative:
-        _localValue = -object;
-        break;
-      case HTOpCode.logicalNot:
-        final truthValue = _truthy(object);
-        _localValue = !truthValue;
-        break;
-      case HTOpCode.typeOf:
-        _localValue = typeof(object);
-        break;
-    }
   }
 
   void _handleCallExpr() {

@@ -173,6 +173,9 @@ class HTDefaultLexicon extends HTLexicon {
   String get kTypeof => 'typeof';
 
   @override
+  String get kDeclTypeof => 'decltypeof';
+
+  @override
   String get kImport => 'import';
 
   @override

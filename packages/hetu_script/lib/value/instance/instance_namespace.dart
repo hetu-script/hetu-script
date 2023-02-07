@@ -37,11 +37,14 @@ class HTInstanceNamespace extends HTNamespace {
   /// If [isRecursive] is false, then it won't continue to
   /// try fetching variable from enclosed namespace.
   @override
-  dynamic memberGet(String varName,
-      {bool isPrivate = false,
-      String? from,
-      bool isRecursive = true,
-      bool throws = true}) {
+  dynamic memberGet(
+    String varName, {
+    bool isPrivate = false,
+    String? from,
+    bool isRecursive = true,
+    bool throws = true,
+    bool asDeclaration = false,
+  }) {
     final getter = '${InternalIdentifier.getter}$varName';
 
     if (isRecursive) {

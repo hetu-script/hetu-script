@@ -159,7 +159,7 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  void resolve({bool resolveType = false}) {
+  void resolve({bool resolveType = true}) {
     if (isResolved) return;
     super.resolve();
     if (closure != null && classId != null && klass == null && !isField) {

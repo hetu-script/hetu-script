@@ -42,6 +42,7 @@ class HTFunctionDeclaration extends HTDeclaration
 
   HTFunctionType? _resolvedDeclType;
 
+  @override
   HTFunctionType get declType => _resolvedDeclType ?? _declType;
 
   final bool isAsync;

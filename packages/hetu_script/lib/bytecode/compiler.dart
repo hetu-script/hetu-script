@@ -753,6 +753,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else if (expr.op == _lexicon.kTypeof) {
       bytesBuilder.add(value);
       bytesBuilder.addByte(HTOpCode.typeOf);
+    } else if (expr.op == _lexicon.kDeclTypeof) {
+      bytesBuilder.add(value);
+      bytesBuilder.addByte(HTOpCode.decltypeOf);
     } else if (expr.op == _lexicon.kAwait) {
       bytesBuilder.add(value);
       bytesBuilder.addByte(HTOpCode.awaitedValue);

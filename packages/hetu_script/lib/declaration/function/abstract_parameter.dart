@@ -12,6 +12,7 @@ abstract class HTAbstractParameter implements HTDeclaration {
 
   bool get isInitialization;
 
+  @override
   HTType? get declType;
 
   @override

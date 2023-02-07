@@ -135,7 +135,7 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
   }
 
   @override
-  void resolve({bool resolveType = false}) {
+  void resolve({bool resolveType = true}) {
     super.resolve(
         resolveType:
             resolveType || interpreter.config.checkTypeAnnotationAtRuntime);

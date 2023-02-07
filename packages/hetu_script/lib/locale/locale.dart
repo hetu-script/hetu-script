@@ -37,6 +37,7 @@ abstract class HTLocale {
   String get errorResourceDoesNotExist;
   String get errorSourceProviderError;
   String get errorNotAbsoluteError;
+  String get errorInvalidDeclTypeOfValue;
   String get errorInvalidLeftValue;
   String get errorNullableAssign;
   String get errorPrivateMember;

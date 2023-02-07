@@ -4,7 +4,10 @@ void main() {
   var hetu = Hetu();
   hetu.init();
 
-  final r = hetu.eval('42');
+  final r = hetu.eval(r'''
+  var a: int = 42;
+  decltypeof a
+  ''');
 
-  print(r);
+  print(hetu.lexicon.stringify(r));
 }

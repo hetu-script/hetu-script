@@ -68,16 +68,20 @@ abstract class HTOpCode {
   static const ifNull = 67;
   static const negative = 68;
   static const logicalNot = 69;
-  static const memberGet = 70;
-  static const subGet = 71;
-  static const call = 72;
-  static const typeOf = 73;
-  static const typeAs = 74;
-  static const typeIs = 75;
-  static const typeIsNot = 76;
-  static const isIn = 77;
-  static const isNotIn = 78;
-  static const awaitedValue = 79;
+  static const isIn = 70;
+  static const isNotIn = 71;
+
+  static const memberGet = 75;
+  static const subGet = 76;
+  static const call = 77;
+
+  static const typeIs = 81;
+  static const typeIsNot = 82;
+  static const typeAs = 83;
+  static const typeOf = 84;
+  static const decltypeOf = 85;
+
+  static const awaitedValue = 90;
 
   static const lineInfo = 205;
 }

@@ -42,13 +42,17 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
   }
 
   @override
-  dynamic memberGet(String varName,
-      {bool isPrivate = false,
-      String? from,
-      bool isRecursive = false,
-      bool throws = true}) {
+  dynamic memberGet(
+    String varName, {
+    bool isPrivate = false,
+    String? from,
+    bool isRecursive = false,
+    bool throws = true,
+    bool asDeclaration = false,
+  }) {
     if (symbols.containsKey(varName)) {
       final decl = symbols[varName]!;
+      if (asDeclaration) return decl;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
@@ -56,14 +60,20 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       return decl.value;
     } else if (importedSymbols.containsKey(varName)) {
       final decl = importedSymbols[varName]!;
+      if (asDeclaration) return decl;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(varName);
       }
       decl.resolve();
       return decl.value;
     } else if (isRecursive && (closure != null)) {
-      return closure!.memberGet(varName,
-          from: from, isRecursive: isRecursive, throws: throws);
+      return closure!.memberGet(
+        varName,
+        from: from,
+        isRecursive: isRecursive,
+        throws: throws,
+        asDeclaration: asDeclaration,
+      );
     }
     if (throws) {
       throw HTError.undefined(varName);

@@ -64,6 +64,8 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorNotAbsoluteError = '添加资源错误，不是绝对路径：[{0}]。';
   @override
+  final String errorInvalidDeclTypeOfValue = 'decltypeof 操作符只能用于标识符。';
+  @override
   final String errorInvalidLeftValue = '对象无法被赋值。';
   @override
   final String errorNullableAssign = '可空对象无法被赋值。';

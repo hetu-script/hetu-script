@@ -17,6 +17,7 @@ class HTTypeAliasDeclaration extends HTDeclaration
   /// The declared [HTType] of this symbol, will be used to
   /// compare with the value type before compile to
   /// determine wether an value binding (assignment) is legal.
+  @override
   HTType get declType => _resolvedDeclType ?? _declType;
 
   bool _isResolved = false;
