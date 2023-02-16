@@ -5,9 +5,14 @@ void main() {
   hetu.init();
 
   final r = hetu.eval(r'''
-  var a: int = 42;
-  decltypeof a
+  class test {
+    static fun hello {
+      print('hello')
+    }
+  }
   ''');
+
+  hetu.invoke('hello', namespaceName: 'test');
 
   print(hetu.lexicon.stringify(r));
 }

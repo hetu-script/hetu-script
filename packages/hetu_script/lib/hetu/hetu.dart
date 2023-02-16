@@ -574,12 +574,14 @@ class Hetu {
 
   /// Invoke a top level function defined in a certain namespace in the interpreter.
   dynamic invoke(String funcName,
-          {String? moduleName,
+          {String? namespaceName,
+          String? moduleName,
           List<dynamic> positionalArgs = const [],
           Map<String, dynamic> namedArgs = const {},
           List<HTType> typeArgs = const []}) =>
       interpreter.invoke(
         funcName,
+        namespaceName: namespaceName,
         moduleName: moduleName,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,

@@ -520,7 +520,8 @@ class HTInterpreter {
   /// It's possible to use this method to invoke a [HTClass] or [HTNamedStruct]
   /// name as a contruct call, you will get a [HTInstance] or [HTStruct] as return value.
   dynamic invoke(String funcName,
-      {String? moduleName,
+      {String? namespaceName,
+      String? moduleName,
       bool isConstructorCall = false,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
@@ -539,7 +540,14 @@ class HTInterpreter {
       } else {
         nsp = currentNamespace;
       }
-      final callee = nsp.memberGet(funcName, isRecursive: false);
+
+      dynamic callee;
+      if (namespaceName != null) {
+        HTEntity namespace = nsp.memberGet(namespaceName, isRecursive: true);
+        callee = namespace.memberGet(funcName);
+      } else {
+        callee = nsp.memberGet(funcName, isRecursive: false);
+      }
       final result = _call(
         callee,
         positionalArgs: positionalArgs,
