@@ -43,10 +43,13 @@ class HTBundler {
           late final ASTSource importedSource;
           String importFullName;
           if (normalizePath) {
-            final currentDir = astSource.fullName
+            var currentDir = astSource.fullName
                     .startsWith(InternalIdentifier.anonymousScript)
                 ? sourceContext.root
                 : path.dirname(astSource.fullName);
+            if (!currentDir.endsWith('/')) {
+              currentDir += '/';
+            }
             decl.fullFromPath = importFullName = sourceContext.getAbsolutePath(
                 key: decl.fromPath!, dirName: currentDir);
           } else {
