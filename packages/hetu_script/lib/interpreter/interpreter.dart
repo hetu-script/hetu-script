@@ -928,7 +928,7 @@ class HTInterpreter {
       dynamic result = execute(
         retractStackFrame: false,
         endOfFileHandler: () {
-          if (globallyImport) {
+          if (globallyImport && _currentNamespace != globalNamespace) {
             globalNamespace.import(_currentNamespace);
           }
           stackTraceList.clear();

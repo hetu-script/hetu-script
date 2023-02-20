@@ -10,7 +10,7 @@ void main() {
       print('hello')
     }
   }
-  ''');
+  ''', globallyImport: true);
 
   hetu.invoke('hello', namespaceName: 'test');
 
