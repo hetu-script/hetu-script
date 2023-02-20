@@ -158,6 +158,12 @@ class HTFunction extends HTFunctionDeclaration
     }
   }
 
+  void resolveExternal() {
+    // free external function & external struct method are handled here.
+    final funcName = classId != null ? '$classId.$id' : id!;
+    externalFunc = interpreter.fetchExternalFunction(funcName);
+  }
+
   @override
   void resolve({bool resolveType = true}) {
     if (isResolved) return;
@@ -179,9 +185,7 @@ class HTFunction extends HTFunctionDeclaration
           }
         }
       } else {
-        // free external function & external struct method are handled here.
-        final funcName = classId != null ? '$classId.$id' : id!;
-        externalFunc = interpreter.fetchExternalFunction(funcName);
+        resolveExternal();
       }
     }
   }
@@ -677,6 +681,9 @@ class HTFunction extends HTFunctionDeclaration
           }
           // a external method in a normal class
           else {
+            if (interpreter.config.resolveExternalFunctionsDynamically) {
+              resolveExternal();
+            }
             assert(externalFunc != null);
             final func = externalFunc!;
             if (func is HTExternalFunction) {
@@ -702,6 +709,9 @@ class HTFunction extends HTFunctionDeclaration
         }
         // a external method of a struct
         else if (classId != null) {
+          if (interpreter.config.resolveExternalFunctionsDynamically) {
+            resolveExternal();
+          }
           assert(externalFunc != null);
           final func = externalFunc!;
           if (func is HTExternalFunction) {
@@ -726,6 +736,9 @@ class HTFunction extends HTFunctionDeclaration
         }
         // a toplevel external function
         else {
+          if (interpreter.config.resolveExternalFunctionsDynamically) {
+            resolveExternal();
+          }
           assert(externalFunc != null);
           final func = externalFunc!;
           if (func is HTExternalFunction) {

@@ -100,6 +100,9 @@ class HetuConfig
   @override
   bool checkTypeAnnotationAtRuntime;
 
+  @override
+  bool resolveExternalFunctionsDynamically;
+
   HetuConfig({
     this.printPerformanceStatistics = true,
     this.normalizeImportPath = true,
@@ -118,6 +121,7 @@ class HetuConfig
     this.allowImplicitNullToZeroConversion = false,
     this.allowImplicitEmptyValueToFalseConversion = false,
     this.checkTypeAnnotationAtRuntime = false,
+    this.resolveExternalFunctionsDynamically = false,
   });
 }
 

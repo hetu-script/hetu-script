@@ -1,18 +1,42 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() {
-  var hetu = Hetu();
-  hetu.init();
+var i = 0;
 
-  final r = hetu.eval(r'''
-  class test {
-    static fun hello {
-      print('hello')
-    }
+class Test {
+  // instances of Test will get a incremental index
+  var n = i++;
+
+  void method() {
+    // print out this instance's index
+    print(n);
   }
-  ''', globallyImport: true);
+}
 
-  hetu.invoke('hello', namespaceName: 'test');
+void main() {
+  final hetu =
+      Hetu(config: HetuConfig(resolveExternalFunctionsDynamically: true));
+  hetu.init();
+  hetu.eval('external fun test');
 
-  print(hetu.lexicon.stringify(r));
+  void run() {
+    final t = Test();
+    t.method();
+  }
+
+  run();
+  run();
+
+  void run2() {
+    final t = Test();
+    hetu.interpreter.bindExternalFunction('test', () {
+      t.method();
+    });
+    hetu.invoke('test');
+  }
+
+  run2();
+  run2();
+
+  final t = Test();
+  t.method();
 }

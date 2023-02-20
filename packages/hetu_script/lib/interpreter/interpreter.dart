@@ -75,6 +75,8 @@ class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
 
   bool checkTypeAnnotationAtRuntime;
 
+  bool resolveExternalFunctionsDynamically;
+
   InterpreterConfig({
     this.showDartStackTrace = false,
     this.showHetuStackTrace = false,
@@ -85,6 +87,7 @@ class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
     this.allowImplicitNullToZeroConversion = false,
     this.allowImplicitEmptyValueToFalseConversion = false,
     this.checkTypeAnnotationAtRuntime = false,
+    this.resolveExternalFunctionsDynamically = false,
   });
 }
 
@@ -594,22 +597,24 @@ class HTInterpreter {
     return externClasses[id]!;
   }
 
-  /// Bind a external class name to a abstract class name for interpreter get dart class name by reflection
+  /// Bind an external class name to a abstract class name
+  /// for interpreter getting dart class name by reflection
   void bindExternalReflection(HTExternalTypeReflection reflection) {
     externTypeReflection.add(reflection);
   }
 
-  /// Register a external function into scrfipt
+  /// Register an external function into script
+  /// include external function within non-external class & struct & namespace
   /// there must be a declaraction also in script for using this
   void bindExternalFunction(String id, Function function,
-      {bool override = false}) {
+      {bool override = true}) {
     if (externFunctions.containsKey(id) && !override) {
       throw HTError.defined(id, ErrorType.runtimeError);
     }
     externFunctions[id] = function;
   }
 
-  /// Fetch a external function
+  /// Fetch an external function
   Function fetchExternalFunction(String id) {
     if (!externFunctions.containsKey(id)) {
       throw HTError.undefinedExternal(id);
@@ -619,7 +624,7 @@ class HTInterpreter {
 
   /// Register a external function typedef into scrfipt
   void bindExternalFunctionType(String id, HTExternalFunctionTypedef function,
-      {bool override = false}) {
+      {bool override = true}) {
     if (externFunctionTypedefs.containsKey(id) && !override) {
       throw HTError.defined(id, ErrorType.runtimeError);
     }
