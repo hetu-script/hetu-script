@@ -246,10 +246,14 @@ class Hetu {
         bytes: coreModule,
         moduleName: 'hetu',
         globallyImport: true,
-        printPerformanceStatistics: config.printPerformanceStatistics,
+        printPerformanceStatistics: false,
       );
 
-      interpreter.define('kHetuVersion', kHetuVersion.toString());
+      interpreter.define(
+        'kHetuVersion',
+        kHetuVersion.toString(),
+        override: true,
+      );
 
       interpreter.invoke('initHetuEnv', positionalArgs: [this]);
 
