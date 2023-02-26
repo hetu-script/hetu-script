@@ -804,8 +804,9 @@ class HTInterpreter {
     return struct;
   }
 
-  void _handleNamespaceImport(HTNamespace nsp, UnresolvedImport decl) {
-    final importedNamespace = _currentBytecodeModule.namespaces[decl.fromPath]!;
+  void _handleNamespaceImport(HTNamespace nsp, UnresolvedImport importDecl) {
+    final importedNamespace =
+        _currentBytecodeModule.namespaces[importDecl.fromPath]!;
 
     // for script and literal code, namespaces are resolved immediately.
     if (_currentFileResourceType == HTResourceType.hetuScript ||
@@ -818,11 +819,11 @@ class HTInterpreter {
       // }
     }
 
-    if (decl.alias == null) {
-      if (decl.showList.isEmpty) {
-        nsp.import(importedNamespace, export: decl.isExported);
+    if (importDecl.alias == null) {
+      if (importDecl.showList.isEmpty) {
+        nsp.import(importedNamespace, export: importDecl.isExported);
       } else {
-        for (final id in decl.showList) {
+        for (final id in importDecl.showList) {
           HTDeclaration decl;
           if (importedNamespace.symbols.containsKey(id)) {
             decl = importedNamespace.symbols[id]!;
@@ -831,16 +832,17 @@ class HTInterpreter {
           } else {
             throw HTError.undefined(id);
           }
-          nsp.defineImport(id, decl);
+          nsp.defineImport(id, decl, importDecl.fromPath);
         }
       }
     } else {
-      if (decl.showList.isEmpty) {
-        nsp.defineImport(decl.alias!, importedNamespace);
+      if (importDecl.showList.isEmpty) {
+        nsp.defineImport(
+            importDecl.alias!, importedNamespace, importDecl.fromPath);
       } else {
         final aliasNamespace = HTNamespace(
-            lexicon: _lexicon, id: decl.alias!, closure: nsp.closure);
-        for (final id in decl.showList) {
+            lexicon: _lexicon, id: importDecl.alias!, closure: nsp.closure);
+        for (final id in importDecl.showList) {
           if (!importedNamespace.symbols.containsKey(id)) {
             throw HTError.undefined(id);
           }
@@ -848,7 +850,8 @@ class HTInterpreter {
           assert(!decl.isPrivate);
           aliasNamespace.define(id, decl);
         }
-        nsp.defineImport(decl.alias!, aliasNamespace);
+        nsp.defineImport(
+            importDecl.alias!, aliasNamespace, importDecl.fromPath);
       }
     }
   }
@@ -932,12 +935,8 @@ class HTInterpreter {
       // TODO: import binary bytes
       dynamic result = execute(
         retractStackFrame: false,
-        endOfFileHandler: () {
-          if (globallyImport && _currentNamespace != globalNamespace) {
-            globalNamespace.import(_currentNamespace);
-          }
-          stackTraceList.clear();
-        },
+        // endOfFileHandler: () {
+        // },
         endOfModuleHandler: () {
           if (!isModuleEntryScript) {
             /// deal with import statement within every namespace of this module.
@@ -965,6 +964,9 @@ class HTInterpreter {
             message +=
                 ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu@$compilerVersion)';
             print(message);
+          }
+          if (globallyImport && _currentNamespace != globalNamespace) {
+            globalNamespace.import(_currentNamespace);
           }
           dynamic r;
           if (invokeFunc != null) {
@@ -1263,18 +1265,17 @@ class HTInterpreter {
           break;
         case HTOpCode.endOfFile:
           if (_currentFileResourceType == HTResourceType.json) {
-            final jsonSource = HTJSONSource(
-                id: _currentFileName,
+            final jsonSource = HTJsonSource(
+                fullName: _currentFileName,
                 moduleName: _currentBytecodeModule.id,
                 value: _localValue);
-            _currentBytecodeModule.jsonSources[jsonSource.id] = jsonSource;
+            _currentBytecodeModule.jsonSources[jsonSource.fullName] =
+                jsonSource;
           } else if (_currentFileResourceType == HTResourceType.hetuModule) {
             _currentBytecodeModule.namespaces[_currentNamespace.id!] =
                 _currentNamespace;
           }
-          if (endOfFileHandler != null) {
-            endOfFileHandler();
-          }
+          endOfFileHandler?.call();
           break;
         case HTOpCode.endOfModule:
           dynamic r;
@@ -1963,7 +1964,8 @@ class HTInterpreter {
       final importedModule = cachedModules[fromPath]!;
       final importedNamespace = importedModule.namespaces.values.last;
       if (showList.isEmpty) {
-        _currentNamespace.defineImport(alias!, importedNamespace);
+        _currentNamespace.defineImport(
+            alias!, importedNamespace, 'module:${importedModule.id}');
       } else {
         final aliasNamespace = HTNamespace(
             lexicon: _lexicon, id: alias!, closure: _currentNamespace.closure);
@@ -1972,7 +1974,8 @@ class HTInterpreter {
           assert(!decl.isPrivate);
           aliasNamespace.define(id, decl);
         }
-        _currentNamespace.defineImport(alias, aliasNamespace);
+        _currentNamespace.defineImport(
+            alias, aliasNamespace, 'module:${importedModule.id}');
       }
     }
     // TODO: If the import path starts with 'package:', will try to fetch the source file from '.hetu_packages' under root.
@@ -1991,6 +1994,7 @@ class HTInterpreter {
               value: jsonSource!.value,
               closure: _currentNamespace,
             ),
+            jsonSource.fullName,
           );
           if (isExported) {
             _currentNamespace.declareExport(alias);

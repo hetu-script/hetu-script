@@ -18,6 +18,8 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
 
   final importedSymbols = <String, T>{};
 
+  final importedSymbolsPath = <String, String>{};
+
   final imports = <String, UnresolvedImport>{};
 
   final exports = <String>{};
@@ -119,11 +121,14 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
     exports.add(id);
   }
 
-  void defineImport(String key, T decl) {
+  void defineImport(String key, T decl, String from) {
     if (!importedSymbols.containsKey(key)) {
       importedSymbols[key] = decl;
+      importedSymbolsPath[key] = from;
     } else {
-      throw HTError.defined(key, ErrorType.runtimeError);
+      if (importedSymbolsPath[key] != from) {
+        throw HTError.defined(key, ErrorType.runtimeError);
+      }
     }
   }
 
@@ -148,9 +153,9 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
         }
       }
       if (idOnly) {
-        defineImport(key, null as T);
+        defineImport(key, null as T, other.fullName);
       } else {
-        defineImport(key, decl);
+        defineImport(key, decl, other.fullName);
       }
       if (export) {
         declareExport(key);
@@ -170,9 +175,9 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
         }
       }
       if (idOnly) {
-        defineImport(key, null as T);
+        defineImport(key, null as T, other.fullName);
       } else {
-        defineImport(key, decl);
+        defineImport(key, decl, other.fullName);
       }
       if (export) {
         declareExport(key);

@@ -80,6 +80,9 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorDefined = '标识符 [{0}] 已经被定义过。';
   @override
+  final String errorDefinedImportSymbol =
+      '从命名空间 [{1}] 中引入的标识符 [{0}]，与从命名空间 [{2}] 中引入过的同名变量冲突。';
+  @override
   final String errorOutsideThis = '只能在类的实例成员函数中使用 this 关键字。';
   @override
   final String errorNotMember = '[{0}] 不是类 [{1}] 的成员。';

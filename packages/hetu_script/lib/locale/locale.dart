@@ -46,6 +46,7 @@ abstract class HTLocale {
 
   // compile time errors
   String get errorDefined;
+  String get errorDefinedImportSymbol;
   String get errorOutsideThis;
   String get errorNotMember;
   String get errorNotClass;

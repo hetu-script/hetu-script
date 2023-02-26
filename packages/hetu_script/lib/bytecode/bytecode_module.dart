@@ -25,7 +25,7 @@ class HTBytecodeModule with BytecodeReader, HTGlobalConstantTable {
 
   /// An interpreted non-source, such as JSON, is exist as a value in bytecode module.
   /// This is empty until interpreter insert the evaled values.
-  final Map<String, HTJSONSource> jsonSources = {};
+  final Map<String, HTJsonSource> jsonSources = {};
 
   /// fetch a contant value defined within any namespace of this module.
   String getConstString() {

@@ -71,11 +71,11 @@ class HTSource {
 
 /// A value, however it can be imported like a source.
 /// Typically a json file, which is a [HTStruct] value in Hetu Script.
-class HTJSONSource {
-  final String id;
+class HTJsonSource {
+  final String fullName;
   final String moduleName;
   final dynamic value;
 
-  const HTJSONSource(
-      {required this.id, required this.moduleName, required this.value});
+  const HTJsonSource(
+      {required this.fullName, required this.moduleName, required this.value});
 }

@@ -837,6 +837,26 @@ class HTError {
             offset: offset,
             length: length);
 
+  /// Error: A same name declaration is already existed.
+  HTError.definedImportSymbol(String id, String from, String exist,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.defined, ErrorType.runtimeError,
+            message: HTLocale.current.errorDefinedImportSymbol,
+            interpolations: [id, from, exist],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
   /// Error: This appeared outside of a function.
   HTError.outsideThis(
       {String? extra,

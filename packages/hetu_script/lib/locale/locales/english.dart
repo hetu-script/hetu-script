@@ -95,6 +95,9 @@ class HTLocaleEnglish implements HTLocale {
   @override
   final String errorDefined = '[{0}] is already defined.';
   @override
+  final String errorDefinedImportSymbol =
+      'Symbol [{0}] importing from [{1}] is already imported from [{2}].';
+  @override
   final String errorOutsideThis =
       'Unexpected this expression outside of a function.';
   @override
