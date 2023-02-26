@@ -993,7 +993,7 @@ class HTDefaultParser extends HTParser {
   @override
   ASTNode parseExpr() {
     ASTNode? expr;
-    final left = _parserTernaryExpr();
+    final left = _parseTernaryExpr();
     if (lexer.lexicon.assignments.contains(curTok.type)) {
       if (!_isLegalLeftValue) {
         final err = HTError.invalidLeftValue(
@@ -1019,13 +1019,13 @@ class HTDefaultParser extends HTParser {
   }
 
   /// Ternery operator: e1 ? e2 : e3, precedence 3, associativity right
-  ASTNode _parserTernaryExpr() {
+  ASTNode _parseTernaryExpr() {
     var condition = _parseIfNullExpr();
     if (expect([lexer.lexicon.ternaryThen], consume: true)) {
       _isLegalLeftValue = false;
-      final thenBranch = _parserTernaryExpr();
+      final thenBranch = _parseTernaryExpr();
       match(lexer.lexicon.ternaryElse);
-      final elseBranch = _parserTernaryExpr();
+      final elseBranch = _parseTernaryExpr();
       condition = TernaryExpr(condition, thenBranch, elseBranch,
           source: currentSource,
           line: condition.line,
@@ -1376,9 +1376,12 @@ class HTDefaultParser extends HTParser {
   ASTNode _parsePrimaryExpr() {
     handlePrecedings();
 
-    late ASTNode expr;
+    ASTNode? expr;
 
     // We cannot use 'switch case' here because we have to use lexicon's value, which is not constant.
+    // We also cannot use else if here, because the literal function parsing need to look ahead a lot of tokens,
+    // thus we have to execute the if branch even if it may not be a function.
+
     if (curTok.type == lexer.lexicon.kNull) {
       final token = advance();
       _isLegalLeftValue = false;
@@ -1388,7 +1391,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == Semantic.literalBoolean) {
+    }
+
+    if (expr == null && curTok.type == Semantic.literalBoolean) {
       final token = match(Semantic.literalBoolean) as TokenBooleanLiteral;
       _isLegalLeftValue = false;
       expr = ASTLiteralBoolean(token.literal,
@@ -1397,7 +1402,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == Semantic.literalInteger) {
+    }
+
+    if (expr == null && curTok.type == Semantic.literalInteger) {
       final token = match(Semantic.literalInteger) as TokenIntLiteral;
       _isLegalLeftValue = false;
       expr = ASTLiteralInteger(token.literal,
@@ -1406,7 +1413,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == Semantic.literalFloat) {
+    }
+
+    if (expr == null && curTok.type == Semantic.literalFloat) {
       final token = advance() as TokenFloatLiteral;
       _isLegalLeftValue = false;
       expr = ASTLiteralFloat(token.literal,
@@ -1415,7 +1424,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == Semantic.literalString) {
+    }
+
+    if (expr == null && curTok.type == Semantic.literalString) {
       final token = advance() as TokenStringLiteral;
       _isLegalLeftValue = false;
       expr = ASTLiteralString(token.literal, token.startMark, token.endMark,
@@ -1424,7 +1435,9 @@ class HTDefaultParser extends HTParser {
           column: token.column,
           offset: token.offset,
           length: token.length);
-    } else if (curTok.type == Semantic.literalStringInterpolation) {
+    }
+
+    if (expr == null && curTok.type == Semantic.literalStringInterpolation) {
       final token = advance() as TokenStringInterpolation;
       final interpolations = <ASTNode>[];
       final savedCurrent = curTok;
@@ -1480,7 +1493,7 @@ class HTDefaultParser extends HTParser {
     }
 
     // this expression
-    else if (curTok.type == lexer.lexicon.kThis) {
+    if (expr == null && curTok.type == lexer.lexicon.kThis) {
       if (_currentFunctionCategory == null ||
           (_currentFunctionCategory != FunctionCategory.literal &&
               (_currentClassDeclaration == null && _currentStructId == null))) {
@@ -1503,7 +1516,7 @@ class HTDefaultParser extends HTParser {
     }
 
     // super constructor call
-    else if (curTok.type == lexer.lexicon.kSuper) {
+    if (expr == null && curTok.type == lexer.lexicon.kSuper) {
       if (_currentClassDeclaration == null ||
           _currentFunctionCategory == null) {
         final err = HTError.misplacedSuper(
@@ -1525,7 +1538,7 @@ class HTDefaultParser extends HTParser {
     }
 
     // constructor call
-    else if (curTok.type == lexer.lexicon.kNew) {
+    if (expr == null && curTok.type == lexer.lexicon.kNew) {
       final keyword = advance();
       _isLegalLeftValue = false;
       final idTok = match(Semantic.identifier) as TokenIdentifier;
@@ -1550,19 +1563,19 @@ class HTDefaultParser extends HTParser {
     }
 
     // an if expression
-    else if (curTok.type == lexer.lexicon.kIf) {
+    if (expr == null && curTok.type == lexer.lexicon.kIf) {
       _isLegalLeftValue = false;
       expr = _parseIf(isStatement: false);
     }
 
     // when expression
-    else if (curTok.type == lexer.lexicon.kWhen) {
+    if (expr == null && curTok.type == lexer.lexicon.kWhen) {
       _isLegalLeftValue = false;
       expr = _parseWhen(isStatement: false);
     }
 
     // literal function expression
-    else if (curTok.type == lexer.lexicon.functionParameterStart) {
+    if (expr == null && curTok.type == lexer.lexicon.functionParameterStart) {
       final tokenAfterGroupExprStart = curTok.next;
       final tokenAfterGroupExprEnd = seekGroupClosing({
         lexer.lexicon.functionParameterStart: lexer.lexicon.functionParameterEnd
@@ -1583,7 +1596,10 @@ class HTDefaultParser extends HTParser {
         expr = _parseFunction(
             category: FunctionCategory.literal, hasKeyword: false);
       }
-    } else if (curTok.type == lexer.lexicon.groupExprStart) {
+    }
+
+    // group expr
+    if (expr == null && curTok.type == lexer.lexicon.groupExprStart) {
       final start = advance();
       final innerExpr = parseExpr();
       final end = match(lexer.lexicon.groupExprEnd);
@@ -1597,7 +1613,7 @@ class HTDefaultParser extends HTParser {
     }
 
     // literal list value
-    else if (curTok.type == lexer.lexicon.listStart) {
+    if (expr == null && curTok.type == lexer.lexicon.listStart) {
       final start = advance();
       final listExprs = parseExprList(
         endToken: lexer.lexicon.listEnd,
@@ -1628,26 +1644,38 @@ class HTDefaultParser extends HTParser {
           column: start.column,
           offset: start.offset,
           length: endTok.end - start.offset);
-    } else if (curTok.type == lexer.lexicon.codeBlockStart) {
+    }
+
+    if (expr == null && curTok.type == lexer.lexicon.codeBlockStart) {
       _isLegalLeftValue = false;
       expr = _parseStructObj();
-    } else if (curTok.type == lexer.lexicon.kStruct) {
+    }
+
+    if (expr == null && curTok.type == lexer.lexicon.kStruct) {
       _isLegalLeftValue = false;
       expr = _parseStructObj(hasKeyword: true);
-    } else if (curTok.type == lexer.lexicon.kFun) {
+    }
+
+    if (expr == null && curTok.type == lexer.lexicon.kFun) {
       _isLegalLeftValue = false;
       expr = _parseFunction(category: FunctionCategory.literal);
-    } else if (curTok.type == lexer.lexicon.kType) {
+    }
+
+    if (expr == null && curTok.type == lexer.lexicon.kType) {
       _isLegalLeftValue = false;
       expr = _parseTypeExpr(handleDeclKeyword: true, isLocal: true);
-    } else if (curTok.type == Semantic.identifier) {
+    }
+
+    if (expr == null && curTok.type == Semantic.identifier) {
       final id = advance() as TokenIdentifier;
       final isLocal = curTok.type != lexer.lexicon.assign;
       // TODO: type arguments
       _isLegalLeftValue = true;
       expr = IdentifierExpr.fromToken(id,
           isMarked: id.isMarked, isLocal: isLocal, source: currentSource);
-    } else {
+    }
+
+    if (expr == null) {
       final err = HTError.unexpected(
           Semantic.primaryExpression, Semantic.expression, curTok.lexeme,
           filename: currrentFileName,

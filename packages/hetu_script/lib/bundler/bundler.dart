@@ -71,12 +71,21 @@ class HTBundler {
             sources[importFullName] = importedSource;
           }
         } catch (error) {
-          if (error is HTError &&
-              error.code != ErrorCode.resourceDoesNotExist) {
-            sourceParseErrors.add(error);
+          if (error is HTError) {
+            if (error.code != ErrorCode.resourceDoesNotExist) {
+              sourceParseErrors.add(error);
+            } else {
+              final convertedError = HTError.sourceProviderError(
+                  decl.fromPath!, astSource.fullName,
+                  filename: source.fullName,
+                  line: decl.line,
+                  column: decl.column,
+                  offset: decl.offset,
+                  length: decl.length);
+              sourceParseErrors.add(convertedError);
+            }
           } else {
-            final convertedError = HTError.sourceProviderError(
-                decl.fromPath!, astSource.fullName,
+            final convertedError = HTError.extern(error.toString(),
                 filename: source.fullName,
                 line: decl.line,
                 column: decl.column,
