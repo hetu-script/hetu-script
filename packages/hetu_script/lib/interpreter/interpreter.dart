@@ -549,7 +549,7 @@ class HTInterpreter {
         HTEntity namespace = nsp.memberGet(namespaceName, isRecursive: true);
         callee = namespace.memberGet(funcName);
       } else {
-        callee = nsp.memberGet(funcName, isRecursive: false);
+        callee = nsp.memberGet(funcName, isRecursive: true);
       }
       final result = _call(
         callee,
