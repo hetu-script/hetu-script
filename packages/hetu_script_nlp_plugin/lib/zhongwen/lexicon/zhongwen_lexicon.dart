@@ -168,7 +168,7 @@ class ZhongwenLexicon extends HTLexicon {
   String get kTypeValue => 'typeval';
 
   @override
-  String get kTypeDef => 'typedef';
+  String get kTypeDef => 'type';
 
   @override
   String get kTypeOf => 'typeof';
