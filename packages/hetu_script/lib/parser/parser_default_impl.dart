@@ -85,7 +85,7 @@ class HTDefaultParser extends HTParser {
           stmt = _parseImportDecl();
         } else if (curTok.lexeme == lexer.lexicon.kExport) {
           stmt = _parseExportStmt();
-        } else if (curTok.lexeme == lexer.lexicon.kTypedef) {
+        } else if (curTok.lexeme == lexer.lexicon.kTypeDef) {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
           stmt = _parseNamespaceDecl(isTopLevel: true);
@@ -218,7 +218,7 @@ class HTDefaultParser extends HTParser {
           stmt = _parseImportDecl();
         } else if (curTok.lexeme == lexer.lexicon.kExport) {
           stmt = _parseExportStmt();
-        } else if (curTok.lexeme == lexer.lexicon.kTypedef) {
+        } else if (curTok.lexeme == lexer.lexicon.kTypeDef) {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
           stmt = _parseNamespaceDecl(isTopLevel: true);
@@ -320,7 +320,7 @@ class HTDefaultParser extends HTParser {
         }
         break;
       case ParseStyle.namespace:
-        if (curTok.lexeme == lexer.lexicon.kTypedef) {
+        if (curTok.lexeme == lexer.lexicon.kTypeDef) {
           stmt = _parseTypeAliasDecl();
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
           stmt = _parseNamespaceDecl();
@@ -434,7 +434,7 @@ class HTDefaultParser extends HTParser {
         final isExternal = expect([lexer.lexicon.kExternal], consume: true) ||
             (_currentClassDeclaration?.isExternal ?? false);
         final isStatic = expect([lexer.lexicon.kStatic], consume: true);
-        if (curTok.lexeme == lexer.lexicon.kTypedef) {
+        if (curTok.lexeme == lexer.lexicon.kTypeDef) {
           if (isExternal) {
             final err = HTError.external(Semantic.typeAliasDeclaration,
                 filename: currrentFileName,
@@ -754,7 +754,7 @@ class HTDefaultParser extends HTParser {
         }
         break;
       case ParseStyle.functionDefinition:
-        if (curTok.lexeme == lexer.lexicon.kTypedef) {
+        if (curTok.lexeme == lexer.lexicon.kTypeDef) {
           stmt = _parseTypeAliasDecl();
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
           stmt = _parseNamespaceDecl();
@@ -1661,7 +1661,9 @@ class HTDefaultParser extends HTParser {
       expr = _parseFunction(category: FunctionCategory.literal);
     }
 
-    if (expr == null && curTok.type == lexer.lexicon.kType) {
+    // `type` is a common word that could appear in a json5 file,
+    // so we used a special keyword `typeval` here to parse a literal type value
+    if (expr == null && curTok.type == lexer.lexicon.kTypeValue) {
       _isLegalLeftValue = false;
       expr = _parseTypeExpr(handleDeclKeyword: true, isLocal: true);
     }
@@ -1729,7 +1731,7 @@ class HTDefaultParser extends HTParser {
     bool isReturnType = false,
   }) {
     if (handleDeclKeyword) {
-      match(lexer.lexicon.kType);
+      match(lexer.lexicon.kTypeValue);
     }
     // function type
     if (curTok.type == lexer.lexicon.groupExprStart) {

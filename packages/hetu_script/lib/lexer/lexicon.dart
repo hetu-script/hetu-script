@@ -196,8 +196,9 @@ abstract class HTLexicon {
       };
 
   String get kType;
-  String get kTypedef;
-  String get kTypeof;
+  String get kTypeValue;
+  String get kTypeDef;
+  String get kTypeOf;
   String get kDeclTypeof;
 
   String get kImport;
@@ -263,8 +264,8 @@ abstract class HTLexicon {
         kConst,
         kDelete,
         kAssert,
-        kType,
-        kTypeof,
+        // kType,
+        kTypeOf,
         kDeclTypeof,
         kClass,
         kExtends,
@@ -374,7 +375,7 @@ abstract class HTLexicon {
         negative,
         preIncrement,
         preDecrement,
-        kTypeof,
+        kTypeOf,
         kDeclTypeof,
         kAwait,
       };

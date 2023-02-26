@@ -750,7 +750,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final group = GroupExpr(value);
       final bytes = compileAST(group);
       bytesBuilder.add(bytes);
-    } else if (expr.op == _lexicon.kTypeof) {
+    } else if (expr.op == _lexicon.kTypeOf) {
       bytesBuilder.add(value);
       bytesBuilder.addByte(HTOpCode.typeOf);
     } else if (expr.op == _lexicon.kDeclTypeof) {

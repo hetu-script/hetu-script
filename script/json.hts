@@ -1,0 +1,3 @@
+import 'effects.json5' as jsonValue
+
+jsonValue.value

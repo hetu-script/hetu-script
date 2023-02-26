@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hetu_script/hetu_script.dart';
 import 'package:hetu_script_flutter/hetu_script_flutter.dart';
 import 'package:code_text_field/code_text_field.dart';
-import 'package:flutter_highlight/themes/monokai-sublime.dart';
+// import 'package:flutter_highlight/themes/monokai-sublime.dart';
 // import 'package:highlight/languages/dart.dart';
 
 import 'hetu_mode.dart';

@@ -1267,8 +1267,7 @@ class HTInterpreter {
                 id: _currentFileName,
                 moduleName: _currentBytecodeModule.id,
                 value: _localValue);
-            _currentBytecodeModule.jsonSources[jsonSource.id] =
-                jsonSource.value;
+            _currentBytecodeModule.jsonSources[jsonSource.id] = jsonSource;
           } else if (_currentFileResourceType == HTResourceType.hetuModule) {
             _currentBytecodeModule.namespaces[_currentNamespace.id!] =
                 _currentNamespace;
@@ -1982,16 +1981,17 @@ class HTInterpreter {
         final ext = path.extension(fromPath);
         if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
           // TODO: import binary bytes
-          final value = _currentBytecodeModule.jsonSources[fromPath];
-          assert(value != null);
+          final jsonSource = _currentBytecodeModule.jsonSources[fromPath];
+          assert(jsonSource != null);
           _currentNamespace.defineImport(
-              alias!,
-              HTVariable(
-                id: alias,
-                interpreter: this,
-                value: value,
-                closure: _currentNamespace,
-              ));
+            alias!,
+            HTVariable(
+              id: alias,
+              interpreter: this,
+              value: jsonSource!.value,
+              closure: _currentNamespace,
+            ),
+          );
           if (isExported) {
             _currentNamespace.declareExport(alias);
           }
