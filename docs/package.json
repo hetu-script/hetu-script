@@ -18,20 +18,21 @@
   },
   "homepage": "https://github.com/hetu-script/hetu-script",
   "dependencies": {
-    "vue": "^3.2.31"
+    "vue": "^3.2.47"
   },
   "devDependencies": {
-    "@vue/compiler-sfc": "^3.2.31",
-    "@vuepress/bundler-vite": "^2.0.0-beta.35",
-    "@vuepress/client": "^2.0.0-beta.35",
-    "@vuepress/plugin-back-to-top": "^2.0.0-beta.35",
-    "@vuepress/plugin-docsearch": "^2.0.0-beta.35",
-    "@vuepress/plugin-google-analytics": "^2.0.0-beta.35",
-    "@vuepress/plugin-register-components": "^2.0.0-beta.35",
-    "@vuepress/plugin-search": "^2.0.0-beta.35",
-    "@vuepress/shared": "^2.0.0-beta.35",
-    "@vuepress/utils": "^2.0.0-beta.35",
+    "@vue/compiler-sfc": "^3.2.47",
+    "@vuepress/bundler-vite": "^2.0.0-beta.61",
+    "@vuepress/client": "^2.0.0-beta.61",
+    "@vuepress/plugin-back-to-top": "^2.0.0-beta.61",
+    "@vuepress/plugin-docsearch": "^2.0.0-beta.61",
+    "@vuepress/plugin-google-analytics": "^2.0.0-beta.61",
+    "@vuepress/plugin-register-components": "^2.0.0-beta.61",
+    "@vuepress/plugin-search": "^2.0.0-beta.61",
+    "@vuepress/shared": "^2.0.0-beta.61",
+    "@vuepress/theme-default": "^2.0.0-beta.61",
+    "@vuepress/utils": "^2.0.0-beta.61",
     "nprogress": "^0.2.0",
-    "vuepress": "^2.0.0-beta.35"
+    "vuepress": "^2.0.0-beta.61"
   }
 }

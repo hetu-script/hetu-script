@@ -1,8 +1,12 @@
-const { path } = require('@vuepress/utils');
+import { path } from '@vuepress/utils';
+import { defineUserConfig } from 'vuepress';
+import { defaultTheme } from '@vuepress/theme-default';
+import { googleAnalyticsPlugin } from '@vuepress/plugin-google-analytics';
+import { registerComponentsPlugin } from '@vuepress/plugin-register-components';
+import { searchPlugin } from '@vuepress/plugin-search';
 
-module.exports = {
+export default defineUserConfig({
   base: '/docs/',
-  bundler: '@vuepress/bundler-vite',
   locales: {
     '/en-US/': {
       lang: 'en-US',
@@ -16,7 +20,7 @@ module.exports = {
       description: '专为 Flutter 打造的轻量型嵌入式脚本语言。',
     },
   },
-  themeConfig: {
+  theme: defaultTheme({
     locales: {
       '/en-US/': {
         selectLanguageText: 'Select languages',
@@ -308,34 +312,24 @@ module.exports = {
         },
       },
     },
-  },
+  }),
   plugins: [
-    [
-      '@vuepress/plugin-search',
-      {
-        locales: {
-          '/en-US/': {
-            placeholder: 'Search...',
-          },
-          '/zh-Hans/': {
-            placeholder: '搜索...',
-          },
+    // registerComponentsPlugin({
+    //   componentsDir: path.resolve(__dirname, './components'),
+    // }),
+    googleAnalyticsPlugin({
+      id: 'G-KFRTSHXYD5',
+    }),
+    searchPlugin({
+      locales: {
+        '/en-US/': {
+          placeholder: 'Search...',
         },
-        // allow searching the `tags` frontmatter
+        '/zh-Hans/': {
+          placeholder: '搜索...',
+        },
         getExtraFields: (page) => page.frontmatter.tags ?? [],
       },
-    ],
-    [
-      '@vuepress/plugin-google-analytics',
-      {
-        id: 'G-KFRTSHXYD5',
-      },
-    ],
-    [
-      '@vuepress/register-components',
-      {
-        componentsDir: path.resolve(__dirname, './components'),
-      },
-    ],
+    }),
   ],
-};
+});

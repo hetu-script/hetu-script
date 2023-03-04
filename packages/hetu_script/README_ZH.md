@@ -10,9 +10,15 @@
 </p>
 
 <p align="center">
-  <a title="Pub" href="https://pub.dev/packages/hetu_script" ><img src="https://img.shields.io/pub/v/hetu_script" /></a>
-  <a title="VSCode Extension" href="https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript" ><img src="https://vsmarketplacebadge.apphb.com/version/hetu-script.hetuscript.svg" /></a>
-  <a title="Discord" href="https://discord.gg/aJedwcRPr8" ><img src="https://img.shields.io/discord/829269197727989760" /></a>
+  <a title="Pub" href="https://pub.dev/packages/hetu_script" >
+    <img src="https://img.shields.io/pub/v/hetu_script" />
+  </a>
+  <a title="VSCode Extension" href="https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript" >
+    <img src="https://img.shields.io/badge/vscode--market-version.0.0.14-blue" />
+  </a>
+  <a title="Discord" href="https://discord.gg/aJedwcRPr8" >
+    <img src="https://img.shields.io/discord/829269197727989760" />
+  </a>
 </p>
 
 ## 目的

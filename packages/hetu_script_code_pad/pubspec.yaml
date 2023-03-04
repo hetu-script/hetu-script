@@ -32,6 +32,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  assets:
+    - assets/canvaskit/
+
   fonts:
     - family: NotoSansMono
       fonts:

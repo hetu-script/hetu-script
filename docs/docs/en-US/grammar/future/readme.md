@@ -1,8 +1,6 @@
 # Future, async & await
 
-All hetu functions are sync. The script do not support async/await functionality, and we are not planning to do so in the near future.
-
-However, it is possible for an external function to return a Future value.
+It is possible for an external function to return a Future value.
 
 To make things easy, we added a simple wrapper for Dart's Future object. You can use the 'then' method to do something when the Dart Future is completed.
 
@@ -81,4 +79,20 @@ Above code will print:
   41,
   42
 ]
+```
+
+## await
+
+After Hetu version 0.5.0, it possible to use await keyword within async function to avoid complex `then` callbacks.
+
+However, this is an experimental feature, and it's only partly supported.
+
+You can now use await in expressions statement (like a function call statement), variable declaration initialization,
+
+but you still cannot use await within For statement initialization or a function call's arguments in this version.
+
+Example:
+
+```dart
+final result = await fetch() * await valueFuture() * await sumAll();
 ```

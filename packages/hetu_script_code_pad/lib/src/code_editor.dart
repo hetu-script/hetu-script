@@ -12,7 +12,7 @@ const _kMiddleDot = '·';
 
 class CodeEditor extends StatefulWidget {
   static const _helloWorld =
-      r'''range(10).map((value) => print('hello, ${value}'))''';
+      r'''print(range(10).map((value) => 'hello, ${value}'))''';
 
   const CodeEditor({this.initialValue = _helloWorld, super.key});
 
@@ -72,7 +72,7 @@ class _CodeEditorState extends State<CodeEditor> {
     hetu = Hetu();
     hetu.initFlutter();
 
-    hetu.interpreter.bindExternalFunction('print', (HTEntity entity,
+    hetu.interpreter.bindExternalFunction('_print', (HTEntity entity,
         {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},
         List<HTType> typeArgs = const []}) {

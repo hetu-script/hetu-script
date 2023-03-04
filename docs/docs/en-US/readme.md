@@ -23,7 +23,7 @@ footer: <div>
   href="https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript"
   >
   <img
-  src="https://vsmarketplacebadge.apphb.com/version/hetu-script.hetuscript.svg"
+  src="https://img.shields.io/badge/vscode--market-version.0.0.14-blue"
   />
   </a>
   <a href="https://discord.gg/aJedwcRPr8">

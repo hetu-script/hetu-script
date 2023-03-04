@@ -360,7 +360,7 @@ If you omit the memberGet & memberSet on external class binding, and just define
 
 Sometimes, we want to return a pure Dart function from the script side.For example, the onPressed parameter of a Widget's constructor. It is possible to do so with a **external function typedef declaration**, it is a brackets after the fun keyword.
 
-In Hetu script, we have this function typedef:
+In Hetu script, we have this function:
 
 ```dart
 fun [DartFunction] add(a: num, b: num) -> num {

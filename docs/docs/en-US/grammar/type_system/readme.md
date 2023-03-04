@@ -8,7 +8,7 @@ Type is a top class value in Hetu, it can be assigned and returned.
 
 To use a type value in a normal expression, you have to lead it with a `type` keyword.
 
-```dart
+```typescript
 fun checkType(t) {
   when(t) {
     type {} -> {
@@ -25,16 +25,16 @@ fun checkType(t) {
 
 ## Type declaration
 
-You can assign a type value to a name with **typedef** declaration.
+You can assign a type value to a name with **type** declaration.
 
 Type declaration is similar to a variable declaration, except it must has a initializer type expression.
 
-```dart
+```typescript
 class Person {}
 
-typedef PType = Person
-typedef FuncTypedef = (str) -> num
-typedef StructTypedef = {
+type PType = Person
+type FuncTypedef = (str) -> num
+type StructTypedef = {
   name: str,
   age: num,
 }
@@ -66,10 +66,10 @@ Structural type are a kind of [duck typing system](https://en.wikipedia.org/wiki
 
 It's syntax like the struct literal, however, you have to write types rather than a expression value after the key:
 
-```dart
-typedef StructTypedef = {
-  name: str,
-  age: num,
+```typescript
+type StructTypedef = {
+  name: str;
+  age: num;
 };
 ```
 
@@ -81,15 +81,15 @@ Unlike normal function declarations, You cannot omit any part in the function ty
 
 It should have a pair of brackets, a single arrow and a return type.
 
-```dart
-typedef FuncTypedef = (str) -> num
+```typescript
+type FuncTypedef = (str) -> num
 ```
 
 ## Use is to check a type in run-time
 
 Use **is** to do a run-time type check. The expression after **is** will be parsed into a valid type value, and you don't need to use `type` keyword after `is`.
 
-```javascript
+```typescript
 fun doSomething(value) {
   if (value is str) {
     print('A String!')
@@ -105,10 +105,10 @@ fun doSomething(value) {
 
 Use **typeof** keyword to dynamically get the runtime type of a value.
 
-```dart
+```typescript
 fun main {
-  // decalre a function typedef
-  typedef FuncTypedef = fun(str) -> num
+  // decalre a function type
+  type FuncTypedef = fun(str) -> num
   // assign a function to a value of a certain function type
   var numparse: FuncTypedef = fun(value: str) -> num { return num.parse(value) }
   // get a value's runtime type and return it from a function
@@ -123,7 +123,7 @@ fun main {
 
 The type of a type is always 'type', no matter it's a primitive, instance, or function type.
 
-```dart
-typedef Functype = () -> any
+```typescript
+type Functype = () -> any
 print(typeof functype) // type
 ```

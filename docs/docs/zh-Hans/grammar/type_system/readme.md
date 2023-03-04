@@ -8,7 +8,7 @@
 
 如果你想要在值表达式中获取一个类型的值，你必须使用 `type` 关键字：
 
-```dart
+```typescript
 fun checkType(t) {
   when(t) {
     type {} -> {
@@ -25,14 +25,14 @@ fun checkType(t) {
 
 ## 类型声明
 
-类型声明以 `typedef` 作为关键字，用法类似变量声明，但类型声明必须提供一个初始化值。
+类型声明以 `type` 作为关键字，用法类似变量声明，但类型声明必须提供一个初始化值。
 
-```dart
+```typescript
 class Person {}
 
-typedef PType = Person
-typedef FuncTypedef = (str) -> num
-typedef StructTypedef = {
+type PType = Person
+type FuncTypedef = (str) -> num
+type StructTypedef = {
   name: str,
   age: num,
 }
@@ -64,10 +64,10 @@ class Person {}
 
 它的语法类似于 struct 字面量，但在键名冒号后面跟着的一定是一个类型，而不是表达式。
 
-```dart
-typedef StructTypedef = {
-  name: str,
-  age: num,
+```typescript
+type StructTypedef = {
+  name: str;
+  age: num;
 };
 ```
 
@@ -77,15 +77,15 @@ typedef StructTypedef = {
 
 它一定要包含一个圆括号括起来的参数列表（但可以为空），以及一个单箭头后面的返回值类型。
 
-```dart
-typedef FuncTypedef = (str) -> num
+```typescript
+type FuncTypedef = (str) -> num
 ```
 
 ## 使用 is 在运行时动态检查类型
 
 使用 **is** 关键字可以在运行时动态检查某个值对应的类型。
 
-```javascript
+```typescript
 fun doSomething(value) {
   if (value is str) {
     print('A String!')
@@ -101,10 +101,10 @@ fun doSomething(value) {
 
 使用 **typeof** 关键字可以在运行时动态获取某个值对应的类型。
 
-```dart
+```typescript
 fun main {
   // decalre a function typedef
-  typedef FuncTypedef = fun(str) -> num
+  type FuncTypedef = fun(str) -> num
   // assign a function to a value of a certain function type
   var numparse: FuncTypedef = fun(value: str) -> num { return num.parse(value) }
   // get a value's runtime type and return it from a function
@@ -119,7 +119,7 @@ fun main {
 
 类型本身的类型永远是 'type'。
 
-```dart
-typedef Functype = ()->any
+```typescript
+type Functype = ()->any
 print(typeof (typeof functype)) // type
 ```
