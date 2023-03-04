@@ -167,10 +167,10 @@ class HTDefaultLexicon extends HTLexicon {
   String get kType => 'type';
 
   @override
-  String get kTypeValue => 'typeval';
+  String get kTypeDef => 'type';
 
   @override
-  String get kTypeDef => 'type';
+  String get kTypeValue => 'typeval';
 
   @override
   String get kTypeOf => 'typeof';
@@ -645,7 +645,7 @@ class HTDefaultLexicon extends HTLexicon {
   }
 
   @override
-  String stringify(dynamic object, {bool asStringLiteral = false}) {
+  String stringify(Object? object, {bool asStringLiteral = false}) {
     final output = StringBuffer();
     if (object is String) {
       if (asStringLiteral) {

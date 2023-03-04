@@ -67,8 +67,8 @@ void main() {
       final result = hetu.eval(r'''
         var numparse: (str) -> num = fun (value: str) -> num { return num.parse(value) }
         var getType = fun { typeof numparse }
-        var funcTypedef2 = getType()
-        var strlength: funcTypedef2 = fun (value: str) -> num { return value.length }
+        var functype2 = getType()
+        var strlength: functype2 = fun (value: str) -> num { return value.length }
         strlength('hello world')
       ''');
       expect(
@@ -84,7 +84,7 @@ void main() {
             this.name = name
           }
         }
-        typedef Alias = A
+        type Alias = A
         var aa = Alias('jimmy')
         aa.name
       ''');
@@ -95,7 +95,7 @@ void main() {
     });
     test('type alias function', () {
       final result = hetu.eval(r'''
-        typedef MyFuncType = (num, num) -> num
+        type MyFuncType = (num, num) -> num
         var func: MyFuncType = fun add(a: num, b: num) -> num => a + b
         func(6, 7)
       ''');
@@ -106,7 +106,7 @@ void main() {
     });
     test('structural type', () {
       final result = hetu.eval(r'''
-        typedef ObjType = {
+        type ObjType = {
           name: str,
           greeting: () -> any,
         }
@@ -127,13 +127,13 @@ void main() {
       final result = hetu.eval(r'''
         fun checkType(t) {
           when(t) {
-            type {} -> 'a structural type'
+            typeval {} -> 'a structural type'
             // the function won't match here
             // you have to use the exact type value here for match
-            type ()->any -> 'a function type'
+            typeval ()->any -> 'a function type'
           }
         }
-        checkType(type ()->any)
+        checkType(typeof () {})
       ''');
       expect(
         result,

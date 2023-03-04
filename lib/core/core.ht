@@ -23,7 +23,9 @@ fun createStructfromJson(data) {
   if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
-  _hetu.createStructfromJson(data)
+  if (data is Map) {
+    return _hetu.createStructfromJson(data)
+  }
 }
 
 external fun _print(obj: any)
@@ -60,7 +62,9 @@ fun eval(code: str) {
   if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
-  return _hetu.eval(code)
+  if (code != null) {
+    return _hetu.eval(code)
+  }
 }
 
 /// dynamically eval a source on current sourceContext,
@@ -78,8 +82,11 @@ fun require(path: str) {
 /// Usage:
 ///   help(require)
 fun help(id: str) {
-  if (!_isInitialized) {
+  if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
+  }
+  if (id == null) {
+    throw 'Must provide an identifier to get its help.'
   }
   return _hetu.help(id)
 }
