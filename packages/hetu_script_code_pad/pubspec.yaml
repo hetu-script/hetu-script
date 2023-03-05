@@ -32,8 +32,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  assets:
-    - assets/canvaskit/
+  # assets:
+  #   - assets/canvaskit/profiling/
 
   fonts:
     - family: NotoSansMono
