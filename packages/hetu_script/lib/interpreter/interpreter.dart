@@ -108,7 +108,6 @@ enum StackFrameStrategy {
 class HTContext {
   final String? filename;
   final String? moduleName;
-  final bool? isScriptMode;
   final HTNamespace? namespace;
   final int? ip;
   final int? line;
@@ -117,7 +116,6 @@ class HTContext {
   HTContext({
     this.filename,
     this.moduleName,
-    this.isScriptMode,
     this.namespace,
     this.ip,
     this.line,
