@@ -9,13 +9,13 @@ void main() {
     sourceContext: sourceContext,
     config: HetuConfig(
       checkTypeAnnotationAtRuntime: true,
+      printPerformanceStatistics: true,
     ),
   );
   hetu.init();
   final binaryFile = File('examples/script/module.out');
   final bytes = binaryFile.readAsBytesSync();
-  hetu.interpreter.loadBytecode(
-      bytes: bytes, moduleName: 'actor', printPerformanceStatistics: true);
+  hetu.interpreter.loadBytecode(bytes: bytes, moduleName: 'actor');
 
   hetu.evalFile('import_binary_module.hts');
 }

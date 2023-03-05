@@ -7,7 +7,7 @@ Future<void> main() async {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
-      printPerformanceStatistics: false,
+      // printPerformanceStatistics: true,
       removeLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
@@ -105,20 +105,15 @@ Future<void> main() async {
   );
 
   final r = hetu.eval('''
-    external fun fetch
+    namespace Test {
+      external fun fetch
+    }
 
-        class Ming {
-          var first = 'tom'
-        }
-        class Member {
-          var array = {'tom': 'kaine'}
-          var name = Ming()
-        }
-        var m = Member()
-        // m.array[m.name.first] = 'klaine'
-        // print(m.array)
+    fun f async {
+      await Test.fetch()
+    }
 
-        m.name.first = 'Jimmy'
+    final r = await f()
     ''');
 
   if (r is Future) {

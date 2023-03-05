@@ -795,7 +795,8 @@ class HTDefaultLexicon extends HTLexicon {
         }
         ++i;
       }
-      final returnTypeString = _stringifyType(type.returnType);
+      final returnTypeString =
+          type.returnType != null ? _stringifyType(type.returnType!) : typeAny;
       output.write(
           '$functionParameterEnd $functionReturnTypeIndicator $returnTypeString');
     } else if (type is HTStructuralType) {

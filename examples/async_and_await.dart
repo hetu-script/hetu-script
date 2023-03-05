@@ -1,7 +1,11 @@
 import 'package:hetu_script/hetu_script.dart';
 
 Future<void> main() async {
-  final hetu = Hetu(config: HetuConfig(printPerformanceStatistics: false));
+  final hetu = Hetu(
+    config: HetuConfig(
+      printPerformanceStatistics: false,
+    ),
+  );
   hetu.init(
     externalFunctions: {
       'fetch': () =>

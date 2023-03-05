@@ -1868,7 +1868,7 @@ class FuncDecl extends ASTNode {
   @override
   void subAccept(AbstractASTVisitor visitor) {
     returnType?.accept(visitor);
-    redirectingCtorCallExpr?.accept(visitor);
+    redirectingConstructorCall?.accept(visitor);
     for (final param in paramDecls) {
       param.accept(visitor);
     }
@@ -1887,7 +1887,7 @@ class FuncDecl extends ASTNode {
 
   final TypeExpr? returnType;
 
-  final RedirectingConstructorCallExpr? redirectingCtorCallExpr;
+  final RedirectingConstructorCallExpr? redirectingConstructorCall;
 
   final bool hasParamDecls;
 
@@ -1934,7 +1934,7 @@ class FuncDecl extends ASTNode {
     this.classId,
     this.genericTypeParameters = const [],
     this.externalTypeId,
-    this.redirectingCtorCallExpr,
+    this.redirectingConstructorCall,
     this.paramDecls = const [],
     this.hasParamDecls = true,
     this.returnType,

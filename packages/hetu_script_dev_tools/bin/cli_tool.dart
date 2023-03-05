@@ -286,7 +286,6 @@ void compile(List<String> args,
     source: source,
     parser: parser,
     version: version,
-    printPerformanceStatistics: true,
   );
   if (module.errors.isNotEmpty) {
     for (final err in module.errors) {
@@ -296,7 +295,7 @@ void compile(List<String> args,
   } else {
     final compileConfig = CompilerConfig(removeLineInfo: true);
     final compiler = HTCompiler(config: compileConfig);
-    final bytes = compiler.compile(module, printPerformanceStatistics: true);
+    final bytes = compiler.compile(module);
 
     final curPath = path.dirname(source.fullName);
     late String outPath;

@@ -40,9 +40,12 @@ class ParserConfig {
 
   bool allowImplicitVariableDeclaration;
 
+  bool printPerformanceStatistics;
+
   ParserConfig({
     this.explicitEndOfStatement = false,
     this.allowImplicitVariableDeclaration = false,
+    this.printPerformanceStatistics = false,
   });
 }
 
@@ -217,8 +220,7 @@ abstract class HTParser with TokenReader {
   }
 
   /// Convert string content into [ASTSource] by a certain grammar rules set.
-  ASTSource parseSource(HTSource source,
-      {bool printPerformanceStatistics = false}) {
+  ASTSource parseSource(HTSource source) {
     final tik = DateTime.now().millisecondsSinceEpoch;
     currrentFileName = source.fullName;
     resetFlags();
@@ -230,7 +232,7 @@ abstract class HTParser with TokenReader {
         source: source,
         imports: currentModuleImports,
         errors: errors); // copy the list);
-    if (printPerformanceStatistics) {
+    if (config.printPerformanceStatistics) {
       final tok = DateTime.now().millisecondsSinceEpoch;
       print('hetu: ${tok - tik}ms\tto parse\t[${source.fullName}]');
     }

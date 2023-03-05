@@ -40,7 +40,6 @@ import '../bytecode/compiler.dart';
 import '../version.dart';
 import '../value/unresolved_import.dart';
 import '../locale/locale.dart';
-import '../analyzer/analyzer.dart' show AnalyzerImplConfig;
 
 /// Mixin for classes that want to hold a ref of a bytecode interpreter
 mixin InterpreterRef {
@@ -48,7 +47,7 @@ mixin InterpreterRef {
 }
 
 /// Collection of config of bytecode interpreter.
-class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
+class InterpreterConfig implements ErrorHandlerConfig {
   @override
   bool showDartStackTrace;
 
@@ -61,17 +60,15 @@ class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
   @override
   bool processError;
 
-  @override
   bool allowVariableShadowing;
 
-  @override
   bool allowImplicitVariableDeclaration;
 
-  @override
   bool allowImplicitNullToZeroConversion;
 
-  @override
   bool allowImplicitEmptyValueToFalseConversion;
+
+  bool printPerformanceStatistics;
 
   bool checkTypeAnnotationAtRuntime;
 
@@ -86,6 +83,7 @@ class InterpreterConfig implements AnalyzerImplConfig, ErrorHandlerConfig {
     this.allowImplicitVariableDeclaration = false,
     this.allowImplicitNullToZeroConversion = false,
     this.allowImplicitEmptyValueToFalseConversion = false,
+    this.printPerformanceStatistics = false,
     this.checkTypeAnnotationAtRuntime = false,
     this.resolveExternalFunctionsDynamically = false,
   });
@@ -110,6 +108,7 @@ enum StackFrameStrategy {
 class HTContext {
   final String? filename;
   final String? moduleName;
+  final bool? isScriptMode;
   final HTNamespace? namespace;
   final int? ip;
   final int? line;
@@ -118,6 +117,7 @@ class HTContext {
   HTContext({
     this.filename,
     this.moduleName,
+    this.isScriptMode,
     this.namespace,
     this.ip,
     this.line,
@@ -142,6 +142,18 @@ class FutureExecution {
 class HTInterpreter {
   static HTClass? rootClass;
   static HTStruct? rootStruct;
+
+  int tik = 0;
+
+  bool scriptMode = false, globallyImport = false;
+
+  late Version compilerVersion;
+
+  String? invokeFunc;
+
+  List<dynamic> positionalArgs = const [];
+  Map<String, dynamic> namedArgs = const {};
+  List<HTType> typeArgs = const [];
 
   final stackTraceList = <String>[];
 
@@ -885,10 +897,15 @@ class HTInterpreter {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
     List<HTType> typeArgs = const [],
-    bool printPerformanceStatistics = false,
   }) {
     try {
-      final tik = DateTime.now().millisecondsSinceEpoch;
+      this.globallyImport = globallyImport;
+      this.invokeFunc = invokeFunc;
+      this.positionalArgs = positionalArgs;
+      this.namedArgs = namedArgs;
+      this.typeArgs = typeArgs;
+
+      tik = DateTime.now().millisecondsSinceEpoch;
       _currentBytecodeModule = HTBytecodeModule(id: moduleName, bytes: bytes);
       cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       final signature = _currentBytecodeModule.readUint32();
@@ -899,7 +916,7 @@ class HTInterpreter {
             column: _currentColumn);
       }
       // compare the version of the compiler of the bytecode to my version.
-      final compilerVersion = _handleVersion();
+      compilerVersion = _handleVersion();
       var incompatible = false;
       if (compilerVersion.major > 0) {
         if (compilerVersion.major > kHetuVersion.major) {
@@ -929,58 +946,16 @@ class HTInterpreter {
       _currentFileName = _currentBytecodeModule.readUtf8String();
       final sourceType =
           HTResourceType.values.elementAt(_currentBytecodeModule.read());
-      final isModuleEntryScript = (sourceType == HTResourceType.hetuScript) ||
+      scriptMode = (sourceType == HTResourceType.hetuScript) ||
           (sourceType == HTResourceType.hetuLiteralCode) ||
           (sourceType == HTResourceType.json);
-      // TODO: import binary bytes
+      // TODO: import binary file
       dynamic result = execute(
         retractStackFrame: false,
         // endOfFileHandler: () {
         // },
-        endOfModuleHandler: () {
-          if (!isModuleEntryScript) {
-            /// deal with import statement within every namespace of this module.
-            for (final nsp in _currentBytecodeModule.namespaces.values) {
-              for (final decl in nsp.imports.values) {
-                _handleNamespaceImport(nsp, decl);
-              }
-            }
-          }
-          // resolve each declaration after we get all declarations
-          // if (!_isModuleEntryScript) {
-          //   for (final namespace in _currentBytecodeModule.namespaces.values) {
-          //     for (final decl in namespace.declarations.values) {
-          //       decl.resolve();
-          //     }
-          //   }
-          // }
-          if (printPerformanceStatistics) {
-            final tok = DateTime.now().millisecondsSinceEpoch;
-            var message =
-                'hetu: ${tok - tik}ms\tto load module\t${_currentBytecodeModule.id}';
-            if (_currentBytecodeModule.version != null) {
-              message += '@${_currentBytecodeModule.version}';
-            }
-            message +=
-                ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu@$compilerVersion)';
-            print(message);
-          }
-          if (globallyImport && _currentNamespace != globalNamespace) {
-            globalNamespace.import(_currentNamespace);
-          }
-          dynamic r;
-          if (invokeFunc != null) {
-            r = invoke(invokeFunc,
-                moduleName:
-                    isModuleEntryScript ? null : _currentBytecodeModule.id,
-                positionalArgs: positionalArgs,
-                namedArgs: namedArgs);
-            return r;
-          } else if (isModuleEntryScript) {
-            r = _stackFrames.last.first;
-          }
-          return r;
-        },
+        // endOfModuleHandler: () {
+        // },
       );
       if (result is FutureExecution) {
         result = waitForAllFutureExucution(result);
@@ -1092,8 +1067,8 @@ class HTInterpreter {
     HTContext? context,
     List<dynamic>? stackFrame,
     dynamic localValue,
-    void Function()? endOfFileHandler,
-    dynamic Function()? endOfModuleHandler,
+    // void Function()? endOfFileHandler,
+    // dynamic Function()? endOfModuleHandler,
   }) {
     final savedContext = getContext(
       filename: context?.filename != null,
@@ -1111,7 +1086,9 @@ class HTInterpreter {
       stackFrame: stackFrame,
     );
     if (localValue != null) _localValue = localValue;
-    final result = _execute(endOfFileHandler, endOfModuleHandler);
+    final result = _execute(
+        // endOfFileHandler, endOfModuleHandler
+        );
     setContext(
         stackFrameStrategy: (retractStackFrame || stackFrame != null)
             ? StackFrameStrategy.retract
@@ -1127,9 +1104,9 @@ class HTInterpreter {
   }
 
   dynamic _execute(
-    void Function()? endOfFileHandler,
-    dynamic Function()? endOfModuleHandler,
-  ) {
+      // void Function()? endOfFileHandler,
+      // dynamic Function()? endOfModuleHandler,
+      ) {
     int instruction;
     do {
       instruction = _currentBytecodeModule.read();
@@ -1275,12 +1252,51 @@ class HTInterpreter {
             _currentBytecodeModule.namespaces[_currentNamespace.id!] =
                 _currentNamespace;
           }
-          endOfFileHandler?.call();
+          // endOfFileHandler?.call();
           break;
         case HTOpCode.endOfModule:
+          if (!scriptMode) {
+            /// deal with import statement within every namespace of this module.
+            for (final nsp in _currentBytecodeModule.namespaces.values) {
+              for (final decl in nsp.imports.values) {
+                _handleNamespaceImport(nsp, decl);
+              }
+            }
+          }
+          // resolve each declaration after we get all declarations
+          // if (!_isModuleEntryScript) {
+          //   for (final namespace in _currentBytecodeModule.namespaces.values) {
+          //     for (final decl in namespace.declarations.values) {
+          //       decl.resolve();
+          //     }
+          //   }
+          // }
+          if (config.printPerformanceStatistics) {
+            final tok = DateTime.now().millisecondsSinceEpoch;
+            var message =
+                'hetu: ${tok - tik}ms\tto load module\t${_currentBytecodeModule.id}';
+            if (_currentBytecodeModule.version != null) {
+              message += '@${_currentBytecodeModule.version}';
+            }
+            message +=
+                ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu@$compilerVersion)';
+            print(message);
+          }
+          if (globallyImport && _currentNamespace != globalNamespace) {
+            globalNamespace.import(_currentNamespace);
+          }
           dynamic r;
-          if (endOfModuleHandler != null) {
-            r = endOfModuleHandler();
+          if (invokeFunc != null) {
+            r = invoke(
+              invokeFunc!,
+              // moduleName: scriptMode ? null : _currentBytecodeModule.id,
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
+              typeArgs: typeArgs,
+            );
+            return r;
+          } else if (scriptMode) {
+            r = _stackFrames.last.first;
           }
           return r;
         case HTOpCode.importExportDecl:
@@ -2221,10 +2237,12 @@ class HTInterpreter {
         _localValue = _handleStructuralType();
         break;
       default:
-        throw HTError.unkownValueType(valueType,
-            filename: _currentFileName,
-            line: _currentLine,
-            column: _currentColumn);
+        throw HTError.unkownValueType(
+          valueType,
+          filename: _currentFileName,
+          line: _currentLine,
+          column: _currentColumn,
+        );
     }
   }
 

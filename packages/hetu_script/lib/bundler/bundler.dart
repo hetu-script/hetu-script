@@ -9,12 +9,25 @@ import '../error/error.dart';
 import '../ast/ast.dart';
 import '../parser/parser.dart';
 
+class BundlerConfig {
+  bool printPerformanceStatistics;
+
+  BundlerConfig({
+    this.printPerformanceStatistics = false,
+  });
+}
+
 /// Handle import statement in sources and bundle
 /// all related sources into a single compilation
 class HTBundler {
+  BundlerConfig config;
+
   final HTResourceContext<HTSource> sourceContext;
 
-  HTBundler({required this.sourceContext});
+  HTBundler({
+    BundlerConfig? config,
+    required this.sourceContext,
+  }) : config = config ?? BundlerConfig();
 
   /// Parse a string content and generate a library,
   /// will import other files.
@@ -22,11 +35,9 @@ class HTBundler {
     required HTSource source,
     required HTParser parser,
     bool normalizePath = true,
-    bool printPerformanceStatistics = false,
     Version? version,
   }) {
-    final sourceParseResult = parser.parseSource(source,
-        printPerformanceStatistics: printPerformanceStatistics);
+    final sourceParseResult = parser.parseSource(source);
     final tik = DateTime.now().millisecondsSinceEpoch;
     final sourceParseErrors = sourceParseResult.errors;
     final values = <String, ASTSource>{};
@@ -58,8 +69,7 @@ class HTBundler {
           if (sources.keys.contains(importFullName) ||
               cachedParsingTargets.contains(importFullName)) continue;
           final source2 = sourceContext.getResource(importFullName);
-          importedSource = parser.parseSource(source2,
-              printPerformanceStatistics: printPerformanceStatistics);
+          importedSource = parser.parseSource(source2);
           // final parser2 = HTParser(sourceContext: sourceContext);
           // importedSource = parser2.parseSource(source2);
           sourceParseErrors.addAll(importedSource.errors);
@@ -112,7 +122,7 @@ class HTBundler {
       errors: sourceParseErrors,
       version: version,
     );
-    if (printPerformanceStatistics) {
+    if (config.printPerformanceStatistics) {
       final tok = DateTime.now().millisecondsSinceEpoch;
       print('hetu: ${tok - tik}ms\tto bundle\t[${source.fullName}]');
     }

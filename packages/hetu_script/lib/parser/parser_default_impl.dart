@@ -7,6 +7,7 @@ import '../resource/resource.dart';
 import '../resource/resource_context.dart';
 import '../grammar/constant.dart';
 import '../declaration/class/class_declaration.dart';
+import '../declaration/function/function_declaration.dart';
 import '../ast/ast.dart';
 import '../version.dart';
 
@@ -20,19 +21,20 @@ class HTDefaultParser extends HTParser {
   });
 
   bool get _isWithinModuleNamespace {
-    if (_currentFunctionCategory != null) {
+    if (_currentFunctionDeclaration != null) {
       return false;
-    } else if (currentSource != null) {
-      if (currentSource!.type == HTResourceType.hetuModule) {
-        return true;
-      }
     }
+
+    if (currentSource?.type == HTResourceType.hetuModule) {
+      return true;
+    }
+
     return false;
   }
 
   // String? _currentExplicitNamespaceId;
   HTClassDeclaration? _currentClassDeclaration;
-  FunctionCategory? _currentFunctionCategory;
+  HTFunctionDeclaration? _currentFunctionDeclaration;
   String? _currentStructId;
   bool _isLegalLeftValue = false;
   bool _hasUserDefinedConstructor = false;
@@ -41,7 +43,7 @@ class HTDefaultParser extends HTParser {
   @override
   void resetFlags() {
     _currentClassDeclaration = null;
-    _currentFunctionCategory = null;
+    _currentFunctionDeclaration = null;
     _currentStructId = null;
     _isLegalLeftValue = false;
     _hasUserDefinedConstructor = false;
@@ -871,8 +873,8 @@ class HTDefaultParser extends HTParser {
               offset: keyword.offset,
               length: keyword.length);
         } else if (curTok.type == lexer.lexicon.kReturn) {
-          if (_currentFunctionCategory == null ||
-              _currentFunctionCategory == FunctionCategory.constructor) {
+          if (_currentFunctionDeclaration?.category ==
+              FunctionCategory.constructor) {
             final err = HTError.misplacedReturn(
                 filename: currrentFileName,
                 line: curTok.line,
@@ -1203,7 +1205,7 @@ class HTDefaultParser extends HTParser {
 
   /// Prefix -e, !e，++e, --e, await e, precedence 15, associativity none
   ASTNode _parseUnaryPrefixExpr() {
-    if (!(lexer.lexicon.unaryPrefixs.contains(curTok.type))) {
+    if (!lexer.lexicon.unaryPrefixs.contains(curTok.type)) {
       return _parseUnaryPostfixExpr();
     } else {
       _isLegalLeftValue = false;
@@ -1231,8 +1233,22 @@ class HTDefaultParser extends HTParser {
           errors.add(err);
         }
       }
+      final isAsyncValue = op.type == lexer.lexicon.kAwait;
+      if (isAsyncValue) {
+        if (_currentFunctionDeclaration != null &&
+            !_currentFunctionDeclaration!.isAsync) {
+          final err = HTError.awaitWithoutAsync(
+              filename: currrentFileName,
+              line: value.line,
+              column: value.column,
+              offset: value.offset,
+              length: value.length);
+          errors.add(err);
+        }
+      }
+
       return UnaryPrefixExpr(op.lexeme, value,
-          isAsyncValue: op.type == lexer.lexicon.kAwait,
+          isAsyncValue: isAsyncValue,
           source: currentSource,
           line: op.line,
           column: op.column,
@@ -1494,9 +1510,8 @@ class HTDefaultParser extends HTParser {
 
     // this expression
     if (expr == null && curTok.type == lexer.lexicon.kThis) {
-      if (_currentFunctionCategory == null ||
-          (_currentFunctionCategory != FunctionCategory.literal &&
-              (_currentClassDeclaration == null && _currentStructId == null))) {
+      if (_currentFunctionDeclaration?.category != FunctionCategory.literal &&
+          (_currentClassDeclaration == null && _currentStructId == null)) {
         final err = HTError.misplacedThis(
             filename: currrentFileName,
             line: curTok.line,
@@ -1518,7 +1533,7 @@ class HTDefaultParser extends HTParser {
     // super constructor call
     if (expr == null && curTok.type == lexer.lexicon.kSuper) {
       if (_currentClassDeclaration == null ||
-          _currentFunctionCategory == null) {
+          _currentFunctionDeclaration == null) {
         final err = HTError.misplacedSuper(
             filename: currrentFileName,
             line: curTok.line,
@@ -2774,10 +2789,8 @@ class HTDefaultParser extends HTParser {
       bool isStatic = false,
       bool isConst = false,
       bool isTopLevel = false}) {
-    final savedCurrentFunctionCategory = _currentFunctionCategory;
-    _currentFunctionCategory = category;
     late Token startTok;
-    String? externalTypedef;
+    String? externalTypeId;
     if (category != FunctionCategory.literal || hasKeyword) {
       // there are multiple keyword for function, so don't use match here.
       startTok = advance();
@@ -2786,7 +2799,7 @@ class HTDefaultParser extends HTParser {
               category == FunctionCategory.normal ||
               category == FunctionCategory.literal)) {
         if (expect([lexer.lexicon.listStart], consume: true)) {
-          externalTypedef = match(Semantic.identifier).lexeme;
+          externalTypeId = match(Semantic.identifier).lexeme;
           match(lexer.lexicon.listEnd);
         }
       }
@@ -2825,8 +2838,8 @@ class HTDefaultParser extends HTParser {
         id = match(Semantic.identifier);
         internalName = id.lexeme;
     }
-    final genericParameters = _getGenericParams();
-    var isFuncVariadic = false;
+    final genericTypeParameters = _getGenericParams();
+    var isVariadic = false;
     var minArity = 0;
     var maxArity = 0;
     List<ParamDecl> paramDecls = [];
@@ -2843,7 +2856,7 @@ class HTDefaultParser extends HTParser {
         bool isParamVariadic = false;
         if (allowVariadic) {
           isParamVariadic = expect([lexer.lexicon.variadicArgs], consume: true);
-          if (isFuncVariadic && isParamVariadic) {
+          if (isVariadic && isParamVariadic) {
             final err = HTError.unexpected(Semantic.funcTypeExpr,
                 Semantic.paramTypeExpr, lexer.lexicon.variadicArgs,
                 filename: currrentFileName,
@@ -2853,7 +2866,7 @@ class HTDefaultParser extends HTParser {
                 length: curTok.length);
             errors.add(err);
           }
-          isFuncVariadic = isParamVariadic;
+          isVariadic = isParamVariadic;
         }
         TypeExpr? paramDeclType;
         IdentifierExpr paramSymbol;
@@ -2971,7 +2984,7 @@ class HTDefaultParser extends HTParser {
     }
 
     TypeExpr? returnType;
-    RedirectingConstructorCallExpr? referCtor;
+    RedirectingConstructorCallExpr? redirectingCtorCallExpr;
     // the return value type declaration
     if (expect([lexer.lexicon.functionReturnTypeIndicator], consume: true)) {
       if (category == FunctionCategory.constructor ||
@@ -3035,7 +3048,7 @@ class HTDefaultParser extends HTParser {
       var positionalArgs = <ASTNode>[];
       var namedArgs = <String, ASTNode>{};
       _handleCallArguments(positionalArgs, namedArgs);
-      referCtor = RedirectingConstructorCallExpr(
+      redirectingCtorCallExpr = RedirectingConstructorCallExpr(
           IdentifierExpr.fromToken(ctorCallee, source: currentSource),
           positionalArgs,
           namedArgs,
@@ -3056,6 +3069,28 @@ class HTDefaultParser extends HTParser {
         isAsync = true;
       }
     }
+
+    final savedCurrentFunctionDeclaration = _currentFunctionDeclaration;
+    _currentFunctionDeclaration = HTFunctionDeclaration(
+      internalName: internalName,
+      id: id?.lexeme,
+      classId: classId,
+      isExternal: isExternal,
+      isStatic: isStatic,
+      isConst: isConst,
+      isTopLevel: isTopLevel,
+      category: category,
+      externalTypeId: externalTypeId,
+      // genericTypeParameters: genericTypeParameters,
+      hasParamDecls: hasParamDecls,
+      isAsync: isAsync,
+      isField: isField,
+      // isAbstract: definition != null,
+      isVariadic: isVariadic,
+      minArity: minArity,
+      maxArity: maxArity,
+    );
+
     bool isExpressionBody = false;
     bool hasEndOfStmtMark = false;
     ASTNode? definition;
@@ -3099,36 +3134,38 @@ class HTDefaultParser extends HTParser {
         expect([lexer.lexicon.endOfStatementMark], consume: true);
       }
     }
-    _currentFunctionCategory = savedCurrentFunctionCategory;
-    final funcDecl = FuncDecl(internalName,
-        id: id != null
-            ? IdentifierExpr.fromToken(id, source: currentSource)
-            : null,
-        classId: classId,
-        genericTypeParameters: genericParameters,
-        externalTypeId: externalTypedef,
-        redirectingCtorCallExpr: referCtor,
-        hasParamDecls: hasParamDecls,
-        paramDecls: paramDecls,
-        returnType: returnType,
-        minArity: minArity,
-        maxArity: maxArity,
-        isExpressionBody: isExpressionBody,
-        hasEndOfStmtMark: hasEndOfStmtMark,
-        definition: definition,
-        isAsync: isAsync,
-        isField: isField,
-        isExternal: isExternal,
-        isStatic: isStatic,
-        isConst: isConst,
-        isVariadic: isFuncVariadic,
-        isTopLevel: isTopLevel,
-        category: category,
-        source: currentSource,
-        line: startTok.line,
-        column: startTok.column,
-        offset: startTok.offset,
-        length: curTok.offset - startTok.offset);
+    final funcDecl = FuncDecl(
+      internalName,
+      id: id != null
+          ? IdentifierExpr.fromToken(id, source: currentSource)
+          : null,
+      classId: classId,
+      genericTypeParameters: genericTypeParameters,
+      externalTypeId: externalTypeId,
+      redirectingConstructorCall: redirectingCtorCallExpr,
+      hasParamDecls: hasParamDecls,
+      paramDecls: paramDecls,
+      returnType: returnType,
+      minArity: minArity,
+      maxArity: maxArity,
+      isExpressionBody: isExpressionBody,
+      hasEndOfStmtMark: hasEndOfStmtMark,
+      definition: definition,
+      isAsync: isAsync,
+      isField: isField,
+      isExternal: isExternal,
+      isStatic: isStatic,
+      isConst: isConst,
+      isVariadic: isVariadic,
+      isTopLevel: isTopLevel,
+      category: category,
+      source: currentSource,
+      line: startTok.line,
+      column: startTok.column,
+      offset: startTok.offset,
+      length: curTok.offset - startTok.offset,
+    );
+    _currentFunctionDeclaration = savedCurrentFunctionDeclaration;
     return funcDecl;
   }
 
@@ -3167,10 +3204,11 @@ class HTDefaultParser extends HTParser {
     }
     final savedClass = _currentClassDeclaration;
     _currentClassDeclaration = HTClassDeclaration(
-        id: id.lexeme,
-        classId: classId,
-        isExternal: isExternal,
-        isAbstract: isAbstract);
+      id: id.lexeme,
+      classId: classId,
+      isExternal: isExternal,
+      isAbstract: isAbstract,
+    );
     final savedHasUsrDefCtor = _hasUserDefinedConstructor;
     _hasUserDefinedConstructor = false;
     final definition = _parseBlockStmt(

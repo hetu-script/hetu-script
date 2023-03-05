@@ -20,47 +20,30 @@ import '../lexer/lexicon_default_impl.dart';
 /// Namespace that holds symbols for analyzing, the value is either the declaration AST or null.
 typedef AnalysisNamespace = HTDeclarationNamespace<ASTNode?>;
 
-class AnalyzerImplConfig {
-  bool allowVariableShadowing;
-
-  bool allowImplicitVariableDeclaration;
-
-  bool allowImplicitNullToZeroConversion;
-
-  bool allowImplicitEmptyValueToFalseConversion;
-
-  AnalyzerImplConfig({
-    this.allowVariableShadowing = true,
-    this.allowImplicitVariableDeclaration = false,
-    this.allowImplicitNullToZeroConversion = false,
-    this.allowImplicitEmptyValueToFalseConversion = false,
-  });
-}
-
-class AnalyzerConfig implements AnalyzerImplConfig {
+class AnalyzerConfig {
   bool computeConstantExpression;
 
   bool doStaticAnalysis;
 
-  @override
   bool allowVariableShadowing;
 
-  @override
   bool allowImplicitVariableDeclaration;
 
-  @override
   bool allowImplicitNullToZeroConversion;
 
-  @override
   bool allowImplicitEmptyValueToFalseConversion;
 
-  AnalyzerConfig(
-      {this.computeConstantExpression = false,
-      this.doStaticAnalysis = false,
-      this.allowVariableShadowing = true,
-      this.allowImplicitVariableDeclaration = false,
-      this.allowImplicitNullToZeroConversion = false,
-      this.allowImplicitEmptyValueToFalseConversion = false});
+  bool printPerformanceStatistics;
+
+  AnalyzerConfig({
+    this.computeConstantExpression = false,
+    this.doStaticAnalysis = false,
+    this.allowVariableShadowing = true,
+    this.allowImplicitVariableDeclaration = false,
+    this.allowImplicitNullToZeroConversion = false,
+    this.allowImplicitEmptyValueToFalseConversion = false,
+    this.printPerformanceStatistics = false,
+  });
 }
 
 /// A ast visitor that create declarative-only namespaces on all astnode,
@@ -111,7 +94,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     ASTCompilation compilation, {
     String? moduleName,
     bool globallyImport = false,
-    bool printPerformanceStatistics = false,
+    // bool printPerformanceStatistics = false,
   }) {
     final tik = DateTime.now().millisecondsSinceEpoch;
     // _currentCompilation = compilation;
@@ -147,7 +130,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
       errors: _currentErrors,
       compilation: compilation,
     );
-    if (printPerformanceStatistics) {
+    if (config.printPerformanceStatistics) {
       final tok = DateTime.now().millisecondsSinceEpoch;
       print('analyzed [${compilation.entryFullname}]\t${tok - tik}ms');
     }
@@ -307,7 +290,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
       visitGenericTypeParamExpr(param);
     }
     node.returnType?.accept(this);
-    node.redirectingCtorCallExpr?.accept(this);
+    node.redirectingConstructorCall?.accept(this);
     final savedCurrrentNamespace = _currentNamespace;
     _currentNamespace = HTDeclarationNamespace(
         lexicon: _lexicon, id: node.internalName, closure: _currentNamespace);

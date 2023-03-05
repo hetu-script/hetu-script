@@ -82,6 +82,9 @@ class HTLocaleEnglish implements HTLocale {
   @override
   final String errorInvalidLeftValue = 'Value cannot be assigned.';
   @override
+  final String errorAwaitWithoutAsync =
+      '`await` keyword can only be used inside an async function body.';
+  @override
   final String errorNullableAssign = 'Cannot assign to a nullable value.';
   @override
   final String errorPrivateMember = 'Could not acess private member [{0}].';

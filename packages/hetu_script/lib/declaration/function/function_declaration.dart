@@ -36,7 +36,7 @@ class HTFunctionDeclaration extends HTDeclaration
   /// Holds declarations of all parameters.
   final Map<String, HTAbstractParameter> paramDecls;
 
-  HTType get returnType => declType.returnType;
+  HTType? get returnType => declType.returnType;
 
   final HTFunctionType _declType;
 
@@ -81,7 +81,7 @@ class HTFunctionDeclaration extends HTDeclaration
     this.genericTypeParameters = const [],
     this.hasParamDecls = true,
     this.paramDecls = const {},
-    required HTFunctionType declType,
+    HTFunctionType? declType,
     this.isAsync = false,
     this.isField = false,
     this.isAbstract = false,
@@ -89,7 +89,7 @@ class HTFunctionDeclaration extends HTDeclaration
     this.minArity = 0,
     this.maxArity = 0,
     this.namespace,
-  }) : _declType = declType;
+  }) : _declType = declType ?? HTFunctionType();
 
   @override
   @mustCallSuper

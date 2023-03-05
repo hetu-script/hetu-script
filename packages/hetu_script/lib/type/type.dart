@@ -6,8 +6,10 @@ import '../declaration/namespace/declaration_namespace.dart';
 abstract class HTType with HTEntity {
   bool get isResolved => true;
 
+  /// Every type is assignable to a top type,
   bool get isTop => false;
 
+  /// This type is assignable to all other types.
   bool get isBottom => false;
 
   HTType resolve(HTDeclarationNamespace namespace) => this;

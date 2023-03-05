@@ -892,10 +892,10 @@ class HTFormatter implements AbstractASTVisitor<String> {
       output.write('${_lexicon.functionReturnTypeIndicator} ');
       final returnTypeString = formatAST(stmt.returnType!);
       output.write('$returnTypeString ');
-    } else if (stmt.redirectingCtorCallExpr != null) {
+    } else if (stmt.redirectingConstructorCall != null) {
       output.write('${_lexicon.constructorInitializationListIndicator} ');
       final referCtorString =
-          visitReferConstructCallExpr(stmt.redirectingCtorCallExpr!);
+          visitReferConstructCallExpr(stmt.redirectingConstructorCall!);
       output.write('$referCtorString ');
     }
     if (stmt.definition != null) {

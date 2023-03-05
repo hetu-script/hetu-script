@@ -68,6 +68,8 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorInvalidLeftValue = '对象无法被赋值。';
   @override
+  final String errorAwaitWithoutAsync = '`await` 关键字只能在异步函数中使用。';
+  @override
   final String errorNullableAssign = '可空对象无法被赋值。';
   @override
   final String errorPrivateMember = '无法访问私有成员：[{0}]。';

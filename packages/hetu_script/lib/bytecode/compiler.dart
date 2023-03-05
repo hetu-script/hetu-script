@@ -21,10 +21,13 @@ class CompilerConfig {
 
   bool removeDocumentation;
 
+  bool printPerformanceStatistics;
+
   CompilerConfig({
     this.removeLineInfo = false,
     this.removeAssertion = false,
     this.removeDocumentation = false,
+    this.printPerformanceStatistics = false,
   });
 }
 
@@ -68,12 +71,11 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         _lexicon = lexicon ?? HTDefaultLexicon();
 
   Uint8List compile(
-    ASTCompilation compilation, {
-    bool printPerformanceStatistics = false,
-  }) {
+    ASTCompilation compilation, // {  bool printPerformanceStatistics = false,}
+  ) {
     final tik = DateTime.now().millisecondsSinceEpoch;
     final bytes = visitCompilation(compilation);
-    if (printPerformanceStatistics) {
+    if (config.printPerformanceStatistics) {
       final tok = DateTime.now().millisecondsSinceEpoch;
       print('hetu: ${tok - tik}ms\tto compile\t[${compilation.entryFullname}]');
     }
@@ -1834,10 +1836,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     }
     if (stmt.category == FunctionCategory.constructor) {
       // referring to another constructor
-      if (stmt.redirectingCtorCallExpr != null) {
+      if (stmt.redirectingConstructorCall != null) {
         bytesBuilder.addByte(1); // bool: hasRefCtor
         final bytes =
-            visitReferConstructCallExpr(stmt.redirectingCtorCallExpr!);
+            visitReferConstructCallExpr(stmt.redirectingConstructorCall!);
         bytesBuilder.add(bytes);
       } else {
         bytesBuilder.addByte(0); // bool: hasRefCtor

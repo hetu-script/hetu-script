@@ -30,10 +30,12 @@ import '../bundler/bundler.dart';
 
 /// The config of hetu environment, this implements all config of components used by this environment.
 class HetuConfig
-    implements ParserConfig, AnalyzerConfig, CompilerConfig, InterpreterConfig {
-  /// defaults to `true`
-  bool printPerformanceStatistics;
-
+    implements
+        ParserConfig,
+        BundlerConfig,
+        AnalyzerConfig,
+        CompilerConfig,
+        InterpreterConfig {
   /// defaults to `true`
   bool normalizeImportPath;
 
@@ -103,8 +105,11 @@ class HetuConfig
   @override
   bool resolveExternalFunctionsDynamically;
 
+  /// defaults to `true`
+  @override
+  bool printPerformanceStatistics;
+
   HetuConfig({
-    this.printPerformanceStatistics = true,
     this.normalizeImportPath = true,
     this.explicitEndOfStatement = false,
     this.doStaticAnalysis = false,
@@ -122,6 +127,7 @@ class HetuConfig
     this.allowImplicitEmptyValueToFalseConversion = false,
     this.checkTypeAnnotationAtRuntime = false,
     this.resolveExternalFunctionsDynamically = false,
+    this.printPerformanceStatistics = false,
   });
 }
 
@@ -178,6 +184,7 @@ class Hetu {
       _currentParser.lexer.lexicon = lexicon;
     }
     bundler = HTBundler(
+      config: this.config,
       sourceContext: this.sourceContext,
     );
     _parsers[parserName] = _currentParser;
@@ -246,7 +253,6 @@ class Hetu {
         bytes: coreModule,
         moduleName: 'hetu',
         globallyImport: true,
-        printPerformanceStatistics: false,
       );
 
       interpreter.define(
@@ -358,7 +364,6 @@ class Hetu {
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
-      printPerformanceStatistics: config.printPerformanceStatistics,
     );
     return result;
   }
@@ -371,7 +376,6 @@ class Hetu {
       source: source,
       parser: _currentParser,
       normalizePath: config.normalizeImportPath,
-      printPerformanceStatistics: config.printPerformanceStatistics,
       version: version,
     );
     if (compilation.errors.isNotEmpty) {
@@ -434,10 +438,7 @@ class Hetu {
       );
       Uint8List bytes;
       if (config.doStaticAnalysis) {
-        final result = analyzer.analyzeCompilation(
-          compilation,
-          printPerformanceStatistics: config.printPerformanceStatistics,
-        );
+        final result = analyzer.analyzeCompilation(compilation);
         if (result.errors.isNotEmpty) {
           for (final error in result.errors) {
             if (error.severity >= ErrorSeverity.error) {
@@ -452,10 +453,7 @@ class Hetu {
           }
         }
       }
-      bytes = compiler.compile(
-        compilation,
-        printPerformanceStatistics: config.printPerformanceStatistics,
-      );
+      bytes = compiler.compile(compilation);
       return bytes;
     } catch (error, stackTrace) {
       if (errorHandled) {
@@ -484,7 +482,6 @@ class Hetu {
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
-      printPerformanceStatistics: config.printPerformanceStatistics,
     );
     if (config.doStaticAnalysis &&
         interpreter.currentBytecodeModule.namespaces.isNotEmpty) {

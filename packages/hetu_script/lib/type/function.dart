@@ -37,16 +37,16 @@ class HTFunctionType extends HTType implements HasGenericTypeParameter {
   List<HTParameterType> get parameterTypes =>
       _resolvedParameterTypes ?? _parameterTypes;
 
-  final HTType _returnType;
+  final HTType? _returnType;
 
   HTType? _resolvedReturnType;
 
-  HTType get returnType => _resolvedReturnType ?? _returnType;
+  HTType? get returnType => _resolvedReturnType ?? _returnType;
 
   HTFunctionType({
     this.genericTypeParameters = const [],
     List<HTParameterType> parameterTypes = const [],
-    required HTType returnType,
+    HTType? returnType,
   })  : _parameterTypes = parameterTypes,
         _returnType = returnType;
 
@@ -88,8 +88,10 @@ class HTFunctionType extends HTType implements HasGenericTypeParameter {
     if (genericTypeParameters.length != other.genericTypeParameters.length) {
       return false;
     }
-    if (returnType.isNotA(other.returnType)) {
-      return false;
+    if (other.returnType != null && !other.returnType!.isTop) {
+      if (returnType != null && !returnType!.isBottom) {
+        return false;
+      }
     }
     for (var i = 0; i < parameterTypes.length; ++i) {
       final param = parameterTypes[i];

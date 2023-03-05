@@ -34,6 +34,7 @@ enum ErrorCode {
   notAbsoluteError,
   invalidDeclTypeOfValue,
   invalidLeftValue,
+  awaitWithoutAsync,
   nullableAssign,
   privateMember,
   constMustInit,
@@ -738,6 +739,28 @@ class HTError {
             column: column,
             offset: offset,
             length: length);
+
+  /// Error: Await appeared outside an async function.
+  HTError.awaitWithoutAsync({
+    String? extra,
+    String? correction,
+    String? filename,
+    int? line,
+    int? column,
+    int? offset,
+    int? length,
+  }) : this(
+          ErrorCode.awaitWithoutAsync,
+          ErrorType.syntacticError,
+          message: HTLocale.current.errorAwaitWithoutAsync,
+          extra: extra,
+          correction: correction,
+          filename: filename,
+          line: line,
+          column: column,
+          offset: offset,
+          length: length,
+        );
 
   /// Error: Illegal value appeared on left of assignment.
   HTError.invalidLeftValue(
