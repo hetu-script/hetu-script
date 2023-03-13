@@ -21,7 +21,7 @@ void main() {
     //       var p = SomePerson.fromJson({'age': 8, 'name': 'Lawrence', 'klass': 'magician'})
     //       return p.toJson().toString()
     //     }
-    //   ''', invokeFunc: 'JsonTest');
+    //   ''', invocation: 'JsonTest');
     //   expect(
     //     result,
     //     '{age: 8, name: Lawrence, klass: magician}',
@@ -68,7 +68,7 @@ void main() {
     //         ]})
     //       return pp.stats[0].toString()
     //     }
-    //   ''', invokeFunc: 'jsonAssign');
+    //   ''', invocation: 'jsonAssign');
     //   expect(
     //     result,
     //     '{age: 12, height: 155.0, weight: 43.0}',

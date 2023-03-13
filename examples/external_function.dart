@@ -28,6 +28,6 @@ void main() {
   }
 ''',
       type: HTResourceType.hetuModule,
-      invokeFunc: 'test',
+      invocation: 'test',
       positionalArgs: [a]);
 }

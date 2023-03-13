@@ -45,7 +45,7 @@ void main() {
     //       const a: fun (num) -> num = convert
     //       return a.valueType.toString()
     //     }
-    //   ''', invokeFunc: 'functionAssign1');
+    //   ''', invocation: 'functionAssign1');
     //   expect(
     //     result,
     //     'function(any) -> num',
@@ -57,7 +57,7 @@ void main() {
     //       var a: fun (num) -> num = fun (n: any) -> num { return n }
     //       return a.valueType.toString()
     //     }
-    //   ''', invokeFunc: 'functionAssign2');
+    //   ''', invocation: 'functionAssign2');
     //   expect(
     //     result,
     //     'function(any) -> num',

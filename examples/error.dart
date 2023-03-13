@@ -14,5 +14,5 @@ void main() {
       fun main {
         ext()
       }
-      ''', type: HTResourceType.hetuModule, invokeFunc: 'main');
+      ''', type: HTResourceType.hetuModule, invocation: 'main');
 }

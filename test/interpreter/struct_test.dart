@@ -42,7 +42,7 @@ void main() {
               return obj.volumes
             }
           ''',
-          invokeFunc: 'fromJsonTest',
+          invocation: 'fromJsonTest',
           positionalArgs: [jsonData]);
       expect(
         result,

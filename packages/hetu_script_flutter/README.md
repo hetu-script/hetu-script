@@ -23,5 +23,5 @@ You can load a asset script file by [evalFile] method:
 final hetu = Hetu();
 await hetu.initFlutter();
 
-final result = hetu.evalFile('main.ht', invokeFunc: 'main');
+final result = hetu.evalFile('main.ht', invocation: 'main');
 ```

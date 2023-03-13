@@ -296,14 +296,14 @@ class Hetu {
   }
 
   /// Evaluate a string content.
-  /// If [invokeFunc] is provided, will immediately
+  /// If [invocation] is provided, will immediately
   /// call the function after evaluation completed.
   dynamic eval(String content,
       {String? filename,
       String? module,
       bool globallyImport = false,
       HTResourceType type = HTResourceType.hetuLiteralCode,
-      String? invokeFunc,
+      String? invocation,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -313,7 +313,7 @@ class Hetu {
       source,
       module: module,
       globallyImport: globallyImport,
-      invocation: invokeFunc,
+      invocation: invocation,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
