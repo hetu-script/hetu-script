@@ -85,20 +85,20 @@ class HTStruct with HTEntity {
   // }
 
   /// Check if this struct has the key in its own _fields
-  bool containsKey(String? varName) {
-    return _fields.containsKey(varName);
+  bool containsKey(String? id) {
+    return _fields.containsKey(id);
   }
 
   /// Check if this struct has the key in its own _fields or its prototypes' _fields
   @override
-  bool contains(String? varName) {
-    if (varName == null) {
+  bool contains(String? id) {
+    if (id == null) {
       return false;
     }
 
-    if (_fields.containsKey(varName)) {
+    if (_fields.containsKey(id)) {
       return true;
-    } else if (prototype != null && prototype!.contains(varName)) {
+    } else if (prototype != null && prototype!.contains(id)) {
       return true;
     } else {
       return false;
@@ -147,47 +147,46 @@ class HTStruct with HTEntity {
 
   /// [isSelf] means wether this is called by the struct itself, or a recursive one
   @override
-  dynamic memberGet(dynamic varName,
-      {String? from, bool isRecursivelyGet = false}) {
-    if (varName == null) {
+  dynamic memberGet(dynamic id, {String? from, bool isRecursivelyGet = false}) {
+    if (id == null) {
       return null;
     }
-    if (varName is! String) {
-      varName = varName.toString();
+    if (id is! String) {
+      id = id.toString();
     }
-    if (varName == InternalIdentifier.prototype) {
+    if (id == InternalIdentifier.prototype) {
       return prototype;
     }
 
     dynamic value;
-    final getter = '${InternalIdentifier.getter}$varName';
-    final constructor = varName != id
-        ? '${InternalIdentifier.namedConstructorPrefix}$varName'
+    final getter = '${InternalIdentifier.getter}$id';
+    final constructor = id != id
+        ? '${InternalIdentifier.namedConstructorPrefix}$id'
         : InternalIdentifier.defaultConstructor;
 
-    if (_fields.containsKey(varName)) {
-      if (interpreter.lexicon.isPrivate(varName) &&
+    if (_fields.containsKey(id)) {
+      if (interpreter.lexicon.isPrivate(id) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
-      value = _fields[varName];
+      value = _fields[id];
     } else if (_fields.containsKey(getter)) {
-      if (interpreter.lexicon.isPrivate(varName) &&
+      if (interpreter.lexicon.isPrivate(id) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       value = _fields[getter]!;
     } else if (_fields.containsKey(constructor)) {
-      if (interpreter.lexicon.isPrivate(varName) &&
+      if (interpreter.lexicon.isPrivate(id) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       value = _fields[constructor]!;
     } else if (prototype != null) {
-      value = prototype!.memberGet(varName, from: from, isRecursivelyGet: true);
+      value = prototype!.memberGet(id, from: from, isRecursivelyGet: true);
     }
 
     if (value is HTDeclaration) {
@@ -207,63 +206,62 @@ class HTStruct with HTEntity {
   }
 
   @override
-  bool memberSet(dynamic varName, dynamic varValue,
+  bool memberSet(dynamic id, dynamic value,
       {String? from, bool defineIfAbsent = true, bool recursive = true}) {
-    if (varName == null) {
+    if (id == null) {
       throw HTError.nullSubSetKey();
     }
-    if (varName is! String) {
-      varName = varName.toString();
+    if (id is! String) {
+      id = id.toString();
     }
-    if (varName == InternalIdentifier.prototype) {
-      if (varValue is! HTStruct) {
+    if (id == InternalIdentifier.prototype) {
+      if (value is! HTStruct) {
         throw HTError.notStruct();
       }
-      prototype = varValue;
+      prototype = value;
       return true;
     }
 
-    final setter = '${InternalIdentifier.setter}$varName';
-    if (_fields.containsKey(varName)) {
-      if (interpreter.lexicon.isPrivate(varName) &&
+    final setter = '${InternalIdentifier.setter}$id';
+    if (_fields.containsKey(id)) {
+      if (interpreter.lexicon.isPrivate(id) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
-      _fields[varName] = varValue;
+      _fields[id] = value;
       return true;
     } else if (_fields.containsKey(setter)) {
-      if (interpreter.lexicon.isPrivate(varName) &&
+      if (interpreter.lexicon.isPrivate(id) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       HTFunction func = _fields[setter]!;
       func.namespace = namespace;
       func.instance = this;
-      func.call(positionalArgs: [varValue]);
+      func.call(positionalArgs: [value]);
       return true;
     } else if (recursive && prototype != null) {
-      final success = prototype!
-          .memberSet(varName, varValue, from: from, defineIfAbsent: false);
+      final success =
+          prototype!.memberSet(id, value, from: from, defineIfAbsent: false);
       if (success) {
         return true;
       }
     }
     if (defineIfAbsent) {
-      _fields[varName] = varValue;
+      _fields[id] = value;
       return true;
     }
     return false;
   }
 
   @override
-  dynamic subGet(dynamic varName, {String? from}) =>
-      memberGet(varName, from: from);
+  dynamic subGet(dynamic id, {String? from}) => memberGet(id, from: from);
 
   @override
-  void subSet(dynamic varName, dynamic varValue, {String? from}) =>
-      memberSet(varName, varValue, from: from);
+  void subSet(dynamic id, dynamic value, {String? from}) =>
+      memberSet(id, value, from: from);
 
   // return a deep copy of this struct.
   HTStruct clone() {

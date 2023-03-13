@@ -17,8 +17,8 @@ class HTNumberClassBinding extends HTExternalClass {
   HTNumberClassBinding() : super('num');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'num.parse':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -26,7 +26,7 @@ class HTNumberClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             num.tryParse(positionalArgs.first);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
@@ -35,8 +35,8 @@ class HTIntClassBinding extends HTExternalClass {
   HTIntClassBinding() : super('int');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'int.fromEnvironment':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -51,21 +51,21 @@ class HTIntClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             int.tryParse(positionalArgs[0], radix: namedArgs['radix']);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as int).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as int).htFetch(id);
 }
 
 class HTBigIntClassBinding extends HTExternalClass {
   HTBigIntClassBinding() : super('BigInt');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'BigInt.zero':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -97,21 +97,21 @@ class HTBigIntClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             BigInt.from(positionalArgs.first);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as int).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as int).htFetch(id);
 }
 
 class HTFloatClassBinding extends HTExternalClass {
   HTFloatClassBinding() : super('float');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'float.nan':
         return double.nan;
       case 'float.infinity':
@@ -129,21 +129,21 @@ class HTFloatClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             double.tryParse(positionalArgs[0]);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as double).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as double).htFetch(id);
 }
 
 class HTBooleanClassBinding extends HTExternalClass {
   HTBooleanClassBinding() : super('bool');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'bool.parse':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
@@ -152,7 +152,7 @@ class HTBooleanClassBinding extends HTExternalClass {
           return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
         };
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
@@ -161,8 +161,8 @@ class HTStringClassBinding extends HTExternalClass {
   HTStringClassBinding() : super('str');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'str.parse':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
@@ -171,37 +171,37 @@ class HTStringClassBinding extends HTExternalClass {
           return positionalArgs.first.toString();
         };
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as String).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as String).htFetch(id);
 }
 
 class HTIteratorClassBinding extends HTExternalClass {
   HTIteratorClassBinding() : super('Iterator');
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as Iterator).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as Iterator).htFetch(id);
 }
 
 class HTIterableClassBinding extends HTExternalClass {
   HTIterableClassBinding() : super('Iterable');
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as Iterable).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as Iterable).htFetch(id);
 }
 
 class HTListClassBinding extends HTExternalClass {
   HTListClassBinding() : super('List');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'List':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -209,21 +209,21 @@ class HTListClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             List.from(positionalArgs);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as List).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as List).htFetch(id);
 }
 
 class HTSetClassBinding extends HTExternalClass {
   HTSetClassBinding() : super('Set');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'Set':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -231,21 +231,21 @@ class HTSetClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             Set.from(positionalArgs);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as Set).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as Set).htFetch(id);
 }
 
 class HTMapClassBinding extends HTExternalClass {
   HTMapClassBinding() : super('Map');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'Map':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -253,21 +253,21 @@ class HTMapClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             {};
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as Map).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as Map).htFetch(id);
 }
 
 class HTRandomClassBinding extends HTExternalClass {
   HTRandomClassBinding() : super('Random');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'Random':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -276,21 +276,21 @@ class HTRandomClassBinding extends HTExternalClass {
             math.Random(positionalArgs.first);
 
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as math.Random).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as math.Random).htFetch(id);
 }
 
 class HTMathClassBinding extends HTExternalClass {
   HTMathClassBinding() : super('Math');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'Math.e':
         return math.e;
       case 'Math.pi':
@@ -500,7 +500,7 @@ class HTMathClassBinding extends HTExternalClass {
             (positionalArgs[0] as int) ^ (positionalArgs[1] as int);
 
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
@@ -509,8 +509,8 @@ class HTHashClassBinding extends HTExternalClass {
   HTHashClassBinding() : super('Hash');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'Hash.uid4':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
@@ -537,7 +537,7 @@ class HTHashClassBinding extends HTExternalClass {
           return crcInt(data, crc);
         };
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
@@ -546,12 +546,12 @@ class HTSystemClassBinding extends HTExternalClass {
   HTSystemClassBinding() : super('OS');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'OS.now':
         return DateTime.now().millisecondsSinceEpoch;
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
@@ -560,8 +560,8 @@ class HTFutureClassBinding extends HTExternalClass {
   HTFutureClassBinding() : super('Future');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'Future':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
@@ -590,11 +590,11 @@ class HTFutureClassBinding extends HTExternalClass {
           return Future.value(positionalArgs.first);
         };
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      (object as Future).htFetch(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      (object as Future).htFetch(id);
 }

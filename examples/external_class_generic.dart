@@ -8,22 +8,22 @@ class Generic<T> {
 }
 
 extension GenericBinding on Generic {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'value':
         return value;
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
-  dynamic htAssign(String varName, dynamic varValue) {
-    switch (varName) {
+  dynamic htAssign(String id, dynamic value) {
+    switch (id) {
       case 'value':
-        value = varValue;
+        this.value = value;
         break;
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
@@ -32,8 +32,8 @@ class GenericClassBinding extends HTExternalClass {
   GenericClassBinding() : super('Generic');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'Generic':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
@@ -54,20 +54,20 @@ class GenericClassBinding extends HTExternalClass {
           }
         };
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) {
+  dynamic instanceMemberGet(dynamic object, String id) {
     var i = object as Generic;
-    return i.htFetch(varName);
+    return i.htFetch(id);
   }
 
   @override
-  dynamic instanceMemberSet(dynamic object, String varName, dynamic varValue) {
+  dynamic instanceMemberSet(dynamic object, String id, dynamic value) {
     var i = object as Generic;
-    return i.htAssign(varName, varValue);
+    return i.htAssign(id, value);
   }
 }
 

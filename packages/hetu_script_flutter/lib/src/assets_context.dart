@@ -64,13 +64,13 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
       final content = await rootBundle.loadString(key);
       final ext = path.extension(key);
       final source =
-          HTSource(content, fullName: key, type: checkExtension(ext));
+          HTSource(content, filename: key, type: checkExtension(ext));
       addResource(key, source);
     }
   }
 
   @override
-  String getAbsolutePath({String key = '', String? dirName, String? fileName}) {
+  String getAbsolutePath({String key = '', String? dirName, String? filename}) {
     String fullName = key;
     if (dirName != null) {
       assert(dirName.startsWith(root));
@@ -78,8 +78,8 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
     } else if (!key.startsWith(root)) {
       fullName = path.join(root, key);
     }
-    if (fileName != null) {
-      fullName = path.join(fullName, fileName);
+    if (filename != null) {
+      fullName = path.join(fullName, filename);
     }
     final normalized = Uri.file(fullName).path;
     return normalized;

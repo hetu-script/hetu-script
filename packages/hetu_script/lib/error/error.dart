@@ -1629,7 +1629,7 @@ class HTError {
             length: length);
 
   /// Error: Illegal castee.
-  HTError.castee(String varName,
+  HTError.castee(String id,
       {String? extra,
       String? correction,
       String? filename,
@@ -1639,7 +1639,7 @@ class HTError {
       int? length})
       : this(ErrorCode.castee, ErrorType.runtimeError,
             message: HTLocale.current.errorCastee,
-            interpolations: [varName],
+            interpolations: [id],
             extra: extra,
             correction: correction,
             filename: filename,

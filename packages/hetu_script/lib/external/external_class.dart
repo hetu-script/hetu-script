@@ -17,30 +17,30 @@ abstract class HTExternalClass with HTEntity {
   HTExternalClass(this.id); //, {this.superClass, this.superClassType});
 
   /// Default [HTExternalClass] constructor.
-  /// Fetch a instance member of the Dart class by the [varName], in the form of
+  /// Fetch a instance member of the Dart class by the [id], in the form of
   /// ```
   /// object.key
   /// ```
-  dynamic instanceMemberGet(dynamic object, String varName) =>
-      throw HTError.undefined(varName);
+  dynamic instanceMemberGet(dynamic object, String id) =>
+      throw HTError.undefined(id);
 
-  /// Assign a value to a instance member of the Dart class by the [varName], in the form of
+  /// Assign a value to a instance member of the Dart class by the [id], in the form of
   /// ```
   /// object.key = value
   /// ```
-  void instanceMemberSet(dynamic object, String varName, dynamic varValue) =>
-      throw HTError.undefined(varName);
+  void instanceMemberSet(dynamic object, String id, dynamic value) =>
+      throw HTError.undefined(id);
 
-  /// Fetch a instance member of the Dart class by the [varName], in the form of
+  /// Fetch a instance member of the Dart class by the [id], in the form of
   /// ```
   /// object[key]
   /// ```
   dynamic instanceSubGet(dynamic object, dynamic key) => object[key];
 
-  /// Assign a value to a instance member of the Dart class by the [varName], in the form of
+  /// Assign a value to a instance member of the Dart class by the [id], in the form of
   /// ```
   /// object[key] = value
   /// ```
-  void instanceSubSet(dynamic object, dynamic key, dynamic varValue) =>
-      object[key] = varValue;
+  void instanceSubSet(dynamic object, dynamic key, dynamic value) =>
+      object[key] = value;
 }

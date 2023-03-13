@@ -7,8 +7,8 @@ class HTConsoleClass extends HTExternalClass {
   HTConsoleClass() : super('Console');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'Console.write':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -52,7 +52,7 @@ class HTConsoleClass extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             stdout.write('\x1B[2J\x1B[0;0H');
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }

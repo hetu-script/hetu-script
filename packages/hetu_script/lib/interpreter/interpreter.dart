@@ -106,16 +106,16 @@ enum StackFrameStrategy {
 
 /// The exucution context of the bytecode interpreter.
 class HTContext {
-  final String? filename;
-  final String? moduleName;
+  final String? file;
+  final String? module;
   final HTNamespace? namespace;
   final int? ip;
   final int? line;
   final int? column;
 
   HTContext({
-    this.filename,
-    this.moduleName,
+    this.file,
+    this.module,
     this.namespace,
     this.ip,
     this.line,
@@ -147,7 +147,7 @@ class HTInterpreter {
 
   late Version compilerVersion;
 
-  String? invokeFunc;
+  String? invocation;
 
   List<dynamic> positionalArgs = const [];
   Map<String, dynamic> namedArgs = const {};
@@ -171,8 +171,8 @@ class HTInterpreter {
   late HTNamespace _currentNamespace;
   HTNamespace get currentNamespace => _currentNamespace;
 
-  String _currentFileName = '';
-  String get currentFileName => _currentFileName;
+  String _currentFile = '';
+  String get currentFile => _currentFile;
 
   late HTResourceType _currentFileResourceType;
 
@@ -310,7 +310,7 @@ class HTInterpreter {
         error.type,
         message: error.message,
         extra: stackTraceString,
-        filename: error.filename ?? currentFileName,
+        filename: error.filename ?? currentFile,
         line: error.line ?? currentLine,
         column: error.column ?? currentColumn,
       );
@@ -319,7 +319,7 @@ class HTInterpreter {
       final hetuError = HTError.extern(
         _lexicon.stringify(error),
         extra: stackTraceString,
-        filename: currentFileName,
+        filename: currentFile,
         line: currentLine,
         column: currentColumn,
       );
@@ -349,9 +349,7 @@ class HTInterpreter {
       }
       if (klass.isAbstract) {
         throw HTError.abstracted(
-            filename: _currentFileName,
-            line: _currentLine,
-            column: _currentColumn);
+            filename: _currentFile, line: _currentLine, column: _currentColumn);
       }
       if (klass.contains(InternalIdentifier.defaultConstructor)) {
         final constructor = klass
@@ -363,9 +361,7 @@ class HTInterpreter {
         );
       } else {
         throw HTError.notCallable(klass.id!,
-            filename: _currentFileName,
-            line: _currentLine,
-            column: _currentColumn);
+            filename: _currentFile, line: _currentLine, column: _currentColumn);
       }
     }
 
@@ -380,9 +376,7 @@ class HTInterpreter {
         );
       } else {
         throw HTError.notNewable(_lexicon.stringify(callee),
-            filename: _currentFileName,
-            line: _currentLine,
-            column: _currentColumn);
+            filename: _currentFile, line: _currentLine, column: _currentColumn);
       }
     } else {
       // calle is a script function
@@ -417,7 +411,7 @@ class HTInterpreter {
       } else {
         throw HTError.notCallable(
             _lexicon.stringify(callee, asStringLiteral: true),
-            filename: _currentFileName,
+            filename: _currentFile,
             line: _currentLine,
             column: _currentColumn);
       }
@@ -425,10 +419,10 @@ class HTInterpreter {
   }
 
   /// Get a namespace in certain module with a certain name.
-  HTNamespace getNamespace({String? moduleName}) {
-    var nsp = globalNamespace;
-    if (moduleName != null) {
-      final bytecodeModule = cachedModules[moduleName]!;
+  HTNamespace getNamespace({String? module}) {
+    HTNamespace nsp = globalNamespace;
+    if (module != null) {
+      final bytecodeModule = cachedModules[module]!;
       assert(bytecodeModule.namespaces.isNotEmpty);
       nsp = bytecodeModule.namespaces.values.last;
     }
@@ -439,38 +433,35 @@ class HTInterpreter {
   /// if the value is not a declaration, will create one with [isMutable] value.
   /// if not, the [isMutable] will be ignored.
   bool define(
-    String varName,
+    String id,
     dynamic value, {
     bool isMutable = false,
     bool override = false,
     bool throws = true,
-    String? moduleName,
+    String? module,
   }) {
-    final nsp = getNamespace(moduleName: moduleName);
+    final nsp = getNamespace(module: module);
     if (value is HTDeclaration) {
-      return nsp.define(varName, value, override: override, throws: throws);
+      return nsp.define(id, value, override: override, throws: throws);
     } else {
       final decl = HTVariable(
-        id: varName,
+        id: id,
         interpreter: this,
         value: value,
         isMutable: isMutable,
         closure: nsp,
       );
-      return nsp.define(varName, decl, override: override, throws: throws);
+      return nsp.define(id, decl, override: override, throws: throws);
     }
   }
 
   /// Get the documentation of a declaration in a certain namespace.
-  String? help(
-    dynamic id, {
-    String? moduleName,
-  }) {
+  String? help(dynamic id, {String? module}) {
     try {
       if (id is HTDeclaration) {
         return id.documentation;
       } else if (id is String) {
-        HTNamespace nsp = getNamespace(moduleName: moduleName);
+        HTNamespace nsp = getNamespace(module: module);
         return nsp.help(id);
       } else {
         throw 'The argument of the `help` api [$id] is neither a defined symbol nor a string.';
@@ -486,17 +477,10 @@ class HTInterpreter {
   }
 
   /// Get a top level variable defined in a certain namespace.
-  dynamic fetch(
-    String varName, {
-    String? moduleName,
-  }) {
+  dynamic fetch(String id, {String? module}) {
     try {
-      final savedModuleName = _currentBytecodeModule.id;
-      HTNamespace nsp = getNamespace(moduleName: moduleName);
-      final result = nsp.memberGet(varName, isRecursive: false);
-      if (_currentBytecodeModule.id != savedModuleName) {
-        _currentBytecodeModule = cachedModules[savedModuleName]!;
-      }
+      HTNamespace nsp = getNamespace(module: module);
+      final result = nsp.memberGet(id, isRecursive: false);
       return result;
     } catch (error, stackTrace) {
       if (config.processError) {
@@ -508,15 +492,11 @@ class HTInterpreter {
   }
 
   /// Assign value to a top level variable defined in a certain namespace in the interpreter.
-  void assign(
-    String varName,
-    dynamic value, {
-    String? moduleName,
-  }) {
+  void assign(String id, dynamic value, {String? module}) {
     try {
       final savedModuleName = _currentBytecodeModule.id;
-      HTNamespace nsp = getNamespace(moduleName: moduleName);
-      nsp.memberSet(varName, value, isRecursive: false);
+      HTNamespace nsp = getNamespace(module: module);
+      nsp.memberSet(id, value, isRecursive: false);
       if (_currentBytecodeModule.id != savedModuleName) {
         _currentBytecodeModule = cachedModules[savedModuleName]!;
       }
@@ -532,21 +512,23 @@ class HTInterpreter {
   /// Invoke a top level function defined in a certain namespace.
   /// It's possible to use this method to invoke a [HTClass] or [HTNamedStruct]
   /// name as a contruct call, you will get a [HTInstance] or [HTStruct] as return value.
-  dynamic invoke(String funcName,
-      {String? namespaceName,
-      String? moduleName,
-      bool isConstructorCall = false,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic invoke(
+    String func, {
+    String? namespace,
+    String? module,
+    bool isConstructor = false,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    List<HTType> typeArgs = const [],
+  }) {
     try {
       stackTraceList.clear();
       final savedModuleName = _currentBytecodeModule.id;
       HTNamespace nsp;
-      if (moduleName != null) {
+      if (module != null) {
         nsp = globalNamespace;
-        if (_currentBytecodeModule.id != moduleName) {
-          _currentBytecodeModule = cachedModules[moduleName]!;
+        if (_currentBytecodeModule.id != module) {
+          _currentBytecodeModule = cachedModules[module]!;
         }
         assert(_currentBytecodeModule.namespaces.isNotEmpty);
         nsp = _currentBytecodeModule.namespaces.values.last;
@@ -555,11 +537,11 @@ class HTInterpreter {
       }
 
       dynamic callee;
-      if (namespaceName != null) {
-        HTEntity namespace = nsp.memberGet(namespaceName, isRecursive: true);
-        callee = namespace.memberGet(funcName);
+      if (namespace != null) {
+        HTEntity fromNsp = nsp.memberGet(namespace, isRecursive: true);
+        callee = fromNsp.memberGet(func);
       } else {
-        callee = nsp.memberGet(funcName, isRecursive: true);
+        callee = nsp.memberGet(func, isRecursive: true);
       }
       final result = _call(
         callee,
@@ -650,14 +632,14 @@ class HTInterpreter {
     return unwrapFunc(func);
   }
 
-  void switchModule(String moduleName) {
-    assert(cachedModules.containsKey(moduleName));
-    setContext(context: HTContext(moduleName: moduleName));
+  void switchModule(String module) {
+    assert(cachedModules.containsKey(module));
+    setContext(context: HTContext(module: module));
   }
 
-  HTBytecodeModule? getBytecode(String moduleName) {
-    assert(cachedModules.containsKey(moduleName));
-    return cachedModules[moduleName];
+  HTBytecodeModule? getBytecode(String module) {
+    assert(cachedModules.containsKey(module));
+    return cachedModules[module];
   }
 
   String stringify(dynamic object) {
@@ -887,28 +869,28 @@ class HTInterpreter {
   }
 
   /// Load a pre-compiled bytecode module.
-  /// If [invokeFunc] is true, execute the bytecode immediately.
+  /// If [invocation] is true, execute the bytecode immediately.
   dynamic loadBytecode({
     required Uint8List bytes,
-    required String moduleName,
+    required String module,
     bool globallyImport = false,
-    String? invokeFunc,
+    String? invocation,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
     List<HTType> typeArgs = const [],
   }) {
     try {
       this.globallyImport = globallyImport;
-      this.invokeFunc = invokeFunc;
+      this.invocation = invocation;
       this.positionalArgs = positionalArgs;
       this.namedArgs = namedArgs;
       this.typeArgs = typeArgs;
 
       tik = DateTime.now().millisecondsSinceEpoch;
-      if (cachedModules.containsKey(moduleName)) {
-        _currentBytecodeModule = cachedModules[moduleName]!;
+      if (cachedModules.containsKey(module)) {
+        _currentBytecodeModule = cachedModules[module]!;
       } else {
-        _currentBytecodeModule = HTBytecodeModule(id: moduleName, bytes: bytes);
+        _currentBytecodeModule = HTBytecodeModule(id: module, bytes: bytes);
         cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       }
       _currentBytecodeModule.ip = 0;
@@ -916,9 +898,7 @@ class HTInterpreter {
       final signature = _currentBytecodeModule.readUint32();
       if (signature != HTCompiler.hetuSignature) {
         throw HTError.bytecode(
-            filename: _currentFileName,
-            line: _currentLine,
-            column: _currentColumn);
+            filename: _currentFile, line: _currentLine, column: _currentColumn);
       }
       // compare the version of the compiler of the bytecode to my version.
       compilerVersion = _handleVersion();
@@ -936,7 +916,7 @@ class HTInterpreter {
         throw HTError.version(
           _currentBytecodeModule.version.toString(),
           kHetuVersion.toString(),
-          filename: _currentFileName,
+          filename: _currentFile,
           line: _currentLine,
           column: _currentColumn,
         );
@@ -948,7 +928,7 @@ class HTInterpreter {
       }
       _currentBytecodeModule.compiledAt =
           _currentBytecodeModule.readUtf8String();
-      _currentFileName = _currentBytecodeModule.readUtf8String();
+      _currentFile = _currentBytecodeModule.readUtf8String();
       final sourceType =
           HTResourceType.values.elementAt(_currentBytecodeModule.read());
       scriptMode = (sourceType == HTResourceType.hetuScript) ||
@@ -974,16 +954,16 @@ class HTInterpreter {
   /// For example, if you set ip to false,
   /// the context you get from this method will leave ip as null.
   HTContext getContext({
-    bool filename = true,
-    bool moduleName = true,
+    bool file = true,
+    bool module = true,
     bool namespace = true,
     bool ip = true,
     bool line = true,
     bool column = true,
   }) {
     return HTContext(
-      filename: filename ? currentFileName : null,
-      moduleName: moduleName ? currentBytecodeModule.id : null,
+      file: file ? currentFile : null,
+      module: module ? currentBytecodeModule.id : null,
       namespace: namespace ? currentNamespace : null,
       ip: ip ? currentBytecodeModule.ip : null,
       line: line ? currentLine : null,
@@ -1014,13 +994,13 @@ class HTInterpreter {
       HTContext? context}) {
     if (context != null) {
       var libChanged = false;
-      if (context.filename != null) {
-        _currentFileName = context.filename!;
+      if (context.file != null) {
+        _currentFile = context.file!;
       }
-      if (context.moduleName != null &&
-          (_currentBytecodeModule.id != context.moduleName)) {
-        assert(cachedModules.containsKey(context.moduleName));
-        _currentBytecodeModule = cachedModules[context.moduleName]!;
+      if (context.module != null &&
+          (_currentBytecodeModule.id != context.module)) {
+        assert(cachedModules.containsKey(context.module));
+        _currentBytecodeModule = cachedModules[context.module]!;
         libChanged = true;
       }
       if (context.namespace != null) {
@@ -1053,7 +1033,7 @@ class HTInterpreter {
     }
   }
 
-  /// Interpret a loaded module with the key of [moduleName]
+  /// Interpret a loaded module with the key of [module]
   /// Starting from the instruction pointer of [ip]
   /// This function will return current expression value
   /// when encountered [HTOpCode.endOfExec] or [HTOpCode.endOfFunc].
@@ -1070,8 +1050,8 @@ class HTInterpreter {
     // dynamic Function()? endOfModuleHandler,
   }) {
     final savedContext = getContext(
-      filename: context?.filename != null,
-      moduleName: context?.moduleName != null,
+      file: context?.file != null,
+      module: context?.module != null,
       namespace: context?.namespace != null,
       ip: context?.ip != null,
       line: context?.line != null,
@@ -1128,15 +1108,13 @@ class HTInterpreter {
           _currentBytecodeModule.ip += distance;
           break;
         case HTOpCode.file:
-          _currentFileName = _currentBytecodeModule.getConstString();
+          _currentFile = _currentBytecodeModule.getConstString();
           final resourceTypeIndex = _currentBytecodeModule.read();
           _currentFileResourceType =
               HTResourceType.values.elementAt(resourceTypeIndex);
           if (_currentFileResourceType != HTResourceType.hetuLiteralCode) {
             _currentNamespace = HTNamespace(
-                lexicon: _lexicon,
-                id: _currentFileName,
-                closure: globalNamespace);
+                lexicon: _lexicon, id: _currentFile, closure: globalNamespace);
           }
           // literal code will use current namespace as it is when run.
           // else {
@@ -1244,9 +1222,10 @@ class HTInterpreter {
         case HTOpCode.endOfFile:
           if (_currentFileResourceType == HTResourceType.json) {
             final jsonSource = HTJsonSource(
-                fullName: _currentFileName,
-                moduleName: _currentBytecodeModule.id,
-                value: _localValue);
+              fullName: _currentFile,
+              module: _currentBytecodeModule.id,
+              value: _localValue,
+            );
             _currentBytecodeModule.jsonSources[jsonSource.fullName] =
                 jsonSource;
           } else if (_currentFileResourceType == HTResourceType.hetuModule) {
@@ -1287,10 +1266,10 @@ class HTInterpreter {
             globalNamespace.import(_currentNamespace);
           }
           dynamic r;
-          if (invokeFunc != null) {
+          if (invocation != null) {
             r = invoke(
-              invokeFunc!,
-              // moduleName: scriptMode ? null : _currentBytecodeModule.id,
+              invocation!,
+              // module: scriptMode ? null : _currentBytecodeModule.id,
               positionalArgs: positionalArgs,
               namedArgs: namedArgs,
               typeArgs: typeArgs,
@@ -1323,7 +1302,7 @@ class HTInterpreter {
             final ctorType =
                 HTFunctionType(returnType: HTNominalType(id: klass.id!));
             final ctor = HTFunction(
-                _currentFileName, _currentBytecodeModule.id, this,
+                _currentFile, _currentBytecodeModule.id, this,
                 internalName: InternalIdentifier.defaultConstructor,
                 classId: klass.id,
                 closure: klass.namespace,
@@ -1380,8 +1359,8 @@ class HTInterpreter {
               decl = HTVariable(
                 id: id,
                 interpreter: this,
-                fileName: _currentFileName,
-                moduleName: _currentBytecodeModule.id,
+                file: _currentFile,
+                module: _currentBytecodeModule.id,
                 classId: classId,
                 closure: _currentNamespace,
                 documentation: documentation,
@@ -1389,9 +1368,9 @@ class HTInterpreter {
                 isExternal: isExternal,
                 isStatic: isStatic,
                 isMutable: isMutable,
-                definitionIp: definitionIp,
-                definitionLine: definitionLine,
-                definitionColumn: definitionColumn,
+                ip: definitionIp,
+                line: definitionLine,
+                column: definitionColumn,
               );
             } else {
               final length = _currentBytecodeModule.readUint16();
@@ -1402,8 +1381,8 @@ class HTInterpreter {
                 decl = HTVariable(
                   id: id,
                   interpreter: this,
-                  fileName: _currentFileName,
-                  moduleName: _currentBytecodeModule.id,
+                  file: _currentFile,
+                  module: _currentBytecodeModule.id,
                   classId: classId,
                   closure: _currentNamespace,
                   documentation: documentation,
@@ -1423,8 +1402,8 @@ class HTInterpreter {
                 decl = HTVariable(
                   id: id,
                   interpreter: this,
-                  fileName: _currentFileName,
-                  moduleName: _currentBytecodeModule.id,
+                  file: _currentFile,
+                  module: _currentBytecodeModule.id,
                   classId: classId,
                   closure: _currentNamespace,
                   documentation: documentation,
@@ -1440,8 +1419,8 @@ class HTInterpreter {
             decl = HTVariable(
                 id: id,
                 interpreter: this,
-                fileName: _currentFileName,
-                moduleName: _currentBytecodeModule.id,
+                file: _currentFile,
+                module: _currentBytecodeModule.id,
                 classId: classId,
                 closure: _currentNamespace,
                 documentation: documentation,
@@ -1505,7 +1484,7 @@ class HTInterpreter {
               object.delete(symbol);
             } else {
               throw HTError.delete(
-                  filename: _currentFileName,
+                  filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
             }
@@ -1516,7 +1495,7 @@ class HTInterpreter {
               object.delete(symbol);
             } else {
               throw HTError.delete(
-                  filename: _currentFileName,
+                  filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
             }
@@ -1570,8 +1549,8 @@ class HTInterpreter {
               final decl = HTVariable(
                   id: id,
                   interpreter: this,
-                  fileName: _currentFileName,
-                  moduleName: _currentBytecodeModule.id,
+                  file: _currentFile,
+                  module: _currentBytecodeModule.id,
                   closure: _currentNamespace,
                   value: value,
                   isPrivate: id.startsWith(_lexicon.privatePrefix),
@@ -1774,7 +1753,7 @@ class HTInterpreter {
             } else {
               throw HTError.nullObject(
                   localSymbol ?? _lexicon.kNull, InternalIdentifier.getter,
-                  filename: _currentFileName,
+                  filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
             }
@@ -1803,7 +1782,7 @@ class HTInterpreter {
             } else {
               throw HTError.nullObject(
                   localSymbol ?? _lexicon.kNull, InternalIdentifier.subGetter,
-                  filename: _currentFileName,
+                  filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
             }
@@ -1817,14 +1796,14 @@ class HTInterpreter {
               if (object is List) {
                 if (key is! num) {
                   throw HTError.subGetKey(key,
-                      filename: _currentFileName,
+                      filename: _currentFile,
                       line: _currentLine,
                       column: _currentColumn);
                 }
                 final intValue = key.toInt();
                 if (intValue != key) {
                   throw HTError.subGetKey(key,
-                      filename: _currentFileName,
+                      filename: _currentFile,
                       line: _currentLine,
                       column: _currentColumn);
                 }
@@ -1846,7 +1825,7 @@ class HTInterpreter {
             } else {
               throw HTError.nullObject(
                   localSymbol ?? _lexicon.kNull, InternalIdentifier.setter,
-                  filename: _currentFileName,
+                  filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
             }
@@ -1875,7 +1854,7 @@ class HTInterpreter {
             } else {
               throw HTError.nullObject(
                   localSymbol ?? _lexicon.kNull, InternalIdentifier.subSetter,
-                  filename: _currentFileName,
+                  filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
             }
@@ -1892,14 +1871,14 @@ class HTInterpreter {
                 if (object is List) {
                   if (key is! num) {
                     throw HTError.subGetKey(key,
-                        filename: _currentFileName,
+                        filename: _currentFile,
                         line: _currentLine,
                         column: _currentColumn);
                   }
                   final intValue = key.toInt();
                   if (intValue != key) {
                     throw HTError.subGetKey(key,
-                        filename: _currentFileName,
+                        filename: _currentFile,
                         line: _currentLine,
                         column: _currentColumn);
                   }
@@ -1916,7 +1895,7 @@ class HTInterpreter {
           break;
         default:
           throw HTError.unknownOpCode(instruction,
-              filename: _currentFileName,
+              filename: _currentFile,
               line: _currentLine,
               column: _currentColumn);
       }
@@ -2201,7 +2180,7 @@ class HTInterpreter {
         }
         final func = HTFunction(
             internalName: internalName,
-            _currentFileName,
+            _currentFile,
             _currentBytecodeModule.id,
             this,
             closure: _currentNamespace,
@@ -2214,9 +2193,9 @@ class HTInterpreter {
             isVariadic: isVariadic,
             minArity: minArity,
             maxArity: maxArity,
-            definitionIp: definitionIp,
-            definitionLine: line,
-            definitionColumn: column,
+            ip: definitionIp,
+            line: line,
+            column: column,
             namespace: _currentNamespace);
         if (!hasExternalTypedef) {
           _localValue = func;
@@ -2240,7 +2219,7 @@ class HTInterpreter {
       default:
         throw HTError.unkownValueType(
           valueType,
-          filename: _currentFileName,
+          filename: _currentFile,
           line: _currentLine,
           column: _currentColumn,
         );
@@ -2327,9 +2306,7 @@ class HTInterpreter {
       } else {
         throw HTError.nullObject(
             localSymbol ?? _lexicon.kNull, InternalIdentifier.call,
-            filename: _currentFileName,
-            line: _currentLine,
-            column: _currentColumn);
+            filename: _currentFile, line: _currentLine, column: _currentColumn);
       }
     }
     final positionalArgs = [];
@@ -2461,9 +2438,7 @@ class HTInterpreter {
       default:
         // This should never happens.
         throw HTError.unknownOpCode(typeType,
-            filename: _currentFileName,
-            line: _currentLine,
-            column: _currentColumn);
+            filename: _currentFile, line: _currentLine, column: _currentColumn);
     }
   }
 
@@ -2571,8 +2546,8 @@ class HTInterpreter {
       final decl = HTVariable(
           id: id,
           interpreter: this,
-          fileName: _currentFileName,
-          moduleName: _currentBytecodeModule.id,
+          file: _currentFile,
+          module: _currentBytecodeModule.id,
           closure: _currentNamespace,
           declType: ids[id],
           value: initValue,
@@ -2609,13 +2584,13 @@ class HTInterpreter {
       paramDecls[id] = HTParameter(
         id: id,
         interpreter: this,
-        fileName: _currentFileName,
-        moduleName: _currentBytecodeModule.id,
+        file: _currentFile,
+        module: _currentBytecodeModule.id,
         closure: _currentNamespace,
         declType: declType,
-        definitionIp: definitionIp,
-        definitionLine: definitionLine,
-        definitionColumn: definitionColumn,
+        ip: definitionIp,
+        line: definitionLine,
+        column: definitionColumn,
         isVariadic: isVariadic,
         isOptional: isOptional,
         isNamed: isNamed,
@@ -2719,7 +2694,7 @@ class HTInterpreter {
       definitionIp = _currentBytecodeModule.ip;
       _currentBytecodeModule.skip(length);
     }
-    final func = HTFunction(_currentFileName, _currentBytecodeModule.id, this,
+    final func = HTFunction(_currentFile, _currentBytecodeModule.id, this,
         internalName: internalName,
         id: id,
         classId: classId,
@@ -2738,9 +2713,9 @@ class HTInterpreter {
         isVariadic: isVariadic,
         minArity: minArity,
         maxArity: maxArity,
-        definitionIp: definitionIp,
-        definitionLine: line,
-        definitionColumn: column,
+        ip: definitionIp,
+        line: line,
+        column: column,
         redirectingConstructor: redirCtor);
     if (isField) {
       _localValue = func;
@@ -2844,8 +2819,8 @@ class HTInterpreter {
     final struct = HTNamedStruct(
       id: id,
       interpreter: this,
-      fileName: _currentFileName,
-      moduleName: _currentBytecodeModule.id,
+      file: _currentFile,
+      module: _currentBytecodeModule.id,
       closure: _currentNamespace,
       documentation: documentation,
       prototypeId: prototypeId,

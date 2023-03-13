@@ -33,22 +33,22 @@ To parse, analyze, compile and load a Hetu source from a String literal. The scr
 
 ```dart
 dynamic eval(String content,
-    {String? fileName,
-    String? moduleName,
+    {String? file,
+    String? module,
     bool globallyImport = false,
     HTResourceType type = HTResourceType.hetuLiteralCode,
-    String? invokeFunc,
+    String? inovaction,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
     List<HTType> typeArgs = const []})
 ```
 
 - **content**: Hetu source as String literal.
-- **fileName**: The name of this source, it will be used when other source try to import from it.
-- **moduleName**: The name of the compiled bytecode module.
+- **file**: The name of this source, it will be used when other source try to import from it.
+- **module**: The name of the compiled bytecode module.
 - **globallyImport**: Whether you want the content of this source is visible to **global** namespace. It's a quicker way to let other modules to use without import statement.
 - **type**: How the interpreter evaluate this source. For more information, check [**source type**](../../guide/package/readme.md#resource-type).
-- **invokeFunc**: Invoke a function immediately after evaluation. The function's name and parameter can be of any form. The arguments of this function call are provided by **positionalArgs** and **namedArgs**. You can also use the separate method **invoke** to do the same thing.
+- **inovaction**: Invoke a function immediately after evaluation. The function's name and parameter can be of any form. The arguments of this function call are provided by **positionalArgs** and **namedArgs**. You can also use the separate method **invoke** to do the same thing.
 
 ### compile(), compileFile(), loadBytecode()
 

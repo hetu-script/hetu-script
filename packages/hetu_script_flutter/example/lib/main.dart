@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
     setState(() {
-      _scriptResult = hetu.evalFile('main.ht', invokeFunc: 'hello');
+      _scriptResult = hetu.evalFile('main.ht', invocation: 'hello');
     });
   }
 

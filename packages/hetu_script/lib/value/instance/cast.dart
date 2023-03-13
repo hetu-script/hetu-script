@@ -48,10 +48,10 @@ class HTCast with HTEntity, InterpreterRef {
   }
 
   @override
-  dynamic memberGet(String varName, {String? from}) =>
-      object.memberGet(varName, cast: klass.id, from: from);
+  dynamic memberGet(String id, {String? from}) =>
+      object.memberGet(id, cast: klass.id, from: from);
 
   @override
-  void memberSet(String varName, dynamic varValue, {String? from}) =>
-      object.memberSet(varName, varValue, cast: klass.id, from: from);
+  void memberSet(String id, dynamic value, {String? from}) =>
+      object.memberSet(id, value, cast: klass.id, from: from);
 }

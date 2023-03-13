@@ -5,6 +5,6 @@ void main() {
   final sourceContext = HTFileSystemResourceContext(root: '../../script/');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
-  final result = hetu.evalFile('recursive2.ht', invokeFunc: 'main');
+  final result = hetu.evalFile('recursive2.ht', invocation: 'main');
   print(result);
 }

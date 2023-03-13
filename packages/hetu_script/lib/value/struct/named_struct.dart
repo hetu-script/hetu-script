@@ -26,8 +26,8 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
   HTNamedStruct({
     required String id,
     required HTInterpreter interpreter,
-    required String fileName,
-    required String moduleName,
+    required String file,
+    required String module,
     super.closure,
     super.documentation,
     this.prototypeId,
@@ -38,9 +38,9 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
     int? definitionIp,
   }) : super(id: id) {
     this.interpreter = interpreter;
-    this.fileName = fileName;
-    this.moduleName = moduleName;
-    this.definitionIp = definitionIp;
+    this.file = file;
+    this.module = module;
+    this.ip = definitionIp;
   }
 
   HTStruct createObject({
@@ -69,8 +69,8 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
     if (_isResolved) return;
     HTStruct static = interpreter.execute(
       context: HTContext(
-        filename: fileName,
-        moduleName: moduleName,
+        file: file,
+        module: module,
         ip: staticDefinitionIp!,
         namespace: closure != null ? closure as HTNamespace : null,
       ),
@@ -86,9 +86,9 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
     }
     _self = interpreter.execute(
       context: HTContext(
-        filename: fileName,
-        moduleName: moduleName,
-        ip: definitionIp!,
+        file: file,
+        module: module,
+        ip: ip!,
         namespace: closure != null ? closure as HTNamespace : null,
       ),
     );
@@ -120,12 +120,12 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
   HTNamedStruct clone() => HTNamedStruct(
       id: id!,
       interpreter: interpreter,
-      fileName: fileName,
-      moduleName: moduleName,
+      file: file,
+      module: module,
       closure: closure != null ? closure as HTNamespace : null,
       source: source,
       prototypeId: prototypeId,
       isTopLevel: isTopLevel,
       staticDefinitionIp: staticDefinitionIp,
-      definitionIp: definitionIp);
+      definitionIp: ip);
 }

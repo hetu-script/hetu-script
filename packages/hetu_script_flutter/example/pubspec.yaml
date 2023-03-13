@@ -1,11 +1,11 @@
 name: hetu_script_flutter_example
 description: A new Flutter project.
-publish_to: "none"
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
-  flutter: ">=1.17.0"
+  sdk: '>=2.17.0 <3.0.0'
+  flutter: '>=1.17.0'
 
 dependencies:
   flutter:
@@ -13,12 +13,12 @@ dependencies:
 
   cupertino_icons: ^1.0.2
 
-  hetu_script: "^0.4.2+1"
-  # hetu_script:
-  #   path: ../../hetu_script
-  hetu_script_flutter: "^0.1.0+2"
-  # hetu_script_flutter:
-  #   path: ../
+  # hetu_script: "^0.4.2+1"
+  hetu_script:
+    path: ../../hetu_script
+  # hetu_script_flutter: "^0.1.0+2"
+  hetu_script_flutter:
+    path: ../
 
 dev_dependencies:
   flutter_test:

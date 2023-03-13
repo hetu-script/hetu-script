@@ -42,13 +42,13 @@ class HTSource {
 
   HTSource(
     String content, {
-    String? fullName,
+    String? filename,
     this.type = HTResourceType.hetuModule,
     bool hashContent = false,
   })  : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
-    if (fullName != null) {
-      _fullName = fullName;
+    if (filename != null) {
+      _fullName = filename;
     } else {
       final hash = crcString(content);
       final nameBuilder = StringBuffer();
@@ -73,9 +73,9 @@ class HTSource {
 /// Typically a json file, which is a [HTStruct] value in Hetu Script.
 class HTJsonSource {
   final String fullName;
-  final String moduleName;
+  final String module;
   final dynamic value;
 
   const HTJsonSource(
-      {required this.fullName, required this.moduleName, required this.value});
+      {required this.fullName, required this.module, required this.value});
 }

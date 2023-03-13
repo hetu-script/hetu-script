@@ -94,18 +94,16 @@ packages:
   hetu_script:
     dependency: "direct main"
     description:
-      name: hetu_script
-      sha256: a9a3f4f510ae10188d352b79e8fc45e27134cfa81ee1691004067395f45f17cb
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.2+1"
+      path: "../../hetu_script"
+      relative: true
+    source: path
+    version: "0.5.0"
   hetu_script_flutter:
     dependency: "direct main"
     description:
-      name: hetu_script_flutter
-      sha256: "88a943f6ee6c5a89bd2051774f44330b317166fe4299cbc6a0fa2fcd6f5c25e7"
-      url: "https://pub.dev"
-    source: hosted
+      path: ".."
+      relative: true
+    source: path
     version: "0.1.0+2"
   intl:
     dependency: transitive
@@ -249,5 +247,5 @@ packages:
     source: hosted
     version: "2.1.4"
 sdks:
-  dart: ">=2.19.0 <4.0.0"
+  dart: ">=2.19.0 <3.0.0"
   flutter: ">=1.17.0"

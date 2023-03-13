@@ -10,9 +10,9 @@ class HTHetuClassBinding extends HTExternalClass {
   HTHetuClassBinding() : super('Hetu');
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) {
+  dynamic instanceMemberGet(dynamic object, String id) {
     final hetu = object as Hetu;
-    switch (varName) {
+    switch (id) {
       case 'stringify':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -67,7 +67,7 @@ class HTHetuClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             hetu.help(positionalArgs.first);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }

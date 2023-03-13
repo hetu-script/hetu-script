@@ -30,8 +30,8 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
   HTVariable({
     required super.id,
     required HTInterpreter interpreter,
-    String? fileName,
-    String? moduleName,
+    String? file,
+    String? module,
     super.classId,
     required HTNamespace closure,
     super.documentation,
@@ -44,21 +44,21 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
     super.isMutable = false,
     super.isTopLevel = false,
     super.lateFinalize = false,
-    int? definitionIp,
-    int? definitionLine,
-    int? definitionColumn,
+    int? ip,
+    int? line,
+    int? column,
   })  : _closure = closure,
         super(closure: closure) {
     this.interpreter = interpreter;
-    if (fileName != null) {
-      this.fileName = fileName;
+    if (file != null) {
+      this.file = file;
     }
-    if (moduleName != null) {
-      this.moduleName = moduleName;
+    if (module != null) {
+      this.module = module;
     }
-    this.definitionIp = definitionIp;
-    this.definitionLine = definitionLine;
-    this.definitionColumn = definitionColumn;
+    this.ip = ip;
+    this.line = line;
+    this.column = column;
 
     if (value != null) {
       this.value = value;
@@ -67,17 +67,17 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
 
   /// Initialize this variable with its declared initializer bytecode
   void initialize() {
-    if (definitionIp != null) {
+    if (ip != null) {
       if (!_isInitializing) {
         _isInitializing = true;
         final initVal = interpreter.execute(
           context: HTContext(
-            filename: fileName,
-            moduleName: moduleName,
-            ip: definitionIp!,
+            file: file,
+            module: module,
+            ip: ip!,
             namespace: closure,
-            line: definitionLine,
-            column: definitionColumn,
+            line: line,
+            column: column,
           ),
         );
         value = initVal;
@@ -123,7 +123,7 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
       throw HTError.uninitialized(id!);
     }
     if (!isExternal) {
-      if (_value == null && (definitionIp != null)) {
+      if (_value == null && (ip != null)) {
         initialize();
       }
       return _value;
@@ -183,8 +183,8 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
   HTVariable clone() => HTVariable(
       id: id!,
       interpreter: interpreter,
-      fileName: fileName,
-      moduleName: moduleName,
+      file: file,
+      module: module,
       classId: classId,
       closure: closure,
       declType: declType,
@@ -194,7 +194,7 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
       isMutable: isMutable,
       isTopLevel: isTopLevel,
       lateFinalize: lateFinalize,
-      definitionIp: definitionIp,
-      definitionLine: definitionLine,
-      definitionColumn: definitionColumn);
+      ip: ip,
+      line: line,
+      column: column);
 }

@@ -7,22 +7,22 @@ class Person {
 }
 
 extension PersonBinding on Person {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'name':
         return name;
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
-  void htAssign(String varName, dynamic varValue) {
-    switch (varName) {
+  void htAssign(String id, dynamic value) {
+    switch (id) {
       case 'name':
-        name = varValue;
+        name = value;
         break;
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
@@ -31,8 +31,8 @@ class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    switch (varName) {
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
       case 'Person':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -40,27 +40,27 @@ class PersonClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             Person(positionalArgs[0]);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  void memberSet(String varName, dynamic varValue, {String? from}) {
-    switch (varName) {
+  void memberSet(String id, dynamic value, {String? from}) {
+    switch (id) {
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String varName) {
+  dynamic instanceMemberGet(dynamic object, String id) {
     var i = object as Person;
-    return i.htFetch(varName);
+    return i.htFetch(id);
   }
 
   @override
-  void instanceMemberSet(dynamic object, String varName, dynamic varValue) {
+  void instanceMemberSet(dynamic object, String id, dynamic value) {
     var i = object as Person;
-    i.htAssign(varName, varValue);
+    i.htAssign(id, value);
   }
 }

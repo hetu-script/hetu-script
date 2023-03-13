@@ -38,22 +38,22 @@ class HTInstanceNamespace extends HTNamespace {
   /// try fetching variable from enclosed namespace.
   @override
   dynamic memberGet(
-    String varName, {
+    String id, {
     bool isPrivate = false,
     String? from,
     bool isRecursive = true,
     bool throws = true,
     bool asDeclaration = false,
   }) {
-    final getter = '${InternalIdentifier.getter}$varName';
+    final getter = '${InternalIdentifier.getter}$id';
 
     if (isRecursive) {
       HTInstanceNamespace? curNamespace = runtimeInstanceNamespace;
       while (curNamespace != null) {
-        if (curNamespace.symbols.containsKey(varName) ||
+        if (curNamespace.symbols.containsKey(id) ||
             curNamespace.symbols.containsKey(getter)) {
-          final value = instance.memberGet(varName,
-              from: from, cast: curNamespace.classId);
+          final value =
+              instance.memberGet(id, from: from, cast: curNamespace.classId);
           if (value is HTFunction &&
               value.category != FunctionCategory.literal) {
             value.instance = instance;
@@ -65,8 +65,8 @@ class HTInstanceNamespace extends HTNamespace {
         }
       }
     } else {
-      if (symbols.containsKey(varName)) {
-        final value = instance.memberGet(varName, from: from, cast: classId);
+      if (symbols.containsKey(id)) {
+        final value = instance.memberGet(id, from: from, cast: classId);
         if (value is HTFunction && value.category != FunctionCategory.literal) {
           value.instance = instance;
           value.namespace = this;
@@ -76,11 +76,11 @@ class HTInstanceNamespace extends HTNamespace {
     }
 
     if (isRecursive && closure != null) {
-      return closure!.memberGet(varName, from: from, isRecursive: isRecursive);
+      return closure!.memberGet(id, from: from, isRecursive: isRecursive);
     }
 
     if (throws) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(id);
     }
   }
 
@@ -90,39 +90,38 @@ class HTInstanceNamespace extends HTNamespace {
   /// try assigning variable from enclosed namespace.
   @override
   bool memberSet(
-    String varName,
-    dynamic varValue, {
+    String id,
+    dynamic value, {
     String? from,
     bool isRecursive = true,
     bool throws = true,
   }) {
-    final setter = '${InternalIdentifier.getter}$varName';
+    final setter = '${InternalIdentifier.getter}$id';
 
     if (isRecursive) {
       HTInstanceNamespace? curNamespace = runtimeInstanceNamespace;
       while (curNamespace != null) {
-        if (curNamespace.symbols.containsKey(varName) ||
+        if (curNamespace.symbols.containsKey(id) ||
             curNamespace.symbols.containsKey(setter)) {
-          instance.memberSet(varName, varValue,
-              from: from, cast: curNamespace.classId);
+          instance.memberSet(id, value, from: from, cast: curNamespace.classId);
           return true;
         } else {
           curNamespace = curNamespace.next;
         }
       }
     } else {
-      if (symbols.containsKey(varName) || symbols.containsKey(setter)) {
-        instance.memberSet(varName, varValue, from: from, cast: classId);
+      if (symbols.containsKey(id) || symbols.containsKey(setter)) {
+        instance.memberSet(id, value, from: from, cast: classId);
         return true;
       }
     }
 
     if (isRecursive && closure != null) {
-      return closure!.memberSet(varName, varValue, from: from);
+      return closure!.memberSet(id, value, from: from);
     }
 
     if (throws) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(id);
     } else {
       return false;
     }

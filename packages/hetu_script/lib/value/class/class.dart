@@ -120,14 +120,14 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   // }
 
   @override
-  bool contains(String varName) {
-    final getter = '${InternalIdentifier.getter}$varName';
-    final setter = '${InternalIdentifier.setter}$varName';
-    final constructor = varName != id
-        ? '${InternalIdentifier.namedConstructorPrefix}$varName'
+  bool contains(String id) {
+    final getter = '${InternalIdentifier.getter}$id';
+    final setter = '${InternalIdentifier.setter}$id';
+    final constructor = id != id
+        ? '${InternalIdentifier.namedConstructorPrefix}$id'
         : InternalIdentifier.defaultConstructor;
 
-    return namespace.symbols.containsKey(varName) ||
+    return namespace.symbols.containsKey(id) ||
         namespace.symbols.containsKey(getter) ||
         namespace.symbols.containsKey(setter) ||
         namespace.symbols.containsKey(constructor);
@@ -135,21 +135,21 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
 
   /// Get a value of a static member from this [HTClass].
   @override
-  dynamic memberGet(String varName, {String? from, bool throws = true}) {
-    final getter = '${InternalIdentifier.getter}$varName';
-    final constructor = '${InternalIdentifier.namedConstructorPrefix}$varName';
+  dynamic memberGet(String id, {String? from, bool throws = true}) {
+    final getter = '${InternalIdentifier.getter}$id';
+    final constructor = '${InternalIdentifier.namedConstructorPrefix}$id';
 
     // if (isExternal && !internal) {
     //   final value =
-    //       externalClass!.memberGet(varName != id ? '$id.$varName' : varName);
+    //       externalClass!.memberGet(id != id ? '$id.$id' : id);
     //   return value;
     // } else {
-    if (namespace.symbols.containsKey(varName)) {
-      final decl = namespace.symbols[varName]!;
+    if (namespace.symbols.containsKey(id)) {
+      final decl = namespace.symbols[id]!;
       if (decl.isPrivate &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       if (isExternal) {
         decl.resolve();
@@ -167,7 +167,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
       if (decl.isPrivate &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       final func = decl as HTFunction;
       if (isExternal) {
@@ -184,7 +184,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
       if (decl.isPrivate &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       decl.resolve();
       final func = decl as HTFunction;
@@ -193,8 +193,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     // }
 
     if (throws) {
-      throw HTError.undefined(varName,
-          filename: interpreter.currentFileName,
+      throw HTError.undefined(id,
+          filename: interpreter.currentFile,
           line: interpreter.currentLine,
           column: interpreter.currentColumn);
     }
@@ -202,23 +202,23 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
 
   /// Assign a value to a static member of this [HTClass].
   @override
-  void memberSet(String varName, dynamic varValue, {String? from}) {
-    final setter = '${InternalIdentifier.setter}$varName';
+  void memberSet(String id, dynamic value, {String? from}) {
+    final setter = '${InternalIdentifier.setter}$id';
 
     if (isExternal) {
-      externalClass!.memberSet('$id.$varName', varValue);
+      externalClass!.memberSet('$id.$id', value);
       return;
     } else {
-      if (namespace.symbols.containsKey(varName)) {
-        final decl = namespace.symbols[varName]!;
+      if (namespace.symbols.containsKey(id)) {
+        final decl = namespace.symbols[id]!;
         if (decl.isStatic) {
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
-            throw HTError.privateMember(varName);
+            throw HTError.privateMember(id);
           }
           decl.resolve();
-          decl.value = varValue;
+          decl.value = value;
           return;
         }
         // TODO: non-static error prompt
@@ -228,19 +228,19 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
-            throw HTError.privateMember(varName);
+            throw HTError.privateMember(id);
           }
           decl.resolve();
           final setterFunc = decl as HTFunction;
-          setterFunc.call(positionalArgs: [varValue]);
+          setterFunc.call(positionalArgs: [value]);
           return;
         }
         // TODO: non-static error prompt
       }
     }
 
-    throw HTError.undefined(varName,
-        filename: interpreter.currentFileName,
+    throw HTError.undefined(id,
+        filename: interpreter.currentFile,
         line: interpreter.currentLine,
         column: interpreter.currentColumn);
   }
@@ -261,7 +261,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
             typeArgs: typeArgs);
       } else {
         throw HTError.notCallable(funcName,
-            filename: interpreter.currentFileName,
+            filename: interpreter.currentFile,
             line: interpreter.currentLine,
             column: interpreter.currentColumn);
       }

@@ -21,84 +21,84 @@ class HTClassNamespace extends HTNamespace {
 
   @override
   dynamic memberGet(
-    String varName, {
+    String id, {
     bool isPrivate = false,
     String? from,
     bool isRecursive = true,
     bool throws = true,
     bool asDeclaration = false,
   }) {
-    final getter = '${InternalIdentifier.getter}$varName';
-    final externalStatic = '$id.$varName';
+    final getter = '${InternalIdentifier.getter}$id';
+    final externalStatic = '$id.$id';
 
-    if (symbols.containsKey(varName)) {
-      final decl = symbols[varName]!;
+    if (symbols.containsKey(id)) {
+      final decl = symbols[id]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       decl.resolve();
       return decl.value;
     } else if (symbols.containsKey(getter)) {
       final decl = symbols[getter]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       decl.resolve();
       return decl.value;
     } else if (symbols.containsKey(externalStatic)) {
       final decl = symbols[externalStatic]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       decl.resolve();
       return decl.value;
     }
 
     if (isRecursive && (closure != null)) {
-      return closure!.memberGet(varName,
-          from: from, isRecursive: isRecursive, throws: throws);
+      return closure!
+          .memberGet(id, from: from, isRecursive: isRecursive, throws: throws);
     }
 
     if (throws) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(id);
     }
   }
 
   @override
   bool memberSet(
-    String varName,
-    dynamic varValue, {
+    String id,
+    dynamic value, {
     String? from,
     bool isRecursive = true,
     bool throws = true,
   }) {
-    final setter = '${InternalIdentifier.setter}$varName';
-    if (symbols.containsKey(varName)) {
-      final decl = symbols[varName]!;
+    final setter = '${InternalIdentifier.setter}$id';
+    if (symbols.containsKey(id)) {
+      final decl = symbols[id]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       decl.resolve();
-      decl.value = varValue;
+      decl.value = value;
       return true;
     } else if (symbols.containsKey(setter)) {
       final decl = symbols[setter]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       decl.resolve();
       final setterFunc = decl as HTFunction;
-      setterFunc.call(positionalArgs: [varValue]);
+      setterFunc.call(positionalArgs: [value]);
       return true;
     }
 
     if (isRecursive && closure != null) {
-      return closure!.memberSet(varName, varValue,
+      return closure!.memberSet(id, value,
           from: from, isRecursive: isRecursive, throws: throws);
     }
 
     if (throws) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(id);
     } else {
       return false;
     }

@@ -131,11 +131,11 @@ class HTInstance with HTEntity, InterpreterRef {
   }
 
   @override
-  bool contains(String varName) {
+  bool contains(String id) {
     for (final space in _namespaces.values) {
-      if (space.symbols.containsKey(varName) ||
-          space.symbols.containsKey('${InternalIdentifier.getter}$varName') ||
-          space.symbols.containsKey('${InternalIdentifier.setter}$varName')) {
+      if (space.symbols.containsKey(id) ||
+          space.symbols.containsKey('${InternalIdentifier.getter}$id') ||
+          space.symbols.containsKey('${InternalIdentifier.setter}$id')) {
         return true;
       }
     }
@@ -147,18 +147,18 @@ class HTInstance with HTEntity, InterpreterRef {
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String id,
       {String? from, String? cast, bool throws = true}) {
-    final getter = '${InternalIdentifier.getter}$varName';
+    final getter = '${InternalIdentifier.getter}$id';
 
     if (cast == null) {
       for (final space in _namespaces.values) {
-        if (space.symbols.containsKey(varName)) {
-          final decl = space.symbols[varName]!;
+        if (space.symbols.containsKey(id)) {
+          final decl = space.symbols[id]!;
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
-            throw HTError.privateMember(varName);
+            throw HTError.privateMember(id);
           }
           decl.resolve();
           if (decl is HTFunction && decl.category != FunctionCategory.literal) {
@@ -171,7 +171,7 @@ class HTInstance with HTEntity, InterpreterRef {
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
-            throw HTError.privateMember(varName);
+            throw HTError.privateMember(id);
           }
           decl.resolve();
           final func = decl as HTFunction;
@@ -182,12 +182,12 @@ class HTInstance with HTEntity, InterpreterRef {
       }
     } else {
       final space = _namespaces[cast]!;
-      if (space.symbols.containsKey(varName)) {
-        final decl = space.symbols[varName]!;
+      if (space.symbols.containsKey(id)) {
+        final decl = space.symbols[id]!;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(id);
         }
         decl.resolve();
         if (decl is HTFunction && decl.category != FunctionCategory.literal) {
@@ -200,7 +200,7 @@ class HTInstance with HTEntity, InterpreterRef {
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(id);
         }
         decl.resolve();
         final func = decl as HTFunction;
@@ -211,7 +211,7 @@ class HTInstance with HTEntity, InterpreterRef {
     }
 
     if (throws) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(id);
     }
   }
 
@@ -220,34 +220,34 @@ class HTInstance with HTEntity, InterpreterRef {
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
-  void memberSet(String varName, dynamic varValue,
+  void memberSet(String id, dynamic value,
       {String? from, String? cast, bool throws = true}) {
-    final setter = '${InternalIdentifier.setter}$varName';
+    final setter = '${InternalIdentifier.setter}$id';
 
     if (cast == null) {
       for (final space in _namespaces.values) {
-        if (space.symbols.containsKey(varName)) {
-          final decl = space.symbols[varName]!;
+        if (space.symbols.containsKey(id)) {
+          final decl = space.symbols[id]!;
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
-            throw HTError.privateMember(varName);
+            throw HTError.privateMember(id);
           }
           decl.resolve();
-          decl.value = varValue;
+          decl.value = value;
           return;
         } else if (space.symbols.containsKey(setter)) {
           final decl = space.symbols[setter]!;
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
-            throw HTError.privateMember(varName);
+            throw HTError.privateMember(id);
           }
           decl.resolve();
           final method = decl as HTFunction;
           method.namespace = namespace;
           method.instance = this;
-          method.call(positionalArgs: [varValue]);
+          method.call(positionalArgs: [value]);
           return;
         }
       }
@@ -257,33 +257,33 @@ class HTInstance with HTEntity, InterpreterRef {
       }
 
       final space = _namespaces[cast]!;
-      if (space.symbols.containsKey(varName)) {
-        var decl = space.symbols[varName]!;
+      if (space.symbols.containsKey(id)) {
+        var decl = space.symbols[id]!;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(id);
         }
         decl.resolve();
-        decl.value = varValue;
+        decl.value = value;
         return;
       } else if (space.symbols.containsKey(setter)) {
         final decl = space.symbols[setter]!;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(varName);
+          throw HTError.privateMember(id);
         }
         decl.resolve();
         final method = decl as HTFunction;
         method.namespace = _namespaces[cast];
         method.instance = this;
-        method.call(positionalArgs: [varValue]);
+        method.call(positionalArgs: [value]);
         return;
       }
     }
 
-    throw HTError.undefined(varName);
+    throw HTError.undefined(id);
   }
 
   /// Call a member function of this [HTInstance].

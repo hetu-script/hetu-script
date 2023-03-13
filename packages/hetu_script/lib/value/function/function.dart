@@ -57,7 +57,7 @@ class HTFunction extends HTFunctionDeclaration
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTFunction(String fileName, String moduleName, HTInterpreter interpreter,
+  HTFunction(String file, String module, HTInterpreter interpreter,
       {required super.internalName,
       super.id,
       super.classId,
@@ -82,17 +82,17 @@ class HTFunction extends HTFunctionDeclaration
       super.maxArity = 0,
       super.namespace,
       this.externalFunc,
-      int? definitionIp,
-      int? definitionLine,
-      int? definitionColumn,
+      int? ip,
+      int? line,
+      int? column,
       this.redirectingConstructor,
       this.klass}) {
     this.interpreter = interpreter;
-    this.fileName = fileName;
-    this.moduleName = moduleName;
-    this.definitionIp = definitionIp;
-    this.definitionLine = definitionLine;
-    this.definitionColumn = definitionColumn;
+    this.file = file;
+    this.module = module;
+    this.ip = ip;
+    this.line = line;
+    this.column = column;
   }
 
   /// Print function signature to String with function [id] and parameter [id].
@@ -191,7 +191,7 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  HTFunction clone() => HTFunction(fileName, moduleName, interpreter,
+  HTFunction clone() => HTFunction(file, module, interpreter,
       internalName: internalName,
       id: id,
       classId: classId,
@@ -212,9 +212,9 @@ class HTFunction extends HTFunctionDeclaration
       minArity: minArity,
       maxArity: maxArity,
       externalFunc: externalFunc,
-      definitionIp: definitionIp,
-      definitionLine: definitionLine,
-      definitionColumn: definitionColumn,
+      ip: ip,
+      line: line,
+      column: column,
       namespace: namespace != null ? namespace as HTNamespace : null,
       redirectingConstructor: redirectingConstructor,
       klass: klass);
@@ -247,14 +247,14 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
-    if (varName == interpreter.lexicon.idBind) {
+  dynamic memberGet(String id, {String? from}) {
+    if (id == interpreter.lexicon.idBind) {
       return (HTEntity entity,
               {List<dynamic> positionalArgs = const [],
               Map<String, dynamic> namedArgs = const {},
               List<HTType> typeArgs = const []}) =>
           bind(positionalArgs.first);
-    } else if (varName == interpreter.lexicon.idApply) {
+    } else if (id == interpreter.lexicon.idApply) {
       return (HTEntity entity,
               {List<dynamic> positionalArgs = const [],
               Map<String, dynamic> namedArgs = const {},
@@ -264,7 +264,7 @@ class HTFunction extends HTFunctionDeclaration
               namedArgs: namedArgs,
               typeArgs: typeArgs);
     } else {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(id);
     }
   }
 
@@ -318,7 +318,7 @@ class HTFunction extends HTFunctionDeclaration
       List<HTType> typeArgs = const []}) {
     try {
       interpreter.stackTraceList.insert(0,
-          '$internalName (${interpreter.currentFileName}:${interpreter.currentLine}:${interpreter.currentColumn})');
+          '$internalName (${interpreter.currentFile}:${interpreter.currentLine}:${interpreter.currentColumn})');
 
       dynamic result;
       // 如果是脚本函数
@@ -514,8 +514,8 @@ class HTFunction extends HTFunctionDeclaration
               final HTContext storedContext = interpreter.getContext();
               interpreter.setContext(
                 context: HTContext(
-                  filename: fileName,
-                  moduleName: moduleName,
+                  file: file,
+                  module: module,
                   namespace: callClosure,
                   ip: referCtorPosArgIps[i],
                 ),
@@ -537,8 +537,8 @@ class HTFunction extends HTFunctionDeclaration
               final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
               final arg = interpreter.execute(
                 context: HTContext(
-                    filename: fileName,
-                    moduleName: moduleName,
+                    file: file,
+                    module: module,
                     ip: referCtorNamedArgIp,
                     namespace: callClosure),
               );
@@ -555,7 +555,7 @@ class HTFunction extends HTFunctionDeclaration
           }
         }
 
-        if (definitionIp == null) {
+        if (ip == null) {
           interpreter.stackTraceList.removeLast();
           return result;
         }
@@ -563,23 +563,23 @@ class HTFunction extends HTFunctionDeclaration
         if (category != FunctionCategory.constructor) {
           result = interpreter.execute(
             context: HTContext(
-              filename: fileName,
-              moduleName: moduleName,
-              ip: definitionIp,
+              file: file,
+              module: module,
+              ip: ip,
               namespace: callClosure,
-              line: definitionLine,
-              column: definitionColumn,
+              line: line,
+              column: column,
             ),
           );
         } else {
           interpreter.execute(
             context: HTContext(
-              filename: fileName,
-              moduleName: moduleName,
-              ip: definitionIp,
+              file: file,
+              module: module,
+              ip: ip,
               namespace: callClosure,
-              line: definitionLine,
-              column: definitionColumn,
+              line: line,
+              column: column,
             ),
           );
         }

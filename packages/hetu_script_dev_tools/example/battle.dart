@@ -8,5 +8,5 @@ void main() {
   hetu.init();
   hetu.loadModuleConsole();
 
-  hetu.evalFile('battle1.ht', invokeFunc: 'main');
+  hetu.evalFile('battle1.ht', invocation: 'main');
 }

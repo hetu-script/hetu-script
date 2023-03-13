@@ -25,7 +25,13 @@ Future<void> main() async {
   );
 
   final r = hetu.eval(r'''
-  stringify(42)
+  namespace `123-234ad` {
+    fun greeting {
+      print('hi')
+    }
+  }
+
+  `123-234ad`.greeting()
 ''');
 
   if (r is Future) {

@@ -24,13 +24,13 @@ class HTFilterConfig {
       this.recursive = true});
 
   // [fullPath] must be a normalized absolute path
-  bool isWithin(String fileName) {
-    final ext = path.extension(fileName);
-    if (path.isWithin(folder, fileName)) {
+  bool isWithin(String fullPath) {
+    final ext = path.extension(fullPath);
+    if (path.isWithin(folder, fullPath)) {
       if (recursive) {
         return _checkExt(ext, extension);
       } else {
-        final fileDirName = path.basename(path.dirname(fileName));
+        final fileDirName = path.basename(path.dirname(fullPath));
         final folderDirName = path.basename(folder);
         if (fileDirName == folderDirName) {
           return _checkExt(ext, extension);
@@ -101,7 +101,7 @@ abstract class HTResourceContext<T> {
   }
 
   /// Get a unique absolute normalized path.
-  String getAbsolutePath({String key = '', String? dirName, String? fileName}) {
+  String getAbsolutePath({String key = '', String? dirName, String? filename}) {
     // if (key.startsWith(HTResourceContext.hetuLocalPackagePrefix)) {
     //   return '$root$defaultLocalPackagesFolder/${key.substring(4)}/$hetuModuleEntryFileName';
     // } else {
@@ -114,8 +114,8 @@ abstract class HTResourceContext<T> {
         name = path.join(path.current, name);
       }
     }
-    if (fileName != null) {
-      name = path.join(name, fileName);
+    if (filename != null) {
+      name = path.join(name, filename);
     }
     final encoded = Uri.file(name).path;
     final normalized = Uri.decodeFull(encoded);

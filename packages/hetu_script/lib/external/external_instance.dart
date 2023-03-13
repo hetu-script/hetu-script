@@ -52,14 +52,14 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
   }
 
   @override
-  dynamic memberGet(String varName, {String? from}) {
+  dynamic memberGet(String id, {String? from}) {
     if (externalClass != null) {
-      final member = externalClass!.instanceMemberGet(externalObject, varName);
+      final member = externalClass!.instanceMemberGet(externalObject, id);
       if (member is Function && klass != null) {
         HTClass? currentKlass = klass! as HTClass;
         HTFunction? decl;
         while (decl == null && currentKlass != null) {
-          decl = currentKlass.memberGet(varName, throws: false);
+          decl = currentKlass.memberGet(id, throws: false);
           currentKlass = currentKlass.superClass;
         }
         if (decl != null) {
@@ -71,13 +71,13 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
         return member;
       }
     }
-    throw HTError.undefined(varName);
+    throw HTError.undefined(id);
   }
 
   @override
-  void memberSet(String varName, dynamic varValue, {String? from}) {
+  void memberSet(String id, dynamic value, {String? from}) {
     if (externalClass != null) {
-      externalClass!.instanceMemberSet(externalObject, varName, varValue);
+      externalClass!.instanceMemberSet(externalObject, id, value);
     } else {
       throw HTError.unknownExternalTypeName(typeString);
     }

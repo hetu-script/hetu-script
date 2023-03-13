@@ -346,7 +346,7 @@ class LspAnalysisServer {
 
     // TODO: 这里应该是根据插件的配置中的选项而判断代码文件类型
     final source = HTSource(content,
-        fullName: filename,
+        filename: filename,
         type: ext == HTResource.hetuScript
             ? HTResourceType.hetuScript
             : HTResourceType.hetuModule);

@@ -24,51 +24,50 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       : _closure = closure,
         super(closure: closure);
 
-  String? help(String varName) {
-    if (symbols.containsKey(varName)) {
-      final decl = symbols[varName]!;
+  String? help(String id) {
+    if (symbols.containsKey(id)) {
+      final decl = symbols[id]!;
       return decl.documentation;
-    } else if (importedSymbols.containsKey(varName)) {
-      final decl = importedSymbols[varName]!;
+    } else if (importedSymbols.containsKey(id)) {
+      final decl = importedSymbols[id]!;
       return decl.documentation;
     } else if (closure != null) {
-      final decl =
-          closure!.memberGet(varName, isRecursive: true, throws: false);
+      final decl = closure!.memberGet(id, isRecursive: true, throws: false);
       if (decl != null) {
         return (decl as HTDeclaration).documentation;
       }
     }
-    throw HTError.undefined(varName);
+    throw HTError.undefined(id);
   }
 
   @override
   dynamic memberGet(
-    String varName, {
+    String id, {
     bool isPrivate = false,
     String? from,
     bool isRecursive = false,
     bool throws = true,
     bool asDeclaration = false,
   }) {
-    if (symbols.containsKey(varName)) {
-      final decl = symbols[varName]!;
+    if (symbols.containsKey(id)) {
+      final decl = symbols[id]!;
       if (asDeclaration) return decl;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       decl.resolve();
       return decl.value;
-    } else if (importedSymbols.containsKey(varName)) {
-      final decl = importedSymbols[varName]!;
+    } else if (importedSymbols.containsKey(id)) {
+      final decl = importedSymbols[id]!;
       if (asDeclaration) return decl;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       decl.resolve();
       return decl.value;
     } else if (isRecursive && (closure != null)) {
       return closure!.memberGet(
-        varName,
+        id,
         from: from,
         isRecursive: isRecursive,
         throws: throws,
@@ -76,7 +75,7 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       );
     }
     if (throws) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(id);
     }
   }
 
@@ -86,34 +85,33 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
   /// If [isRecursive] is true, means this is not a 'memberset operator' search.
   @override
   bool memberSet(
-    String varName,
-    dynamic varValue, {
+    String id,
+    dynamic value, {
     String? from,
     bool isRecursive = false,
     bool throws = true,
   }) {
-    if (symbols.containsKey(varName)) {
-      final decl = symbols[varName]!;
+    if (symbols.containsKey(id)) {
+      final decl = symbols[id]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       decl.resolve();
-      decl.value = varValue;
+      decl.value = value;
       return true;
-    } else if (importedSymbols.containsKey(varName)) {
-      final decl = importedSymbols[varName]!;
+    } else if (importedSymbols.containsKey(id)) {
+      final decl = importedSymbols[id]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       decl.resolve();
-      decl.value = varValue;
+      decl.value = value;
       return true;
     } else if (isRecursive && (closure != null)) {
-      return closure!
-          .memberSet(varName, varValue, from: from, isRecursive: true);
+      return closure!.memberSet(id, value, from: from, isRecursive: true);
     } else {
       if (throws) {
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
       }
     }
 

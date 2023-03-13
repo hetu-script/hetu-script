@@ -32,7 +32,7 @@ Future<void> main() async {
 
   final source1 = HTSource(r'''
     final typename = 'person'
-''', fullName: 'source1.ht');
+''', filename: 'source1.ht');
 
   final source2 = HTSource(r'''
     import 'json_data.json' as jsonData
@@ -42,7 +42,7 @@ Future<void> main() async {
         this.race = 'han'
       }
     }
-// ''', fullName: 'source2.ht');
+// ''', filename: 'source2.ht');
 
   final source3 = HTSource(r'''
     namespace Person {
@@ -53,7 +53,7 @@ Future<void> main() async {
         }
       }
     }
-''', fullName: 'source3.ht');
+''', filename: 'source3.ht');
   sourceContext.addResource(source1.fullName, source1);
   sourceContext.addResource(source2.fullName, source2);
   sourceContext.addResource(source3.fullName, source3);
@@ -65,7 +65,7 @@ Future<void> main() async {
     "name": "Aleph",
     "type": "novel",
     "volumes": 7,
-  }''', fullName: 'data.json', type: HTResourceType.json);
+  }''', filename: 'data.json', type: HTResourceType.json);
   sourceContext.addResource('data.json', jsonSource);
 
   // final result = hetu.eval(
@@ -91,7 +91,7 @@ Future<void> main() async {
 
   hetu.loadBytecode(
     bytes: bytes,
-    moduleName: 'test',
+    module: 'test',
     // invokeFunc: 'main',
     // positionalArgs: [jsonData],
   );

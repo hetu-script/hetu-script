@@ -251,7 +251,7 @@ class Hetu {
       final coreModule = Uint8List.fromList(hetuCoreModule);
       interpreter.loadBytecode(
         bytes: coreModule,
-        moduleName: 'hetu',
+        module: 'hetu',
         globallyImport: true,
       );
 
@@ -299,8 +299,8 @@ class Hetu {
   /// If [invokeFunc] is provided, will immediately
   /// call the function after evaluation completed.
   dynamic eval(String content,
-      {String? fileName,
-      String? moduleName,
+      {String? file,
+      String? module,
       bool globallyImport = false,
       HTResourceType type = HTResourceType.hetuLiteralCode,
       String? invokeFunc,
@@ -308,47 +308,51 @@ class Hetu {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     if (content.trim().isEmpty) return null;
-    final source = HTSource(content, fullName: fileName, type: type);
-    final result = evalSource(source,
-        moduleName: moduleName,
-        globallyImport: globallyImport,
-        invokeFunc: invokeFunc,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        typeArgs: typeArgs);
+    final source = HTSource(content, filename: file, type: type);
+    final result = evalSource(
+      source,
+      module: module,
+      globallyImport: globallyImport,
+      invocation: invokeFunc,
+      positionalArgs: positionalArgs,
+      namedArgs: namedArgs,
+      typeArgs: typeArgs,
+    );
     return result;
   }
 
   /// Evaluate a file.
   /// [key] is a possibly relative path.
   /// file content will be searched by [sourceContext].
-  /// If [invokeFunc] is provided, will immediately
+  /// If [invocation] is provided, will immediately
   /// call the function after evaluation completed.
   dynamic evalFile(String key,
-      {String? moduleName,
+      {String? module,
       bool globallyImport = false,
-      String? invokeFunc,
+      String? invocation,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final source = sourceContext.getResource(key);
-    final result = evalSource(source,
-        moduleName: moduleName,
-        globallyImport: globallyImport,
-        invokeFunc: invokeFunc,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        typeArgs: typeArgs);
+    final result = evalSource(
+      source,
+      module: module,
+      globallyImport: globallyImport,
+      invocation: invocation,
+      positionalArgs: positionalArgs,
+      namedArgs: namedArgs,
+      typeArgs: typeArgs,
+    );
     return result;
   }
 
   /// Evaluate a [HTSource].
-  /// If [invokeFunc] is provided, will immediately
+  /// If [invocation] is provided, will immediately
   /// call the function after evaluation completed.
   dynamic evalSource(HTSource source,
-      {String? moduleName,
+      {String? module,
       bool globallyImport = false,
-      String? invokeFunc,
+      String? invocation,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -358,9 +362,9 @@ class Hetu {
     final bytes = _compileSource(source);
     final result = interpreter.loadBytecode(
       bytes: bytes,
-      moduleName: moduleName ?? source.fullName,
+      module: module ?? source.fullName,
       globallyImport: globallyImport,
-      invokeFunc: invokeFunc,
+      invocation: invocation,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
@@ -394,13 +398,13 @@ class Hetu {
   /// This won't execute the code, so runtime errors will not be reported.
   Uint8List compile(
     String content, {
-    String? sourceName,
+    String? filename,
     CompilerConfig? config,
     bool isModuleEntryScript = false,
     Version? version,
   }) {
     final source = HTSource(content,
-        fullName: sourceName,
+        filename: filename,
         type: isModuleEntryScript
             ? HTResourceType.hetuScript
             : HTResourceType.hetuModule);
@@ -468,17 +472,17 @@ class Hetu {
   /// Load a bytecode module and immediately run a function in it.
   dynamic loadBytecode(
       {required Uint8List bytes,
-      required String moduleName,
+      required String module,
       bool globallyImport = false,
-      String? invokeFunc,
+      String? invocation,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     final result = interpreter.loadBytecode(
       bytes: bytes,
-      moduleName: moduleName,
+      module: module,
       globallyImport: globallyImport,
-      invokeFunc: invokeFunc,
+      invocation: invocation,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
@@ -492,7 +496,7 @@ class Hetu {
     return result;
   }
 
-  /// Load a source into current bytecode dynamically.
+  /// Dynamically load a source into current bytecode.
   HTNamespace require(String path, [bool isScript = true]) {
     final key = config.normalizeImportPath
         ? sourceContext.getAbsolutePath(key: path)
@@ -519,75 +523,56 @@ class Hetu {
     final bytes = _compileSource(source);
     final HTContext storedContext = interpreter.getContext();
 
-    interpreter.loadBytecode(bytes: bytes, moduleName: key);
+    interpreter.loadBytecode(bytes: bytes, module: key);
 
     final nsp = interpreter.currentBytecodeModule.namespaces.values.last;
     interpreter.setContext(context: storedContext);
     return nsp;
   }
 
-  /// Get the documentation of an identifier.
-  String? help(
-    dynamic id, {
-    String? moduleName,
-  }) =>
-      interpreter.help(
-        id,
-        moduleName: moduleName,
-      );
+  /// Get the documentational comment of an identifier within the soruce code.
+  String? help(dynamic id, {String? module}) =>
+      interpreter.help(id, module: module);
 
   /// Add a declaration to certain namespace.
   bool define(
-    String varName,
+    String id,
     dynamic value, {
     bool isMutable = false,
     bool override = false,
     bool throws = true,
-    String? moduleName,
-    String? sourceName,
+    String? module,
   }) =>
       interpreter.define(
-        varName,
+        id,
         value,
         isMutable: isMutable,
         override: override,
         throws: throws,
-        moduleName: moduleName,
+        module: module,
       );
 
   /// Get a top level variable defined in a certain namespace in the interpreter.
-  dynamic fetch(
-    String varName, {
-    String? moduleName,
-  }) =>
-      interpreter.fetch(
-        varName,
-        moduleName: moduleName,
-      );
+  dynamic fetch(String id, {String? module}) =>
+      interpreter.fetch(id, module: module);
 
   /// Assign value to a top level variable defined in a certain namespace in the interpreter.
-  void assign(
-    String varName,
-    dynamic value, {
-    String? moduleName,
-  }) =>
-      interpreter.assign(
-        varName,
-        value,
-        moduleName: moduleName,
-      );
+  void assign(String id, dynamic value, {String? module}) =>
+      interpreter.assign(id, value, module: module);
 
   /// Invoke a top level function defined in a certain namespace in the interpreter.
-  dynamic invoke(String funcName,
-          {String? namespaceName,
-          String? moduleName,
-          List<dynamic> positionalArgs = const [],
-          Map<String, dynamic> namedArgs = const {},
-          List<HTType> typeArgs = const []}) =>
+  dynamic invoke(
+    String func, {
+    String? namespace,
+    String? module,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    List<HTType> typeArgs = const [],
+  }) =>
       interpreter.invoke(
-        funcName,
-        namespaceName: namespaceName,
-        moduleName: moduleName,
+        func,
+        namespace: namespace,
+        module: module,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
         typeArgs: typeArgs,

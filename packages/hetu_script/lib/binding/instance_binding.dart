@@ -12,8 +12,8 @@ import '../value/function/function.dart';
 import '../value/struct/struct.dart';
 
 extension NumBinding on num {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'toPercentageString':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
@@ -136,14 +136,14 @@ extension NumBinding on num {
                 List<HTType> typeArgs = const []}) =>
             toString();
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
 
 extension IntBinding on int {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'modPow':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -188,14 +188,14 @@ extension IntBinding on int {
             toRadixString(positionalArgs[0]);
       default:
         // ignore: unnecessary_cast
-        return (this as num).htFetch(varName);
+        return (this as num).htFetch(id);
     }
   }
 }
 
 extension BigIntBinding on BigInt {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'bitLength':
         return bitLength;
       case 'sign':
@@ -269,14 +269,14 @@ extension BigIntBinding on BigInt {
                 List<HTType> typeArgs = const []}) =>
             toRadixString(positionalArgs.first);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
 
 extension DoubleBinding on double {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'toDoubleAsFixed':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -285,14 +285,14 @@ extension DoubleBinding on double {
             double.parse(toStringAsFixed(positionalArgs.first));
       default:
         // ignore: unnecessary_cast
-        return (this as num).htFetch(varName);
+        return (this as num).htFetch(id);
     }
   }
 }
 
 extension StringBinding on String {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'characters':
         return Characters(this);
       case 'toString':
@@ -424,15 +424,15 @@ extension StringBinding on String {
                 List<HTType> typeArgs = const []}) =>
             toUpperCase();
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
 
 /// Binding object for dart [Iterator]
 extension IteratorBinding on Iterator {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'moveNext':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
@@ -443,15 +443,15 @@ extension IteratorBinding on Iterator {
       case 'current':
         return current;
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
 
 /// Binding object for dart [Iterable].
 extension IterableBinding on Iterable {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'toJson':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -645,15 +645,15 @@ extension IterableBinding on Iterable {
                 List<HTType> typeArgs = const []}) =>
             toString();
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
 
 /// Binding object for dart list.
 extension ListBinding on List {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'add':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -830,27 +830,27 @@ extension ListBinding on List {
             deepCopy(this);
       default:
         // ignore: unnecessary_cast
-        return (this as Iterable).htFetch(varName);
+        return (this as Iterable).htFetch(id);
     }
   }
 
-  dynamic htAssign(String varName, dynamic varValue) {
-    switch (varName) {
+  dynamic htAssign(String id, dynamic value) {
+    switch (id) {
       case 'first':
-        first = varValue;
+        first = value;
         break;
       case 'last':
-        last = varValue;
+        last = value;
         break;
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
 
 extension SetBinding on Set {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'add':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -945,15 +945,15 @@ extension SetBinding on Set {
             toSet();
       default:
         // ignore: unnecessary_cast
-        return (this as Iterable).htFetch(varName);
+        return (this as Iterable).htFetch(id);
     }
   }
 }
 
 /// Binding object for dart map.
 extension MapBinding on Map {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'toString':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -1001,14 +1001,14 @@ extension MapBinding on Map {
                 List<HTType> typeArgs = const []}) =>
             remove(positionalArgs.first);
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
 
 extension RandomBinding on math.Random {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'nextDouble':
         return (HTEntity entity,
                 {List<dynamic> positionalArgs = const [],
@@ -1089,15 +1089,15 @@ extension RandomBinding on math.Random {
           }
         };
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }
 
 /// Binding object for dart [Future].
 extension FutureBinding on Future {
-  dynamic htFetch(String varName) {
-    switch (varName) {
+  dynamic htFetch(String id) {
+    switch (id) {
       case 'then':
         return (HTEntity entity,
             {List<dynamic> positionalArgs = const [],
@@ -1107,7 +1107,7 @@ extension FutureBinding on Future {
           return then((value) => func.call(positionalArgs: [value]));
         };
       default:
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
     }
   }
 }

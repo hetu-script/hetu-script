@@ -44,43 +44,42 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   }
 
   @override
-  bool contains(String varName,
+  bool contains(String id,
       {bool isPrivate = false, String? from, bool recursive = false}) {
-    if (symbols.containsKey(varName)) {
+    if (symbols.containsKey(id)) {
       if (isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       return true;
-    } else if (importedSymbols.containsKey(varName)) {
+    } else if (importedSymbols.containsKey(id)) {
       return true;
     } else if (recursive && (closure != null)) {
-      return closure!.contains(varName, from: from, recursive: recursive);
+      return closure!.contains(id, from: from, recursive: recursive);
     }
     return false;
   }
 
   /// define a declaration in this namespace,
   /// the defined id could be different from declaration's id
-  bool define(String varName, T decl,
-      {bool override = false, bool throws = true}) {
-    if (!symbols.containsKey(varName) || override) {
-      symbols[varName] = decl;
+  bool define(String id, T decl, {bool override = false, bool throws = true}) {
+    if (!symbols.containsKey(id) || override) {
+      symbols[id] = decl;
       return true;
     } else {
       if (throws) {
-        throw HTError.defined(varName, ErrorType.staticWarning);
+        throw HTError.defined(id, ErrorType.staticWarning);
       }
     }
 
     return false;
   }
 
-  void delete(String varName, {bool throws = true}) {
-    if (symbols.containsKey(varName)) {
-      symbols.remove(varName);
+  void delete(String id, {bool throws = true}) {
+    if (symbols.containsKey(id)) {
+      symbols.remove(id);
     } else {
       if (throws) {
-        throw HTError.undefined(varName);
+        throw HTError.undefined(id);
       }
     }
   }
@@ -90,26 +89,26 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   /// If not found and [isRecursive] is true, will continue search in super namespaces.
   /// If [isRecursive] is true, means this is not a 'memberget operator' search.
   @override
-  dynamic memberGet(String varName,
+  dynamic memberGet(String id,
       {bool isPrivate = false,
       String? from,
       bool isRecursive = false,
       bool throws = true}) {
-    if (symbols.containsKey(varName)) {
-      final decl = symbols[varName];
+    if (symbols.containsKey(id)) {
+      final decl = symbols[id];
       if (isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(varName);
+        throw HTError.privateMember(id);
       }
       return decl;
-    } else if (importedSymbols.containsKey(varName)) {
-      final decl = importedSymbols[varName];
+    } else if (importedSymbols.containsKey(id)) {
+      final decl = importedSymbols[id];
       return decl;
     } else if (isRecursive && (closure != null)) {
-      return closure!.memberGet(varName, from: from, isRecursive: true);
+      return closure!.memberGet(id, from: from, isRecursive: true);
     }
 
     if (throws) {
-      throw HTError.undefined(varName);
+      throw HTError.undefined(id);
     }
   }
 

@@ -19,7 +19,7 @@ void main() {
   // final compilation = hetu.bundle(source);
   final bytes = hetu.compile(source.content, isModuleEntryScript: true);
   print(bytes);
-  final r = hetu.loadBytecode(bytes: bytes, moduleName: 'test');
+  final r = hetu.loadBytecode(bytes: bytes, module: 'test');
   print(r);
   // hetu.eval(source.content);
 }

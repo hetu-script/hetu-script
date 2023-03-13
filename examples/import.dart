@@ -22,7 +22,7 @@ void main() {
   final source1 = HTSource(r'''
     var name = 'Richard Byson'
     var age = 42
-''', fullName: 'source1.ht');
+''', filename: 'source1.ht');
   final source2 = HTSource(r'''
     export 'source1.ht'
     export { greeting }
@@ -33,12 +33,12 @@ void main() {
       }
       print(name)
     }
-// ''', fullName: 'source2.ht');
+// ''', filename: 'source2.ht');
   final source3 = HTSource(r'''
     fun tutorial {
       print('a guide to use Hetu')
     }
-''', fullName: 'source3.ht');
+''', filename: 'source3.ht');
   sourceContext.addResource(source1.fullName, source1);
   sourceContext.addResource(source2.fullName, source2);
   sourceContext.addResource(source3.fullName, source3);

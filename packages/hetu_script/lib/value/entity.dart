@@ -14,41 +14,41 @@ abstract class HTEntity {
 
   HTType? get valueType => null;
 
-  bool contains(String varName) => false;
+  bool contains(String id) => false;
 
-  /// Fetch a member by the [varName], in the form of
+  /// Fetch a member by the [id], in the form of
   /// ```
-  /// object.varName
+  /// object.id
   /// ```
-  /// [varName] must be of String type.
-  dynamic memberGet(String varName, {String? from}) {
-    throw HTError.undefined(varName);
+  /// [id] must be of String type.
+  dynamic memberGet(String id, {String? from}) {
+    throw HTError.undefined(id);
   }
 
-  /// Assign a value to a member by the [varName], in the form of
+  /// Assign a value to a member by the [id], in the form of
   /// ```
-  /// object.varName = varValue
+  /// object.id = value
   /// ```
-  /// [varName] must be of String type.
-  void memberSet(String varName, dynamic varValue, {String? from}) {
-    throw HTError.undefined(varName);
+  /// [id] must be of String type.
+  void memberSet(String id, dynamic value, {String? from}) {
+    throw HTError.undefined(id);
   }
 
-  /// Fetch a member by the [varName], in the form of
+  /// Fetch a member by the [id], in the form of
   /// ```
-  /// object[varName]
+  /// object[id]
   /// ```
-  /// [varName] is of dynamic type, and will be converted to String by [toString] method.
-  dynamic subGet(dynamic varName, {String? from}) {
-    throw HTError.undefined(varName);
+  /// [id] is of dynamic type, and will be converted to String by [toString] method.
+  dynamic subGet(dynamic id, {String? from}) {
+    throw HTError.undefined(id);
   }
 
-  /// Assign a value to a member by the [varName], in the form of
+  /// Assign a value to a member by the [id], in the form of
   /// ```
-  /// object[varName] = varValue
+  /// object[id] = value
   /// ```
-  /// [varName] is of dynamic type, and will be converted to String by [toString] method.
-  void subSet(dynamic varName, dynamic varValue, {String? from}) {
-    throw HTError.undefined(varName);
+  /// [id] is of dynamic type, and will be converted to String by [toString] method.
+  void subSet(dynamic id, dynamic value, {String? from}) {
+    throw HTError.undefined(id);
   }
 }

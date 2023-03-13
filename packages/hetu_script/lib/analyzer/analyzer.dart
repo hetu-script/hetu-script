@@ -92,7 +92,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   HTModuleAnalysisResult analyzeCompilation(
     ASTCompilation compilation, {
-    String? moduleName,
+    String? module,
     bool globallyImport = false,
     // bool printPerformanceStatistics = false,
   }) {

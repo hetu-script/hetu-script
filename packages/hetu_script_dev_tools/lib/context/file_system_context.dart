@@ -76,9 +76,9 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
   }
 
   @override
-  String getAbsolutePath({String key = '', String? dirName, String? fileName}) {
+  String getAbsolutePath({String key = '', String? dirName, String? filename}) {
     final normalized =
-        super.getAbsolutePath(key: key, dirName: dirName, fileName: fileName);
+        super.getAbsolutePath(key: key, dirName: dirName, filename: filename);
     if (Platform.isWindows && normalized.startsWith('/')) {
       return normalized.substring(1);
     } else {
@@ -115,7 +115,7 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
       final content = File(normalized).readAsStringSync();
       final ext = path.extension(normalized);
       final source =
-          HTSource(content, fullName: normalized, type: checkExtension(ext));
+          HTSource(content, filename: normalized, type: checkExtension(ext));
       addResource(normalized, source);
       return source;
     }

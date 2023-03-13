@@ -197,15 +197,15 @@ void run(List<String> args, {bool enterRepl = false}) {
       }
       result = hetu.evalFile(args.first,
           globallyImport: true,
-          invokeFunc: args[1],
+          invocation: args[1],
           positionalArgs: scriptInvocationArgs);
     }
   } else {
     final file = File(args.first);
     final bytes = file.readAsBytesSync();
     if (args.length == 1) {
-      result = hetu.interpreter.loadBytecode(
-          bytes: bytes, moduleName: args.first, globallyImport: true);
+      result = hetu.interpreter
+          .loadBytecode(bytes: bytes, module: args.first, globallyImport: true);
     } else {
       final scriptInvocationArgs = <String>[];
       if (args.length > 2) {
@@ -215,9 +215,9 @@ void run(List<String> args, {bool enterRepl = false}) {
       }
       result = hetu.interpreter.loadBytecode(
           bytes: bytes,
-          moduleName: args.first,
+          module: args.first,
           globallyImport: true,
-          invokeFunc: args[1],
+          invocation: args[1],
           positionalArgs: scriptInvocationArgs);
     }
   }
