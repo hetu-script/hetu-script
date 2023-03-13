@@ -656,6 +656,7 @@ class HTInterpreter {
   }
 
   HTBytecodeModule? getBytecode(String moduleName) {
+    assert(cachedModules.containsKey(moduleName));
     return cachedModules[moduleName];
   }
 
@@ -904,8 +905,14 @@ class HTInterpreter {
       this.typeArgs = typeArgs;
 
       tik = DateTime.now().millisecondsSinceEpoch;
-      _currentBytecodeModule = HTBytecodeModule(id: moduleName, bytes: bytes);
-      cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
+      if (cachedModules.containsKey(moduleName)) {
+        _currentBytecodeModule = cachedModules[moduleName]!;
+      } else {
+        _currentBytecodeModule = HTBytecodeModule(id: moduleName, bytes: bytes);
+        cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
+      }
+      _currentBytecodeModule.ip = 0;
+
       final signature = _currentBytecodeModule.readUint32();
       if (signature != HTCompiler.hetuSignature) {
         throw HTError.bytecode(
@@ -948,15 +955,9 @@ class HTInterpreter {
           (sourceType == HTResourceType.hetuLiteralCode) ||
           (sourceType == HTResourceType.json);
       // TODO: import binary file
-      dynamic result = execute(
-        retractStackFrame: false,
-        // endOfFileHandler: () {
-        // },
-        // endOfModuleHandler: () {
-        // },
-      );
+      dynamic result = execute();
       if (result is FutureExecution) {
-        result = waitForAllFutureExucution(result);
+        result = waitFutureExucution(result);
       }
       return result;
     } catch (error, stackTrace) {
@@ -1136,9 +1137,11 @@ class HTInterpreter {
                 lexicon: _lexicon,
                 id: _currentFileName,
                 closure: globalNamespace);
-          } else {
-            _currentNamespace = globalNamespace;
           }
+          // literal code will use current namespace as it is when run.
+          // else {
+          //   _currentNamespace = globalNamespace;
+          // }
           break;
         // store the loop jump point
         case HTOpCode.loopPoint:
@@ -1412,7 +1415,7 @@ class HTInterpreter {
                 final storedContext = getContext();
                 futureExecution = FutureExecution(
                   context: storedContext,
-                  future: waitForAllFutureExucution(initValue).then((value) {
+                  future: waitFutureExucution(initValue).then((value) {
                     decl.value = value;
                   }),
                 );
@@ -1920,7 +1923,7 @@ class HTInterpreter {
     } while (instruction != HTOpCode.endOfCode);
   }
 
-  Future<dynamic> waitForAllFutureExucution(
+  Future<dynamic> waitFutureExucution(
     FutureExecution futureExecution, {
     HTContext? context,
     List<dynamic>? stackFrame,
@@ -1934,7 +1937,7 @@ class HTInterpreter {
         localValue: v,
       );
       if (f is FutureExecution) {
-        final r = await waitForAllFutureExucution(
+        final r = await waitFutureExucution(
           f,
           context: f.context,
           stackFrame: getCurrentStackFrame(),

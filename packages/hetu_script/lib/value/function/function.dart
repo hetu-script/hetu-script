@@ -772,7 +772,7 @@ class HTFunction extends HTFunctionDeclaration
       }
 
       if (result is FutureExecution) {
-        result = interpreter.waitForAllFutureExucution(result);
+        result = interpreter.waitFutureExucution(result);
       }
 
       return result;
