@@ -299,7 +299,7 @@ class Hetu {
   /// If [invokeFunc] is provided, will immediately
   /// call the function after evaluation completed.
   dynamic eval(String content,
-      {String? file,
+      {String? filename,
       String? module,
       bool globallyImport = false,
       HTResourceType type = HTResourceType.hetuLiteralCode,
@@ -308,7 +308,7 @@ class Hetu {
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     if (content.trim().isEmpty) return null;
-    final source = HTSource(content, filename: file, type: type);
+    final source = HTSource(content, filename: filename, type: type);
     final result = evalSource(
       source,
       module: module,
