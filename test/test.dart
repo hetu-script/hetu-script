@@ -28,15 +28,12 @@ Future<void> main() async {
 struct DialogContentData {
   construct({
     localeKeys,
-    lines,
   }) {
     this.localeKeys = localeKeys
-    this.lines = lines
   }
 
   construct fromData(data) : this(
     localeKeys: data.localeKeys,
-    lines: data.lines,
   ) {}
 }
 
@@ -44,7 +41,6 @@ final dlg = DialogContentData.fromData({
   localeKeys: ['a', 'b']
 })
 
-print(dlg)
 
 ''');
 

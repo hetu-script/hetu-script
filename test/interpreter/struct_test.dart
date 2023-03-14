@@ -77,5 +77,28 @@ void main() {
         17,
       );
     });
+
+    test('named constructor', () {
+      final result = hetu.eval(r'''
+        struct DialogContentData {
+          construct({
+            localeKeys,
+          }) {
+            this.localeKeys = localeKeys
+          }
+
+          construct fromData(data) : this(
+            localeKeys: data.localeKeys,
+          ) {}
+        }
+
+        final dlg = DialogContentData.fromData({
+          localeKeys: ['a', 'b']
+        })
+
+        dlg.localeKeys
+      ''');
+      expect(result, ['a', 'b']);
+    });
   });
 }
