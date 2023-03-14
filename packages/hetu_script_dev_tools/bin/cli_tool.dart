@@ -115,7 +115,7 @@ Interpret a Hetu script file and print its result to terminal.
   }
 }
 
-void enterReplMode({dynamic prompt}) {
+void enterReplMode({dynamic prompt}) async {
   hetu.init();
   print(replInfo);
   if (prompt != null) {
@@ -131,8 +131,13 @@ void enterReplMode({dynamic prompt}) {
         input += '\n${stdin.readLineSync()!}';
       }
       try {
-        final result = hetu.eval(input);
-        print(hetu.lexicon.stringify(result));
+        dynamic result = hetu.eval(input);
+        if (result is Future) {
+          result = await result;
+          print('(Future) ${hetu.lexicon.stringify(result)}');
+        } else {
+          print(hetu.lexicon.stringify(result));
+        }
       } catch (e) {
         if (e is HTError) {
           if (showDetailsOfError) {
