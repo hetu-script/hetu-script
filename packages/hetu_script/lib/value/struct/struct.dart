@@ -160,7 +160,7 @@ class HTStruct with HTEntity {
 
     dynamic value;
     final getter = '${InternalIdentifier.getter}$id';
-    final constructor = id != id
+    final constructor = this.id != id
         ? '${InternalIdentifier.namedConstructorPrefix}$id'
         : InternalIdentifier.defaultConstructor;
 

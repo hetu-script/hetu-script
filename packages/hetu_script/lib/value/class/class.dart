@@ -123,7 +123,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   bool contains(String id) {
     final getter = '${InternalIdentifier.getter}$id';
     final setter = '${InternalIdentifier.setter}$id';
-    final constructor = id != id
+    final constructor = this.id != id
         ? '${InternalIdentifier.namedConstructorPrefix}$id'
         : InternalIdentifier.defaultConstructor;
 
@@ -137,7 +137,9 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   @override
   dynamic memberGet(String id, {String? from, bool throws = true}) {
     final getter = '${InternalIdentifier.getter}$id';
-    final constructor = '${InternalIdentifier.namedConstructorPrefix}$id';
+    final constructor = this.id != id
+        ? '${InternalIdentifier.namedConstructorPrefix}$id'
+        : InternalIdentifier.defaultConstructor;
 
     // if (isExternal && !internal) {
     //   final value =

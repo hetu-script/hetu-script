@@ -1,7 +1,4 @@
 import 'package:hetu_script/hetu_script.dart';
-import 'package:pub_semver/pub_semver.dart';
-
-import 'binding/test_external_class.dart';
 
 Future<void> main() async {
   final sourceContext = HTOverlayContext();
@@ -25,96 +22,31 @@ Future<void> main() async {
   );
   hetu.init(
     locale: HTLocaleSimplifiedChinese(),
-    externalClasses: [
-      PersonClassBinding(),
-    ],
   );
 
-  final source1 = HTSource(r'''
-    final typename = 'person'
-''', filename: 'source1.ht');
+  final r = hetu.eval(r'''
+struct DialogContentData {
+  construct({
+    localeKeys,
+    lines,
+  }) {
+    this.localeKeys = localeKeys
+    this.lines = lines
+  }
 
-  final source2 = HTSource(r'''
-    import 'json_data.json' as jsonData
-    struct Person {
-      construct {
-        this.name = jsonData.name
-        this.race = 'han'
-      }
-    }
-// ''', filename: 'source2.ht');
+  construct fromData(data) : this(
+    localeKeys: data.localeKeys,
+    lines: data.lines,
+  ) {}
+}
 
-  final source3 = HTSource(r'''
-    namespace Person {
-      class PersonImpl {
-        var name
-        construct {
-          name = 'Jimmy'
-        }
-      }
-    }
-''', filename: 'source3.ht');
-  sourceContext.addResource(source1.fullName, source1);
-  sourceContext.addResource(source2.fullName, source2);
-  sourceContext.addResource(source3.fullName, source3);
+final dlg = DialogContentData.fromData({
+  localeKeys: ['a', 'b']
+})
 
-  hetu.interpreter.bindExternalFunction('test', () {
-    print('dart function called');
-  });
-  final jsonSource = HTSource(r'''{
-    "name": "Aleph",
-    "type": "novel",
-    "volumes": 7,
-  }''', filename: 'data.json', type: HTResourceType.json);
-  sourceContext.addResource('data.json', jsonSource);
+print(dlg)
 
-  // final result = hetu.eval(
-  //   r'''
-  //       import 'source1.ht'
-
-  //       print(typename)
-  //         ''',
-  //   // invocation: 'fromJsonTest',
-  //   // positionalArgs: [jsonData],
-  // );
-
-  final bytes = hetu.compile(
-    r'''
-      external class Person {
-        var name
-        construct
-      }
-          ''',
-    // isModuleEntryScript: true,
-    version: Version(0, 1, 0),
-  );
-
-  hetu.loadBytecode(
-    bytes: bytes,
-    module: 'test',
-    // invocation: 'main',
-    // positionalArgs: [jsonData],
-  );
-
-  hetu.interpreter.bindExternalFunction(
-    'fetch',
-    () => Future.delayed(const Duration(seconds: 3)).then((value) {
-      // print('delayed');
-      return 3;
-    }),
-  );
-
-  final r = hetu.eval('''
-    namespace Test {
-      external fun fetch
-    }
-
-    fun f async {
-      await Test.fetch()
-    }
-
-    final r = await f()
-    ''');
+''');
 
   if (r is Future) {
     print(await r);

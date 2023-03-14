@@ -2765,30 +2765,32 @@ class HTDefaultParser extends HTParser {
     bool hasEndOfStmtMark =
         expect([lexer.lexicon.endOfStatementMark], consume: true);
     return DestructuringDecl(
-        ids: ids,
-        isVector: isVector,
-        initializer: initializer,
-        isTopLevel: isTopLevel,
-        isMutable: isMutable,
-        hasEndOfStmtMark: hasEndOfStmtMark,
-        source: currentSource,
-        line: keyword.line,
-        column: keyword.column,
-        offset: keyword.offset,
-        length: curTok.offset - keyword.offset);
+      ids: ids,
+      isVector: isVector,
+      initializer: initializer,
+      isTopLevel: isTopLevel,
+      isMutable: isMutable,
+      hasEndOfStmtMark: hasEndOfStmtMark,
+      source: currentSource,
+      line: keyword.line,
+      column: keyword.column,
+      offset: keyword.offset,
+      length: curTok.offset - keyword.offset,
+    );
   }
 
-  FuncDecl _parseFunction(
-      {FunctionCategory category = FunctionCategory.normal,
-      String? classId,
-      bool hasKeyword = true,
-      // bool isAsync = false,
-      bool isField = false,
-      bool isOverrided = false,
-      bool isExternal = false,
-      bool isStatic = false,
-      bool isConst = false,
-      bool isTopLevel = false}) {
+  FuncDecl _parseFunction({
+    FunctionCategory category = FunctionCategory.normal,
+    String? classId,
+    bool hasKeyword = true,
+    // bool isAsync = false,
+    bool isField = false,
+    bool isOverrided = false,
+    bool isExternal = false,
+    bool isStatic = false,
+    bool isConst = false,
+    bool isTopLevel = false,
+  }) {
     late Token startTok;
     String? externalTypeId;
     if (category != FunctionCategory.literal || hasKeyword) {
@@ -3169,12 +3171,13 @@ class HTDefaultParser extends HTParser {
     return funcDecl;
   }
 
-  ClassDecl _parseClassDecl(
-      {String? classId,
-      bool isExternal = false,
-      bool isAbstract = false,
-      bool isTopLevel = false,
-      bool lateResolve = true}) {
+  ClassDecl _parseClassDecl({
+    String? classId,
+    bool isExternal = false,
+    bool isAbstract = false,
+    bool isTopLevel = false,
+    bool lateResolve = true,
+  }) {
     final keyword = match(lexer.lexicon.kClass);
     if (_currentClassDeclaration != null &&
         _currentClassDeclaration!.isNested) {
