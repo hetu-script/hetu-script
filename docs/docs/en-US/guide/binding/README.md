@@ -325,7 +325,7 @@ void main() {
         print(p2.name)
         p2.name = 'John'
       }
-      ''', type: true, invoke: 'main');
+      ''', type: HTResourceType.hetuModule, invoke: 'main');
 }
 ```
 
@@ -340,10 +340,9 @@ class PersonClassBinding extends HTExternalClass {
   @override
   dynamic memberGet(String id) {
     case 'Person.level':
-        return Person.level;
-      default:
-        throw HTError.undefined(id);
-    }
+      return Person.level;
+    default:
+      throw HTError.undefined(id);
   }
 }
 ```
