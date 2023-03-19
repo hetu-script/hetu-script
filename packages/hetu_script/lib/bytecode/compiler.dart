@@ -181,11 +181,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     for (final ast in posArgsNodes) {
       final argBytesBuilder = BytesBuilder();
       final bytes = compileAST(ast, endOfExec: true);
-      if (ast is! SpreadExpr) {
-        // bool: is not spread
-        // spread AST will add the bool so we only add 0 for other ASTs.
-        argBytesBuilder.addByte(0);
-      }
+      final spreadFlag = ast is SpreadExpr ? 1 : 0; // bool: isSpread
+      argBytesBuilder.addByte(spreadFlag);
       argBytesBuilder.add(bytes);
       positionalArgBytesList.add(argBytesBuilder.toBytes());
     }

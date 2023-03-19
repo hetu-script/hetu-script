@@ -174,15 +174,18 @@ class HTFunction extends HTFunctionDeclaration
 
     if (isExternal) {
       if (klass != null) {
-        if (klass!.isExternal &&
-            category != FunctionCategory.getter &&
-            category != FunctionCategory.setter) {
-          if (isStatic || category == FunctionCategory.constructor) {
-            final funcName = id != null ? '$classId.$id' : classId!;
-            externalFunc = klass!.externalClass!.memberGet(funcName);
-          } else {
-            // for instance members, are handled within HTExternalInstance class.
+        if (klass!.isExternal) {
+          if (category != FunctionCategory.getter &&
+              category != FunctionCategory.setter) {
+            if (isStatic || category == FunctionCategory.constructor) {
+              final funcName = id != null ? '$classId.$id' : classId!;
+              externalFunc = klass!.externalClass!.memberGet(funcName);
+            } else {
+              // for instance members, are handled within HTExternalInstance class.
+            }
           }
+        } else {
+          resolveExternal();
         }
       } else {
         resolveExternal();

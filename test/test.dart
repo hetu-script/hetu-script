@@ -25,7 +25,20 @@ Future<void> main() async {
   );
 
   final r = hetu.eval(r'''
-    1
+        var globalVar = 0
+        class GetGlobal {
+          construct {
+            globalVar = 2
+          }
+          fun test {
+            return (globalVar * globalVar)
+          }
+          static fun staticTest {
+            return (globalVar + 1)
+          }
+        }
+        var a = GetGlobal()
+        a.test() + GetGlobal.staticTest()
 ''');
 
   if (r is Future) {

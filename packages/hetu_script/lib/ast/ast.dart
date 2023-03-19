@@ -37,7 +37,7 @@ abstract class ASTNode {
 
   bool get isExpression => !isStatement;
 
-  /// Wether this is a list/group/struct/code block expression.
+  /// Wether this is a struct/code block expression.
   final bool isBlock;
 
   /// Wether this value is constantant value,
@@ -513,7 +513,6 @@ class ListExpr extends ASTNode {
   }) : super(
           Semantic.literalList,
           isAsyncValue: list.any((element) => element.isAsyncValue),
-          isBlock: true,
         );
 }
 
@@ -565,7 +564,6 @@ class GroupExpr extends ASTNode {
   }) : super(
           Semantic.groupExpr,
           isAsyncValue: inner.isAsyncValue,
-          isBlock: true,
         );
 }
 
@@ -1188,7 +1186,11 @@ abstract class Statement extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) {
-    if (isBlock) assert(!hasEndOfStmtMark);
+    if (isBlock) {
+      if (hasEndOfStmtMark) {
+        throw 'aha!';
+      }
+    }
   }
 }
 
