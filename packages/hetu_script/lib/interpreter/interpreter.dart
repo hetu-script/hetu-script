@@ -143,15 +143,15 @@ class HTInterpreter {
 
   int tik = 0;
 
-  bool scriptMode = false, globallyImport = false;
-
-  late Version compilerVersion;
-
-  String? invocation;
-
   List<dynamic> positionalArgs = const [];
   Map<String, dynamic> namedArgs = const {};
   List<HTType> typeArgs = const [];
+
+  bool _scriptMode = false, _globallyImport = false;
+
+  String? _invoke;
+
+  late Version compilerVersion;
 
   final stackTraceList = <String>[];
 
@@ -869,19 +869,19 @@ class HTInterpreter {
   }
 
   /// Load a pre-compiled bytecode module.
-  /// If [invocation] is true, execute the bytecode immediately.
+  /// If [invoke] is true, execute the bytecode immediately.
   dynamic loadBytecode({
     required Uint8List bytes,
     required String module,
     bool globallyImport = false,
-    String? invocation,
+    String? invoke,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
     List<HTType> typeArgs = const [],
   }) {
     try {
-      this.globallyImport = globallyImport;
-      this.invocation = invocation;
+      _globallyImport = globallyImport;
+      _invoke = invoke;
       this.positionalArgs = positionalArgs;
       this.namedArgs = namedArgs;
       this.typeArgs = typeArgs;
@@ -931,7 +931,7 @@ class HTInterpreter {
       _currentFile = _currentBytecodeModule.readUtf8String();
       final sourceType =
           HTResourceType.values.elementAt(_currentBytecodeModule.read());
-      scriptMode = (sourceType == HTResourceType.hetuScript) ||
+      _scriptMode = (sourceType == HTResourceType.hetuScript) ||
           (sourceType == HTResourceType.hetuLiteralCode) ||
           (sourceType == HTResourceType.json);
       // TODO: import binary file
@@ -1235,7 +1235,7 @@ class HTInterpreter {
           // endOfFileHandler?.call();
           break;
         case OpCode.endOfModule:
-          if (!scriptMode) {
+          if (!_scriptMode) {
             /// deal with import statement within every namespace of this module.
             for (final nsp in _currentBytecodeModule.namespaces.values) {
               for (final decl in nsp.imports.values) {
@@ -1262,20 +1262,20 @@ class HTInterpreter {
                 ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu@$compilerVersion)';
             print(message);
           }
-          if (globallyImport && _currentNamespace != globalNamespace) {
+          if (_globallyImport && _currentNamespace != globalNamespace) {
             globalNamespace.import(_currentNamespace);
           }
           dynamic r;
-          if (invocation != null) {
+          if (_invoke != null) {
             r = invoke(
-              invocation!,
+              _invoke!,
               // module: scriptMode ? null : _currentBytecodeModule.id,
               positionalArgs: positionalArgs,
               namedArgs: namedArgs,
               typeArgs: typeArgs,
             );
             return r;
-          } else if (scriptMode) {
+          } else if (_scriptMode) {
             r = _stackFrames.last.first;
           }
           return r;

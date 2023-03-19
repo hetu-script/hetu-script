@@ -25,9 +25,7 @@ Future<void> main() async {
   );
 
   final r = hetu.eval(r'''
-    external class T {
-      
-    }
+    1
 ''');
 
   if (r is Future) {

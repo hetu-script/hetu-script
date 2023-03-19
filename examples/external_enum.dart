@@ -68,7 +68,7 @@ void main() {
         print(country.toString());
         return country
       }
-      ''', invocation: 'main');
+      ''', invoke: 'main');
 
   print(result is Country);
 }

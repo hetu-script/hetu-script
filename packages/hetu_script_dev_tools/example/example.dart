@@ -5,12 +5,12 @@ void main() {
   final sourceContext = HTFileSystemResourceContext(root: '../../script/');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
-  final result1 = hetu.evalFile('import_test2.ht', invocation: 'main');
+  final result1 = hetu.evalFile('import_test2.ht', invoke: 'main');
   print(result1);
 
-  // final result2 = hetu.evalFile('import_test.ht', invocation: 'importTest');
+  // final result2 = hetu.evalFile('import_test.ht', invoke: 'importTest');
   // print(result2);
 
-  // final result3 = hetu.evalFile('mod.ht', invocation: 'modTest');
+  // final result3 = hetu.evalFile('mod.ht', invoke: 'modTest');
   // print(result3);
 }

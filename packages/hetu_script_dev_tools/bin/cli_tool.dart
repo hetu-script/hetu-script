@@ -202,7 +202,7 @@ void run(List<String> args, {bool enterRepl = false}) {
       }
       result = hetu.evalFile(args.first,
           globallyImport: true,
-          invocation: args[1],
+          invoke: args[1],
           positionalArgs: scriptInvocationArgs);
     }
   } else {
@@ -222,7 +222,7 @@ void run(List<String> args, {bool enterRepl = false}) {
           bytes: bytes,
           module: args.first,
           globallyImport: true,
-          invocation: args[1],
+          invoke: args[1],
           positionalArgs: scriptInvocationArgs);
     }
   }

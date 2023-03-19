@@ -30,17 +30,17 @@ void main() {
     external class Test {
       static fun greeting
     }
-
-    fun main {
-      Test.greeting()
-    }
     ''');
 
   hetu.interpreter.loadBytecode(bytes: bytes, module: 'myModule');
 
-  hetu.eval(r'''
-  import 'module:myModule' as m
+  final bytes2 = hetu.compile(r'''
+    import 'module:myModule' as m
 
-  m.main()
-''');
+    fun main {
+      m.Test.greeting()
+    }
+    ''');
+
+  hetu.interpreter.loadBytecode(bytes: bytes2, module: 'main', invoke: 'main');
 }

@@ -296,14 +296,14 @@ class Hetu {
   }
 
   /// Evaluate a string content.
-  /// If [invocation] is provided, will immediately
+  /// If [invoke] is provided, will immediately
   /// call the function after evaluation completed.
   dynamic eval(String content,
       {String? filename,
       String? module,
       bool globallyImport = false,
       HTResourceType type = HTResourceType.hetuLiteralCode,
-      String? invocation,
+      String? invoke,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -313,7 +313,7 @@ class Hetu {
       source,
       module: module,
       globallyImport: globallyImport,
-      invocation: invocation,
+      invoke: invoke,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
@@ -324,12 +324,12 @@ class Hetu {
   /// Evaluate a file.
   /// [key] is a possibly relative path.
   /// file content will be searched by [sourceContext].
-  /// If [invocation] is provided, will immediately
+  /// If [invoke] is provided, will immediately
   /// call the function after evaluation completed.
   dynamic evalFile(String key,
       {String? module,
       bool globallyImport = false,
-      String? invocation,
+      String? invoke,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -338,7 +338,7 @@ class Hetu {
       source,
       module: module,
       globallyImport: globallyImport,
-      invocation: invocation,
+      invoke: invoke,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
@@ -347,12 +347,12 @@ class Hetu {
   }
 
   /// Evaluate a [HTSource].
-  /// If [invocation] is provided, will immediately
+  /// If [invoke] is provided, will immediately
   /// call the function after evaluation completed.
   dynamic evalSource(HTSource source,
       {String? module,
       bool globallyImport = false,
-      String? invocation,
+      String? invoke,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -364,7 +364,7 @@ class Hetu {
       bytes: bytes,
       module: module ?? source.fullName,
       globallyImport: globallyImport,
-      invocation: invocation,
+      invoke: invoke,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,
@@ -474,7 +474,7 @@ class Hetu {
       {required Uint8List bytes,
       required String module,
       bool globallyImport = false,
-      String? invocation,
+      String? invoke,
       List<dynamic> positionalArgs = const [],
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
@@ -482,7 +482,7 @@ class Hetu {
       bytes: bytes,
       module: module,
       globallyImport: globallyImport,
-      invocation: invocation,
+      invoke: invoke,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
       typeArgs: typeArgs,

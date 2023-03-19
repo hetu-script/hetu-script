@@ -7329,7 +7329,7 @@ class CompletionTriggerKind {
   }
 
   /// Completion was triggered by typing an identifier (24x7 code complete),
-  /// manual invocation (e.g Ctrl+Space) or via API.
+  /// manual invoke (e.g Ctrl+Space) or via API.
   static const Invoked = CompletionTriggerKind._(1);
 
   /// Completion was triggered by a trigger character specified by the

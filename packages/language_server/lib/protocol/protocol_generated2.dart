@@ -10164,11 +10164,11 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   List<RefactoringMethodParameter> parameters;
 
   /// The offsets of the expressions or statements that would be replaced by an
-  /// invocation of the method.
+  /// invoke of the method.
   List<int> offsets;
 
   /// The lengths of the expressions or statements that would be replaced by an
-  /// invocation of the method. The lengths correspond to the offsets. In other
+  /// invoke of the method. The lengths correspond to the offsets. In other
   /// words, for a given expression (or block of statements), if the offset of
   /// that expression is offsets[i], then the length of that expression is
   /// lengths[i].
@@ -10334,7 +10334,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   List<RefactoringMethodParameter> parameters;
 
   /// True if all occurrences of the expression or statements should be
-  /// replaced by an invocation of the method. The expression or statements
+  /// replaced by an invoke of the method. The expression or statements
   /// used to initiate the refactoring will always be replaced.
   bool extractAll;
 
@@ -10797,7 +10797,7 @@ class FlutterOutline implements HasToJson {
 
   /// Additional attributes for this node, which might be interesting to
   /// display on the client. These attributes are usually arguments for the
-  /// instance creation or the invocation that created the widget.
+  /// instance creation or the invoke that created the widget.
   List<FlutterOutlineAttribute>? attributes;
 
   /// If the node creates a new class instance, or a reference to an instance,
@@ -11189,7 +11189,7 @@ class FlutterOutlineKind implements Enum {
   static const FlutterOutlineKind NEW_INSTANCE =
       FlutterOutlineKind._('NEW_INSTANCE');
 
-  /// An invocation of a method, a top-level function, a function expression,
+  /// An invoke of a method, a top-level function, a function expression,
   /// etc.
   static const FlutterOutlineKind INVOCATION =
       FlutterOutlineKind._('INVOCATION');
@@ -13220,7 +13220,7 @@ class InlineMethodOptions extends RefactoringOptions {
   bool deleteSource;
 
   /// True if all invocations of the method should be inlined, or false if only
-  /// the invocation site used to create this refactoring should be inlined.
+  /// the invoke site used to create this refactoring should be inlined.
   bool inlineAll;
 
   InlineMethodOptions(this.deleteSource, this.inlineAll);
@@ -16078,7 +16078,7 @@ class SearchResultKind implements Enum {
   /// The declaration of an element.
   static const SearchResultKind DECLARATION = SearchResultKind._('DECLARATION');
 
-  /// The invocation of a function or method.
+  /// The invoke of a function or method.
   static const SearchResultKind INVOCATION = SearchResultKind._('INVOCATION');
 
   /// A reference to a field, parameter or variable where it is being read.

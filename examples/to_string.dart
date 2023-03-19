@@ -24,5 +24,5 @@ void main() {
       j.name.familyName = 'Luke'
       print(j.name) // Will use overrided toString function in script class
     }
-  ''', invocation: 'main');
+  ''', invoke: 'main');
 }

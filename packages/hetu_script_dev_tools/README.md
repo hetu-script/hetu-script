@@ -14,7 +14,7 @@ void main() {
   final sourceContext = HTFileSystemResourceContext(root: 'script/');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
-  final result = hetu.evalFile('script.ht', invocation: 'main');
+  final result = hetu.evalFile('script.ht', invoke: 'main');
   print(result);
 }
 ```
@@ -69,7 +69,7 @@ void main() {
   hetu.init();
   hetu.loadExtensions(['console']);
 
-  hetu.evalFile('console.ht', invocation: 'main');
+  hetu.evalFile('console.ht', invoke: 'main');
 }
 ```
 

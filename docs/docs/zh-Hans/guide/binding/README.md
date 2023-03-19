@@ -327,7 +327,7 @@ void main() {
         print(p2.name)
         p2.name = 'John'
       }
-      ''', isModule: true, invocation: 'main');
+      ''', isModule: true, invoke: 'main');
 }
 ```
 

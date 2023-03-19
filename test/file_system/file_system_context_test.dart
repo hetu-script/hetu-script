@@ -14,21 +14,21 @@ void main() {
 
   group('module -', () {
     test('import test 1', () {
-      final result = hetu.evalFile('import_test.ht', invocation: 'importTest');
+      final result = hetu.evalFile('import_test.ht', invoke: 'importTest');
       expect(
         result,
         87.5,
       );
     });
     test('import test 2', () {
-      final result = hetu.evalFile('import_test2.ht', invocation: 'main');
+      final result = hetu.evalFile('import_test2.ht', invoke: 'main');
       expect(
         result,
         'another hello!',
       );
     });
     test('recursive import', () {
-      final result = hetu.evalFile('recursive2.ht', invocation: 'main');
+      final result = hetu.evalFile('recursive2.ht', invoke: 'main');
       expect(
         result,
         'hello, r2, I\'m r1!',

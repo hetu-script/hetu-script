@@ -35,7 +35,7 @@ void main() {
   final sourceContext = HTFileSystemResourceContext(root: '../../script/');
   final hetu = Hetu(sourceContext: sourceContext);
   hetu.init();
-  final result = hetu.evalFile('import_test1.ht', invocation: 'main');
+  final result = hetu.evalFile('import_test1.ht', invoke: 'main');
   print(result);
 }
 ```
@@ -78,5 +78,5 @@ final sourceContext = HTAssetResourceContext(root: 'scripts/');
 final hetu = Hetu(sourceContext: sourceContext);
 await hetu.initFlutter();
 
-final result = hetu.evalFile('main.ht', invocation: 'main');
+final result = hetu.evalFile('main.ht', invoke: 'main');
 ```

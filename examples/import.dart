@@ -43,7 +43,7 @@ void main() {
   sourceContext.addResource(source2.fullName, source2);
   sourceContext.addResource(source3.fullName, source3);
 
-//   final r = hetu.evalFile('source3.ht', invocation: 'main');
+//   final r = hetu.evalFile('source3.ht', invoke: 'main');
 
   // final r = hetu.evalFile('eval.hts');
   // print(hetu.lexicon.stringify(r));

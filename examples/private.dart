@@ -19,5 +19,5 @@ void main() {
       print(a.name)
     }
 
-  ''', invocation: 'main');
+  ''', invoke: 'main');
 }

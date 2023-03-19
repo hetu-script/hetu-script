@@ -319,7 +319,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
 //     completeFunctionCalls: completeFunctionCalls,
 //     isCallable: isCallable,
 //     // For SuggestionSets, we don't have a CompletionKind to check if it's
-//     // an invocation, but since they do not show in show/hide combinators
+//     // an invoke, but since they do not show in show/hide combinators
 //     // we can assume if an item is callable it's probably being used in a context
 //     // that can invoke it.
 //     isInvocation: isCallable,
@@ -986,7 +986,7 @@ lsp.DiagnosticSeverity analysisErrorSeverityToDiagnosticSeverity(
 //   // isCallable is used to suffix the label with parens so it's clear the item
 //   // is callable.
 //   //
-//   // isInvocation means the location at which it's used is an invocation (and
+//   // isInvocation means the location at which it's used is an invoke (and
 //   // therefore it is appropriate to include the parens/parameters in the
 //   // inserted text).
 //   //

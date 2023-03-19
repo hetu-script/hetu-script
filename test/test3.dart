@@ -74,7 +74,7 @@ Future<void> main() async {
 
   //       print(typename)
   //         ''',
-  //   // invocation: 'fromJsonTest',
+  //   // invoke: 'fromJsonTest',
   //   // positionalArgs: [jsonData],
   // );
 
@@ -92,7 +92,7 @@ Future<void> main() async {
   hetu.loadBytecode(
     bytes: bytes,
     module: 'test',
-    // invocation: 'main',
+    // invoke: 'main',
     // positionalArgs: [jsonData],
   );
 
