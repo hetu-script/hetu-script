@@ -379,7 +379,7 @@ class Hetu {
     final compilation = bundler.bundle(
       source: source,
       parser: _currentParser,
-      normalizePath: config.normalizeImportPath,
+      normalizeImportPath: config.normalizeImportPath,
       version: version,
     );
     if (compilation.errors.isNotEmpty) {

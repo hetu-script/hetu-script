@@ -116,6 +116,10 @@ abstract class Semantic {
   static const subSetExpr = 'subscript_set_expression';
   static const memberGetExpr = 'member_get_expression';
   static const memberSetExpr = 'member_set_expression';
+  static const ifExpr = 'if_expression';
+  static const forExprInit = 'for_expression_init';
+  static const forExpr = 'for_expression';
+  static const forRangeExpr = 'for_range_expression';
 
   static const constantDeclaration = 'constant_declaration';
   static const variableDeclaration = 'variable_declaration';
@@ -146,12 +150,8 @@ abstract class Semantic {
   static const returnStmt = 'return_statement';
   static const breakStmt = 'break_statement';
   static const continueStmt = 'continue_statement';
-  static const ifStmt = 'if_statement';
   static const doStmt = 'do_statement';
   static const whileStmt = 'while_statement';
-  static const forStmtInit = 'for_statement_init';
-  static const forStmt = 'for_statement';
-  static const forInStmt = 'for_in_statement';
   static const whenStmt = 'when_statement';
   static const deleteStmt = 'delete_statement';
   static const deleteMemberStmt = 'delete_member_statement';

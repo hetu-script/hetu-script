@@ -37,8 +37,11 @@ abstract class ASTNode {
 
   bool get isExpression => !isStatement;
 
+  /// Wether this is a list/group/struct/code block expression.
+  final bool isBlock;
+
   /// Wether this value is constantant value,
-  /// i.e. its value can be computed before compile into bytecode.
+  /// i.e. its value is computed before compile into bytecode.
   bool get isConstValue => value != null;
 
   final bool isAsyncValue;
@@ -71,6 +74,7 @@ abstract class ASTNode {
     this.type, {
     this.isStatement = false,
     this.isAsyncValue = false,
+    this.isBlock = false,
     this.source,
     this.line = 0,
     this.column = 0,
@@ -509,6 +513,7 @@ class ListExpr extends ASTNode {
   }) : super(
           Semantic.literalList,
           isAsyncValue: list.any((element) => element.isAsyncValue),
+          isBlock: true,
         );
 }
 
@@ -560,6 +565,7 @@ class GroupExpr extends ASTNode {
   }) : super(
           Semantic.groupExpr,
           isAsyncValue: inner.isAsyncValue,
+          isBlock: true,
         );
 }
 
@@ -1046,20 +1052,144 @@ class CallExpr extends ASTNode {
         );
 }
 
+class IfExpr extends ASTNode {
+  @override
+  dynamic accept(AbstractASTVisitor visitor) => visitor.visitIf(this);
+
+  @override
+  void subAccept(AbstractASTVisitor visitor) {
+    condition.accept(visitor);
+    thenBranch.accept(visitor);
+    elseBranch?.accept(visitor);
+  }
+
+  final ASTNode condition;
+
+  final ASTNode thenBranch;
+
+  final ASTNode? elseBranch;
+
+  IfExpr(
+    this.condition,
+    this.thenBranch, {
+    this.elseBranch,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(
+          Semantic.ifExpr,
+          isAsyncValue: condition.isAsyncValue ||
+              thenBranch.isAsyncValue ||
+              (elseBranch?.isAsyncValue ?? false),
+          isBlock: thenBranch.isBlock,
+        ) {
+    if (elseBranch != null) {
+      assert(thenBranch.isBlock == elseBranch!.isBlock);
+    }
+  }
+}
+
+class ForExpr extends ASTNode {
+  @override
+  dynamic accept(AbstractASTVisitor visitor) => visitor.visitForStmt(this);
+
+  @override
+  void subAccept(AbstractASTVisitor visitor) {
+    init?.accept(visitor);
+    condition?.accept(visitor);
+    increment?.accept(visitor);
+    loop.accept(visitor);
+  }
+
+  final VarDecl? init;
+
+  final ASTNode? condition;
+
+  final ASTNode? increment;
+
+  final bool hasBracket;
+
+  final BlockStmt loop;
+
+  ForExpr(
+    this.init,
+    this.condition,
+    this.increment,
+    this.loop, {
+    this.hasBracket = false,
+    super.isBlock,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(
+          Semantic.forExpr,
+          isAsyncValue: (init?.isAsyncValue ?? false) ||
+              (condition?.isAsyncValue ?? false) ||
+              (increment?.isAsyncValue ?? false) ||
+              loop.isAsyncValue,
+        );
+}
+
+class ForRangeExpr extends ASTNode {
+  @override
+  dynamic accept(AbstractASTVisitor visitor) => visitor.visitForRangeStmt(this);
+
+  @override
+  void subAccept(AbstractASTVisitor visitor) {
+    iterator.accept(visitor);
+    collection.accept(visitor);
+    loop.accept(visitor);
+  }
+
+  final VarDecl iterator;
+
+  final ASTNode collection;
+
+  final bool hasBracket;
+
+  final BlockStmt loop;
+
+  final bool iterateValue;
+
+  ForRangeExpr(
+    this.iterator,
+    this.collection,
+    this.loop, {
+    this.hasBracket = false,
+    this.iterateValue = false,
+    super.isBlock,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(
+          Semantic.forRangeExpr,
+          isAsyncValue: collection.isAsyncValue || loop.isAsyncValue,
+        );
+}
+
 abstract class Statement extends ASTNode {
-  final bool hasEndOfStmtMark;
+  bool hasEndOfStmtMark;
 
   Statement(
     super.type, {
     super.isAsyncValue,
     this.hasEndOfStmtMark = false,
     super.isStatement = true,
+    super.isBlock,
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  });
+  }) {
+    if (isBlock) assert(!hasEndOfStmtMark);
+  }
 }
 
 class AssertStmt extends Statement {
@@ -1104,6 +1234,7 @@ class ThrowStmt extends Statement {
   }) : super(
           Semantic.throwStmt,
           isAsyncValue: message.isAsyncValue,
+          isBlock: message.isBlock,
         );
 }
 
@@ -1129,6 +1260,7 @@ class ExprStmt extends Statement {
   }) : super(
           Semantic.exprStmt,
           isAsyncValue: expr.isAsyncValue,
+          isBlock: expr.isBlock,
         );
 }
 
@@ -1161,6 +1293,7 @@ class BlockStmt extends Statement {
   }) : super(
           Semantic.blockStmt,
           isAsyncValue: statements.any((element) => element.isAsyncValue),
+          isBlock: true,
         );
 }
 
@@ -1189,42 +1322,7 @@ class ReturnStmt extends Statement {
   }) : super(
           Semantic.returnStmt,
           isAsyncValue: returnValue?.isAsyncValue ?? false,
-        );
-}
-
-class IfStmt extends Statement {
-  @override
-  dynamic accept(AbstractASTVisitor visitor) => visitor.visitIf(this);
-
-  @override
-  void subAccept(AbstractASTVisitor visitor) {
-    condition.accept(visitor);
-    thenBranch.accept(visitor);
-    elseBranch?.accept(visitor);
-  }
-
-  final ASTNode condition;
-
-  final ASTNode thenBranch;
-
-  final ASTNode? elseBranch;
-
-  IfStmt(
-    this.condition,
-    this.thenBranch, {
-    this.elseBranch,
-    super.isStatement = false,
-    super.hasEndOfStmtMark = false,
-    super.source,
-    super.line = 0,
-    super.column = 0,
-    super.offset = 0,
-    super.length = 0,
-  }) : super(
-          Semantic.ifStmt,
-          isAsyncValue: condition.isAsyncValue ||
-              thenBranch.isAsyncValue ||
-              (elseBranch?.isAsyncValue ?? false),
+          isBlock: returnValue?.isBlock ?? false,
         );
 }
 
@@ -1242,12 +1340,11 @@ class WhileStmt extends Statement {
 
   final BlockStmt loop;
 
-  @override
-  bool get isExpression => false;
-
   WhileStmt(
     this.condition,
     this.loop, {
+    super.isBlock,
+    super.hasEndOfStmtMark,
     super.source,
     super.line = 0,
     super.column = 0,
@@ -1288,93 +1385,6 @@ class DoStmt extends Statement {
         );
 }
 
-class ForStmt extends Statement {
-  @override
-  dynamic accept(AbstractASTVisitor visitor) => visitor.visitForStmt(this);
-
-  @override
-  void subAccept(AbstractASTVisitor visitor) {
-    init?.accept(visitor);
-    condition?.accept(visitor);
-    increment?.accept(visitor);
-    loop.accept(visitor);
-  }
-
-  final VarDecl? init;
-
-  final ASTNode? condition;
-
-  final ASTNode? increment;
-
-  final bool hasBracket;
-
-  final BlockStmt loop;
-
-  ForStmt(
-    this.init,
-    this.condition,
-    this.increment,
-    this.loop, {
-    this.hasBracket = false,
-    super.isStatement = true,
-    super.hasEndOfStmtMark = false,
-    super.source,
-    super.line = 0,
-    super.column = 0,
-    super.offset = 0,
-    super.length = 0,
-  }) : super(
-          Semantic.forStmt,
-          isAsyncValue: (init?.isAsyncValue ?? false) ||
-              (condition?.isAsyncValue ?? false) ||
-              (increment?.isAsyncValue ?? false) ||
-              loop.isAsyncValue,
-        );
-}
-
-class ForRangeStmt extends Statement {
-  @override
-  dynamic accept(AbstractASTVisitor visitor) => visitor.visitForRangeStmt(this);
-
-  @override
-  void subAccept(AbstractASTVisitor visitor) {
-    iterator.accept(visitor);
-    collection.accept(visitor);
-    loop.accept(visitor);
-  }
-
-  final VarDecl iterator;
-
-  final ASTNode collection;
-
-  final bool hasBracket;
-
-  final BlockStmt loop;
-
-  final bool iterateValue;
-
-  @override
-  bool get isExpression => false;
-
-  ForRangeStmt(
-    this.iterator,
-    this.collection,
-    this.loop, {
-    this.hasBracket = false,
-    this.iterateValue = false,
-    super.isStatement = true,
-    super.hasEndOfStmtMark = false,
-    super.source,
-    super.line = 0,
-    super.column = 0,
-    super.offset = 0,
-    super.length = 0,
-  }) : super(
-          Semantic.forInStmt,
-          isAsyncValue: collection.isAsyncValue || loop.isAsyncValue,
-        );
-}
-
 class WhenStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitWhen(this);
@@ -1412,6 +1422,7 @@ class WhenStmt extends Statement {
               (elseBranch?.isAsyncValue ?? false) ||
               cases.keys.any((element) => element.isAsyncValue) ||
               cases.values.any((element) => element.isAsyncValue),
+          isBlock: true,
         );
 }
 
@@ -1583,7 +1594,10 @@ class NamespaceDecl extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.namespaceDeclaration);
+  }) : super(
+          Semantic.namespaceDeclaration,
+          isBlock: true,
+        );
 }
 
 class TypeAliasDecl extends Statement {
@@ -1609,9 +1623,6 @@ class TypeAliasDecl extends Statement {
   final bool isPrivate;
 
   final bool isTopLevel;
-
-  @override
-  bool get isExpression => false;
 
   TypeAliasDecl(
     this.id,
@@ -1652,9 +1663,6 @@ class TypeAliasDecl extends Statement {
 //   final bool hasEndOfStmtMark;
 
 //   final bool isTopLevel;
-
-//   @override
-//   bool get isExpression => false;
 
 //   ConstDecl(this.id, this.constExpr,
 //       {this.declType,
@@ -1797,9 +1805,6 @@ class ParamDecl extends VarDecl {
 
   final bool isInitialization;
 
-  @override
-  bool get isExpression => true;
-
   ParamDecl(
     IdentifierExpr id, {
     TypeExpr? declType,
@@ -1813,11 +1818,13 @@ class ParamDecl extends VarDecl {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(id,
-            declType: declType,
-            initializer: initializer,
-            isMutable: true,
-            isStatement: false);
+  }) : super(
+          id,
+          declType: declType,
+          initializer: initializer,
+          isMutable: true,
+          isStatement: false,
+        );
 }
 
 class RedirectingConstructorCallExpr extends ASTNode {
@@ -1925,9 +1932,6 @@ class FuncDecl extends ASTNode {
 
   final FunctionCategory category;
 
-  @override
-  bool get isExpression => false;
-
   FuncDecl(
     this.internalName, {
     this.id,
@@ -1952,12 +1956,16 @@ class FuncDecl extends ASTNode {
     this.isPrivate = false,
     this.isTopLevel = false,
     this.category = FunctionCategory.normal,
+    super.isStatement,
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.functionDeclaration);
+  }) : super(
+          Semantic.functionDeclaration,
+          isBlock: !isExpressionBody,
+        );
 }
 
 class ClassDecl extends ASTNode {
@@ -2006,9 +2014,6 @@ class ClassDecl extends ASTNode {
 
   final BlockStmt definition;
 
-  @override
-  bool get isExpression => false;
-
   ClassDecl(
     this.id,
     this.definition, {
@@ -2028,7 +2033,11 @@ class ClassDecl extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.classDeclaration);
+  }) : super(
+          Semantic.classDeclaration,
+          isStatement: true,
+          isBlock: true,
+        );
 }
 
 class EnumDecl extends ASTNode {
@@ -2064,7 +2073,11 @@ class EnumDecl extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.enumDeclaration);
+  }) : super(
+          Semantic.enumDeclaration,
+          isStatement: true,
+          isBlock: true,
+        );
 }
 
 class StructDecl extends ASTNode {
@@ -2103,13 +2116,16 @@ class StructDecl extends ASTNode {
     this.mixinIds = const [],
     this.isPrivate = false,
     this.isTopLevel = false,
-    // this.lateInitialize = true,
+    super.isStatement,
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.structDeclaration);
+  }) : super(
+          Semantic.structDeclaration,
+          isBlock: true,
+        );
 }
 
 class StructObjField extends ASTNode {

@@ -205,7 +205,7 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
   }
 
   @override
-  HTType visitIf(IfStmt node) {
+  HTType visitIf(IfExpr node) {
     return HTTypeAny(_lexicon.typeAny);
   }
 
@@ -220,12 +220,12 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
   }
 
   @override
-  HTType visitForStmt(ForStmt node) {
+  HTType visitForStmt(ForExpr node) {
     return HTTypeAny(_lexicon.typeAny);
   }
 
   @override
-  HTType visitForRangeStmt(ForRangeStmt node) {
+  HTType visitForRangeStmt(ForRangeExpr node) {
     return HTTypeAny(_lexicon.typeAny);
   }
 

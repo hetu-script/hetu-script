@@ -82,15 +82,15 @@ abstract class AbstractASTVisitor<T> {
 
   T? visitReturnStmt(ReturnStmt node) {}
 
-  T? visitIf(IfStmt node) {}
+  T? visitIf(IfExpr node) {}
 
   T? visitWhileStmt(WhileStmt node) {}
 
   T? visitDoStmt(DoStmt node) {}
 
-  T? visitForStmt(ForStmt node) {}
+  T? visitForStmt(ForExpr node) {}
 
-  T? visitForRangeStmt(ForRangeStmt node) {}
+  T? visitForRangeStmt(ForRangeExpr node) {}
 
   T? visitWhen(WhenStmt node) {}
 

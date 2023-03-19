@@ -242,4 +242,15 @@ abstract class HTParser with TokenReader {
   void resetFlags();
 
   ASTNode? parseStmt({required ParseStyle style});
+
+  bool parseEndOfStmtMark({bool required = false}) {
+    bool hasEndOfStmtMark = true;
+    if (config.explicitEndOfStatement || required) {
+      match(lexer.lexicon.endOfStatementMark);
+    } else {
+      hasEndOfStmtMark =
+          expect([lexer.lexicon.endOfStatementMark], consume: true);
+    }
+    return hasEndOfStmtMark;
+  }
 }

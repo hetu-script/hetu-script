@@ -476,14 +476,14 @@ class HTFormatter implements AbstractASTVisitor<String> {
   }
 
   @override
-  String visitIf(IfStmt ifStmt) {
+  String visitIf(IfExpr ifStmt) {
     final output = StringBuffer();
     output.write('${_lexicon.kIf} ${_lexicon.groupExprStart}');
     final conditionString = formatAST(ifStmt.condition);
     output.write('$conditionString${_lexicon.groupExprEnd} ');
     final thenBranchString = formatAST(ifStmt.thenBranch);
     output.write(thenBranchString);
-    if ((ifStmt.elseBranch is IfStmt) || (ifStmt.elseBranch is BlockStmt)) {
+    if ((ifStmt.elseBranch is IfExpr) || (ifStmt.elseBranch is BlockStmt)) {
       output.write(' ${_lexicon.kElse} ');
       final elseBranchString = formatAST(ifStmt.elseBranch!);
       output.write(elseBranchString);
@@ -529,7 +529,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   }
 
   @override
-  String visitForStmt(ForStmt forStmt) {
+  String visitForStmt(ForExpr forStmt) {
     final output = StringBuffer();
     output.write('${_lexicon.kFor} ');
     if (forStmt.hasBracket) {
@@ -551,7 +551,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   }
 
   @override
-  String visitForRangeStmt(ForRangeStmt forRangeStmt) {
+  String visitForRangeStmt(ForRangeExpr forRangeStmt) {
     final output = StringBuffer();
     output.write('${_lexicon.kFor} ');
     if (forRangeStmt.hasBracket) {

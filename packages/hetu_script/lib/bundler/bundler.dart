@@ -34,7 +34,7 @@ class HTBundler {
   ASTCompilation bundle({
     required HTSource source,
     required HTParser parser,
-    bool normalizePath = true,
+    bool normalizeImportPath = true,
     Version? version,
   }) {
     final sourceParseResult = parser.parseSource(source);
@@ -53,7 +53,7 @@ class HTBundler {
           }
           late final ASTSource importedSource;
           String importFullName;
-          if (normalizePath) {
+          if (normalizeImportPath) {
             var currentDir = astSource.fullName
                     .startsWith(InternalIdentifier.anonymousScript)
                 ? sourceContext.root

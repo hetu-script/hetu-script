@@ -24,7 +24,7 @@ class BytecodeReader {
       return bytes[ip++];
     } else {
       ip = 0;
-      return HTOpCode.endOfCode;
+      return OpCode.endOfCode;
     }
   }
 

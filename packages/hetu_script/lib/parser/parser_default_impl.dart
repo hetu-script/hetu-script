@@ -54,11 +54,7 @@ class HTDefaultParser extends HTParser {
   ASTNode? parseStmt({required ParseStyle style}) {
     handlePrecedings();
 
-    // if (_handlePrecedingCommentsOrEmptyLines()) {
-    //   return null;
-    // }
-
-    // handle emtpy statement is a must because automatic semicolon insertion.
+    // handle emtpy statement.
     if (curTok.type == lexer.lexicon.endOfStatementMark) {
       advance();
       return null;
@@ -70,14 +66,6 @@ class HTDefaultParser extends HTParser {
 
     // save preceding comments because those might change during expression parsing.
     final savedPrecedings = savePrecedings();
-
-    // if (curTok is TokenEmptyLine) {
-    //   final empty = advance();
-    //   final emptyStmt = ASTEmptyLine(
-    //       line: empty.line, column: empty.column, offset: empty.offset);
-    //   emptyStmt.precedingComments = precedingComments;
-    //   return emptyStmt;
-    // }
 
     ASTNode stmt;
 
@@ -843,8 +831,7 @@ class HTDefaultParser extends HTParser {
             errors.add(err);
           }
           final keyword = advance();
-          final hasEndOfStmtMark =
-              expect([lexer.lexicon.endOfStatementMark], consume: true);
+          final hasEndOfStmtMark = parseEndOfStmtMark();
           stmt = BreakStmt(keyword,
               hasEndOfStmtMark: hasEndOfStmtMark,
               source: currentSource,
@@ -863,8 +850,7 @@ class HTDefaultParser extends HTParser {
             errors.add(err);
           }
           final keyword = advance();
-          final hasEndOfStmtMark =
-              expect([lexer.lexicon.endOfStatementMark], consume: true);
+          final hasEndOfStmtMark = parseEndOfStmtMark();
           stmt = ContinueStmt(keyword,
               hasEndOfStmtMark: hasEndOfStmtMark,
               source: currentSource,
@@ -905,8 +891,7 @@ class HTDefaultParser extends HTParser {
     match(lexer.lexicon.groupExprStart);
     final expr = parseExpr();
     match(lexer.lexicon.groupExprEnd);
-    final hasEndOfStmtMark =
-        expect([lexer.lexicon.endOfStatementMark], consume: true);
+    final hasEndOfStmtMark = parseEndOfStmtMark();
     final stmt = AssertStmt(expr,
         hasEndOfStmtMark: hasEndOfStmtMark,
         source: currentSource,
@@ -920,8 +905,7 @@ class HTDefaultParser extends HTParser {
   ThrowStmt _parseThrowStmt() {
     final keyword = match(lexer.lexicon.kThrow);
     final message = parseExpr();
-    final hasEndOfStmtMark =
-        expect([lexer.lexicon.endOfStatementMark], consume: true);
+    final hasEndOfStmtMark = parseEndOfStmtMark();
     final stmt = ThrowStmt(message,
         hasEndOfStmtMark: hasEndOfStmtMark,
         source: currentSource,
@@ -1398,199 +1382,10 @@ class HTDefaultParser extends HTParser {
     // We also cannot use else if here, because the literal function parsing need to look ahead a lot of tokens,
     // thus we have to execute the if branch even if it may not be a function.
 
-    if (curTok.type == lexer.lexicon.kNull) {
-      final token = advance();
-      _isLegalLeftValue = false;
-      expr = ASTLiteralNull(
-          source: currentSource,
-          line: token.line,
-          column: token.column,
-          offset: token.offset,
-          length: token.length);
-    }
-
-    if (expr == null && curTok.type == Semantic.literalBoolean) {
-      final token = match(Semantic.literalBoolean) as TokenBooleanLiteral;
-      _isLegalLeftValue = false;
-      expr = ASTLiteralBoolean(token.literal,
-          source: currentSource,
-          line: token.line,
-          column: token.column,
-          offset: token.offset,
-          length: token.length);
-    }
-
-    if (expr == null && curTok.type == Semantic.literalInteger) {
-      final token = match(Semantic.literalInteger) as TokenIntLiteral;
-      _isLegalLeftValue = false;
-      expr = ASTLiteralInteger(token.literal,
-          source: currentSource,
-          line: token.line,
-          column: token.column,
-          offset: token.offset,
-          length: token.length);
-    }
-
-    if (expr == null && curTok.type == Semantic.literalFloat) {
-      final token = advance() as TokenFloatLiteral;
-      _isLegalLeftValue = false;
-      expr = ASTLiteralFloat(token.literal,
-          source: currentSource,
-          line: token.line,
-          column: token.column,
-          offset: token.offset,
-          length: token.length);
-    }
-
-    if (expr == null && curTok.type == Semantic.literalString) {
-      final token = advance() as TokenStringLiteral;
-      _isLegalLeftValue = false;
-      expr = ASTLiteralString(token.literal, token.startMark, token.endMark,
-          source: currentSource,
-          line: token.line,
-          column: token.column,
-          offset: token.offset,
-          length: token.length);
-    }
-
-    if (expr == null && curTok.type == Semantic.literalStringInterpolation) {
-      final token = advance() as TokenStringInterpolation;
-      final interpolations = <ASTNode>[];
-      final savedCurrent = curTok;
-      final savedFirst = firstTok;
-      final savedEnd = endOfFile;
-      final savedLine = line;
-      final savedColumn = column;
-      final parser = HTDefaultParser();
-      for (final token in token.interpolations) {
-        final nodes = parser.parseTokens(token,
-            source: currentSource, style: ParseStyle.expression);
-        ASTNode? expr;
-        for (final node in nodes) {
-          if (node is ASTEmptyLine) continue;
-          if (expr == null) {
-            expr = node;
-          } else {
-            final err = HTError.stringInterpolation(
-                filename: currrentFileName,
-                line: node.line,
-                column: node.column,
-                offset: node.offset,
-                length: node.length);
-            errors.add(err);
-            break;
-          }
-        }
-        if (expr != null) {
-          interpolations.add(expr);
-        } else {
-          // parser will always contain at least a empty line expr
-          interpolations.add(nodes.first);
-        }
-      }
-      curTok = savedCurrent;
-      firstTok = savedFirst;
-      endOfFile = savedEnd;
-      line = savedLine;
-      column = savedColumn;
-      var i = 0;
-      final text = token.literal.replaceAllMapped(
-          RegExp(lexer.lexicon.stringInterpolationPattern),
-          (Match m) =>
-              '${lexer.lexicon.stringInterpolationStart}${i++}${lexer.lexicon.stringInterpolationEnd}');
-      _isLegalLeftValue = false;
-      expr = ASTStringInterpolation(
-          text, token.startMark, token.endMark, interpolations,
-          source: currentSource,
-          line: token.line,
-          column: token.column,
-          offset: token.offset,
-          length: token.length);
-    }
-
-    // this expression
-    if (expr == null && curTok.type == lexer.lexicon.kThis) {
-      if (_currentFunctionDeclaration?.category != FunctionCategory.literal &&
-          (_currentClassDeclaration == null && _currentStructId == null)) {
-        final err = HTError.misplacedThis(
-            filename: currrentFileName,
-            line: curTok.line,
-            column: curTok.column,
-            offset: curTok.offset,
-            length: curTok.length);
-        errors.add(err);
-      }
-      final keyword = advance();
-      _isLegalLeftValue = false;
-      expr = IdentifierExpr(keyword.lexeme,
-          source: currentSource,
-          line: keyword.line,
-          column: keyword.column,
-          offset: keyword.offset,
-          length: keyword.length);
-    }
-
-    // super constructor call
-    if (expr == null && curTok.type == lexer.lexicon.kSuper) {
-      if (_currentClassDeclaration == null ||
-          _currentFunctionDeclaration == null) {
-        final err = HTError.misplacedSuper(
-            filename: currrentFileName,
-            line: curTok.line,
-            column: curTok.column,
-            offset: curTok.offset,
-            length: curTok.length);
-        errors.add(err);
-      }
-      final keyword = advance();
-      _isLegalLeftValue = false;
-      expr = IdentifierExpr(keyword.lexeme,
-          source: currentSource,
-          line: keyword.line,
-          column: keyword.column,
-          offset: keyword.offset,
-          length: keyword.length);
-    }
-
-    // constructor call
-    if (expr == null && curTok.type == lexer.lexicon.kNew) {
-      final keyword = advance();
-      _isLegalLeftValue = false;
-      final idTok = match(Semantic.identifier) as TokenIdentifier;
-      final id = IdentifierExpr.fromToken(idTok,
-          isMarked: idTok.isMarked, source: currentSource);
-      var positionalArgs = <ASTNode>[];
-      var namedArgs = <String, ASTNode>{};
-      ASTEmptyLine? empty;
-      if (expect([lexer.lexicon.functionParameterStart], consume: true)) {
-        empty = _handleCallArguments(positionalArgs, namedArgs);
-      }
-      expr = CallExpr(id,
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          documentationsWithinEmptyContent: empty,
-          hasNewOperator: true,
-          source: currentSource,
-          line: keyword.line,
-          column: keyword.column,
-          offset: keyword.offset,
-          length: curTok.offset - keyword.offset);
-    }
-
-    // an if expression
-    if (expr == null && curTok.type == lexer.lexicon.kIf) {
-      _isLegalLeftValue = false;
-      expr = _parseIf(isStatement: false);
-    }
-
-    // when expression
-    if (expr == null && curTok.type == lexer.lexicon.kWhen) {
-      _isLegalLeftValue = false;
-      expr = _parseWhen(isStatement: false);
-    }
-
     // literal function expression
-    if (expr == null && curTok.type == lexer.lexicon.functionParameterStart) {
+    // this needs to look ahead a lot of tokens,
+    // so this is separated from others.
+    if (curTok.type == lexer.lexicon.functionParameterStart) {
       final tokenAfterGroupExprStart = curTok.next;
       final tokenAfterGroupExprEnd = seekGroupClosing({
         lexer.lexicon.functionParameterStart: lexer.lexicon.functionParameterEnd
@@ -1613,83 +1408,242 @@ class HTDefaultParser extends HTParser {
       }
     }
 
-    // group expr
-    if (expr == null && curTok.type == lexer.lexicon.groupExprStart) {
-      final start = advance();
-      final innerExpr = parseExpr();
-      final end = match(lexer.lexicon.groupExprEnd);
-      _isLegalLeftValue = false;
-      expr = GroupExpr(innerExpr,
-          source: currentSource,
-          line: start.line,
-          column: start.column,
-          offset: start.offset,
-          length: end.offset + end.length - start.offset);
-    }
-
-    // literal list value
-    if (expr == null && curTok.type == lexer.lexicon.listStart) {
-      final start = advance();
-      final listExprs = parseExprList(
-        endToken: lexer.lexicon.listEnd,
-        parseFunction: () {
-          if (curTok.type == lexer.lexicon.listEnd) return null;
-          ASTNode item;
-          if (curTok.type == lexer.lexicon.spreadSyntax) {
-            final spreadTok = advance();
-            item = parseExpr();
-            final spreadExpr = SpreadExpr(item,
-                source: currentSource,
-                line: spreadTok.line,
-                column: spreadTok.column,
-                offset: spreadTok.offset,
-                length: item.end - spreadTok.offset);
-            setPrecedings(spreadExpr);
-            return spreadExpr;
-          } else {
-            return parseExpr();
+    if (expr == null) {
+      if (curTok.type == lexer.lexicon.kNull) {
+        final token = advance();
+        _isLegalLeftValue = false;
+        expr = ASTLiteralNull(
+            source: currentSource,
+            line: token.line,
+            column: token.column,
+            offset: token.offset,
+            length: token.length);
+      } else if (curTok.type == Semantic.literalBoolean) {
+        final token = match(Semantic.literalBoolean) as TokenBooleanLiteral;
+        _isLegalLeftValue = false;
+        expr = ASTLiteralBoolean(token.literal,
+            source: currentSource,
+            line: token.line,
+            column: token.column,
+            offset: token.offset,
+            length: token.length);
+      } else if (curTok.type == Semantic.literalInteger) {
+        final token = match(Semantic.literalInteger) as TokenIntLiteral;
+        _isLegalLeftValue = false;
+        expr = ASTLiteralInteger(token.literal,
+            source: currentSource,
+            line: token.line,
+            column: token.column,
+            offset: token.offset,
+            length: token.length);
+      } else if (curTok.type == Semantic.literalFloat) {
+        final token = advance() as TokenFloatLiteral;
+        _isLegalLeftValue = false;
+        expr = ASTLiteralFloat(token.literal,
+            source: currentSource,
+            line: token.line,
+            column: token.column,
+            offset: token.offset,
+            length: token.length);
+      } else if (curTok.type == Semantic.literalString) {
+        final token = advance() as TokenStringLiteral;
+        _isLegalLeftValue = false;
+        expr = ASTLiteralString(token.literal, token.startMark, token.endMark,
+            source: currentSource,
+            line: token.line,
+            column: token.column,
+            offset: token.offset,
+            length: token.length);
+      } else if (curTok.type == Semantic.literalStringInterpolation) {
+        final token = advance() as TokenStringInterpolation;
+        final interpolations = <ASTNode>[];
+        final savedCurrent = curTok;
+        final savedFirst = firstTok;
+        final savedEnd = endOfFile;
+        final savedLine = line;
+        final savedColumn = column;
+        final parser = HTDefaultParser();
+        for (final token in token.interpolations) {
+          final nodes = parser.parseTokens(token,
+              source: currentSource, style: ParseStyle.expression);
+          ASTNode? expr;
+          for (final node in nodes) {
+            if (node is ASTEmptyLine) continue;
+            if (expr == null) {
+              expr = node;
+            } else {
+              final err = HTError.stringInterpolation(
+                  filename: currrentFileName,
+                  line: node.line,
+                  column: node.column,
+                  offset: node.offset,
+                  length: node.length);
+              errors.add(err);
+              break;
+            }
           }
-        },
-      );
-      final endTok = match(lexer.lexicon.listEnd);
-      _isLegalLeftValue = false;
-      expr = ListExpr(listExprs,
-          source: currentSource,
-          line: start.line,
-          column: start.column,
-          offset: start.offset,
-          length: endTok.end - start.offset);
-    }
-
-    if (expr == null && curTok.type == lexer.lexicon.codeBlockStart) {
-      _isLegalLeftValue = false;
-      expr = _parseStructObj();
-    }
-
-    if (expr == null && curTok.type == lexer.lexicon.kStruct) {
-      _isLegalLeftValue = false;
-      expr = _parseStructObj(hasKeyword: true);
-    }
-
-    if (expr == null && curTok.type == lexer.lexicon.kFun) {
-      _isLegalLeftValue = false;
-      expr = _parseFunction(category: FunctionCategory.literal);
-    }
-
-    // `type` is a common word that could appear in a json5 file,
-    // so we used a special keyword `typeval` here to parse a literal type value
-    if (expr == null && curTok.type == lexer.lexicon.kTypeValue) {
-      _isLegalLeftValue = false;
-      expr = _parseTypeExpr(handleDeclKeyword: true, isLocal: true);
-    }
-
-    if (expr == null && curTok.type == Semantic.identifier) {
-      final id = advance() as TokenIdentifier;
-      final isLocal = curTok.type != lexer.lexicon.assign;
-      // TODO: type arguments
-      _isLegalLeftValue = true;
-      expr = IdentifierExpr.fromToken(id,
-          isMarked: id.isMarked, isLocal: isLocal, source: currentSource);
+          if (expr != null) {
+            interpolations.add(expr);
+          } else {
+            // parser will always contain at least a empty line expr
+            interpolations.add(nodes.first);
+          }
+        }
+        curTok = savedCurrent;
+        firstTok = savedFirst;
+        endOfFile = savedEnd;
+        line = savedLine;
+        column = savedColumn;
+        var i = 0;
+        final text = token.literal.replaceAllMapped(
+            RegExp(lexer.lexicon.stringInterpolationPattern),
+            (Match m) =>
+                '${lexer.lexicon.stringInterpolationStart}${i++}${lexer.lexicon.stringInterpolationEnd}');
+        _isLegalLeftValue = false;
+        expr = ASTStringInterpolation(
+            text, token.startMark, token.endMark, interpolations,
+            source: currentSource,
+            line: token.line,
+            column: token.column,
+            offset: token.offset,
+            length: token.length);
+      } else if (curTok.type == lexer.lexicon.kThis) {
+        // this expression
+        if (_currentFunctionDeclaration?.category != FunctionCategory.literal &&
+            (_currentClassDeclaration == null && _currentStructId == null)) {
+          final err = HTError.misplacedThis(
+              filename: currrentFileName,
+              line: curTok.line,
+              column: curTok.column,
+              offset: curTok.offset,
+              length: curTok.length);
+          errors.add(err);
+        }
+        final keyword = advance();
+        _isLegalLeftValue = false;
+        expr = IdentifierExpr(keyword.lexeme,
+            source: currentSource,
+            line: keyword.line,
+            column: keyword.column,
+            offset: keyword.offset,
+            length: keyword.length);
+      } else if (curTok.type == lexer.lexicon.kSuper) {
+        // super constructor call
+        if (_currentClassDeclaration == null ||
+            _currentFunctionDeclaration == null) {
+          final err = HTError.misplacedSuper(
+              filename: currrentFileName,
+              line: curTok.line,
+              column: curTok.column,
+              offset: curTok.offset,
+              length: curTok.length);
+          errors.add(err);
+        }
+        final keyword = advance();
+        _isLegalLeftValue = false;
+        expr = IdentifierExpr(keyword.lexeme,
+            source: currentSource,
+            line: keyword.line,
+            column: keyword.column,
+            offset: keyword.offset,
+            length: keyword.length);
+      } else if (curTok.type == lexer.lexicon.kNew) {
+        // constructor call
+        final keyword = advance();
+        _isLegalLeftValue = false;
+        final idTok = match(Semantic.identifier) as TokenIdentifier;
+        final id = IdentifierExpr.fromToken(idTok,
+            isMarked: idTok.isMarked, source: currentSource);
+        var positionalArgs = <ASTNode>[];
+        var namedArgs = <String, ASTNode>{};
+        ASTEmptyLine? empty;
+        if (expect([lexer.lexicon.functionParameterStart], consume: true)) {
+          empty = _handleCallArguments(positionalArgs, namedArgs);
+        }
+        expr = CallExpr(id,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            documentationsWithinEmptyContent: empty,
+            hasNewOperator: true,
+            source: currentSource,
+            line: keyword.line,
+            column: keyword.column,
+            offset: keyword.offset,
+            length: curTok.offset - keyword.offset);
+      } else if (curTok.type == lexer.lexicon.kIf) {
+        // if expression
+        _isLegalLeftValue = false;
+        expr = _parseIf(isStatement: false);
+      } else if (curTok.type == lexer.lexicon.kWhen) {
+        // when expression
+        _isLegalLeftValue = false;
+        expr = _parseWhen(isStatement: false);
+      } else if (curTok.type == lexer.lexicon.groupExprStart) {
+        // group expression
+        final start = advance();
+        final innerExpr = parseExpr();
+        final end = match(lexer.lexicon.groupExprEnd);
+        _isLegalLeftValue = false;
+        expr = GroupExpr(innerExpr,
+            source: currentSource,
+            line: start.line,
+            column: start.column,
+            offset: start.offset,
+            length: end.offset + end.length - start.offset);
+      } else if (curTok.type == lexer.lexicon.listStart) {
+        // literal list value
+        final start = advance();
+        final listExprs = parseExprList(
+          endToken: lexer.lexicon.listEnd,
+          parseFunction: () {
+            if (curTok.type == lexer.lexicon.listEnd) return null;
+            ASTNode item;
+            if (curTok.type == lexer.lexicon.spreadSyntax) {
+              final spreadTok = advance();
+              item = parseExpr();
+              final spreadExpr = SpreadExpr(item,
+                  source: currentSource,
+                  line: spreadTok.line,
+                  column: spreadTok.column,
+                  offset: spreadTok.offset,
+                  length: item.end - spreadTok.offset);
+              setPrecedings(spreadExpr);
+              return spreadExpr;
+            } else {
+              return parseExpr();
+            }
+          },
+        );
+        final endTok = match(lexer.lexicon.listEnd);
+        _isLegalLeftValue = false;
+        expr = ListExpr(listExprs,
+            source: currentSource,
+            line: start.line,
+            column: start.column,
+            offset: start.offset,
+            length: endTok.end - start.offset);
+      } else if (curTok.type == lexer.lexicon.codeBlockStart) {
+        _isLegalLeftValue = false;
+        expr = _parseStructObj();
+      } else if (curTok.type == lexer.lexicon.kStruct) {
+        _isLegalLeftValue = false;
+        expr = _parseStructObj(hasKeyword: true);
+      } else if (curTok.type == lexer.lexicon.kFun) {
+        _isLegalLeftValue = false;
+        expr = _parseFunction(category: FunctionCategory.literal);
+      } else if (curTok.type == lexer.lexicon.kTypeValue) {
+        // `type` is a common word that could appear in a json5 file,
+        // so we used a special keyword `typeval` here to parse a literal type value
+        _isLegalLeftValue = false;
+        expr = _parseTypeExpr(handleDeclKeyword: true, isLocal: true);
+      } else if (curTok.type == Semantic.identifier) {
+        final id = advance() as TokenIdentifier;
+        final isLocal = curTok.type != lexer.lexicon.assign;
+        // TODO: type arguments
+        _isLegalLeftValue = true;
+        expr = IdentifierExpr.fromToken(id,
+            isMarked: id.isMarked, isLocal: isLocal, source: currentSource);
+      }
     }
 
     if (expr == null) {
@@ -2120,8 +2074,7 @@ class HTDefaultParser extends HTParser {
 
   ASTNode _parseExprStmt() {
     final expr = parseExpr();
-    final hasEndOfStmtMark =
-        expect([lexer.lexicon.endOfStatementMark], consume: true);
+    final hasEndOfStmtMark = parseEndOfStmtMark();
     final stmt = ExprStmt(expr,
         hasEndOfStmtMark: hasEndOfStmtMark,
         source: currentSource,
@@ -2136,12 +2089,16 @@ class HTDefaultParser extends HTParser {
   ReturnStmt _parseReturnStmt() {
     var keyword = advance();
     ASTNode? expr;
+    bool hasEndOfStmtMark = true;
     if (curTok.type != lexer.lexicon.codeBlockEnd &&
         curTok.type != lexer.lexicon.endOfStatementMark) {
       expr = parseExpr();
+      if (!expr.isBlock) {
+        hasEndOfStmtMark = parseEndOfStmtMark();
+      }
+    } else {
+      hasEndOfStmtMark = parseEndOfStmtMark();
     }
-    final hasEndOfStmtMark =
-        expect([lexer.lexicon.endOfStatementMark], consume: true);
     return ReturnStmt(keyword,
         returnValue: expr,
         source: currentSource,
@@ -2152,7 +2109,7 @@ class HTDefaultParser extends HTParser {
         length: curTok.offset - keyword.offset);
   }
 
-  ASTNode _parseExprOrStmtOrBlock({bool isStatement = true}) {
+  ASTNode _parseExprStmtOrBlock({bool isStatement = true}) {
     if (curTok.type == lexer.lexicon.codeBlockStart) {
       return _parseBlockStmt(id: Semantic.blockStmt);
     } else {
@@ -2179,29 +2136,28 @@ class HTDefaultParser extends HTParser {
         }
         return node;
       } else {
-        return parseExpr();
+        return _parseExprStmt();
       }
     }
   }
 
-  IfStmt _parseIf({bool isStatement = true}) {
+  IfExpr _parseIf({bool isStatement = true, bool requireElse = false}) {
     final keyword = match(lexer.lexicon.kIf);
     match(lexer.lexicon.groupExprStart);
     final condition = parseExpr();
     match(lexer.lexicon.groupExprEnd);
-    var thenBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
+    var thenBranch = _parseExprStmtOrBlock(isStatement: isStatement);
     handlePrecedings();
     ASTNode? elseBranch;
-    if (isStatement) {
-      if (expect([lexer.lexicon.kElse], consume: true)) {
-        elseBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
-      }
-    } else {
+    if (requireElse) {
       match(lexer.lexicon.kElse);
-      elseBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
+      elseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
+    } else {
+      if (expect([lexer.lexicon.kElse], consume: true)) {
+        elseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
+      }
     }
-    return IfStmt(condition, thenBranch,
-        isStatement: isStatement,
+    return IfExpr(condition, thenBranch,
         elseBranch: elseBranch,
         source: currentSource,
         line: keyword.line,
@@ -2272,7 +2228,7 @@ class HTDefaultParser extends HTParser {
         match(lexer.lexicon.groupExprEnd);
       }
       final loop = _parseBlockStmt(id: Semantic.forLoop, isLoop: true);
-      return ForRangeStmt(decl, collection, loop,
+      return ForRangeExpr(decl, collection, loop,
           hasBracket: hasBracket,
           iterateValue: forStmtType == lexer.lexicon.kOf,
           source: currentSource,
@@ -2284,7 +2240,7 @@ class HTDefaultParser extends HTParser {
       if (!expect([lexer.lexicon.endOfStatementMark], consume: false)) {
         decl = _parseVarDecl(
           isMutable: curTok.type != lexer.lexicon.kFinal,
-          hasEndOfStatement: true,
+          requireEndOfStatement: true,
           implicitVariableDeclaration: implicitVariableDeclaration,
         );
       } else {
@@ -2301,7 +2257,7 @@ class HTDefaultParser extends HTParser {
         match(lexer.lexicon.groupExprEnd);
       }
       final loop = _parseBlockStmt(id: Semantic.forLoop, isLoop: true);
-      return ForStmt(decl, condition, increment, loop,
+      return ForExpr(decl, condition, increment, loop,
           hasBracket: hasBracket,
           source: currentSource,
           line: keyword.line,
@@ -2332,7 +2288,7 @@ class HTDefaultParser extends HTParser {
       if (curTok.lexeme == lexer.lexicon.kElse) {
         advance();
         match(lexer.lexicon.whenBranchIndicator);
-        elseBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
+        elseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
       } else {
         ASTNode caseExpr;
         if (peek(1).type == lexer.lexicon.comma) {
@@ -2344,7 +2300,7 @@ class HTDefaultParser extends HTParser {
           caseExpr = parseExpr();
         }
         match(lexer.lexicon.whenBranchIndicator);
-        var caseBranch = _parseExprOrStmtOrBlock(isStatement: isStatement);
+        var caseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
         options[caseExpr] = caseBranch;
       }
     }
@@ -2425,14 +2381,11 @@ class HTDefaultParser extends HTParser {
       }
     }
     IdentifierExpr? alias;
-    late bool hasEndOfStmtMark;
 
     void handleAlias() {
       match(lexer.lexicon.kAs);
       final aliasId = match(Semantic.identifier);
       alias = IdentifierExpr.fromToken(aliasId, source: currentSource);
-      hasEndOfStmtMark =
-          expect([lexer.lexicon.endOfStatementMark], consume: true);
     }
 
     final fromPathTok = match(Semantic.literalString);
@@ -2461,12 +2414,11 @@ class HTDefaultParser extends HTParser {
       } else {
         if (curTok.type == lexer.lexicon.kAs) {
           handleAlias();
-        } else {
-          hasEndOfStmtMark =
-              expect([lexer.lexicon.endOfStatementMark], consume: true);
         }
       }
     }
+
+    final hasEndOfStmtMark = parseEndOfStmtMark();
 
     final stmt = ImportExportDecl(
         fromPath: fromPath,
@@ -2499,9 +2451,7 @@ class HTDefaultParser extends HTParser {
       );
       match(lexer.lexicon.codeBlockEnd);
       String? fromPath;
-      var hasEndOfStmtMark =
-          expect([lexer.lexicon.endOfStatementMark], consume: true);
-      if (!hasEndOfStmtMark && curTok.lexeme == lexer.lexicon.kFrom) {
+      if (curTok.lexeme == lexer.lexicon.kFrom) {
         advance();
         final fromPathTok = match(Semantic.literalString);
         final ext = path.extension(fromPathTok.literal);
@@ -2514,13 +2464,10 @@ class HTDefaultParser extends HTParser {
               length: fromPathTok.length);
           errors.add(err);
         }
-        hasEndOfStmtMark =
-            expect([lexer.lexicon.endOfStatementMark], consume: true);
       }
       stmt = ImportExportDecl(
           fromPath: fromPath,
           showList: showList,
-          hasEndOfStmtMark: hasEndOfStmtMark,
           isExport: true,
           source: currentSource,
           line: keyword.line,
@@ -2531,10 +2478,7 @@ class HTDefaultParser extends HTParser {
         currentModuleImports.add(stmt);
       }
     } else if (expect([lexer.lexicon.everythingMark], consume: true)) {
-      final hasEndOfStmtMark =
-          expect([lexer.lexicon.endOfStatementMark], consume: true);
       stmt = ImportExportDecl(
-          hasEndOfStmtMark: hasEndOfStmtMark,
           isExport: true,
           source: currentSource,
           line: keyword.line,
@@ -2543,11 +2487,8 @@ class HTDefaultParser extends HTParser {
           length: curTok.offset - keyword.offset);
     } else {
       final key = match(Semantic.literalString);
-      final hasEndOfStmtMark =
-          expect([lexer.lexicon.endOfStatementMark], consume: true);
       stmt = ImportExportDecl(
           fromPath: key.literal,
-          hasEndOfStmtMark: hasEndOfStmtMark,
           isExport: true,
           source: currentSource,
           line: keyword.line,
@@ -2556,6 +2497,9 @@ class HTDefaultParser extends HTParser {
           length: curTok.offset - keyword.offset);
       currentModuleImports.add(stmt);
     }
+
+    stmt.hasEndOfStmtMark = parseEndOfStmtMark();
+
     return stmt;
   }
 
@@ -2566,8 +2510,8 @@ class HTDefaultParser extends HTParser {
         nextTok.type != lexer.lexicon.memberGet &&
         nextTok.type != lexer.lexicon.subGetStart) {
       final id = advance().lexeme;
-      final hasEndOfStmtMark =
-          expect([lexer.lexicon.endOfStatementMark], consume: true);
+
+      final hasEndOfStmtMark = parseEndOfStmtMark();
       return DeleteStmt(id,
           source: currentSource,
           hasEndOfStmtMark: hasEndOfStmtMark,
@@ -2577,8 +2521,8 @@ class HTDefaultParser extends HTParser {
           length: curTok.offset - keyword.offset);
     } else {
       final expr = parseExpr();
-      final hasEndOfStmtMark =
-          expect([lexer.lexicon.endOfStatementMark], consume: true);
+
+      final hasEndOfStmtMark = parseEndOfStmtMark();
       if (expr is MemberExpr) {
         return DeleteMemberStmt(expr.object, expr.key.id,
             hasEndOfStmtMark: hasEndOfStmtMark,
@@ -2665,7 +2609,7 @@ class HTDefaultParser extends HTParser {
     bool lateFinalize = false,
     bool lateInitialize = false,
     ASTNode? additionalInitializer,
-    bool hasEndOfStatement = false,
+    bool requireEndOfStatement = false,
     bool implicitVariableDeclaration = false,
   }) {
     Token? keyword;
@@ -2704,13 +2648,7 @@ class HTDefaultParser extends HTParser {
         }
       }
     }
-    bool hasEndOfStmtMark = hasEndOfStatement;
-    if (hasEndOfStatement) {
-      match(lexer.lexicon.endOfStatementMark);
-    } else {
-      hasEndOfStmtMark =
-          expect([lexer.lexicon.endOfStatementMark], consume: true);
-    }
+    bool hasEndOfStmtMark = parseEndOfStmtMark(required: requireEndOfStatement);
     return VarDecl(
       id,
       internalName: internalName,
@@ -2762,8 +2700,7 @@ class HTDefaultParser extends HTParser {
     match(endMark);
     match(lexer.lexicon.assign);
     final initializer = parseExpr();
-    bool hasEndOfStmtMark =
-        expect([lexer.lexicon.endOfStatementMark], consume: true);
+    final hasEndOfStmtMark = parseEndOfStmtMark();
     return DestructuringDecl(
       ids: ids,
       isVector: isVector,
@@ -3108,8 +3045,7 @@ class HTDefaultParser extends HTParser {
         startTok = curTok;
       }
       definition = parseExpr();
-      hasEndOfStmtMark =
-          expect([lexer.lexicon.endOfStatementMark], consume: true);
+      hasEndOfStmtMark = parseEndOfStmtMark();
     } else if (expect([lexer.lexicon.assign], consume: true)) {
       final err = HTError.unsupported(
           Semantic.redirectingFunctionDefinition, kHetuVersion.toString(),

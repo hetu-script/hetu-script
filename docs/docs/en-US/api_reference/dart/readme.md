@@ -2,9 +2,70 @@
 
 ## Hetu helper class
 
-Hetu is a wrapper class that integreted sourceContext, lexicon, parser, bundler, analyzer, compiler and interpreter's default implementation. For normal users, you can just create an instance of Hetu, and use the method on it.
+`Hetu` class in Dart is a wrapper class that integreted default implementation for sourceContext, lexicon, parser, bundler, analyzer, compiler and interpreter that you might need while using script.
 
-In fact, Hetu will call method with same name on compiler or interpreter separately.
+For most common users, you can just create an instance of Hetu, and use the api provided by it.
+
+Hetu will call method with same name on compiler or interpreter for you in the under.
+
+### HetuConfig
+
+This is a config data class used in the constructor of Hetu class.
+
+### normalizeImportPath
+
+Defaults to `true`
+
+If this set to true, then the bundler will try to get the normalized path of the import key.
+
+For example, if the root folder of the sourceContext is set to 'scripts/', and a script within the folder 'scripts/main/' declared a import statement:
+
+```
+// 'scripts/test/test.ht'
+import '../main.ht'
+```
+
+The bundler will normalize the '../main.ht' path into some thing like 'scripts/main.ht', which is within the parent folder of test.ht, and directly under the scripts. This will help the sourceContext to fetch the correct file.
+
+However, this is not always necessary. For example, if you neither use HTFileSystemResourceContext nor HTAssetResourceContext, you are manually control the sources. Then every path you are importing from will be the absolute path.
+
+In this situation, you can set `normalizeImportPath` to false and use absolute path for every import statement.
+
+### explicitEndOfStatement
+
+Defaults to `false`
+
+### doStaticAnalysis = false,
+
+### computeConstantExpression = false,
+
+### removeLineInfo = false,
+
+### removeAssertion = false,
+
+### removeDocumentation = false,
+
+### showDartStackTrace = false,
+
+### showHetuStackTrace = false,
+
+### stackTraceDisplayCountLimit = 5,
+
+### processError = true,
+
+### allowVariableShadowing = true,
+
+### allowImplicitVariableDeclaration = false,
+
+### allowImplicitNullToZeroConversion = false,
+
+### allowImplicitEmptyValueToFalseConversion = false,
+
+### checkTypeAnnotationAtRuntime = false,
+
+### resolveExternalFunctionsDynamically = false,
+
+### printPerformanceStatistics = false,
 
 ### init()
 

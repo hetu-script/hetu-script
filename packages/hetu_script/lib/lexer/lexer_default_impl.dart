@@ -51,10 +51,10 @@ class HTDefaultLexer extends HTLexer {
 
     void handleEndOfLine() {
       if (firstTokenOfCurrentLine != null) {
-        if (lexicon.autoSemicolonInsertAtStart
+        if (lexicon.autoEndOfStatementMarkInsertionBeforeLineStart
             .contains(firstTokenOfCurrentLine!.type)) {
-          /// Add semicolon before a newline if the new line starting with '{, [, (, +, -' tokens
-          /// and the last line does not ends with an unfinished token.
+          /// Add end of statement mark before a newline if the new line starting with '{, [, (, +, -' tokens
+          /// and the previous line does not ends with an unfinished token.
           if (lastToken != null) {
             if (!lexicon.unfinishedTokens.contains(lastToken!.type)) {
               final token = Token(

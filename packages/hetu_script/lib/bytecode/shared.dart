@@ -1,5 +1,5 @@
 /// Operation code used by compiler.
-abstract class HTOpCode {
+abstract class OpCode {
   static const endOfCode = -1;
   static const local = 0;
   static const register = 1;
@@ -86,7 +86,7 @@ abstract class HTOpCode {
   static const lineInfo = 205;
 }
 
-/// Following [HTOpCode.local], tells the value type, used by compiler.
+/// Following [OpCode.local], tells the value type, used by compiler.
 abstract class HTValueTypeCode {
   static const nullValue = 0;
   static const boolean = 1;
@@ -108,16 +108,21 @@ abstract class HTValueTypeCode {
   static const future = 17;
 }
 
-abstract class DeletingTypeCode {
+abstract class HTDeletingTypeCode {
   static const local = 0;
   static const member = 1;
   static const sub = 2;
 }
 
-abstract class WhenCaseTypeCode {
+abstract class HTWhenCaseTypeCode {
   static const equals = 0;
   static const eigherEquals = 1;
   static const elementIn = 2;
+}
+
+abstract class HTListItemTypeCode {
+  static const normal = 0;
+  static const spread = 1;
 }
 
 enum HTConstantType {

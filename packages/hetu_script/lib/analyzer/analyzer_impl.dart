@@ -209,7 +209,7 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   }
 
   @override
-  void visitIf(IfStmt node) {
+  void visitIf(IfExpr node) {
     node.subAccept(this);
   }
 
@@ -224,12 +224,12 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   }
 
   @override
-  void visitForStmt(ForStmt node) {
+  void visitForStmt(ForExpr node) {
     node.subAccept(this);
   }
 
   @override
-  void visitForRangeStmt(ForRangeStmt node) {
+  void visitForRangeStmt(ForRangeExpr node) {
     node.subAccept(this);
   }
 

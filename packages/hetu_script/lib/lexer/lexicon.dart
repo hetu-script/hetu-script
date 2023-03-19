@@ -38,21 +38,16 @@ abstract class HTLexicon {
   /// escaped characters mapping.
   Map<String, String> get escapeCharacters;
 
-  /// Add semicolon before a line starting with one of '{, (, [, ++, --'.
+  /// Add end of statement mark if a line ends with 'return'
   /// This is to avoid ambiguity in parser.
-  List<String> get autoSemicolonInsertAtStart => [
-        codeBlockStart,
-        functionParameterStart,
-        subGetStart,
-        preIncrement,
-        preDecrement,
-      ];
-
-  /// Add semicolon after a line with 'return'
-  List<String> get autoSemicolonInsertAtEnd => [
+  List<String> get autoSemicolonInsertionAtLineEnd => [
         kReturn,
       ];
 
+  /// Add end of statement mark if:
+  /// the first line DOES NOT end with `unfinished tokens`, and
+  /// the second line starts with one of '{, (, [, ++, --'.
+  /// This is to avoid ambiguity in parser.
   List<String> get unfinishedTokens => [
         logicalNot,
         multiply,
@@ -91,6 +86,14 @@ abstract class HTLexicon {
         whenBranchIndicator,
         functionSingleLineBodyIndicator,
         typeListStart,
+      ];
+
+  List<String> get autoEndOfStatementMarkInsertionBeforeLineStart => [
+        codeBlockStart,
+        functionParameterStart,
+        subGetStart,
+        preIncrement,
+        preDecrement,
       ];
 
   String get globalObjectId;
