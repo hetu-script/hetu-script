@@ -73,9 +73,12 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
   String getAbsolutePath({String key = '', String? dirName, String? filename}) {
     String fullName = key;
     if (dirName != null) {
-      assert(dirName.startsWith(root));
-      fullName = path.join(dirName, key);
-    } else if (!key.startsWith(root)) {
+      // assert(dirName.startsWith(root));
+      if (!path.isWithin(dirName, key)) {
+        fullName = path.join(dirName, key);
+      }
+    }
+    if (!path.isWithin(root, key)) {
       fullName = path.join(root, key);
     }
     if (filename != null) {
@@ -92,13 +95,16 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
 
   @override
   void addResource(String fullName, HTSource resource) {
-    _cached[fullName] = resource;
+    final normalized = getAbsolutePath(key: fullName);
+    resource.fullName = normalized;
+    _cached[normalized] = resource;
   }
 
   @override
   void removeResource(String fullName) {
-    _cached.remove(fullName);
-    included.remove(fullName);
+    final normalized = getAbsolutePath(key: fullName);
+    _cached.remove(normalized);
+    included.remove(normalized);
   }
 
   @override
@@ -112,9 +118,11 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
 
   @override
   void updateResource(String fullName, HTSource resource) {
-    if (!_cached.containsKey(fullName)) {
-      throw HTError.resourceDoesNotExist(fullName);
+    final normalized = getAbsolutePath(key: fullName);
+    if (_cached.containsKey(normalized)) {
+      resource.fullName = normalized;
+      _cached[normalized] = resource;
     }
-    _cached[fullName] = resource;
+    throw HTError.resourceDoesNotExist(fullName);
   }
 }

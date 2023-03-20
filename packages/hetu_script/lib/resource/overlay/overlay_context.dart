@@ -32,10 +32,9 @@ class HTOverlayContext extends HTResourceContext<HTSource> {
 
   @override
   void addResource(String fullName, HTSource resource) {
-    assert(resource.fullName == fullName);
+    resource.fullName = fullName;
     _cached[fullName] = resource;
     included.add(resource.fullName);
-    // return source;
   }
 
   @override
@@ -57,6 +56,7 @@ class HTOverlayContext extends HTResourceContext<HTSource> {
     if (_cached.containsKey(fullName)) {
       // final source = _cached[normalized]!;
       // source.content = resource;
+      resource.fullName = fullName;
       _cached[fullName] = resource;
       return;
     }

@@ -13,11 +13,9 @@ import '../shared/crc32b.dart';
 class HTSource {
   static const _anonymousScriptNameLengthLimit = 18;
 
-  String get basename => path.basename(_fullName);
+  String get basename => path.basename(fullName);
 
-  late final String _fullName;
-
-  String get fullName => _fullName;
+  late String fullName;
 
   HTResourceType type;
 
@@ -48,7 +46,7 @@ class HTSource {
   })  : _content = content,
         _lineInfo = LineInfo.fromContent(content) {
     if (filename != null) {
-      _fullName = filename;
+      fullName = filename;
     } else {
       final hash = crcString(content);
       final nameBuilder = StringBuffer();
@@ -60,7 +58,7 @@ class HTSource {
       if (firstLine.length > _anonymousScriptNameLengthLimit) {
         nameBuilder.write('...');
       }
-      _fullName = nameBuilder.toString();
+      fullName = nameBuilder.toString();
     }
 
     if (hashContent) {

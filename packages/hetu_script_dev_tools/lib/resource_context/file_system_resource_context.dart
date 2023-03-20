@@ -94,13 +94,15 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
 
   @override
   void addResource(String fullName, HTSource resource) {
-    _cached[fullName] = resource;
-    included.add(fullName);
+    final normalized = getAbsolutePath(key: fullName);
+    resource.fullName = normalized;
+    _cached[normalized] = resource;
+    included.add(normalized);
   }
 
   @override
   void removeResource(String fullName) {
-    final normalized = getAbsolutePath(key: fullName, dirName: root);
+    final normalized = getAbsolutePath(key: fullName);
     _cached.remove(normalized);
     included.remove(normalized);
   }
@@ -124,6 +126,7 @@ class HTFileSystemResourceContext extends HTResourceContext<HTSource> {
   @override
   void updateResource(String fullName, HTSource resource) {
     final normalized = getAbsolutePath(key: fullName);
+    resource.fullName = normalized;
     if (!_cached.containsKey(normalized)) {
       throw HTError.resourceDoesNotExist(normalized);
     } else {

@@ -105,19 +105,22 @@ abstract class HTResourceContext<T> {
     // if (key.startsWith(HTResourceContext.hetuLocalPackagePrefix)) {
     //   return '$root$defaultLocalPackagesFolder/${key.substring(4)}/$hetuModuleEntryFileName';
     // } else {
-    var name = key;
-    if (!path.isAbsolute(name)) {
+    var fullName = key;
+    if (!path.isAbsolute(fullName)) {
       if (dirName != null) {
-        name = path.join(dirName, name);
+        fullName = path.join(dirName, key);
+      } else {
+        fullName = path.join(root, key);
       }
-      if (!path.isAbsolute(name)) {
-        name = path.join(path.current, name);
+      if (!path.isAbsolute(fullName)) {
+        fullName = path.join(path.current, fullName);
       }
     }
+    assert(path.isAbsolute(fullName));
     if (filename != null) {
-      name = path.join(name, filename);
+      fullName = path.join(fullName, filename);
     }
-    final encoded = Uri.file(name).path;
+    final encoded = Uri.file(fullName).path;
     final normalized = Uri.decodeFull(encoded);
     return normalized;
     // }
