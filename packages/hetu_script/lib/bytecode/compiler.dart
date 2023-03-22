@@ -1833,7 +1833,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     }
     // definition body
     if (stmt.definition != null) {
-      bytesBuilder.addByte(1); // bool: has definition
+      bytesBuilder.addByte(1); // bool: has definition / isAbstract
       bytesBuilder.add(_uint16(stmt.definition!.line));
       bytesBuilder.add(_uint16(stmt.definition!.column));
       final body = compileAST(stmt.definition!);

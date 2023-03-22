@@ -347,7 +347,7 @@ class HTInterpreter {
         klass = callee;
       }
       if (klass.isAbstract) {
-        throw HTError.abstracted(
+        throw HTError.abstracted(klass.id!,
             filename: _currentFile, line: _currentLine, column: _currentColumn);
       }
       if (klass.contains(InternalIdentifier.defaultConstructor)) {
@@ -2698,6 +2698,7 @@ class HTInterpreter {
         classId: classId,
         closure: currentNamespace,
         documentation: documentation,
+        isAbstract: !hasDefinition && !isExternal,
         isAsync: isAsync,
         isField: isField,
         isExternal: isExternal,

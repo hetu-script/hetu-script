@@ -45,6 +45,7 @@ enum ErrorCode {
   notMember,
   notClass,
   abstracted,
+  abstractFunction,
   interfaceCtor,
   unsupported,
 
@@ -940,7 +941,7 @@ class HTError {
             length: length);
 
   /// Error: Cannot create instance from abstract class.
-  HTError.abstracted(
+  HTError.abstracted(String id,
       {String? extra,
       String? correction,
       String? filename,
@@ -950,6 +951,27 @@ class HTError {
       int? length})
       : this(ErrorCode.abstracted, ErrorType.compileTimeError,
             message: HTLocale.current.errorAbstracted,
+            interpolations: [id],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Cannot call an abstract function.
+  HTError.abstractFunction(String id,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.abstractFunction, ErrorType.compileTimeError,
+            message: HTLocale.current.errorAbstractFunction,
+            interpolations: [id],
             extra: extra,
             correction: correction,
             filename: filename,

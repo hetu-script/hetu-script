@@ -108,7 +108,11 @@ class HTLocaleEnglish implements HTLocale {
   @override
   final String errorNotClass = '[{0}] is not a class.';
   @override
-  final String errorAbstracted = 'Cannot create instance from abstract class.';
+  final String errorAbstracted =
+      'Cannot create instance from abstract class [{0}].';
+  @override
+  final String errorAbstractFunction =
+      'Cannot call an abstract function [{0}].';
 
   // runtime errors
   @override

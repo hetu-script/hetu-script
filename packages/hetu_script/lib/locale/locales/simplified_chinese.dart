@@ -54,7 +54,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorExtendsSelf = '类不能继承自己。';
   @override
-  final String errorMissingFuncBody = '缺少函数定义：[{0}]。';
+  final String errorMissingFuncBody = '函数 [{0}] 缺少函数定义。';
   @override
   final String errorExternalCtorWithReferCtor = '外部构造函数不能重定向。';
   @override
@@ -91,7 +91,9 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   final String errorNotClass = '[{0}] 不是一个类。';
   @override
-  final String errorAbstracted = '不能从 abstract class 创建实例。';
+  final String errorAbstracted = '不能从抽象类 [{0}] 创建实例。';
+  @override
+  final String errorAbstractFunction = '不能调用函数 [{0}]，该函数是抽象函数，或者没有定义函数体。';
 
   // runtime errors
   @override

@@ -320,6 +320,15 @@ class HTFunction extends HTFunctionDeclaration
       Map<String, dynamic> namedArgs = const {},
       List<HTType> typeArgs = const []}) {
     try {
+      if (isAbstract) {
+        throw HTError.abstractFunction(
+          internalName,
+          filename: interpreter.currentFile,
+          line: interpreter.currentLine,
+          column: interpreter.currentColumn,
+        );
+      }
+
       interpreter.stackTraceList.insert(0,
           '$internalName (${interpreter.currentFile}:${interpreter.currentLine}:${interpreter.currentColumn})');
 

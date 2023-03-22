@@ -26,9 +26,11 @@ Future<void> main() async {
   );
 
   final r = hetu.eval(r'''
-     abstract class test {
-       get name -> str;
+     class test {
+       static set name(value);
      }
+
+     test.name = 'jimmy';
 
 ''');
 

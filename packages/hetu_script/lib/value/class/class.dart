@@ -91,19 +91,21 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
   }
 
   @override
-  HTClass clone() => HTClass(interpreter,
-      id: id,
-      classId: classId,
-      closure: closure != null ? closure as HTNamespace : null,
-      source: source,
-      genericTypeParameters: genericTypeParameters,
-      superType: superType,
-      withTypes: withTypes,
-      implementsTypes: implementsTypes,
-      isExternal: isExternal,
-      isAbstract: isAbstract,
-      isEnum: isEnum,
-      superClass: superClass);
+  HTClass clone() => HTClass(
+        interpreter,
+        id: id,
+        classId: classId,
+        closure: closure != null ? closure as HTNamespace : null,
+        source: source,
+        genericTypeParameters: genericTypeParameters,
+        superType: superType,
+        withTypes: withTypes,
+        implementsTypes: implementsTypes,
+        isExternal: isExternal,
+        isAbstract: isAbstract,
+        isEnum: isEnum,
+        superClass: superClass,
+      );
 
   /// Create a [HTInstance] of this [HTClass],
   /// will not call constructors

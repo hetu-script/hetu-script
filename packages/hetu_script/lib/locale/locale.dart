@@ -52,6 +52,7 @@ abstract class HTLocale {
   String get errorNotMember;
   String get errorNotClass;
   String get errorAbstracted;
+  String get errorAbstractFunction;
 
   // runtime errors
   String get errorUnsupported;
