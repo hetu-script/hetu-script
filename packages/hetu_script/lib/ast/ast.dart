@@ -1187,9 +1187,7 @@ abstract class Statement extends ASTNode {
     super.length = 0,
   }) {
     if (isBlock) {
-      if (hasEndOfStmtMark) {
-        throw 'aha!';
-      }
+      assert(!hasEndOfStmtMark);
     }
   }
 }
@@ -1964,7 +1962,7 @@ class FuncDecl extends Statement {
     super.length = 0,
   }) : super(
           Semantic.functionDeclaration,
-          isBlock: !isExpressionBody,
+          isBlock: (!isExpressionBody && definition != null),
         );
 }
 

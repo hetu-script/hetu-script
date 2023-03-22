@@ -26,8 +26,10 @@ Future<void> main() async {
   );
 
   final r = hetu.eval(r'''
-     eval('var a = 5')
-     a
+     abstract class test {
+       get name -> str;
+     }
+
 ''');
 
   if (r is Future) {

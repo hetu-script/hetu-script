@@ -11,10 +11,8 @@ void main() {
   hetu.init(externalFunctions: {'fetch': fetch});
   hetu.eval(r'''
       external fun fetch
-      final future = fetch().then((value) {
-          print('future completed! value=${value}')
-          return '${value} From the Future!';
-        })
-        .then((value) => print('Even more complete value=${value}'))
+      print('begin future here')
+      final value = await fetch()
+      print('future completed! value="${value}"')
   ''');
 }
