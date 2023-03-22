@@ -49,7 +49,7 @@ void main() {
 
 ````typescript
 
-struct prototype {
+struct Prototype {
   /// Create a struct from a dart Json data
   /// Usage:
   /// ```

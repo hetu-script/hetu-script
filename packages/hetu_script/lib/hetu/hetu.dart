@@ -37,6 +37,7 @@ class HetuConfig
         CompilerConfig,
         InterpreterConfig {
   /// defaults to `true`
+  @override
   bool normalizeImportPath;
 
   /// defaults to `false`
@@ -281,6 +282,9 @@ class Hetu {
     for (final value in externalTypeReflections) {
       interpreter.bindExternalReflection(value);
     }
+
+    interpreter.currentNamespace = interpreter.globalNamespace;
+
     _isInitted = true;
   }
 
@@ -379,7 +383,6 @@ class Hetu {
     final compilation = bundler.bundle(
       source: source,
       parser: _currentParser,
-      normalizeImportPath: config.normalizeImportPath,
       version: version,
     );
     if (compilation.errors.isNotEmpty) {
@@ -521,12 +524,12 @@ class Hetu {
     // If the source has not been evaled at all, then we have to load the source dynamically.
     final source = sourceContext.getResource(key);
     final bytes = _compileSource(source);
-    final HTContext storedContext = interpreter.getContext();
+    final HTContext savedContext = interpreter.getContext();
 
     interpreter.loadBytecode(bytes: bytes, module: key);
 
     final nsp = interpreter.currentBytecodeModule.namespaces.values.last;
-    interpreter.setContext(context: storedContext);
+    interpreter.setContext(context: savedContext);
     return nsp;
   }
 

@@ -15,7 +15,7 @@ final hetu = Hetu(
 
 ## Variable shadowing
 
-If config.allowVariableShadowing == true, youcan define a variable with the same name of another variable in the same namespace without errors.
+If config.allowVariableShadowing == true, you can define a variable with the same name of another variable in the same namespace without errors.
 
 This config is default to true.
 

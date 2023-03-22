@@ -8,14 +8,19 @@ void main() {
   final hetu = Hetu(
     sourceContext: sourceContext,
     config: HetuConfig(
-      checkTypeAnnotationAtRuntime: true,
-      printPerformanceStatistics: true,
+      // checkTypeAnnotationAtRuntime: true,
+      // printPerformanceStatistics: true,
+      removeAssertion: true,
+      removeDocumentation: true,
+      removeLineInfo: true,
     ),
   );
   hetu.init();
   final binaryFile = File('examples/script/module.out');
-  final bytes = binaryFile.readAsBytesSync();
-  hetu.interpreter.loadBytecode(bytes: bytes, module: 'actor');
+  final mod = hetu.compileFile('module.ht');
+  binaryFile.writeAsBytesSync(mod);
+  print('byte length: ${mod.length}');
+  hetu.interpreter.loadBytecode(bytes: mod, module: 'actor');
 
   hetu.evalFile('import_binary_module.hts');
 }

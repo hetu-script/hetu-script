@@ -10,9 +10,12 @@ import '../ast/ast.dart';
 import '../parser/parser.dart';
 
 class BundlerConfig {
+  bool normalizeImportPath;
+
   bool printPerformanceStatistics;
 
   BundlerConfig({
+    this.normalizeImportPath = true,
     this.printPerformanceStatistics = false,
   });
 }
@@ -34,7 +37,6 @@ class HTBundler {
   ASTCompilation bundle({
     required HTSource source,
     required HTParser parser,
-    bool normalizeImportPath = true,
     Version? version,
   }) {
     final sourceParseResult = parser.parseSource(source);
@@ -53,7 +55,7 @@ class HTBundler {
           }
           late final ASTSource importedSource;
           String importFullName;
-          if (normalizeImportPath) {
+          if (config.normalizeImportPath) {
             var currentDir = astSource.fullName
                     .startsWith(InternalIdentifier.anonymousScript)
                 ? sourceContext.root

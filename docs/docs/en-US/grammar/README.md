@@ -66,7 +66,7 @@ if (a = fetch()) {
 }
 ```
 
-The if statement will run if the value of a if [truthy](strict_mode/readme.md#Truth-value).
+The if statement will run if the value of a if [truthy](strict_mode/readme.md#truth-value).
 
 # Block of code
 

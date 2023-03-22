@@ -49,9 +49,9 @@ class HTHetuClassBinding extends HTExternalClass {
             Map<String, dynamic> namedArgs = const {},
             List<HTType> typeArgs = const []}) {
           final code = positionalArgs.first as String;
-          final HTContext storedContext = hetu.interpreter.getContext();
+          final HTContext savedContext = hetu.interpreter.getContext();
           final result = hetu.eval(code);
-          hetu.interpreter.setContext(context: storedContext);
+          hetu.interpreter.setContext(context: savedContext);
           return result;
         };
       case 'require':

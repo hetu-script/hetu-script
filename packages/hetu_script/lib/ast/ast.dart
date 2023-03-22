@@ -1870,7 +1870,7 @@ class RedirectingConstructorCallExpr extends ASTNode {
   }) : super(Semantic.redirectingConstructorCallExpression);
 }
 
-class FuncDecl extends ASTNode {
+class FuncDecl extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitFuncDecl(this);
 
@@ -1907,8 +1907,6 @@ class FuncDecl extends ASTNode {
   final int maxArity;
 
   final bool isExpressionBody;
-
-  final bool hasEndOfStmtMark;
 
   final ASTNode? definition;
 
@@ -1947,7 +1945,6 @@ class FuncDecl extends ASTNode {
     this.minArity = 0,
     this.maxArity = 0,
     this.isExpressionBody = false,
-    this.hasEndOfStmtMark = false,
     this.definition,
     this.isAsync = false,
     this.isField = false,
@@ -1959,6 +1956,7 @@ class FuncDecl extends ASTNode {
     this.isTopLevel = false,
     this.category = FunctionCategory.normal,
     super.isStatement,
+    super.hasEndOfStmtMark,
     super.source,
     super.line = 0,
     super.column = 0,
@@ -1970,7 +1968,7 @@ class FuncDecl extends ASTNode {
         );
 }
 
-class ClassDecl extends ASTNode {
+class ClassDecl extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitClassDecl(this);
 
@@ -2030,6 +2028,7 @@ class ClassDecl extends ASTNode {
     this.isTopLevel = false,
     this.hasUserDefinedConstructor = false,
     this.lateResolve = true,
+    super.hasEndOfStmtMark,
     super.source,
     super.line = 0,
     super.column = 0,
@@ -2042,7 +2041,7 @@ class ClassDecl extends ASTNode {
         );
 }
 
-class EnumDecl extends ASTNode {
+class EnumDecl extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitEnumDecl(this);
 
@@ -2070,6 +2069,7 @@ class EnumDecl extends ASTNode {
     this.isExternal = false,
     this.isPrivate = false,
     this.isTopLevel = false,
+    super.hasEndOfStmtMark,
     super.source,
     super.line = 0,
     super.column = 0,
@@ -2107,9 +2107,6 @@ class StructDecl extends ASTNode {
   final bool isTopLevel;
 
   // final bool lateInitialize;
-
-  @override
-  bool get isExpression => false;
 
   StructDecl(
     this.id,

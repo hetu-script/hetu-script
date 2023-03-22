@@ -4,13 +4,14 @@ Future<void> main() async {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
-      // printPerformanceStatistics: true,
+      printPerformanceStatistics: true,
       removeLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
       showHetuStackTrace: true,
       showDartStackTrace: true,
-      // stackTraceDisplayCountLimit: 20,
+      stackTraceDisplayCountLimit: 20,
+      // explicitEndOfStatement: true,
       allowVariableShadowing: true,
       allowImplicitVariableDeclaration: true,
       allowImplicitNullToZeroConversion: true,
@@ -25,20 +26,8 @@ Future<void> main() async {
   );
 
   final r = hetu.eval(r'''
-        var globalVar = 0
-        class GetGlobal {
-          construct {
-            globalVar = 2
-          }
-          fun test {
-            return (globalVar * globalVar)
-          }
-          static fun staticTest {
-            return (globalVar + 1)
-          }
-        }
-        var a = GetGlobal()
-        a.test() + GetGlobal.staticTest()
+     eval('var a = 5')
+     a
 ''');
 
   if (r is Future) {

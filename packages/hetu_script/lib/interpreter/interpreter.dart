@@ -168,8 +168,7 @@ class HTInterpreter {
 
   late final HTNamespace globalNamespace;
 
-  late HTNamespace _currentNamespace;
-  HTNamespace get currentNamespace => _currentNamespace;
+  late HTNamespace currentNamespace;
 
   String _currentFile = '';
   String get currentFile => _currentFile;
@@ -225,7 +224,7 @@ class HTInterpreter {
       : config = config ?? InterpreterConfig(),
         _lexicon = lexicon ?? HTDefaultLexicon() {
     globalNamespace = HTNamespace(lexicon: _lexicon, id: Semantic.global);
-    _currentNamespace = globalNamespace;
+    currentNamespace = globalNamespace;
   }
 
   /// inexpicit type conversion for zero or null values
@@ -338,7 +337,7 @@ class HTInterpreter {
     dynamic handleClassConstructor(dynamic callee) {
       late HTClass klass;
       if (callee is HTType) {
-        final resolvedType = callee.resolve(_currentNamespace) as HTNominalType;
+        final resolvedType = callee.resolve(currentNamespace) as HTNominalType;
         // if (resolvedType is! HTNominalType) {
         //   throw HTError.notCallable(callee.toString(),
         //       filename: _fileName, line: _line, column: _column);
@@ -389,7 +388,7 @@ class HTInterpreter {
       // calle is a dart function
       else if (callee is Function) {
         if (callee is HTExternalFunction) {
-          return callee(_currentNamespace,
+          return callee(currentNamespace,
               positionalArgs: positionalArgs,
               namedArgs: namedArgs,
               typeArgs: typeArgs);
@@ -1004,9 +1003,9 @@ class HTInterpreter {
         libChanged = true;
       }
       if (context.namespace != null) {
-        _currentNamespace = context.namespace!;
+        currentNamespace = context.namespace!;
       } else if (libChanged) {
-        _currentNamespace = _currentBytecodeModule.namespaces.values.last;
+        currentNamespace = _currentBytecodeModule.namespaces.values.last;
       }
       if (context.ip != null) {
         _currentBytecodeModule.ip = context.ip!;
@@ -1113,13 +1112,13 @@ class HTInterpreter {
           _currentFileResourceType =
               HTResourceType.values.elementAt(resourceTypeIndex);
           if (_currentFileResourceType != HTResourceType.hetuLiteralCode) {
-            _currentNamespace = HTNamespace(
+            currentNamespace = HTNamespace(
                 lexicon: _lexicon, id: _currentFile, closure: globalNamespace);
           }
           // literal code will use current namespace as it is when run.
-          // else {
-          //   _currentNamespace = globalNamespace;
-          // }
+          else {
+            currentNamespace = globalNamespace;
+          }
           break;
         // store the loop jump point
         case OpCode.loopPoint:
@@ -1129,12 +1128,12 @@ class HTInterpreter {
               _currentBytecodeModule.ip,
               _currentBytecodeModule.ip + continueLength,
               _currentBytecodeModule.ip + breakLength,
-              _currentNamespace));
+              currentNamespace));
           ++_loopCount;
           break;
         case OpCode.breakLoop:
           _currentBytecodeModule.ip = _loops.last.breakIp;
-          _currentNamespace = _loops.last.namespace;
+          currentNamespace = _loops.last.namespace;
           _loops.removeLast();
           --_loopCount;
           break;
@@ -1168,11 +1167,11 @@ class HTInterpreter {
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
         case OpCode.codeBlock:
           final id = _currentBytecodeModule.getConstString();
-          _currentNamespace = HTNamespace(
-              lexicon: _lexicon, id: id, closure: _currentNamespace);
+          currentNamespace =
+              HTNamespace(lexicon: _lexicon, id: id, closure: currentNamespace);
           break;
         case OpCode.endOfCodeBlock:
-          _currentNamespace = _currentNamespace.closure!;
+          currentNamespace = currentNamespace.closure!;
           break;
         // 语句结束
         case OpCode.endOfStmt:
@@ -1229,8 +1228,8 @@ class HTInterpreter {
             _currentBytecodeModule.jsonSources[jsonSource.fullName] =
                 jsonSource;
           } else if (_currentFileResourceType == HTResourceType.hetuModule) {
-            _currentBytecodeModule.namespaces[_currentNamespace.id!] =
-                _currentNamespace;
+            _currentBytecodeModule.namespaces[currentNamespace.id!] =
+                currentNamespace;
           }
           // endOfFileHandler?.call();
           break;
@@ -1262,8 +1261,8 @@ class HTInterpreter {
                 ' (compiled at ${_currentBytecodeModule.compiledAt} UTC with hetu@$compilerVersion)';
             print(message);
           }
-          if (_globallyImport && _currentNamespace != globalNamespace) {
-            globalNamespace.import(_currentNamespace);
+          if (_globallyImport && currentNamespace != globalNamespace) {
+            globalNamespace.import(currentNamespace);
           }
           dynamic r;
           if (_invoke != null) {
@@ -1292,9 +1291,9 @@ class HTInterpreter {
           _handleClassDecl();
           break;
         case OpCode.classDeclEnd:
-          assert(_currentNamespace is HTClassNamespace);
-          final klass = (_currentNamespace as HTClassNamespace).klass;
-          _currentNamespace = _currentNamespace.closure!;
+          assert(currentNamespace is HTClassNamespace);
+          final klass = (currentNamespace as HTClassNamespace).klass;
+          currentNamespace = currentNamespace.closure!;
           // Add default constructor if there's none.
           if (!klass.isAbstract &&
               !klass.hasUserDefinedConstructor &&
@@ -1335,8 +1334,8 @@ class HTInterpreter {
           final isStatic = _currentBytecodeModule.readBool();
           final isMutable = _currentBytecodeModule.readBool();
           final isTopLevel = _currentBytecodeModule.readBool();
-          if (isTopLevel && _currentNamespace.willExportAll) {
-            _currentNamespace.declareExport(id);
+          if (isTopLevel && currentNamespace.willExportAll) {
+            currentNamespace.declareExport(id);
           }
           final lateFinalize = _currentBytecodeModule.readBool();
           final lateInitialize = _currentBytecodeModule.readBool();
@@ -1362,7 +1361,7 @@ class HTInterpreter {
                 file: _currentFile,
                 module: _currentBytecodeModule.id,
                 classId: classId,
-                closure: _currentNamespace,
+                closure: currentNamespace,
                 documentation: documentation,
                 declType: declType,
                 isExternal: isExternal,
@@ -1384,16 +1383,16 @@ class HTInterpreter {
                   file: _currentFile,
                   module: _currentBytecodeModule.id,
                   classId: classId,
-                  closure: _currentNamespace,
+                  closure: currentNamespace,
                   documentation: documentation,
                   declType: declType,
                   isExternal: isExternal,
                   isStatic: isStatic,
                   isMutable: isMutable,
                 );
-                final storedContext = getContext();
+                final savedContext = getContext();
                 futureExecution = FutureExecution(
-                  context: storedContext,
+                  context: savedContext,
                   future: waitFutureExucution(initValue).then((value) {
                     decl.value = value;
                   }),
@@ -1405,7 +1404,7 @@ class HTInterpreter {
                   file: _currentFile,
                   module: _currentBytecodeModule.id,
                   classId: classId,
-                  closure: _currentNamespace,
+                  closure: currentNamespace,
                   documentation: documentation,
                   declType: declType,
                   value: initValue,
@@ -1422,7 +1421,7 @@ class HTInterpreter {
                 file: _currentFile,
                 module: _currentBytecodeModule.id,
                 classId: classId,
-                closure: _currentNamespace,
+                closure: currentNamespace,
                 documentation: documentation,
                 declType: declType,
                 isExternal: isExternal,
@@ -1431,7 +1430,7 @@ class HTInterpreter {
                 lateFinalize: lateFinalize);
           }
           if (!isField) {
-            _currentNamespace.define(id, decl,
+            currentNamespace.define(id, decl,
                 override: config.allowVariableShadowing);
           }
           _localValue = initValue;
@@ -1458,22 +1457,22 @@ class HTInterpreter {
             classId = _currentBytecodeModule.getConstString();
           }
           final isTopLevel = _currentBytecodeModule.readBool();
-          _currentNamespace = HTNamespace(
+          currentNamespace = HTNamespace(
             lexicon: _lexicon,
             id: id,
             classId: classId,
-            closure: _currentNamespace,
+            closure: currentNamespace,
             documentation: documentation,
             isTopLevel: isTopLevel,
           );
           break;
         case OpCode.namespaceDeclEnd:
-          final nsp = _currentNamespace;
+          final nsp = currentNamespace;
           _localValue = nsp;
           assert(nsp.closure != null);
-          _currentNamespace = nsp.closure!;
+          currentNamespace = nsp.closure!;
           assert(nsp.id != null);
-          _currentNamespace.define(nsp.id!, nsp);
+          currentNamespace.define(nsp.id!, nsp);
           break;
         case OpCode.delete:
           final deletingType = _currentBytecodeModule.read();
@@ -1501,7 +1500,7 @@ class HTInterpreter {
             }
           } else {
             final symbol = _currentBytecodeModule.getConstString();
-            _currentNamespace.delete(symbol);
+            currentNamespace.delete(symbol);
           }
           break;
         case OpCode.ifStmt:
@@ -1516,7 +1515,7 @@ class HTInterpreter {
           final truthValue = _truthy(_localValue);
           if (!truthValue) {
             _currentBytecodeModule.ip = _loops.last.breakIp;
-            _currentNamespace = _loops.last.namespace;
+            currentNamespace = _loops.last.namespace;
             _loops.removeLast();
             --_loopCount;
             _clearLocals();
@@ -1529,7 +1528,7 @@ class HTInterpreter {
             _currentBytecodeModule.ip = _loops.last.startIp;
           } else {
             _currentBytecodeModule.ip = _loops.last.breakIp;
-            _currentNamespace = _loops.last.namespace;
+            currentNamespace = _loops.last.namespace;
             _loops.removeLast();
             --_loopCount;
             _clearLocals();
@@ -1542,7 +1541,7 @@ class HTInterpreter {
           final value = _getRegVal(HTRegIdx.assignRight);
           assert(localSymbol != null);
           final id = localSymbol!;
-          final result = _currentNamespace.memberSet(id, value,
+          final result = currentNamespace.memberSet(id, value,
               isRecursive: true, throws: false);
           if (!result) {
             if (config.allowImplicitVariableDeclaration) {
@@ -1551,11 +1550,11 @@ class HTInterpreter {
                   interpreter: this,
                   file: _currentFile,
                   module: _currentBytecodeModule.id,
-                  closure: _currentNamespace,
+                  closure: currentNamespace,
                   value: value,
                   isPrivate: id.startsWith(_lexicon.privatePrefix),
                   isMutable: true);
-              _currentNamespace.define(id, decl);
+              currentNamespace.define(id, decl);
             } else {
               throw HTError.undefined(id);
             }
@@ -1652,7 +1651,7 @@ class HTInterpreter {
           break;
         case OpCode.typeAs:
           final object = _getRegVal(HTRegIdx.relationLeft);
-          final type = (_localValue as HTType).resolve(_currentNamespace)
+          final type = (_localValue as HTType).resolve(currentNamespace)
               as HTNominalType;
           final klass = type.klass as HTClass;
           _localValue = HTCast(object, klass, this);
@@ -1738,8 +1737,8 @@ class HTInterpreter {
         case OpCode.awaitedValue:
           // handle the possible future execution request raised by await keyword and Future value.
           if (_localValue is Future) {
-            final HTContext storedContext = getContext();
-            return FutureExecution(future: _localValue, context: storedContext);
+            final HTContext savedContext = getContext();
+            return FutureExecution(future: _localValue, context: savedContext);
           }
           break;
         case OpCode.memberGet:
@@ -1764,10 +1763,10 @@ class HTInterpreter {
             final encap = encapsulate(object);
             if (encap is HTNamespace) {
               _localValue = encap.memberGet(key,
-                  from: _currentNamespace.fullName, isRecursive: false);
+                  from: currentNamespace.fullName, isRecursive: false);
             } else {
               _localValue =
-                  encap.memberGet(key, from: _currentNamespace.fullName);
+                  encap.memberGet(key, from: currentNamespace.fullName);
             }
           }
           break;
@@ -1790,8 +1789,7 @@ class HTInterpreter {
             // final key = execute();
             final key = _localValue;
             if (object is HTEntity) {
-              _localValue =
-                  object.subGet(key, from: _currentNamespace.fullName);
+              _localValue = object.subGet(key, from: currentNamespace.fullName);
             } else {
               if (object is List) {
                 if (key is! num) {
@@ -1837,9 +1835,9 @@ class HTInterpreter {
             encap.memberSet(key, value);
             if (encap is HTNamespace) {
               encap.memberSet(key, value,
-                  from: _currentNamespace.fullName, isRecursive: false);
+                  from: currentNamespace.fullName, isRecursive: false);
             } else {
-              encap.memberSet(key, value, from: _currentNamespace.fullName);
+              encap.memberSet(key, value, from: currentNamespace.fullName);
             }
           }
           break;
@@ -1866,7 +1864,7 @@ class HTInterpreter {
               object.subSet(key, value);
             } else {
               if (object is HTEntity) {
-                object.subSet(key, value, from: _currentNamespace.fullName);
+                object.subSet(key, value, from: currentNamespace.fullName);
               } else {
                 if (object is List) {
                   if (key is! num) {
@@ -1939,7 +1937,7 @@ class HTInterpreter {
       final id = _currentBytecodeModule.getConstString();
       showList.add(id);
       if (isExported) {
-        _currentNamespace.declareExport(id);
+        currentNamespace.declareExport(id);
       }
     }
     final hasFromPath = _currentBytecodeModule.readBool();
@@ -1960,17 +1958,17 @@ class HTInterpreter {
       final importedModule = cachedModules[fromPath]!;
       final importedNamespace = importedModule.namespaces.values.last;
       if (showList.isEmpty) {
-        _currentNamespace.defineImport(
+        currentNamespace.defineImport(
             alias!, importedNamespace, 'module:${importedModule.id}');
       } else {
         final aliasNamespace = HTNamespace(
-            lexicon: _lexicon, id: alias!, closure: _currentNamespace.closure);
+            lexicon: _lexicon, id: alias!, closure: currentNamespace.closure);
         for (final id in showList) {
           final decl = importedNamespace.symbols[id]!;
           assert(!decl.isPrivate);
           aliasNamespace.define(id, decl);
         }
-        _currentNamespace.defineImport(
+        currentNamespace.defineImport(
             alias, aliasNamespace, 'module:${importedModule.id}');
       }
     }
@@ -1982,26 +1980,26 @@ class HTInterpreter {
           // TODO: import binary bytes
           final jsonSource = _currentBytecodeModule.jsonSources[fromPath];
           assert(jsonSource != null);
-          _currentNamespace.defineImport(
+          currentNamespace.defineImport(
             alias!,
             HTVariable(
               id: alias,
               interpreter: this,
               value: jsonSource!.value,
-              closure: _currentNamespace,
+              closure: currentNamespace,
             ),
             jsonSource.fullName,
           );
           if (isExported) {
-            _currentNamespace.declareExport(alias);
+            currentNamespace.declareExport(alias);
           }
         } else {
           final decl = UnresolvedImport(fromPath,
               alias: alias, showList: showList, isExported: isExported);
           if (_currentFileResourceType == HTResourceType.hetuModule) {
-            _currentNamespace.declareImport(decl);
+            currentNamespace.declareImport(decl);
           } else {
-            _handleNamespaceImport(_currentNamespace, decl);
+            _handleNamespaceImport(currentNamespace, decl);
           }
         }
       } else {
@@ -2009,8 +2007,8 @@ class HTInterpreter {
         // It will be handled immediately since it does not needed resolve.
         assert(isExported);
         if (showList.isNotEmpty) {
-          _currentNamespace.willExportAll = false;
-          _currentNamespace.exports.addAll(showList);
+          currentNamespace.willExportAll = false;
+          currentNamespace.exports.addAll(showList);
         }
         // If the namespace will export all,
         // a declared id will be add to the list
@@ -2060,7 +2058,7 @@ class HTInterpreter {
         final symbol = _localSymbol = _currentBytecodeModule.getConstString();
         final isLocal = _currentBytecodeModule.readBool();
         if (isLocal) {
-          _localValue = _currentNamespace.memberGet(symbol, isRecursive: true);
+          _localValue = currentNamespace.memberGet(symbol, isRecursive: true);
           // _curLeftValue = _curNamespace;
         } else {
           _localValue = symbol;
@@ -2104,14 +2102,14 @@ class HTInterpreter {
         final hasPrototypeId = _currentBytecodeModule.readBool();
         if (hasPrototypeId) {
           final prototypeId = _currentBytecodeModule.getConstString();
-          prototype = _currentNamespace.memberGet(prototypeId,
-              from: _currentNamespace.fullName, isRecursive: true);
+          prototype = currentNamespace.memberGet(prototypeId,
+              from: currentNamespace.fullName, isRecursive: true);
         }
         final struct = HTStruct(this,
             id: id,
             prototype: prototype,
             isRootPrototype: id == _lexicon.globalPrototypeId,
-            closure: _currentNamespace);
+            closure: currentNamespace);
         final fieldsCount = _currentBytecodeModule.read();
         for (var i = 0; i < fieldsCount; ++i) {
           final isSpread = _currentBytecodeModule.readBool();
@@ -2183,7 +2181,7 @@ class HTInterpreter {
             _currentFile,
             _currentBytecodeModule.id,
             this,
-            closure: _currentNamespace,
+            closure: currentNamespace,
             category: FunctionCategory.literal,
             externalTypeId: externalTypedef,
             hasParamDecls: hasParamDecls,
@@ -2196,7 +2194,7 @@ class HTInterpreter {
             ip: definitionIp,
             line: line,
             column: column,
-            namespace: _currentNamespace);
+            namespace: currentNamespace);
         if (!hasExternalTypedef) {
           _localValue = func;
         } else {
@@ -2277,7 +2275,7 @@ class HTInterpreter {
 
   void _handleTypeCheck({bool isNot = false}) {
     final object = _getRegVal(HTRegIdx.relationLeft);
-    final rightType = (_localValue as HTType).resolve(_currentNamespace);
+    final rightType = (_localValue as HTType).resolve(currentNamespace);
     HTType leftType;
     if (object != null) {
       if (object is HTType) {
@@ -2455,19 +2453,19 @@ class HTInterpreter {
       classId = _currentBytecodeModule.getConstString();
     }
     final isTopLevel = _currentBytecodeModule.readBool();
-    if (isTopLevel && _currentNamespace.willExportAll) {
-      _currentNamespace.declareExport(id);
+    if (isTopLevel && currentNamespace.willExportAll) {
+      currentNamespace.declareExport(id);
     }
     final value = _handleTypeExpr();
     final decl = HTVariable(
       id: id,
       interpreter: this,
       classId: classId,
-      closure: _currentNamespace,
+      closure: currentNamespace,
       documentation: documentation,
       value: value,
     );
-    _currentNamespace.define(id, decl);
+    currentNamespace.define(id, decl);
     _localValue = value;
   }
 
@@ -2484,8 +2482,8 @@ class HTInterpreter {
       classId = _currentBytecodeModule.getConstString();
     }
     final isTopLevel = _currentBytecodeModule.readBool();
-    if (isTopLevel && _currentNamespace.willExportAll) {
-      _currentNamespace.declareExport(id);
+    if (isTopLevel && currentNamespace.willExportAll) {
+      currentNamespace.declareExport(id);
     }
     final typeIndex = _currentBytecodeModule.read();
     final type = HTConstantType.values.elementAt(typeIndex);
@@ -2497,7 +2495,7 @@ class HTInterpreter {
         classId: classId,
         documentation: documentation,
         globalConstantTable: _currentBytecodeModule);
-    _currentNamespace.define(id, decl, override: config.allowVariableShadowing);
+    currentNamespace.define(id, decl, override: config.allowVariableShadowing);
     // _localValue = _currentBytecodeModule.getGlobalConstant(type, index);
   }
 
@@ -2513,8 +2511,8 @@ class HTInterpreter {
       if (id == _lexicon.omittedMark) {
         id = omittedPrefix + (omittedIndex++).toString();
       } else {
-        if (isTopLevel && _currentNamespace.willExportAll) {
-          _currentNamespace.declareExport(id);
+        if (isTopLevel && currentNamespace.willExportAll) {
+          currentNamespace.declareExport(id);
         }
       }
       HTType? declType;
@@ -2548,11 +2546,11 @@ class HTInterpreter {
           interpreter: this,
           file: _currentFile,
           module: _currentBytecodeModule.id,
-          closure: _currentNamespace,
+          closure: currentNamespace,
           declType: ids[id],
           value: initValue,
           isMutable: isMutable);
-      _currentNamespace.define(id, decl,
+      currentNamespace.define(id, decl,
           override: config.allowVariableShadowing);
     }
   }
@@ -2586,7 +2584,7 @@ class HTInterpreter {
         interpreter: this,
         file: _currentFile,
         module: _currentBytecodeModule.id,
-        closure: _currentNamespace,
+        closure: currentNamespace,
         declType: declType,
         ip: definitionIp,
         line: definitionLine,
@@ -2628,9 +2626,9 @@ class HTInterpreter {
     final isExternal = _currentBytecodeModule.readBool();
     final isStatic = _currentBytecodeModule.readBool();
     final isTopLevel = _currentBytecodeModule.readBool();
-    if (isTopLevel && _currentNamespace.willExportAll) {
+    if (isTopLevel && currentNamespace.willExportAll) {
       if (id != null) {
-        _currentNamespace.declareExport(id);
+        currentNamespace.declareExport(id);
       }
     }
     final isConst = _currentBytecodeModule.readBool();
@@ -2698,7 +2696,7 @@ class HTInterpreter {
         internalName: internalName,
         id: id,
         classId: classId,
-        closure: _currentNamespace,
+        closure: currentNamespace,
         documentation: documentation,
         isAsync: isAsync,
         isField: isField,
@@ -2721,9 +2719,9 @@ class HTInterpreter {
       _localValue = func;
     } else {
       if ((category != FunctionCategory.constructor) || isStatic) {
-        func.namespace = _currentNamespace;
+        func.namespace = currentNamespace;
       }
-      _currentNamespace.define(func.internalName, func);
+      currentNamespace.define(func.internalName, func);
     }
     _localValue = func;
   }
@@ -2738,8 +2736,8 @@ class HTInterpreter {
     final isExternal = _currentBytecodeModule.readBool();
     final isAbstract = _currentBytecodeModule.readBool();
     final isTopLevel = _currentBytecodeModule.readBool();
-    if (isTopLevel && _currentNamespace.willExportAll) {
-      _currentNamespace.declareExport(id);
+    if (isTopLevel && currentNamespace.willExportAll) {
+      currentNamespace.declareExport(id);
     }
     final hasUserDefinedConstructor = _currentBytecodeModule.readBool();
     HTType? superType;
@@ -2758,7 +2756,7 @@ class HTInterpreter {
     final klass = HTClass(
       this,
       id: id,
-      closure: _currentNamespace,
+      closure: currentNamespace,
       documentation: documentation,
       superType: superType,
       isExternal: isExternal,
@@ -2766,8 +2764,8 @@ class HTInterpreter {
       isEnum: isEnum,
       hasUserDefinedConstructor: hasUserDefinedConstructor,
     );
-    _currentNamespace.define(id, klass);
-    _currentNamespace = klass.namespace;
+    currentNamespace.define(id, klass);
+    currentNamespace = klass.namespace;
   }
 
   void _handleExternalEnumDecl() {
@@ -2778,12 +2776,12 @@ class HTInterpreter {
     }
     final id = _currentBytecodeModule.getConstString();
     final isTopLevel = _currentBytecodeModule.readBool();
-    if (isTopLevel && _currentNamespace.willExportAll) {
-      _currentNamespace.declareExport(id);
+    if (isTopLevel && currentNamespace.willExportAll) {
+      currentNamespace.declareExport(id);
     }
     final enumClass =
         HTExternalEnum(this, id: id, documentation: documentation);
-    _currentNamespace.define(id, enumClass);
+    currentNamespace.define(id, enumClass);
     _localValue = enumClass;
   }
 
@@ -2795,8 +2793,8 @@ class HTInterpreter {
     }
     final id = _currentBytecodeModule.getConstString();
     final isTopLevel = _currentBytecodeModule.readBool();
-    if (isTopLevel && _currentNamespace.willExportAll) {
-      _currentNamespace.declareExport(id);
+    if (isTopLevel && currentNamespace.willExportAll) {
+      currentNamespace.declareExport(id);
     }
     String? prototypeId;
     final hasPrototypeId = _currentBytecodeModule.readBool();
@@ -2821,14 +2819,14 @@ class HTInterpreter {
       interpreter: this,
       file: _currentFile,
       module: _currentBytecodeModule.id,
-      closure: _currentNamespace,
+      closure: currentNamespace,
       documentation: documentation,
       prototypeId: prototypeId,
       mixinIds: mixinIds,
       staticDefinitionIp: staticDefinitionIp,
       definitionIp: definitionIp,
     );
-    _currentNamespace.define(id, struct);
+    currentNamespace.define(id, struct);
     _localValue = struct;
   }
 }

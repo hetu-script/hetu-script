@@ -514,7 +514,7 @@ class HTFunction extends HTFunctionDeclaration
             final referCtorPosArgs = [];
             final referCtorPosArgIps = redirectingConstructor!.positionalArgsIp;
             for (var i = 0; i < referCtorPosArgIps.length; ++i) {
-              final HTContext storedContext = interpreter.getContext();
+              final HTContext savedContext = interpreter.getContext();
               interpreter.setContext(
                 context: HTContext(
                   file: file,
@@ -531,7 +531,7 @@ class HTFunction extends HTFunctionDeclaration
                 final List arg = interpreter.execute();
                 referCtorPosArgs.addAll(arg);
               }
-              interpreter.setContext(context: storedContext);
+              interpreter.setContext(context: savedContext);
             }
 
             final referCtorNamedArgs = <String, dynamic>{};

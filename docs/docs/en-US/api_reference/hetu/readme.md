@@ -48,7 +48,7 @@ Hetu have a prototyped based struct object like the literal object syntax in Jav
 
 ````typescript
 
-struct prototype {
+struct Prototype {
   /// Create a struct from a dart Json data
   /// Usage:
   /// ```

@@ -2184,13 +2184,13 @@ class HTDefaultParser extends HTParser {
     final keyword = advance();
     final loop = _parseBlockStmt(id: Semantic.doLoop, isLoop: true);
     ASTNode? condition;
+    bool hasEndOfStmtMark = false;
     if (expect([lexer.lexicon.kWhile], consume: true)) {
       match(lexer.lexicon.groupExprStart);
       condition = parseExpr();
       match(lexer.lexicon.groupExprEnd);
+      hasEndOfStmtMark = parseEndOfStmtMark();
     }
-    final hasEndOfStmtMark =
-        expect([lexer.lexicon.endOfStatementMark], consume: true);
     return DoStmt(loop, condition,
         hasEndOfStmtMark: hasEndOfStmtMark,
         source: currentSource,
@@ -3068,9 +3068,7 @@ class HTDefaultParser extends HTParser {
             length: curTok.length);
         errors.add(err);
       }
-      if (category != FunctionCategory.literal) {
-        expect([lexer.lexicon.endOfStatementMark], consume: true);
-      }
+      hasEndOfStmtMark = parseEndOfStmtMark();
     }
     final funcDecl = FuncDecl(
       internalName,
@@ -3179,6 +3177,7 @@ class HTDefaultParser extends HTParser {
     final id = match(Semantic.identifier);
     var enumerations = <IdentifierExpr>[];
     bool isPreviousItemEndedWithComma = false;
+    bool hasEndOfStmtMark = false;
     if (expect([lexer.lexicon.codeBlockStart], consume: true)) {
       while (curTok.type != lexer.lexicon.codeBlockEnd &&
           curTok.type != Semantic.endOfFile) {
@@ -3204,17 +3203,21 @@ class HTDefaultParser extends HTParser {
       }
       match(lexer.lexicon.codeBlockEnd);
     } else {
-      expect([lexer.lexicon.endOfStatementMark], consume: true);
+      hasEndOfStmtMark =
+          expect([lexer.lexicon.endOfStatementMark], consume: true);
     }
     final enumDecl = EnumDecl(
-        IdentifierExpr.fromToken(id, source: currentSource), enumerations,
-        isExternal: isExternal,
-        isTopLevel: isTopLevel,
-        source: currentSource,
-        line: keyword.line,
-        column: keyword.column,
-        offset: keyword.offset,
-        length: curTok.offset - keyword.offset);
+      IdentifierExpr.fromToken(id, source: currentSource),
+      enumerations,
+      isExternal: isExternal,
+      isTopLevel: isTopLevel,
+      hasEndOfStmtMark: hasEndOfStmtMark,
+      source: currentSource,
+      line: keyword.line,
+      column: keyword.column,
+      offset: keyword.offset,
+      length: curTok.offset - keyword.offset,
+    );
 
     return enumDecl;
   }
