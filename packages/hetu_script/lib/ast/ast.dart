@@ -1910,7 +1910,7 @@ class FuncDecl extends Statement {
 
   bool get isMember => classId != null;
 
-  bool get isAbstract => definition != null;
+  bool get isAbstract => definition == null;
 
   final bool isAsync;
 
