@@ -1832,7 +1832,6 @@ class HTInterpreter {
             final value = _getRegVal(HTRegIdx.assignRight);
             _localValue = value;
             final encap = encapsulate(object);
-            encap.memberSet(key, value);
             if (encap is HTNamespace) {
               encap.memberSet(key, value,
                   from: currentNamespace.fullName, isRecursive: false);
