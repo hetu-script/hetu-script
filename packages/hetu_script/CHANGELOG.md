@@ -1,3 +1,7 @@
+## 0.5.1
+
+- Bumped intl to version 18.
+
 ## 0.5.0
 
 - Add experimental support for async/await.
