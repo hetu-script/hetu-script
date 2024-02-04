@@ -1,1 +1,0 @@
-dart compile kernel bin/ht_lsp.dart -o ht_lsp.dill

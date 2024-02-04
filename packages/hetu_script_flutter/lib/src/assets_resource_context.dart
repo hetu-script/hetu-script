@@ -78,8 +78,8 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
         fullName = path.join(dirName, key);
       }
     }
-    if (!path.isWithin(root, key)) {
-      fullName = path.join(root, key);
+    if (!path.isWithin(root, fullName)) {
+      fullName = path.join(root, fullName);
     }
     if (filename != null) {
       fullName = path.join(fullName, filename);

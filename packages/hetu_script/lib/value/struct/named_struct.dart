@@ -40,7 +40,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
     this.interpreter = interpreter;
     this.file = file;
     this.module = module;
-    this.ip = definitionIp;
+    ip = definitionIp;
   }
 
   HTStruct createObject({

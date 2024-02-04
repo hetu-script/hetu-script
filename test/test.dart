@@ -4,7 +4,7 @@ Future<void> main() async {
   final sourceContext = HTOverlayContext();
   var hetu = Hetu(
     config: HetuConfig(
-      printPerformanceStatistics: true,
+      // printPerformanceStatistics: true,
       removeLineInfo: false,
       // doStaticAnalysis: true,
       // computeConstantExpression: true,
@@ -26,17 +26,28 @@ Future<void> main() async {
   );
 
   final r = hetu.eval(r'''
-     class test {
-       static set name(value);
-     }
-
-     test.name = 'jimmy';
+    final lowerLevel = true
+    when ('a') {
+      'a' -> {
+        when(lowerLevel) {
+          true -> {
+            print(lowerLevel)
+          }
+          false -> {
+            print(lowerLevel)
+          }
+        }
+      }
+      'b' -> {
+        print('b')
+      }
+    }
 
 ''');
 
-  if (r is Future) {
-    print(await r);
-  } else {
-    print(r);
-  }
+  // if (r is Future) {
+  //   print(await r);
+  // } else {
+  //   print(r);
+  // }
 }

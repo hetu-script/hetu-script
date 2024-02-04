@@ -1,11 +1,11 @@
 name: hetu_script_flutter_example
 description: A new Flutter project.
-publish_to: 'none'
+publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
-  flutter: '>=1.17.0'
+  sdk: ">=2.17.0 <3.0.0"
+  flutter: ">=1.17.0"
 
 dependencies:
   flutter:
@@ -31,4 +31,4 @@ flutter:
 
   assets:
     - scripts/
-    - scripts/.hetu_modules/sample_mod/
+    - scripts/hello/

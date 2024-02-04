@@ -2450,7 +2450,7 @@ class HTDefaultParser extends HTParser {
         },
       );
       match(lexer.lexicon.codeBlockEnd);
-      String? fromPath;
+      // String? fromPath;
       if (curTok.lexeme == lexer.lexicon.kFrom) {
         advance();
         final fromPathTok = match(Semantic.literalString);
@@ -2466,7 +2466,7 @@ class HTDefaultParser extends HTParser {
         }
       }
       stmt = ImportExportDecl(
-          fromPath: fromPath,
+          // fromPath: fromPath,
           showList: showList,
           isExport: true,
           source: currentSource,
@@ -2474,9 +2474,9 @@ class HTDefaultParser extends HTParser {
           column: keyword.column,
           offset: keyword.offset,
           length: curTok.offset - keyword.offset);
-      if (fromPath != null) {
-        currentModuleImports.add(stmt);
-      }
+      // if (fromPath != null) {
+      //   currentModuleImports.add(stmt);
+      // }
     } else if (expect([lexer.lexicon.everythingMark], consume: true)) {
       stmt = ImportExportDecl(
           isExport: true,

@@ -1,5 +1,5 @@
-import 'mod:sample_mod' as mod
+import 'hello/hello.ht' as h
 
 fun hello {
-  return mod.hello()
+  return h.hello()
 }
