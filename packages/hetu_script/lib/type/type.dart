@@ -112,13 +112,13 @@ class HTTypeNull extends HTIntrinsicType {
   const HTTypeNull(super.id) : super(isTop: false, isBottom: false);
 }
 
-class HTTypeType extends HTIntrinsicType {
-  const HTTypeType(super.id) : super(isTop: false, isBottom: false);
-}
-
 /// A `function` type. It's the same to type `() -> any`.
 class HTTypeFunction extends HTIntrinsicType {
   const HTTypeFunction(super.id) : super(isTop: false, isBottom: false);
+}
+
+class HTTypeType extends HTIntrinsicType {
+  const HTTypeType(super.id) : super(isTop: false, isBottom: false);
 }
 
 class HTTypeNamespace extends HTIntrinsicType {

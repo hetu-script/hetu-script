@@ -3,7 +3,6 @@ import 'package:characters/characters.dart';
 import '../parser/token.dart';
 import '../grammar/constant.dart';
 import 'lexer.dart';
-import 'lexicon.dart';
 
 /// Utility methods on String to check whether it's empty,
 /// i.e. contains only white space characters.
@@ -23,14 +22,14 @@ class HTDefaultLexer extends HTLexer {
   late final RegExp _digitRegExp;
   late final RegExp _hexNumberRegExp;
 
-  HTDefaultLexer({HTLexicon? lexicon}) : super(lexicon: lexicon) {
+  HTDefaultLexer({super.lexicon}) {
     _identifierStartRegExp =
-        RegExp(this.lexicon.identifierStartPattern, unicode: true);
-    _identifierRegExp = RegExp(this.lexicon.identifierPattern, unicode: true);
-    _numberStartRegExp = RegExp(this.lexicon.numberStartPattern);
-    _numberRegExp = RegExp(this.lexicon.numberPattern);
-    _digitRegExp = RegExp(this.lexicon.digitPattern);
-    _hexNumberRegExp = RegExp(this.lexicon.hexNumberPattern);
+        RegExp(lexicon.identifierStartPattern, unicode: true);
+    _identifierRegExp = RegExp(lexicon.identifierPattern, unicode: true);
+    _numberStartRegExp = RegExp(lexicon.numberStartPattern);
+    _numberRegExp = RegExp(lexicon.numberPattern);
+    _digitRegExp = RegExp(lexicon.digitPattern);
+    _hexNumberRegExp = RegExp(lexicon.hexNumberPattern);
   }
 
   @override

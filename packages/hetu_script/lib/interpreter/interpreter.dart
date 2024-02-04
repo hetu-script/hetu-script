@@ -2418,7 +2418,7 @@ class HTInterpreter {
       final typeExpr = _handleTypeExpr();
       fieldTypes[id] = typeExpr;
     }
-    return HTStructuralType(currentNamespace, fieldTypes: fieldTypes);
+    return HTStructuralType(fieldTypes: fieldTypes, closure: currentNamespace);
   }
 
   HTType _handleTypeExpr() {

@@ -1,3 +1,7 @@
+## 0.6.0
+
+- Add support for Record type of Dart.
+
 ## 0.5.0
 
 - Add experimental support for async/await.

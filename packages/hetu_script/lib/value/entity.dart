@@ -7,8 +7,8 @@ class _HTNull with HTEntity {
   const _HTNull();
 }
 
-/// A interface for store and access symbols from a collection.
-abstract class HTEntity {
+/// A mixin for store and access symbols from a collection.
+mixin HTEntity {
   /// An constant null object.
   static const nullValue = _HTNull();
 

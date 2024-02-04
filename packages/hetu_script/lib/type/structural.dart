@@ -5,8 +5,10 @@ import '../value/namespace/namespace.dart';
 class HTStructuralType extends HTType {
   late final Map<String, HTType> fieldTypes;
 
-  HTStructuralType(HTNamespace closure,
-      {Map<String, HTType> fieldTypes = const {}}) {
+  HTStructuralType({
+    required HTNamespace closure,
+    Map<String, HTType> fieldTypes = const {},
+  }) {
     this.fieldTypes =
         fieldTypes.map((key, value) => MapEntry(key, value.resolve(closure)));
   }

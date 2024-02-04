@@ -9,7 +9,7 @@ import '../constant/global_constant_table.dart';
 
 /// A bytecode module contains the compiled bytes,
 /// after the execution of the interpreter, it will also contain namespaces & values.
-class HTBytecodeModule with BytecodeReader, HTGlobalConstantTable {
+class HTBytecodeModule extends HTGlobalConstantTable with BytecodeReader {
   /// The version of this module, will be read from the bytes later.
   Version? version;
 

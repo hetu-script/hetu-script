@@ -9,7 +9,7 @@ import '../locale/locale.dart';
 import '../error/error.dart';
 import '../shared/jsonify.dart';
 import '../value/function/function.dart';
-import '../value/struct/struct.dart';
+import '../shared/deepcopy.dart';
 
 extension NumBinding on num {
   dynamic htFetch(String id) {

@@ -346,17 +346,17 @@ class HTMathClassBinding extends HTExternalClass {
           NoiseType noiseType;
           switch (noiseTypeString) {
             case 'perlinFractal':
-              noiseType = NoiseType.PerlinFractal;
+              noiseType = NoiseType.perlinFractal;
               break;
             case 'perlin':
-              noiseType = NoiseType.Perlin;
+              noiseType = NoiseType.perlin;
               break;
             case 'cubicFractal':
-              noiseType = NoiseType.CubicFractal;
+              noiseType = NoiseType.cubicFractal;
               break;
             case 'cubic':
             default:
-              noiseType = NoiseType.Cubic;
+              noiseType = NoiseType.cubic;
           }
           return noise2(
             size,

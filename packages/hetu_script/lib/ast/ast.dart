@@ -1806,9 +1806,9 @@ class ParamDecl extends VarDecl {
   final bool isInitialization;
 
   ParamDecl(
-    IdentifierExpr id, {
-    TypeExpr? declType,
-    ASTNode? initializer,
+    super.id, {
+    super.declType,
+    super.initializer,
     this.isVariadic = false,
     this.isOptional = false,
     this.isNamed = false,
@@ -1819,9 +1819,6 @@ class ParamDecl extends VarDecl {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          id,
-          declType: declType,
-          initializer: initializer,
           isMutable: true,
           isStatement: false,
         );

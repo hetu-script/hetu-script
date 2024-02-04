@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'shared.dart';
 
 /// An utility class to read bytes and return the actual value.
-class BytecodeReader {
+mixin BytecodeReader {
   /// The bytecode, stores as uint8 list
   late Uint8List bytes;
 

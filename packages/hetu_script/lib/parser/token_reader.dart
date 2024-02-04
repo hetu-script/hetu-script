@@ -4,8 +4,8 @@ import '../error/error.dart';
 import '../grammar/constant.dart';
 import 'token.dart';
 
-/// Abstract interface for handling a token list.
-abstract class TokenReader {
+/// Mixin for handling a token list.
+mixin TokenReader {
   /// The file current under processing, used in error message.
   String? currrentFileName;
 
