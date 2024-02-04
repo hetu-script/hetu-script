@@ -5,8 +5,8 @@ homepage: https://github.com/hetu-script/hetu-script
 publish_to: none
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
-  flutter: '>=1.17.0'
+  sdk: ^3.0.0
+  flutter: ^3.0.0
 
 dependencies:
   flutter:
