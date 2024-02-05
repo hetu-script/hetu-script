@@ -1,27 +1,17 @@
 import 'package:hetu_script/hetu_script.dart';
 
 Future<void> main() async {
-  final sourceContext = HTOverlayContext();
-  var hetu = Hetu(
-    config: HetuConfig(
-        // printPerformanceStatistics: true,
-        ),
-    sourceContext: sourceContext,
-  );
-  hetu.init(
-    locale: HTLocaleSimplifiedChinese(),
-  );
+  var hetu = Hetu();
+  hetu.init();
 
-  final r = ('sd', 1234);
-
-  hetu.eval(
-    r'''
-  fun getRecord(value) {
-    print(value)
-    print(typeof value)
-  }
-''',
-    invoke: 'getRecord',
-    positionalArgs: [r],
-  );
+  hetu.eval(r'''
+    var a = 0
+    do {
+      print(a)
+      ++a
+    } while (
+      a < 2 
+      // && '' is str
+    )
+''');
 }

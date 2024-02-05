@@ -148,7 +148,7 @@ abstract class HTParser with TokenReader {
   void _handleTrailing(ASTNode expr, {bool afterComma = false}) {
     if (curTok is TokenComment) {
       final tokenComment = curTok as TokenComment;
-      if (tokenComment.isTrailing) {
+      if (tokenComment.isTrailing || expr.isExpression) {
         advance();
         final trailing = ASTComment.fromCommentToken(tokenComment);
         if (afterComma) {

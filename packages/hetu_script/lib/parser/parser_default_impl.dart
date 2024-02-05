@@ -1001,6 +1001,7 @@ class HTDefaultParser extends HTParser {
     } else {
       expr = left;
     }
+    handleTrailing(left);
     return expr;
   }
 
