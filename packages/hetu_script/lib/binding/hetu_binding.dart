@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:hetu_script/hetu_script.dart';
 
 import '../external/external_class.dart';
-import '../../shared/jsonify.dart';
+import '../utils/jsonify.dart';
 import '../value/struct/struct.dart';
 
 class HTHetuClassBinding extends HTExternalClass {

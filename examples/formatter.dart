@@ -6,7 +6,7 @@ void main() {
     var i = 42
     var j = 'hi, your number is ${ '#' +     i.toString()   }.'
   ''');
-  final parser = HTDefaultParser();
+  final parser = HTParserHetu();
   final result = parser.parseSource(source);
   final formatter = HTFormatter();
   formatter.formatSource(result);

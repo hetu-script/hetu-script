@@ -2,7 +2,7 @@ import 'hello.ht'
 import 'hello2.ht'
 import 'hello3.ht' as meaning
 
-fun main {
+function main {
 
   return hello()
 }

@@ -35,7 +35,7 @@ The HTStruct object in Dart code can be used like a map to get and set members b
 In script:
 
 ```kotlin
-fun main (data) {
+function main (data) {
   var book = Prototype.fromJson(data)
   print(book)
 }
@@ -101,7 +101,7 @@ void main() async {
             List<HTTypeId> typeArgs = const []}) => {'greeting': 'Hello from Dart!'},
   });
   final hetuValue = hetu.eval(r'''
-      external fun hello
+      external function hello
       var dartValue = hello()
       dartValue['reply'] = 'Hi, this is Hetu.'
       dartValue // the script will return the value of it's last expression
@@ -127,7 +127,7 @@ For example, we have the following class with a external method:
 
 ```dart
 class Someone {
-  external fun calculate
+  external function calculate
 }
 ```
 
@@ -157,7 +157,7 @@ You can also have a external method on a named struct:
 
 ```javascript
 struct Person {
-  external fun sing
+  external function sing
 }
 ```
 
@@ -299,16 +299,16 @@ void main() {
   hetu.eval('''
       external class Person {
         var race: str
-        construct([name: str = 'Jimmy', race: str = 'Caucasian']);
+        constructor([name: str = 'Jimmy', race: str = 'Caucasian']);
         get child
-        static fun meaning(n: num)
+        static function meaning(n: num)
         static get level
         static set level (value: str)
-        construct withName(name: str, [race: str = 'Caucasian'])
+        constructor withName(name: str, [race: str = 'Caucasian'])
         var name
-        fun greeting(tag: str)
+        function greeting(tag: str)
       }
-      fun main {
+      function main {
         var p1: Person = Person()
         p1.greeting('jimmy')
         print(Person.meaning(42))
@@ -357,16 +357,16 @@ If you omit the memberGet & memberSet on external class binding, and just define
 
 ### Typedef of Dart function
 
-Sometimes, we want to return a pure Dart function from the script side.For example, the onPressed parameter of a Widget's constructor. It is possible to do so with a **external function typedef declaration**, it is a brackets after the fun keyword.
+Sometimes, we want to return a pure Dart function from the script side.For example, the onPressed parameter of a Widget's constructor. It is possible to do so with a **external function typedef declaration**, it is a brackets after the function keyword.
 
 In Hetu script, we have this function:
 
 ```dart
-fun [DartFunction] add(a: num, b: num) -> num {
+function [DartFunction] add(a: num, b: num) -> num {
   return a + b
 }
 
-fun getFunc {
+function getFunc {
   return add
 }
 ```

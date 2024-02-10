@@ -1,20 +1,20 @@
 external class Random {
   
-  construct ([seed: int])
+  constructor ([seed: int])
 
-  fun nextBool -> bool
+  function nextBool -> bool
 
-  fun nextInt(max: int) -> int
+  function nextInt(max: int) -> int
 
-  fun nextDouble() -> float
+  function nextDouble() -> float
 
-  fun nextColorHex({hasAlpha: bool = false}) -> str
+  function nextColorHex({hasAlpha: bool = false}) -> str
 
-  fun nextBrightColorHex({hasAlpha: bool = false}) -> str
+  function nextBrightColorHex({hasAlpha: bool = false}) -> str
 
-  fun nextIterable(list: Iterable) -> any
+  function nextIterable(list: Iterable) -> any
 
-  fun shuffle(list: Iterable) -> Iterable
+  function shuffle(list: Iterable) -> Iterable
 }
 
 external class Math {
@@ -23,59 +23,59 @@ external class Math {
   static const pi: float = 3.1415926535897932
 
   /// Convert [radians] to degrees.
-  static fun degrees(radians)
+  static function degrees(radians)
 
   /// Convert [degrees] to radians.
-  static fun radians(degrees)
+  static function radians(degrees)
 
-  static fun radiusToSigma(radius: float) -> float
+  static function radiusToSigma(radius: float) -> float
   
   /// Box–Muller transform for generating normally distributed random numbers between [min : max].
-  static fun gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float, randomGenerator}) -> float
+  static function gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float, randomGenerator}) -> float
 
   /// Noise generation function provided by [fast_noise](https://pub.dev/packages/fast_noise) package.
   /// Noise types: perlin, perlinFractal, cubic, cubicFractal
-  static fun noise2d(size, {seed, noiseType = 'cubic', frequency = 0.01})
+  static function noise2d(size, {seed, noiseType = 'cubic', frequency = 0.01})
 
   /// Return the smaller value between a & b.
   /// If one of them is null, return the other value.
-  static fun min(a, b)
+  static function min(a, b)
 
   /// Return the greater value between a & b.
   /// If one of them is null, return the other value.
-  static fun max(a, b)
+  static function max(a, b)
 
-  static fun sqrt(x: num) -> num
+  static function sqrt(x: num) -> num
 
-  static fun pow(x: num, exponent: num) -> num
+  static function pow(x: num, exponent: num) -> num
 
-  static fun sin(x: num) -> num
+  static function sin(x: num) -> num
 
-  static fun cos(x: num) -> num
+  static function cos(x: num) -> num
 
-  static fun tan(x: num) -> num
+  static function tan(x: num) -> num
 
-  static fun exp(x: num) -> num
+  static function exp(x: num) -> num
 
-  static fun log(x: num) -> num
+  static function log(x: num) -> num
 
-  static fun parseInt(source: str, {radix: int?}) -> num
+  static function parseInt(source: str, {radix: int?}) -> num
 
-  static fun parseDouble(source: str) -> num
+  static function parseDouble(source: str) -> num
 
-  static fun sum(list: List<num>) -> num
+  static function sum(list: List<num>) -> num
 
-  static fun checkBit(index: int, check: int) -> bool
+  static function checkBit(index: int, check: int) -> bool
 
-  static fun bitLS(x: int, distance: int) -> bool
+  static function bitLS(x: int, distance: int) -> bool
 
-  static fun bitRS(x: int, distance: int) -> bool
+  static function bitRS(x: int, distance: int) -> bool
 
-  static fun bitAnd(x: int, y: int) -> bool
+  static function bitAnd(x: int, y: int) -> bool
 
-  static fun bitOr(x: int, y: int) -> bool
+  static function bitOr(x: int, y: int) -> bool
 
-  static fun bitNot(x: int) -> bool
+  static function bitNot(x: int) -> bool
 
-  static fun bitXor(x: int, y: int) -> bool
+  static function bitXor(x: int, y: int) -> bool
 }

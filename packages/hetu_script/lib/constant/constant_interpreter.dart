@@ -1,7 +1,7 @@
 import '../ast/ast.dart';
 import '../ast/visitor/recursive_ast_visitor.dart';
-import '../lexer/lexicon.dart';
-import '../lexer/lexicon_default_impl.dart';
+import '../lexicon/lexicon.dart';
+import '../lexicon/lexicon_hetu.dart';
 import '../analyzer/analysis_error.dart';
 import '../error/error.dart';
 
@@ -11,7 +11,7 @@ class HTConstantInterpreter extends RecursiveASTVisitor<void> {
   late final HTLexicon _lexicon;
 
   HTConstantInterpreter({HTLexicon? lexicon})
-      : _lexicon = lexicon ?? HTDefaultLexicon();
+      : _lexicon = lexicon ?? HTLexiconHetu();
 
   /// Errors of a single file
   late List<HTAnalysisError> errors = [];
@@ -33,7 +33,7 @@ class HTConstantInterpreter extends RecursiveASTVisitor<void> {
     var text = node.text;
     for (var i = 0; i < interpolations.length; ++i) {
       text = text.replaceAll(
-          '${_lexicon.codeBlockStart}$i${_lexicon.codeBlockEnd}',
+          '${_lexicon.stringInterpolationStart}$i${_lexicon.stringInterpolationEnd}',
           interpolations[i]);
     }
     node.value = text;
@@ -289,7 +289,7 @@ class HTConstantInterpreter extends RecursiveASTVisitor<void> {
   }
 
   @override
-  void visitWhen(WhenStmt node) {
+  void visitSwitch(SwitchStmt node) {
     node.subAccept(this);
   }
 

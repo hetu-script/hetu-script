@@ -1,10 +1,10 @@
 import 'package:meta/meta.dart';
 
 import '../../type/type.dart';
-import '../../grammar/constant.dart';
 import '../declaration.dart';
 import '../type/abstract_type_declaration.dart';
 import '../generic/generic_type_parameter.dart';
+import '../../common/internal_identifier.dart';
 
 class HTClassDeclaration extends HTDeclaration
     implements HasGenericTypeParameter {

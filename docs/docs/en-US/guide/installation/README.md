@@ -41,7 +41,7 @@ content in 'import_test1.ht':
 ```javascript
 import 'hello.ht' as h
 
-fun main {
+function main {
   return h.hello()
 }
 ```
@@ -49,7 +49,7 @@ fun main {
 content in 'hello.ht':
 
 ```javascript
-fun hello {
+function hello {
   return 'Hello, world!'
 }
 ```

@@ -8,9 +8,9 @@ void main() {
     var i = 0
     for (;;) {
       ++i
-      when (i % 2) {
-        0 -> j += i
-        1 -> j *= i
+      switch (i % 2) {
+        0 => j += i
+        1 => j *= i
       }
       if (i > 5) {
         break

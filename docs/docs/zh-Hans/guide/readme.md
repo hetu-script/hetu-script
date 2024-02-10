@@ -32,7 +32,7 @@ void main() {
 
 - 语句末尾的分号可写可不写。
 
-- 函数声明类似 Kotlin，需要以关键字开头，函数关键字根据功能不同，包括：**fun, get, set, construct** 等等。
+- 函数声明类似 Kotlin，需要以关键字开头，函数关键字根据功能不同，包括：**function, get, set, constructor** 等等。
 
 - 语法既支持传统 C++/Java 的以 class 为基础的面向对象，也支持 Javascript 的以原型链为基础的面向对象，也支持各种函数式写法，用户可以根据需求任选风格。
 
@@ -53,7 +53,7 @@ void main() {
     'hello': () => {'greetings': 'greetings from Dart!'},
   });
   var hetuValue = hetu.eval(r'''
-      external fun hello
+      external function hello
       var dartValue = hello()
       dartValue['reply'] = 'Hi, this is Hetu.'
       dartValue // the script will return the value of it's last expression

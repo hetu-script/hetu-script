@@ -3,7 +3,7 @@ import '../../error/error.dart';
 import '../../declaration/declaration.dart';
 import '../../value/entity.dart';
 import '../../value/unresolved_import.dart';
-import '../../lexer/lexicon.dart';
+import '../../lexicon/lexicon.dart';
 
 /// A semantic namespace that holds symbol for resolving.
 class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {

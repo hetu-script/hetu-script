@@ -14,7 +14,7 @@ void main() {
       final result = hetu.eval(r'''
         class AGuy {
           var name
-          construct withName (name: str) {
+          constructor withName (name: str) {
             this.name = name
           }
         }
@@ -30,13 +30,13 @@ void main() {
       final result = hetu.eval(r'''
         class StaticField {
           static var field: str
-          construct ([field: str = 'a']) {
+          constructor ([field: str = 'a']) {
             StaticField.field = field
           }
-          static fun a {
+          static function a {
             return field
           }
-          fun b {
+          function b {
             a()
           }
         }
@@ -53,13 +53,13 @@ void main() {
     test('override', () {
       final result = hetu.eval(r'''
         class Guy {
-          fun meaning {
+          function meaning {
             return null
           }
         }
         class John extends Guy {
           get number { return 42 }
-          fun meaning {
+          function meaning {
             return number
           }
         }
@@ -77,13 +77,13 @@ void main() {
         class Super1 {
           var name = 'Super'
           var age = 1
-          fun addAge() {
+          function addAge() {
             age = age + 1
           }
         }
         class Extend1 extends Super1 {
           var name = 'Extend'
-          fun addAge() {
+          function addAge() {
             age = age + 1
             super.addAge()
           }
@@ -119,12 +119,12 @@ void main() {
       final result = hetu.eval(r'''
         class SuperC1 {
           var name
-          construct (name) {
+          constructor (name) {
             this.name = name
           }
         }
         class DerivedC1 extends SuperC1 {
-          construct: super('Derived') {
+          constructor: super('Derived') {
             name += 'Sequence'
           }
         }
@@ -143,7 +143,7 @@ void main() {
             return Choclate._('Choclate')
           }
           var name
-          construct _(name) {
+          constructor _(name) {
             this.name = name
           }
         }

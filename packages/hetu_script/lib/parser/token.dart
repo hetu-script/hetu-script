@@ -1,6 +1,9 @@
-import '../grammar/constant.dart';
+import '../common/internal_identifier.dart';
 
 class Token {
+  /// `end_of_file` token lexeme.
+  static const endOfFile = 'end_of_file';
+
   final String lexeme;
 
   final int line;
@@ -40,7 +43,7 @@ class Token {
 
 class TokenComment extends Token {
   @override
-  String get type => Semantic.comment;
+  String get type => InternalIdentifier.comment;
 
   @override
   final String literal;
@@ -72,12 +75,12 @@ class TokenEmptyLine extends Token {
       required super.offset,
       super.previous,
       super.next})
-      : super(lexeme: Semantic.emptyLine);
+      : super(lexeme: InternalIdentifier.emptyLine);
 }
 
 class TokenIdentifier extends Token {
   @override
-  String get type => Semantic.identifier;
+  String get type => InternalIdentifier.identifier;
 
   /// whether this identifier is marked by grave accent marks.
   final bool isMarked;
@@ -98,7 +101,7 @@ class TokenIdentifier extends Token {
 
 class TokenBooleanLiteral extends Token {
   @override
-  String get type => Semantic.literalBoolean;
+  String get type => InternalIdentifier.literalBoolean;
 
   @override
   final bool literal;
@@ -115,7 +118,7 @@ class TokenBooleanLiteral extends Token {
 
 class TokenIntLiteral extends Token {
   @override
-  String get type => Semantic.literalInteger;
+  String get type => InternalIdentifier.literalInteger;
 
   @override
   final int literal;
@@ -132,7 +135,7 @@ class TokenIntLiteral extends Token {
 
 class TokenFloatLiteral extends Token {
   @override
-  String get type => Semantic.literalFloat;
+  String get type => InternalIdentifier.literalFloat;
 
   @override
   final double literal;
@@ -149,7 +152,7 @@ class TokenFloatLiteral extends Token {
 
 class TokenStringLiteral extends Token {
   @override
-  String get type => Semantic.literalString;
+  String get type => InternalIdentifier.literalString;
 
   final String _literal;
 
@@ -174,7 +177,7 @@ class TokenStringLiteral extends Token {
 
 class TokenStringInterpolation extends TokenStringLiteral {
   @override
-  String get type => Semantic.literalStringInterpolation;
+  String get type => InternalIdentifier.stringInterpolation;
 
   final List<Token> interpolations;
 

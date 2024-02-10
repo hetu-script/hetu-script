@@ -88,7 +88,7 @@ ${
     });
     test('spread in function call', () {
       final result = hetu.eval(r'''
-        fun someFunc(a, b) {
+        function someFunc(a, b) {
           return a + b
         }
         var list = [5, 6]
@@ -174,9 +174,9 @@ ${
         var i = 0
         for (;;) {
           ++i
-          when (i % 2) {
-            0 -> j += i
-            1 -> j *= i
+          switch (i % 2) {
+            0 => j += i
+            1 => j *= i
           }
           if (i > 5) {
             break
@@ -222,16 +222,16 @@ ${
         4,
       );
     });
-    test('when', () {
+    test('switch', () {
       final result = hetu.eval(r'''
-        fun switch(expr) {
-          when(expr) {
-            0-> return '0'
-            1-> return '1'
+        function switchTest(expr) {
+          switch (expr) {
+            0 => return '0'
+            1 => return '1'
           }
           return ''
         }
-        switch(5 - 4)
+        switchTest(5 - 4)
       ''');
       expect(
         result,
@@ -245,13 +245,13 @@ ${
       final result = hetu.eval(r'''
         var globalVar = 0
         class GetGlobal {
-          construct {
+          constructor {
             globalVar = 2
           }
-          fun test {
+          function test {
             return (globalVar * globalVar)
           }
-          static fun staticTest {
+          static function staticTest {
             return (globalVar + 1)
           }
         }

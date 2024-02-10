@@ -4,7 +4,7 @@ import 'package:hetu_script/analyzer.dart';
 void main() {
   final analyzer = HTAnalyzer();
   final bundler = HTBundler(sourceContext: HTOverlayContext());
-  final parser = HTDefaultParser();
+  final parser = HTParserHetu();
   final source = HTSource(r'''
     i = 'Hello, world!'
   ''', type: HTResourceType.hetuLiteralCode);

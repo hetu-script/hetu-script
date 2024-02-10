@@ -14,13 +14,13 @@ final result = range(10).map((value) => 'row: ${value}')
 ## Global functions
 
 ```javascript
-external fun print(... args: any)
+external function print(... args: any)
 
-external fun stringify(obj: any)
+external function stringify(obj: any)
 
-external fun jsonify(obj)
+external function jsonify(obj)
 
-external fun range(startOrStop: num, [stop: num, step: num]) -> Iterable
+external function range(startOrStop: num, [stop: num, step: num]) -> Iterable
 ```
 
 ### eval()
@@ -54,7 +54,7 @@ struct Prototype {
   /// ```
   /// var obj = Prototype.fromJson(jsonDataFromDart)
   /// ```
-  external static fun fromJson(data) -> {}
+  external static function fromJson(data) -> {}
 
   /// Get the List of the keys of this struct
   external get keys -> List
@@ -65,11 +65,11 @@ struct Prototype {
   external get values -> List
 
   /// Check if this struct has a key in its own fields.
-  external fun containsKey(key: str) -> bool
+  external function containsKey(key: str) -> bool
 
   /// Check if this struct has a key
   /// in its own fields or its prototypes' fields.
-  external fun contains(key: str) -> bool
+  external function contains(key: str) -> bool
 
   /// Check if this struct is empty.
 	external get isEmpty -> bool
@@ -82,12 +82,12 @@ struct Prototype {
 	external get length -> int
 
   /// Create a new struct form deepcopying this struct
-  external fun clone() -> {}
+  external function clone() -> {}
 
   /// Create dart Json data from this struct
-  fun toJson() -> Map => jsonify(this)
+  function toJson() -> Map => jsonify(this)
 
-  fun toString() -> str => stringify(this)
+  function toString() -> str => stringify(this)
 }
 ````
 
@@ -114,21 +114,21 @@ The script combined the math library into a static class.
 ```javascript
 external class Random {
 
-  construct ([seed: int])
+  constructor ([seed: int])
 
-  fun nextBool -> bool
+  function nextBool -> bool
 
-  fun nextInt(max: int) -> int
+  function nextInt(max: int) -> int
 
-  fun nextDouble() -> float
+  function nextDouble() -> float
 
-  fun nextColorHex({hasAlpha: bool = false}) -> str
+  function nextColorHex({hasAlpha: bool = false}) -> str
 
-  fun nextBrightColorHex({hasAlpha: bool = false}) -> str
+  function nextBrightColorHex({hasAlpha: bool = false}) -> str
 
-  fun nextIterable(list: Iterable) -> any
+  function nextIterable(list: Iterable) -> any
 
-  fun shuffle(list: Iterable) -> Iterable
+  function shuffle(list: Iterable) -> Iterable
 }
 
 external class Math {
@@ -137,57 +137,57 @@ external class Math {
   static const pi: num = 3.1415926535897932
 
   /// Convert [radians] to degrees.
-  static fun degrees(radians)
+  static function degrees(radians)
 
   /// Convert [degrees] to radians.
-  static fun radians(degrees)
+  static function radians(degrees)
 
-  static fun radiusToSigma(radius: float) -> float
+  static function radiusToSigma(radius: float) -> float
 
   // Box–Muller transform for generating normally distributed random numbers between [min : max].
-  static fun gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float, randomGenerator}) -> float
+  static function gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float, randomGenerator}) -> float
 
   // Noise generation function provided by [fast_noise](https://pub.dev/packages/fast_noise) package.
   // Noise types: perlin, perlinFractal, cubic, cubicFractal
-  static fun noise2d(size, {seed, noiseType = 'cubic', frequency = 0.01})
+  static function noise2d(size, {seed, noiseType = 'cubic', frequency = 0.01})
 
-  static fun min(a, b)
+  static function min(a, b)
 
-  static fun max(a, b)
+  static function max(a, b)
 
-  static fun sqrt(x: num) -> num
+  static function sqrt(x: num) -> num
 
-  static fun pow(x: num, exponent: num) -> num
+  static function pow(x: num, exponent: num) -> num
 
-  static fun sin(x: num) -> num
+  static function sin(x: num) -> num
 
-  static fun cos(x: num) -> num
+  static function cos(x: num) -> num
 
-  static fun tan(x: num) -> num
+  static function tan(x: num) -> num
 
-  static fun exp(x: num) -> num
+  static function exp(x: num) -> num
 
-  static fun log(x: num) -> num
+  static function log(x: num) -> num
 
-  static fun parseInt(source: str, {radix: int?}) -> num
+  static function parseInt(source: str, {radix: int?}) -> num
 
-  static fun parseDouble(source: str) -> num
+  static function parseDouble(source: str) -> num
 
-  static fun sum(list: List<num>) -> num
+  static function sum(list: List<num>) -> num
 
-  static fun checkBit(index: int, check: int) -> bool
+  static function checkBit(index: int, check: int) -> bool
 
-  static fun bitLS(x: int, distance: int) -> bool
+  static function bitLS(x: int, distance: int) -> bool
 
-  static fun bitRS(x: int, distance: int) -> bool
+  static function bitRS(x: int, distance: int) -> bool
 
-  static fun bitAnd(x: int, y: int) -> bool
+  static function bitAnd(x: int, y: int) -> bool
 
-  static fun bitOr(x: int, y: int) -> bool
+  static function bitOr(x: int, y: int) -> bool
 
-  static fun bitNot(x: int) -> bool
+  static function bitNot(x: int) -> bool
 
-  static fun bitXor(x: int, y: int) -> bool
+  static function bitXor(x: int, y: int) -> bool
 }
 ```
 
@@ -198,10 +198,10 @@ Some utility method about hash & crypto are defined in the static class Hash.
 ```javascript
 external class Hash {
 
-  static fun uid4([repeat: int?]) -> str
+  static function uid4([repeat: int?]) -> str
 
-  static fun crcString(data: str, [crc: str = 0]) -> str
+  static function crcString(data: str, [crc: str = 0]) -> str
 
-  static fun crcInt(data: str, [crc: str = 0]) -> int
+  static function crcInt(data: str, [crc: str = 0]) -> int
 }
 ```

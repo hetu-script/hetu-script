@@ -2,7 +2,6 @@ import 'package:hetu_script/declaration/function/abstract_parameter.dart';
 
 import '../../external/external_function.dart';
 import '../../error/error.dart';
-import '../../grammar/constant.dart';
 // import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
@@ -18,6 +17,8 @@ import '../../type/function.dart';
 import '../entity.dart';
 // import 'parameter.dart';
 import '../variable/variable.dart';
+import '../../common/function_category.dart';
+import '../../common/internal_identifier.dart';
 
 class RedirectingConstructor {
   /// id of super class's constructor
@@ -57,36 +58,40 @@ class HTFunction extends HTFunctionDeclaration
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
   /// before it can be called within a script.
-  HTFunction(String file, String module, HTInterpreter interpreter,
-      {required super.internalName,
-      super.id,
-      super.classId,
-      super.closure,
-      super.source,
-      super.documentation,
-      super.isExternal = false,
-      super.isStatic = false,
-      super.isConst = false,
-      super.isTopLevel = false,
-      super.category = FunctionCategory.normal,
-      super.externalTypeId,
-      super.genericTypeParameters = const [],
-      super.hasParamDecls = true,
-      super.paramDecls = const {},
-      required super.declType,
-      super.isAsync = false,
-      super.isField = false,
-      super.isAbstract = false,
-      super.isVariadic = false,
-      super.minArity = 0,
-      super.maxArity = 0,
-      super.namespace,
-      this.externalFunc,
-      int? ip,
-      int? line,
-      int? column,
-      this.redirectingConstructor,
-      this.klass}) {
+  HTFunction(
+    String file,
+    String module,
+    HTInterpreter interpreter, {
+    required super.internalName,
+    super.id,
+    super.classId,
+    super.closure,
+    super.source,
+    super.documentation,
+    super.isExternal,
+    super.isStatic,
+    super.isConst,
+    super.isTopLevel,
+    super.isField,
+    super.category = FunctionCategory.normal,
+    super.externalTypeId,
+    super.genericTypeParameters = const [],
+    super.hasParamDecls = true,
+    super.paramDecls = const {},
+    required super.declType,
+    super.isAsync,
+    super.isAbstract,
+    super.isVariadic,
+    super.minArity,
+    super.maxArity,
+    super.namespace,
+    this.externalFunc,
+    int? ip,
+    int? line,
+    int? column,
+    this.redirectingConstructor,
+    this.klass,
+  }) {
     this.interpreter = interpreter;
     this.file = file;
     this.module = module;
@@ -99,7 +104,7 @@ class HTFunction extends HTFunctionDeclaration
   // @override
   // String toString() {
   //   var result = StringBuffer();
-  //   result.write(Semantic.function);
+  //   result.write(InternalIdentifier.function);
   //   if (id != null) {
   //     result.write(' $id');
   //   }

@@ -1,10 +1,10 @@
 external class Future {
 
-  static fun wait(futures: List) -> Future //, { cleanUp: (successValue) -> void })
+  static function wait(futures: List) -> Future //, { cleanUp: (successValue) -> void })
 
-  static fun value(possibleFuture) -> Future
+  static function value(possibleFuture) -> Future
 
-  construct (func: function)
+  constructor (func: function)
 
-  fun then(func: (value) -> any) -> Future
+  function then(func: (value) -> any) -> Future
 }

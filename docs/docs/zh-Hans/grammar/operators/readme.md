@@ -9,11 +9,11 @@
 你可以将一个 Iterable 展开后作为位置参数传入一个函数调用的参数列表。
 
 ```javascript
-fun someFunc(a, b) {
-  print(a + b)
+function someFunc(a, b) {
+  print(a + b);
 }
-var list = [5, 6]
-someFunc(...list) // same to 'someFunc(5, 6)'
+var list = [5, 6];
+someFunc(...list); // same to 'someFunc(5, 6)'
 ```
 
 ### 列表字面量
@@ -31,10 +31,10 @@ var ht = [1, 2, ...[3, 4], ...list]; // same to [1, 2, 3, 4, 5, 6]
 
 ```javascript
 var name = {
-  familyName: 'Hord',
-  firstName: 'Luk',
+  familyName: "Hord",
+  firstName: "Luk",
 };
-var job = 'wood cutter';
+var job = "wood cutter";
 var person = {
   ...name,
   age: 23,

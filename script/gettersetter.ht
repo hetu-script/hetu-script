@@ -1,7 +1,7 @@
 class Root {
   var name = 'the machine'
 
-  fun intro() {
+  function intro() {
     print('name is', name);
   }
 }
@@ -10,7 +10,7 @@ class Types extends Root {
 
   var _age = 42
 
-  construct (the_name: str) {
+  constructor (the_name: str) {
     name = the_name;
   }
 
@@ -22,14 +22,14 @@ class Types extends Root {
     _age = value
   }
 
-  fun greeting {
+  function greeting {
     intro()
     print('my age is', age)
   }
 }
 
 // 程序入口
-fun main {
+function main {
   print(3.toString())
   
   print(true.toString())

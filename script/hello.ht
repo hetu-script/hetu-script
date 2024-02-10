@@ -1,6 +1,6 @@
 
 import 'hello3.ht' as meaning
 
-fun h2 {
+function h2 {
   return 'h2'
 }

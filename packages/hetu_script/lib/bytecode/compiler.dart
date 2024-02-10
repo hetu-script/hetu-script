@@ -6,12 +6,13 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../version.dart';
 import '../ast/ast.dart';
-import '../lexer/lexicon.dart';
-import '../lexer/lexicon_default_impl.dart';
-import '../grammar/constant.dart';
+import '../lexicon/lexicon.dart';
+import '../lexicon/lexicon_hetu.dart';
 import 'shared.dart';
 import '../constant/global_constant_table.dart';
 // import '../parser/parser.dart';
+import '../common/function_category.dart';
+import '../common/internal_identifier.dart';
 
 /// Collection of config of a compiler.
 class CompilerConfig {
@@ -68,7 +69,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     CompilerConfig? config,
     HTLexicon? lexicon,
   })  : config = config ?? CompilerConfig(),
-        _lexicon = lexicon ?? HTDefaultLexicon();
+        _lexicon = lexicon ?? HTLexiconHetu();
 
   Uint8List compile(
     ASTCompilation compilation, // {  bool printPerformanceStatistics = false,}
@@ -268,7 +269,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   //               category: FunctionCategory.literal,
   //               paramDecls: [ParamDecl(IdentifierExpr(id))],
   //               definition: BlockStmt([node, ...restSyncCode],
-  //                   id: Semantic.functionCall),
+  //                   id: InternalIdentifier.functionCall),
   //             )
   //           ]);
   //     }
@@ -1236,7 +1237,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(OpCode.codeBlock);
-    bytesBuilder.add(_identifier(Semantic.forExprInit));
+    bytesBuilder.add(_identifier(InternalIdentifier.forExpressionInit));
     late Uint8List condition;
     Uint8List? increment;
     ASTNode? capturedDecl;
@@ -1298,7 +1299,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     bytesBuilder.addByte(OpCode.codeBlock);
-    bytesBuilder.add(_identifier(Semantic.forExprInit));
+    bytesBuilder.add(_identifier(InternalIdentifier.forExpressionInit));
 
     final collection = stmt.iterateValue
         ? MemberExpr(stmt.collection,
@@ -1364,7 +1365,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitWhen(WhenStmt stmt) {
+  Uint8List visitSwitch(SwitchStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     Uint8List? condition;
@@ -1381,11 +1382,11 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final caseBytesBuilder = BytesBuilder();
       if (condition != null) {
         if (ast is CommaExpr) {
-          caseBytesBuilder.addByte(HTWhenCaseTypeCode.eigherEquals);
+          caseBytesBuilder.addByte(HTSwitchCaseTypeCode.eigherEquals);
           final bytes = visitCommaExpr(ast);
           caseBytesBuilder.add(bytes);
         } else if (ast is InOfExpr) {
-          caseBytesBuilder.addByte(HTWhenCaseTypeCode.elementIn);
+          caseBytesBuilder.addByte(HTSwitchCaseTypeCode.elementIn);
           Uint8List bytes;
           if (ast.valueOf) {
             final getValues = MemberExpr(ast.collection,
@@ -1396,12 +1397,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
           }
           caseBytesBuilder.add(bytes);
         } else {
-          caseBytesBuilder.addByte(HTWhenCaseTypeCode.equals);
+          caseBytesBuilder.addByte(HTSwitchCaseTypeCode.equals);
           final bytes = compileAST(ast, endOfExec: true);
           caseBytesBuilder.add(bytes);
         }
       } else {
-        caseBytesBuilder.addByte(HTWhenCaseTypeCode.equals);
+        caseBytesBuilder.addByte(HTSwitchCaseTypeCode.equals);
         final bytes = compileAST(ast, endOfExec: true);
         caseBytesBuilder.add(bytes);
       }
@@ -1413,7 +1414,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (condition != null) {
       bytesBuilder.add(condition);
     }
-    bytesBuilder.addByte(OpCode.whenStmt);
+    bytesBuilder.addByte(OpCode.switchStmt);
     bytesBuilder.addByte(condition != null ? 1 : 0);
     bytesBuilder.addByte(cases.length);
     var curBranchIp = 0;
@@ -1902,14 +1903,14 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: has super class
       bytesBuilder.addByte(1); // bool: is enum
 
-      final valueId = '${_lexicon.privatePrefix}${Semantic.name}';
+      final valueId = '${_lexicon.privatePrefix}${_lexicon.idEnumItemName}';
       final value = VarDecl(IdentifierExpr(valueId), classId: stmt.id.id);
       final valueBytes = visitVarDecl(value);
       bytesBuilder.add(valueBytes);
 
-      final ctorParam = ParamDecl(IdentifierExpr(Semantic.name));
+      final ctorParam = ParamDecl(IdentifierExpr(_lexicon.idEnumItemName));
       final ctorDef = AssignExpr(IdentifierExpr(valueId), _lexicon.assign,
-          IdentifierExpr(Semantic.name));
+          IdentifierExpr(_lexicon.idEnumItemName));
       final constructor = FuncDecl(
           '${InternalIdentifier.namedConstructorPrefix}${_lexicon.privatePrefix}',
           id: IdentifierExpr(_lexicon.privatePrefix),

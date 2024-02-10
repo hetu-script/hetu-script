@@ -3,10 +3,10 @@ import 'dart:math' as math;
 import 'package:path/path.dart' as path;
 
 // import '../grammar/lexicon.dart';
-import '../grammar/constant.dart';
 import 'line_info.dart';
 import '../resource/resource.dart';
-import '../shared/crc32b.dart';
+import '../utils/crc32b.dart';
+import '../common/internal_identifier.dart';
 
 /// A piece of code, with extra informations like:
 /// [fullName], [type], [lineInfo], etc.

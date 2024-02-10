@@ -1,5 +1,5 @@
 import 'recursive2.ht'
 
-fun hello {
+function hello {
   return 'hello, ${name}, I\'m r1!';
 }

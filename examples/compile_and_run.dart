@@ -28,7 +28,7 @@ void main() {
   hetu.init(externalClasses: [TestClassBinding()]);
   final bytes = hetu.compile(r'''
     external class Test {
-      static fun greeting
+      static function greeting
     }
     ''');
 
@@ -37,7 +37,7 @@ void main() {
   final bytes2 = hetu.compile(r'''
     import 'module:myModule' as m
 
-    fun main {
+    function main {
       m.Test.greeting()
     }
     ''');

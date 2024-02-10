@@ -22,9 +22,9 @@ import '../external/external_class.dart';
 import '../binding/class_binding.dart';
 import '../binding/hetu_binding.dart';
 import '../lexer/lexer.dart';
-import '../lexer/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import '../parser/parser.dart';
-import '../parser/parser_default_impl.dart';
+import '../parser/parser_hetu.dart';
 import '../resource/resource.dart';
 import '../bundler/bundler.dart';
 
@@ -165,6 +165,7 @@ class Hetu {
   Hetu({
     HetuConfig? config,
     HTResourceContext<HTSource>? sourceContext,
+    HTLocale? locale,
     HTLexicon? lexicon,
     HTLexer? lexer,
     String parserName = 'default',
@@ -174,9 +175,12 @@ class Hetu {
     if (parser != null) {
       _currentParser = parser;
     } else {
-      _currentParser = HTDefaultParser(
+      _currentParser = HTParserHetu(
         config: this.config,
       );
+    }
+    if (locale != null) {
+      HTLocale.current = locale;
     }
     if (lexer != null) {
       _currentParser.lexer = lexer;
@@ -213,17 +217,12 @@ class Hetu {
   /// it cannot use any of the pre-included functions like `print` and the Dart apis on number & string, etc.
   void init({
     bool useDefaultModuleAndBinding = true,
-    HTLocale? locale,
     Map<String, Function> externalFunctions = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
     List<HTExternalTypeReflection> externalTypeReflections = const [],
   }) {
     if (_isInitted) return;
-
-    if (locale != null) {
-      HTLocale.current = locale;
-    }
 
     if (useDefaultModuleAndBinding) {
       // bind externals before any eval

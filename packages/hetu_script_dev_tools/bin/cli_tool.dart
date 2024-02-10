@@ -46,7 +46,7 @@ final hetu = Hetu(
     sourceContext: sourceContext);
 final sourceContext = HTFileSystemResourceContext();
 final analyzer = HTAnalyzer(sourceContext: sourceContext);
-final parser = HTDefaultParser();
+final parser = HTParserHetu();
 final bundler = HTBundler(sourceContext: sourceContext);
 
 bool showDetailsOfError = false;

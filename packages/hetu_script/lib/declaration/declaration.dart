@@ -1,5 +1,5 @@
 import '../error/error.dart';
-// import '../grammar/semantic.dart';
+// import '../grammar/HTLocale.current.dart';
 import '../source/source.dart';
 import '../source/source_range.dart';
 import '../type/type.dart';
@@ -48,7 +48,9 @@ abstract class HTDeclaration {
   final bool isTopLevel;
 
   /// Wether this declaration is a member of a class or struct.
-  bool get isMember => classId != null;
+  // bool get isMember => classId != null;
+
+  final bool isField;
 
   bool get isResolved => true;
 
@@ -67,6 +69,7 @@ abstract class HTDeclaration {
     this.isConst = false,
     this.isMutable = false,
     this.isTopLevel = false,
+    this.isField = false,
     this.documentation,
   }) : _isPrivate = isPrivate;
 

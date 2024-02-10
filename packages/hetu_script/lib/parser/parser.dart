@@ -1,10 +1,9 @@
 import '../ast/ast.dart';
 import '../source/source.dart';
 import 'token.dart';
-import '../grammar/constant.dart';
-import '../lexer/lexicon.dart';
+import '../lexicon/lexicon.dart';
 import '../lexer/lexer.dart';
-import '../lexer/lexer_default_impl.dart';
+import '../lexer/lexer_hetu.dart';
 import 'token_reader.dart';
 import '../error/error.dart';
 import '../resource/resource.dart' show HTResourceType;
@@ -73,7 +72,7 @@ abstract class HTParser with TokenReader {
     HTLexicon? lexicon,
     HTLexer? lexer,
   })  : config = config ?? ParserConfig(),
-        lexer = lexer ?? HTDefaultLexer(lexicon: lexicon);
+        lexer = lexer ?? HTLexerHetu(lexicon: lexicon);
 
   /// A functional programming way to parse expression seperated by comma,
   /// such as parameter list, argumetn list, list, group... etc.
@@ -86,7 +85,7 @@ abstract class HTParser with TokenReader {
   }) {
     final List<T> listResult = [];
     final savedPrecedings = savePrecedings();
-    while (curTok.type != endToken && curTok.type != Semantic.endOfFile) {
+    while (curTok.type != endToken && curTok.type != Token.endOfFile) {
       // deal with comments or empty liens before spread syntax
       handlePrecedings();
       if (curTok.type == endToken) break;
@@ -207,7 +206,7 @@ abstract class HTParser with TokenReader {
       }
     }
 
-    while (curTok.type != Semantic.endOfFile) {
+    while (curTok.type != Token.endOfFile) {
       final stmt = parseStmt(style: style);
       if (stmt != null) {
         if (stmt is ASTEmptyLine && style == ParseStyle.expression) {

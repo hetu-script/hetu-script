@@ -16,7 +16,7 @@ void main() {
   final hetu =
       Hetu(config: HetuConfig(resolveExternalFunctionsDynamically: true));
   hetu.init();
-  hetu.eval('external fun test');
+  hetu.eval('external function test');
 
   void run() {
     final t = Test();

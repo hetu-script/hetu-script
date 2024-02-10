@@ -44,10 +44,8 @@ extension PersonBinding on Person {
     switch (id) {
       case 'name':
         name = value;
-        break;
       case 'race':
         race = value;
-        break;
       default:
         throw HTError.undefined(id);
     }
@@ -93,7 +91,6 @@ class PersonClassBinding extends HTExternalClass {
         throw HTError.immutable(id);
       case 'Person.level':
         Person.level = value;
-        break;
       default:
         throw HTError.undefined(id);
     }
@@ -118,14 +115,14 @@ void main() {
   hetu.eval('''
       external class Person {
         var race: str
-        construct([name: str = 'Jimmy', race: str = 'Caucasian']);
+        constructor([name: str = 'Jimmy', race: str = 'Caucasian']);
         get child
-        static fun meaning(n: num)
+        static function meaning(n: num)
         static get level
         static set level (value: str)
-        construct withName(name: str, [race: str = 'Caucasian'])
+        constructor withName(name: str, [race: str = 'Caucasian'])
         var name
-        fun greeting(tag: str)
+        function greeting(tag: str)
       }
       var p1: Person = Person()
       p1.greeting('jimmy')

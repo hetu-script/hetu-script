@@ -13,23 +13,23 @@ Future<void> main() async {
     },
   );
   hetu.eval('''
-    external fun fetch() -> Future<int>;
+    external function fetch() -> Future<int>;
     
-    fun test1() async {
+    function test1() async {
       print('before');
       final result = await fetch();
       print('after');
       print(result);
     }
     
-    fun test2() -> Future<int> async {
+    function test2() -> Future<int> async {
       print('before');
       final result = await fetch();
       print('after');
       return result;
     }
     
-    fun test3() -> Future<String> async {
+    function test3() -> Future<String> async {
       print('before');
       return fetch().then((result) {
         print('after');

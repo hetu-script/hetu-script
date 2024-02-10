@@ -1,6 +1,6 @@
 import 'hello.ht'
 
-fun main {
+function main {
   final greeting = hello()
   print(greeting)
 

@@ -17,7 +17,7 @@ void main() {
 //     ]
 ''';
   final source = HTSource(code, type: HTResourceType.hetuScript);
-  final parser = HTDefaultParser();
+  final parser = HTParserHetu();
   final result = parser.parseSource(source);
   for (final err in result.errors) {
     print(err);

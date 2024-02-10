@@ -35,7 +35,7 @@ final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isF
 例如我们在脚本中有如下定义：
 
 ```kotlin
-fun main (data) {
+function main (data) {
   var book = Prototype.fromJson(data)
   print(book)
 }
@@ -109,7 +109,7 @@ void main() async {
             List<HTTypeId> typeArgs = const []}) => {'greeting': 'Hello from Dart!'},
   });
   final hetuValue = hetu.eval(r'''
-      external fun hello
+      external function hello
       var dartValue = hello()
       dartValue['reply'] = 'Hi, this is Hetu.'
       dartValue // the script will return the value of it's last expression
@@ -131,7 +131,7 @@ hetu value: {'greeting': 'Hello from Dart!', 'reply': 'Hi, this is Hetu.'}
 
 ```dart
 class Someone {
-  external fun calculate
+  external function calculate
 }
 ```
 
@@ -161,7 +161,7 @@ ss.calculate()
 
 ```javascript
 struct Person {
-  external fun sing
+  external function sing
 }
 ```
 
@@ -301,16 +301,16 @@ void main() {
   hetu.eval('''
       external class Person {
         var race: str
-        construct([name: str = 'Jimmy', race: str = 'Caucasian']);
+        constructor([name: str = 'Jimmy', race: str = 'Caucasian']);
         get child
-        static fun meaning(n: num)
+        static function meaning(n: num)
         static get level
         static set level (value: str)
-        construct withName(name: str, [race: str = 'Caucasian'])
+        constructor withName(name: str, [race: str = 'Caucasian'])
         var name
-        fun greeting(tag: str)
+        function greeting(tag: str)
       }
-      fun main {
+      function main {
         var p1: Person = Person()
         p1.greeting('jimmy')
         print(Person.meaning(42))
@@ -364,11 +364,11 @@ class PersonClassBinding extends HTExternalClass {
 你可以通过绑定一个**外部解包装函数定义**来实现这个目的。在脚本中，在函数名之前的 **[]** 用来定义外部解包装函数定义：
 
 ```dart
-fun [DartFunction] add(a: num, b: num) -> num {
+function [DartFunction] add(a: num, b: num) -> num {
   return a + b
 }
 
-fun getFunc {
+function getFunc {
   return add
 }
 ```

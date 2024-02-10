@@ -1,5 +1,4 @@
 import '../../external/external_class.dart';
-import '../../grammar/constant.dart';
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
@@ -11,6 +10,7 @@ import '../../declaration/class/class_declaration.dart';
 import '../entity.dart';
 import 'class_namespace.dart';
 import '../../type/nominal.dart';
+import '../../common/internal_identifier.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
 class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
@@ -135,7 +135,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
         namespace.symbols.containsKey(constructor);
   }
 
-  /// Get a value of a static member from this [HTClass].
+  /// Get the value of a static member from this [HTClass] via memberGet operator '.'
+  /// for symbol searching, use the same name method on [HTClassNamespace] instead.
   @override
   dynamic memberGet(String id, {String? from, bool throws = true}) {
     final getter = '${InternalIdentifier.getter}$id';
@@ -155,17 +156,17 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(id);
       }
-      if (isExternal) {
-        decl.resolve();
-        return decl.value;
-      } else {
-        if (decl.isStatic ||
-            (decl is HTFunction &&
-                decl.category == FunctionCategory.constructor)) {
-          decl.resolve();
-          return decl.value;
-        }
-      }
+      // if (isExternal) {
+      //   decl.resolve();
+      //   return decl.value;
+      // } else {
+      //   if (decl.isStatic ||
+      //       (decl is HTFunction &&
+      //           decl.category == FunctionCategory.constructor)) {
+      decl.resolve();
+      return decl.value;
+      //   }
+      // }
     } else if (namespace.symbols.containsKey(getter)) {
       final decl = namespace.symbols[getter]!;
       if (decl.isPrivate &&
@@ -174,15 +175,15 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
         throw HTError.privateMember(id);
       }
       final func = decl as HTFunction;
-      if (isExternal) {
-        decl.resolve();
-        return func.call();
-      } else {
-        if (decl.isStatic) {
-          decl.resolve();
-          return func.call();
-        }
-      }
+      // if (isExternal) {
+      //   decl.resolve();
+      //   return func.call();
+      // } else {
+      //   if (decl.isStatic) {
+      decl.resolve();
+      return func.call();
+      //   }
+      // }
     } else if (namespace.symbols.containsKey(constructor)) {
       final decl = namespace.symbols[constructor]!.value;
       if (decl.isPrivate &&
@@ -204,7 +205,8 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     }
   }
 
-  /// Assign a value to a static member of this [HTClass].
+  /// Set the value of a static member of this [HTClass] via memberGet operator '.'
+  /// for symbol searching, use the same name method on [HTClassNamespace] instead.
   @override
   void memberSet(String id, dynamic value, {String? from}) {
     final setter = '${InternalIdentifier.setter}$id';

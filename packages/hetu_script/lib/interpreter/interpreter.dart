@@ -26,9 +26,8 @@ import '../type/type.dart';
 import '../type/function.dart';
 import '../type/nominal.dart';
 import '../type/structural.dart';
-import '../lexer/lexicon.dart';
-import '../lexer/lexicon_default_impl.dart';
-import '../grammar/constant.dart';
+import '../lexicon/lexicon.dart';
+import '../lexicon/lexicon_hetu.dart';
 import '../source/source.dart';
 import '../resource/resource.dart';
 import '../resource/resource_context.dart';
@@ -40,6 +39,8 @@ import '../bytecode/compiler.dart';
 import '../version.dart';
 import '../value/unresolved_import.dart';
 import '../locale/locale.dart';
+import '../common/internal_identifier.dart';
+import '../common/function_category.dart';
 
 /// Mixin for classes that want to hold a ref of a bytecode interpreter
 mixin InterpreterRef {
@@ -222,8 +223,9 @@ class HTInterpreter {
       required this.sourceContext,
       HTLexicon? lexicon})
       : config = config ?? InterpreterConfig(),
-        _lexicon = lexicon ?? HTDefaultLexicon() {
-    globalNamespace = HTNamespace(lexicon: _lexicon, id: Semantic.global);
+        _lexicon = lexicon ?? HTLexiconHetu() {
+    globalNamespace =
+        HTNamespace(lexicon: _lexicon, id: InternalIdentifier.global);
     currentNamespace = globalNamespace;
   }
 
@@ -654,7 +656,7 @@ class HTInterpreter {
     } else if (encap is HTType) {
       type = HTTypeType(_lexicon.kType);
     } else {
-      type = encap.valueType ?? HTTypeUnknown(_lexicon.typeUnknown);
+      type = encap.valueType ?? HTTypeUnknown(_lexicon.kUnknown);
     }
     return type;
   }
@@ -668,9 +670,9 @@ class HTInterpreter {
     if (decltype != null) {
       return decltype;
     } else if (decl is HTVariableDeclaration) {
-      return HTTypeAny(lexicon.typeAny);
+      return HTTypeAny(lexicon.kAny);
     } else {
-      return HTTypeUnknown(lexicon.typeUnknown);
+      return HTTypeUnknown(lexicon.kUnknown);
     }
   }
 
@@ -683,13 +685,13 @@ class HTInterpreter {
     }
     late String typeString;
     if (object is bool) {
-      typeString = _lexicon.typeBoolean;
+      typeString = _lexicon.kBoolean;
     } else if (object is int) {
-      typeString = _lexicon.typeInteger;
+      typeString = _lexicon.kInteger;
     } else if (object is double) {
-      typeString = _lexicon.typeFloat;
+      typeString = _lexicon.kFloat;
     } else if (object is String) {
-      typeString = _lexicon.typeString;
+      typeString = _lexicon.kString;
     } else if (object is List) {
       typeString = 'List';
       // var valueType = HTType.ANY;
@@ -1092,20 +1094,16 @@ class HTInterpreter {
         case OpCode.lineInfo:
           _currentLine = _currentBytecodeModule.readUint16();
           _currentColumn = _currentBytecodeModule.readUint16();
-          break;
         // store a local value in interpreter
         case OpCode.local:
           _storeLocal();
-          break;
         // store current local value to a register position
         case OpCode.register:
           final index = _currentBytecodeModule.read();
           _setRegVal(index, _localValue);
-          break;
         case OpCode.skip:
           final distance = _currentBytecodeModule.readInt16();
           _currentBytecodeModule.ip += distance;
-          break;
         case OpCode.file:
           _currentFile = _currentBytecodeModule.getConstString();
           final resourceTypeIndex = _currentBytecodeModule.read();
@@ -1119,7 +1117,6 @@ class HTInterpreter {
           else {
             currentNamespace = globalNamespace;
           }
-          break;
         // store the loop jump point
         case OpCode.loopPoint:
           final continueLength = _currentBytecodeModule.readUint16();
@@ -1130,38 +1127,31 @@ class HTInterpreter {
               _currentBytecodeModule.ip + breakLength,
               currentNamespace));
           ++_loopCount;
-          break;
         case OpCode.breakLoop:
           _currentBytecodeModule.ip = _loops.last.breakIp;
           currentNamespace = _loops.last.namespace;
           _loops.removeLast();
           --_loopCount;
-          break;
         case OpCode.continueLoop:
           _currentBytecodeModule.ip = _loops.last.continueIp;
-          break;
         // store the goto jump point
         case OpCode.anchor:
           _anchors.add(_currentBytecodeModule.ip);
           ++_anchorCount;
-          break;
         case OpCode.clearAnchor:
           assert(_anchors.isNotEmpty);
           _anchors.removeLast();
           --_anchorCount;
-          break;
         case OpCode.goto:
           assert(_anchors.isNotEmpty);
           final distance = _currentBytecodeModule.readUint16();
           _currentBytecodeModule.ip = _anchors.last + distance;
-          break;
         case OpCode.assertion:
           assert(_localValue is bool);
           final text = _currentBytecodeModule.getConstString();
           if (!_localValue) {
             throw HTError.assertionFailed(text);
           }
-          break;
         case OpCode.throws:
           throw HTError.scriptThrows(_lexicon.stringify(_localValue));
         // 匿名语句块，blockStart 一定要和 blockEnd 成对出现
@@ -1169,14 +1159,11 @@ class HTInterpreter {
           final id = _currentBytecodeModule.getConstString();
           currentNamespace =
               HTNamespace(lexicon: _lexicon, id: id, closure: currentNamespace);
-          break;
         case OpCode.endOfCodeBlock:
           currentNamespace = currentNamespace.closure!;
-          break;
         // 语句结束
         case OpCode.endOfStmt:
           _clearLocals();
-          break;
         case OpCode.endOfExec:
           return _localValue;
         case OpCode.endOfFunc:
@@ -1191,10 +1178,8 @@ class HTInterpreter {
           return _localValue;
         case OpCode.createStackFrame:
           _createStackFrame();
-          break;
         case OpCode.retractStackFrame:
           _retractStackFrame();
-          break;
         case OpCode.constIntTable:
           final int64Length = _currentBytecodeModule.readUint16();
           for (var i = 0; i < int64Length; ++i) {
@@ -1202,7 +1187,6 @@ class HTInterpreter {
                 .addGlobalConstant<int>(_currentBytecodeModule.readInt64());
             // _bytecodeModule.addInt(_bytecodeModule.readInt64());
           }
-          break;
         case OpCode.constFloatTable:
           final float64Length = _currentBytecodeModule.readUint16();
           for (var i = 0; i < float64Length; ++i) {
@@ -1210,14 +1194,12 @@ class HTInterpreter {
                 _currentBytecodeModule.readFloat64());
             // _bytecodeModule.addFloat(_bytecodeModule.readFloat64());
           }
-          break;
         case OpCode.constStringTable:
           final utf8StringLength = _currentBytecodeModule.readUint16();
           for (var i = 0; i < utf8StringLength; ++i) {
             _currentBytecodeModule.addGlobalConstant<String>(
                 _currentBytecodeModule.readUtf8String());
           }
-          break;
         case OpCode.endOfFile:
           if (_currentFileResourceType == HTResourceType.json) {
             final jsonSource = HTJsonSource(
@@ -1231,8 +1213,7 @@ class HTInterpreter {
             _currentBytecodeModule.namespaces[currentNamespace.id!] =
                 currentNamespace;
           }
-          // endOfFileHandler?.call();
-          break;
+        // endOfFileHandler?.call();
         case OpCode.endOfModule:
           if (!_scriptMode) {
             /// deal with import statement within every namespace of this module.
@@ -1280,16 +1261,12 @@ class HTInterpreter {
           return r;
         case OpCode.importExportDecl:
           _handleImportExport();
-          break;
         case OpCode.typeAliasDecl:
           _handleTypeAliasDecl();
-          break;
         case OpCode.funcDecl:
           _handleFuncDecl();
-          break;
         case OpCode.classDecl:
           _handleClassDecl();
-          break;
         case OpCode.classDeclEnd:
           assert(currentNamespace is HTClassNamespace);
           final klass = (currentNamespace as HTClassNamespace).klass;
@@ -1310,13 +1287,10 @@ class HTInterpreter {
             klass.namespace.define(InternalIdentifier.defaultConstructor, ctor);
           }
           _localValue = klass;
-          break;
         case OpCode.externalEnumDecl:
           _handleExternalEnumDecl();
-          break;
         case OpCode.structDecl:
           _handleStructDecl();
-          break;
         case OpCode.varDecl:
           final hasDoc = _currentBytecodeModule.readBool();
           String? documentation;
@@ -1367,6 +1341,7 @@ class HTInterpreter {
                 isExternal: isExternal,
                 isStatic: isStatic,
                 isMutable: isMutable,
+                isField: isField,
                 ip: definitionIp,
                 line: definitionLine,
                 column: definitionColumn,
@@ -1389,6 +1364,7 @@ class HTInterpreter {
                   isExternal: isExternal,
                   isStatic: isStatic,
                   isMutable: isMutable,
+                  isField: isField,
                 );
                 final savedContext = getContext();
                 futureExecution = FutureExecution(
@@ -1411,23 +1387,26 @@ class HTInterpreter {
                   isExternal: isExternal,
                   isStatic: isStatic,
                   isMutable: isMutable,
+                  isField: isField,
                 );
               }
             }
           } else {
             decl = HTVariable(
-                id: id,
-                interpreter: this,
-                file: _currentFile,
-                module: _currentBytecodeModule.id,
-                classId: classId,
-                closure: currentNamespace,
-                documentation: documentation,
-                declType: declType,
-                isExternal: isExternal,
-                isStatic: isStatic,
-                isMutable: isMutable,
-                lateFinalize: lateFinalize);
+              id: id,
+              interpreter: this,
+              file: _currentFile,
+              module: _currentBytecodeModule.id,
+              classId: classId,
+              closure: currentNamespace,
+              documentation: documentation,
+              declType: declType,
+              isExternal: isExternal,
+              isStatic: isStatic,
+              isMutable: isMutable,
+              isField: isField,
+              lateFinalize: lateFinalize,
+            );
           }
           if (!isField) {
             currentNamespace.define(id, decl,
@@ -1437,13 +1416,10 @@ class HTInterpreter {
           if (futureExecution != null) {
             return futureExecution;
           }
-          break;
         case OpCode.destructuringDecl:
           _handleDestructuringDecl();
-          break;
         case OpCode.constDecl:
           _handleConstDecl();
-          break;
         case OpCode.namespaceDecl:
           final hasDoc = _currentBytecodeModule.readBool();
           String? documentation;
@@ -1465,7 +1441,6 @@ class HTInterpreter {
             documentation: documentation,
             isTopLevel: isTopLevel,
           );
-          break;
         case OpCode.namespaceDeclEnd:
           final nsp = currentNamespace;
           _localValue = nsp;
@@ -1473,7 +1448,6 @@ class HTInterpreter {
           currentNamespace = nsp.closure!;
           assert(nsp.id != null);
           currentNamespace.define(nsp.id!, nsp);
-          break;
         case OpCode.delete:
           final deletingType = _currentBytecodeModule.read();
           if (deletingType == HTDeletingTypeCode.member) {
@@ -1502,7 +1476,6 @@ class HTInterpreter {
             final symbol = _currentBytecodeModule.getConstString();
             currentNamespace.delete(symbol);
           }
-          break;
         case OpCode.ifStmt:
           final thenBranchLength = _currentBytecodeModule.readUint16();
           final truthValue = _truthy(_localValue);
@@ -1510,7 +1483,6 @@ class HTInterpreter {
             _currentBytecodeModule.skip(thenBranchLength);
             _clearLocals();
           }
-          break;
         case OpCode.whileStmt:
           final truthValue = _truthy(_localValue);
           if (!truthValue) {
@@ -1520,7 +1492,6 @@ class HTInterpreter {
             --_loopCount;
             _clearLocals();
           }
-          break;
         case OpCode.doStmt:
           final hasCondition = _currentBytecodeModule.readBool();
           final truthValue = hasCondition ? _truthy(_localValue) : false;
@@ -1533,10 +1504,8 @@ class HTInterpreter {
             --_loopCount;
             _clearLocals();
           }
-          break;
-        case OpCode.whenStmt:
-          _handleWhen();
-          break;
+        case OpCode.switchStmt:
+          _handleSwitch();
         case OpCode.assign:
           final value = _getRegVal(HTRegIdx.assignRight);
           assert(localSymbol != null);
@@ -1560,7 +1529,6 @@ class HTInterpreter {
             }
           }
           _localValue = value;
-          break;
         case OpCode.ifNull:
           final left = _getRegVal(HTRegIdx.orLeft);
           final rightValueLength = _currentBytecodeModule.readUint16();
@@ -1571,7 +1539,6 @@ class HTInterpreter {
             final right = execute();
             _localValue = right;
           }
-          break;
         case OpCode.logicalOr:
           final left = _getRegVal(HTRegIdx.orLeft);
           final leftTruthValue = _truthy(left);
@@ -1583,7 +1550,6 @@ class HTInterpreter {
             final right = execute();
             _localValue = _truthy(right);
           }
-          break;
         case OpCode.logicalAnd:
           final left = _getRegVal(HTRegIdx.andLeft);
           final leftTruthValue = _truthy(left);
@@ -1596,15 +1562,12 @@ class HTInterpreter {
             final rightTruthValue = _truthy(right);
             _localValue = leftTruthValue && rightTruthValue;
           }
-          break;
         case OpCode.equal:
           var left = _getRegVal(HTRegIdx.equalLeft);
           _localValue = left == _localValue;
-          break;
         case OpCode.notEqual:
           var left = _getRegVal(HTRegIdx.equalLeft);
           _localValue = left != _localValue;
-          break;
         case OpCode.lesser:
           var left = _getRegVal(HTRegIdx.relationLeft);
           var right = _localValue;
@@ -1615,7 +1578,6 @@ class HTInterpreter {
             right = 0;
           }
           _localValue = left < right;
-          break;
         case OpCode.greater:
           var left = _getRegVal(HTRegIdx.relationLeft);
           var right = _localValue;
@@ -1626,7 +1588,6 @@ class HTInterpreter {
             right = 0;
           }
           _localValue = left > right;
-          break;
         case OpCode.lesserOrEqual:
           var left = _getRegVal(HTRegIdx.relationLeft);
           var right = _localValue;
@@ -1637,7 +1598,6 @@ class HTInterpreter {
             right = 0;
           }
           _localValue = left <= right;
-          break;
         case OpCode.greaterOrEqual:
           var left = _getRegVal(HTRegIdx.relationLeft);
           var right = _localValue;
@@ -1648,20 +1608,16 @@ class HTInterpreter {
             right = 0;
           }
           _localValue = left >= right;
-          break;
         case OpCode.typeAs:
           final object = _getRegVal(HTRegIdx.relationLeft);
           final type = (_localValue as HTType).resolve(currentNamespace)
               as HTNominalType;
           final klass = type.klass as HTClass;
           _localValue = HTCast(object, klass, this);
-          break;
         case OpCode.typeIs:
           _handleTypeCheck();
-          break;
         case OpCode.typeIsNot:
           _handleTypeCheck(isNot: true);
-          break;
         case OpCode.add:
           var left = _getRegVal(HTRegIdx.addLeft);
           if (_isZero(left)) {
@@ -1672,7 +1628,6 @@ class HTInterpreter {
             right = 0;
           }
           _localValue = left + right;
-          break;
         case OpCode.subtract:
           var left = _getRegVal(HTRegIdx.addLeft);
           if (_isZero(left)) {
@@ -1683,7 +1638,6 @@ class HTInterpreter {
             right = 0;
           }
           _localValue = left - right;
-          break;
         case OpCode.multiply:
           var left = _getRegVal(HTRegIdx.multiplyLeft);
           if (_isZero(left)) {
@@ -1694,7 +1648,6 @@ class HTInterpreter {
             right = 0;
           }
           _localValue = left * right;
-          break;
         case OpCode.devide:
           var left = _getRegVal(HTRegIdx.multiplyLeft);
           if (_isZero(left)) {
@@ -1702,7 +1655,6 @@ class HTInterpreter {
           }
           final right = _localValue;
           _localValue = left / right;
-          break;
         case OpCode.truncatingDevide:
           var left = _getRegVal(HTRegIdx.multiplyLeft);
           if (_isZero(left)) {
@@ -1710,7 +1662,6 @@ class HTInterpreter {
           }
           final right = _localValue;
           _localValue = left ~/ right;
-          break;
         case OpCode.modulo:
           var left = _getRegVal(HTRegIdx.multiplyLeft);
           if (_isZero(left)) {
@@ -1718,29 +1669,23 @@ class HTInterpreter {
           }
           final right = _localValue;
           _localValue = left % right;
-          break;
         case OpCode.negative:
           _localValue = -_localValue;
-          break;
         case OpCode.logicalNot:
           final truthValue = _truthy(_localValue);
           _localValue = !truthValue;
-          break;
         case OpCode.typeOf:
           _localValue = typeof(_localValue);
-          break;
         case OpCode.decltypeOf:
           final symbol = localSymbol;
           assert(symbol != null);
           _localValue = decltypeof(symbol!);
-          break;
         case OpCode.awaitedValue:
           // handle the possible future execution request raised by await keyword and Future value.
           if (_localValue is Future) {
             final HTContext savedContext = getContext();
             return FutureExecution(future: _localValue, context: savedContext);
           }
-          break;
         case OpCode.memberGet:
           final object = _getRegVal(HTRegIdx.postfixObject);
           final isNullable = _currentBytecodeModule.readBool();
@@ -1769,7 +1714,6 @@ class HTInterpreter {
                   encap.memberGet(key, from: currentNamespace.fullName);
             }
           }
-          break;
         case OpCode.subGet:
           final object = _getRegVal(HTRegIdx.postfixObject);
           final isNullable = _currentBytecodeModule.readBool();
@@ -1811,7 +1755,6 @@ class HTInterpreter {
               }
             }
           }
-          break;
         case OpCode.memberSet:
           final object = _getRegVal(HTRegIdx.postfixObject);
           final isNullable = _currentBytecodeModule.readBool();
@@ -1839,7 +1782,6 @@ class HTInterpreter {
               encap.memberSet(key, value, from: currentNamespace.fullName);
             }
           }
-          break;
         case OpCode.subSet:
           final object = _getRegVal(HTRegIdx.postfixObject);
           final isNullable = _currentBytecodeModule.readBool();
@@ -1886,10 +1828,8 @@ class HTInterpreter {
               }
             }
           }
-          break;
         case OpCode.call:
           _handleCallExpr();
-          break;
         default:
           throw HTError.unknownOpCode(instruction,
               filename: _currentFile,
@@ -2021,27 +1961,21 @@ class HTInterpreter {
     switch (valueType) {
       case HTValueTypeCode.nullValue:
         _localValue = null;
-        break;
       case HTValueTypeCode.boolean:
         (_currentBytecodeModule.read() == 0)
             ? _localValue = false
             : _localValue = true;
-        break;
       case HTValueTypeCode.constInt:
         final index = _currentBytecodeModule.readUint16();
         _localValue = _currentBytecodeModule.getGlobalConstant(int, index);
-        break;
       case HTValueTypeCode.constFloat:
         final index = _currentBytecodeModule.readUint16();
         _localValue = _currentBytecodeModule.getGlobalConstant(double, index);
-        break;
       case HTValueTypeCode.constString:
         final index = _currentBytecodeModule.readUint16();
         _localValue = _currentBytecodeModule.getGlobalConstant(String, index);
-        break;
       case HTValueTypeCode.string:
         _localValue = _currentBytecodeModule.readUtf8String();
-        break;
       case HTValueTypeCode.stringInterpolation:
         var literal = _currentBytecodeModule.readUtf8String();
         final interpolationLength = _currentBytecodeModule.read();
@@ -2052,7 +1986,6 @@ class HTInterpreter {
               _lexicon.stringify(value));
         }
         _localValue = literal;
-        break;
       case HTValueTypeCode.identifier:
         final symbol = _localSymbol = _currentBytecodeModule.getConstString();
         final isLocal = _currentBytecodeModule.readBool();
@@ -2062,20 +1995,18 @@ class HTInterpreter {
         } else {
           _localValue = symbol;
         }
-        // final hasTypeArgs = _curLibrary.readBool();
-        // if (hasTypeArgs) {
-        //   final typeArgsLength = _curLibrary.read();
-        //   final typeArgs = <HTType>[];
-        //   for (var i = 0; i < typeArgsLength; ++i) {
-        //     final arg = _handleTypeExpr();
-        //     typeArgs.add(arg);
-        //   }
-        //   _curTypeArgs = typeArgs;
-        // }
-        break;
+      // final hasTypeArgs = _curLibrary.readBool();
+      // if (hasTypeArgs) {
+      //   final typeArgsLength = _curLibrary.read();
+      //   final typeArgs = <HTType>[];
+      //   for (var i = 0; i < typeArgsLength; ++i) {
+      //     final arg = _handleTypeExpr();
+      //     typeArgs.add(arg);
+      //   }
+      //   _curTypeArgs = typeArgs;
+      // }
       case HTValueTypeCode.group:
         _localValue = execute();
-        break;
       case HTValueTypeCode.list:
         final list = [];
         final length = _currentBytecodeModule.readUint16();
@@ -2090,7 +2021,6 @@ class HTInterpreter {
           }
         }
         _localValue = list;
-        break;
       case HTValueTypeCode.struct:
         String? id;
         final hasId = _currentBytecodeModule.readBool();
@@ -2128,7 +2058,6 @@ class HTInterpreter {
         }
         // _curNamespace = savedCurNamespace;
         _localValue = struct;
-        break;
       // case HTValueTypeCode.map:
       //   final map = {};
       //   final length = _curLibrary.readUint16();
@@ -2160,12 +2089,12 @@ class HTInterpreter {
         final declType = HTFunctionType(
             parameterTypes: paramDecls.values
                 .map((param) => HTParameterType(
-                    declType: param.declType ?? HTTypeAny(_lexicon.typeAny),
+                    declType: param.declType ?? HTTypeAny(_lexicon.kAny),
                     isOptional: param.isOptional,
                     isVariadic: param.isVariadic,
                     id: param.isNamed ? param.id : null))
                 .toList(),
-            returnType: returnType ?? HTTypeAny(_lexicon.typeAny));
+            returnType: returnType ?? HTTypeAny(_lexicon.kAny));
         int? line, column, definitionIp;
         final hasDefinition = _currentBytecodeModule.readBool();
         if (hasDefinition) {
@@ -2200,19 +2129,14 @@ class HTInterpreter {
           final externalFunc = unwrapExternalFunctionType(func);
           _localValue = externalFunc;
         }
-        break;
       case HTValueTypeCode.intrinsicType:
         _localValue = _handleIntrinsicType();
-        break;
       case HTValueTypeCode.nominalType:
         _localValue = _handleNominalType();
-        break;
       case HTValueTypeCode.functionType:
         _localValue = _handleFunctionType();
-        break;
       case HTValueTypeCode.structuralType:
         _localValue = _handleStructuralType();
-        break;
       default:
         throw HTError.unkownValueType(
           valueType,
@@ -2223,7 +2147,7 @@ class HTInterpreter {
     }
   }
 
-  void _handleWhen() {
+  void _handleSwitch() {
     var condition = _localValue;
     final hasCondition = _currentBytecodeModule.readBool();
     final casesCount = _currentBytecodeModule.read();
@@ -2235,7 +2159,7 @@ class HTInterpreter {
       // jump to the first case branch where its value is true.
       // If no case branch matches condition and else branch is provided,
       // will jump to else branch.
-      if (caseType == HTWhenCaseTypeCode.equals) {
+      if (caseType == HTSwitchCaseTypeCode.equals) {
         final value = execute();
         if (hasCondition) {
           if (condition == value) {
@@ -2246,7 +2170,7 @@ class HTInterpreter {
         }
         // skip jumpping to branch
         _currentBytecodeModule.skip(3);
-      } else if (caseType == HTWhenCaseTypeCode.eigherEquals) {
+      } else if (caseType == HTSwitchCaseTypeCode.eigherEquals) {
         assert(hasCondition);
         final count = _currentBytecodeModule.read();
         final values = [];
@@ -2259,7 +2183,7 @@ class HTInterpreter {
           // skip jumpping to branch
           _currentBytecodeModule.skip(3);
         }
-      } else if (caseType == HTWhenCaseTypeCode.elementIn) {
+      } else if (caseType == HTSwitchCaseTypeCode.elementIn) {
         assert(hasCondition);
         final Iterable value = execute();
         if (value.contains(condition)) {
@@ -2341,22 +2265,19 @@ class HTInterpreter {
     final typeName = _currentBytecodeModule.getConstString();
     final isTop = _currentBytecodeModule.readBool();
     final isBottom = _currentBytecodeModule.readBool();
-    if (typeName == _lexicon.typeAny) {
+    if (typeName == _lexicon.kAny) {
       return HTTypeAny(typeName);
-    }
-    if (typeName == _lexicon.typeUnknown) {
+    } else if (typeName == _lexicon.kUnknown) {
       return HTTypeUnknown(typeName);
-    }
-    if (typeName == _lexicon.typeVoid) {
+    } else if (typeName == _lexicon.kVoid) {
       return HTTypeVoid(typeName);
-    }
-    if (typeName == _lexicon.typeNever) {
+    } else if (typeName == _lexicon.kNever) {
       return HTTypeNever(typeName);
-    }
-    if (typeName == _lexicon.typeFunction) {
-      return HTTypeFunction(typeName);
-    }
-    if (typeName == _lexicon.typeNamespace) {
+    } else if (typeName == _lexicon.kType) {
+      return HTTypeType(typeName);
+    } else if (lexicon.kFunctions.contains(typeName)) {
+      return HTTypeFunction(lexicon.kFunction);
+    } else if (typeName == _lexicon.kNamespace) {
       return HTTypeNamespace(typeName);
     }
     // fallsafe measure, however this should not happen
@@ -2645,12 +2566,12 @@ class HTInterpreter {
     final declType = HTFunctionType(
         parameterTypes: paramDecls.values
             .map((param) => HTParameterType(
-                declType: param.declType ?? HTTypeAny(_lexicon.typeAny),
+                declType: param.declType ?? HTTypeAny(_lexicon.kAny),
                 isOptional: param.isOptional,
                 isVariadic: param.isVariadic,
                 id: param.isNamed ? param.id : null))
             .toList(),
-        returnType: returnType ?? HTTypeAny(_lexicon.typeAny));
+        returnType: returnType ?? HTTypeAny(_lexicon.kAny));
     RedirectingConstructor? redirCtor;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
@@ -2715,9 +2636,7 @@ class HTInterpreter {
         line: line,
         column: column,
         redirectingConstructor: redirCtor);
-    if (isField) {
-      _localValue = func;
-    } else {
+    if (!isField) {
       if ((category != FunctionCategory.constructor) || isStatic) {
         func.namespace = currentNamespace;
       }

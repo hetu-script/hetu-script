@@ -43,7 +43,7 @@ If you want to write multiple line in REPL mode, use '\\' to end a line.
 >>>var a = 42
 >>>a
 42
->>>fun hello {\
+>>>function hello {\
 return a }
 >>>hello
 function hello() -> any // repl print
@@ -76,7 +76,7 @@ void main() {
 Content in 'console.ht'
 
 ```javascript
-fun main {
+function main {
   final username = Console.getln('What\'s your name? ...')
   print('Hi! ${username}.')
 }

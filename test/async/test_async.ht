@@ -1,27 +1,27 @@
-external fun fetch() -> Future<int>;
-external fun fetchFailed() -> Future<int>;
-fun valueFuture() -> Future<int> { return Future.value(3); }
+external function fetch() -> Future<int>;
+external function fetchFailed() -> Future<int>;
+function valueFuture() -> Future<int> { return Future.value(3); }
 
 class Test {
-  static fun f1 () -> Future<int> {
+  static function f1 () -> Future<int> {
     return fetch();
   }
 
-  static fun f2() -> Future<str> {
+  static function f2() -> Future<str> {
     return Future.value('test');
   }
 
-  fun f3() -> Future<int> {
+  function f3() -> Future<int> {
     return fetch();
   }
 
-  fun f4() -> Future<int> async {
+  function f4() -> Future<int> async {
     final result = await fetch();
     print(result);
     return result;
   }
 
-  fun f5(check: bool) -> Future<int> async {
+  function f5(check: bool) -> Future<int> async {
     if (check) {
       final result = await fetch();
       return result;
@@ -30,7 +30,7 @@ class Test {
     }
   }
 
-  fun f6() -> Future<int> async {
+  function f6() -> Future<int> async {
     final a = Animal();
     final r1 = await Test.f1();
     final r2 = await Test.f2();
@@ -40,7 +40,7 @@ class Test {
     return result;
   }
 
-  fun f7() -> Future<int> async {
+  function f7() -> Future<int> async {
     final a = Animal();
     final results = await Future.wait([Test.f1(), fetch(), Test.f2(), a.fly()]);
     print(results);
@@ -49,7 +49,7 @@ class Test {
 }
 
 struct Animal {
-  fun fly() -> Future<int> {
+  function fly() -> Future<int> {
     return fetch();
   }
 
@@ -58,21 +58,21 @@ struct Animal {
   // }
 }
 
-fun test1() async {
+function test1() async {
   print('before');
   final result = await fetch();
   print('after');
   print(result);
 }
 
-fun test2() -> Future<int> async {
+function test2() -> Future<int> async {
   print('before');
   final result = await fetch();
   print('after');
   return result;
 }
 
-fun test3() -> Future<str> async {
+function test3() -> Future<str> async {
   print('before');
   return fetch().then((result) {
     print('after');
@@ -80,28 +80,28 @@ fun test3() -> Future<str> async {
   });
 }
 
-fun test4() -> Future<int> async {
+function test4() -> Future<int> async {
   print('before');
   final result = await fetchFailed();
   print('after');
   return result;
 }
 
-fun test5() -> Future<int> async {
+function test5() -> Future<int> async {
   print('before');
   final result = await Test.f1();
   print('after');
   return result;
 }
 
-fun test6() -> Future<str> async {
+function test6() -> Future<str> async {
   print('before');
   final result = await Test.f2();
   print('after');
   return result;
 }
 
-fun test7() -> Future<int> async {
+function test7() -> Future<int> async {
   final test = Test();
   print('before');
   final result = await test.f3();
@@ -109,7 +109,7 @@ fun test7() -> Future<int> async {
   return result;
 }
 
-fun test8() -> Future<int> async {
+function test8() -> Future<int> async {
   final test = Test();
   print('before');
   final result = await test.f4();
@@ -117,7 +117,7 @@ fun test8() -> Future<int> async {
   return result;
 }
 
-fun test9(check: bool) -> Future<int> async {
+function test9(check: bool) -> Future<int> async {
   print('arg: ${check}');
   final test = Test();
   print('before');
@@ -126,7 +126,7 @@ fun test9(check: bool) -> Future<int> async {
   return result;
 }
 
-fun test10(check: bool) -> Future<int> async {
+function test10(check: bool) -> Future<int> async {
   print('arg: ${check}');
   final test = Test();
   print('before');
@@ -135,7 +135,7 @@ fun test10(check: bool) -> Future<int> async {
   return result;
 }
 
-fun test11() -> Future<int> async {
+function test11() -> Future<int> async {
   final animal = Animal();
   print('before');
   final result = await animal.fly();
@@ -143,7 +143,7 @@ fun test11() -> Future<int> async {
   return result;
 }
 
-fun test12() -> Future<int> async {
+function test12() -> Future<int> async {
   final test = Test();
   print('before');
   final result = await test.f7();
@@ -151,13 +151,13 @@ fun test12() -> Future<int> async {
   return result;
 }
 
-fun sumAll() -> Future<int> async {
+function sumAll() -> Future<int> async {
   final results = await Future.wait([valueFuture(), fetch(), Future.value(2), Test.f1()]);
   final sum = results.fold(0, (pre, val) => pre + val); // 11
   return sum;
 }
 
-fun test13() -> Future<int> async {
+function test13() -> Future<int> async {
   print('step1');
   final sum = await sumAll();
   print('step2');
@@ -165,7 +165,7 @@ fun test13() -> Future<int> async {
   return result;
 }
 
-fun test14() -> Future<int> async {
+function test14() -> Future<int> async {
   final result = await fetch() * await valueFuture() * await sumAll();
   return result;
 }

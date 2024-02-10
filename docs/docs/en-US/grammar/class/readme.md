@@ -2,7 +2,7 @@
 
 Class can have static variables and methods. Which can be accessed through the class name.
 
-Member functions can also be declared with **get**, **set**, **construct**, they means getter, setter and contructor function.
+Member functions can also be declared with **get**, **set**, **constructor**, they means getter, setter and contructor function.
 
 If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty parentheses.
 
@@ -24,7 +24,7 @@ class Calculator {
     _name = new_name
   }
   // static function
-  static fun greeting {
+  static function greeting {
     print('hello! I\'m ' + name)
   }
 
@@ -37,11 +37,11 @@ class Calculator {
   // you can use `this` syntax in the parameter to
   // quick initialize the member on instance
   // just like in Dart
-  construct (this.x: num, this.y: num, age: int) {
+  constructor (this.x: num, this.y: num, age: int) {
     // use this to access instance members shadowed by function parameters
     this.birthDate = Now() + age
   }
-  fun meaning -> num {
+  function meaning -> num {
     // when there's no shadowing, `this` keyword can be omitted
     return x * y
   }
@@ -54,32 +54,32 @@ Use 'extends' to inherit other class's members.
 
 ```typescript
 class Animal {
-  fun walk {
+  function walk {
     print('animal walking')
   }
 
   var kind
 
-  construct (kind) {
+  constructor (kind) {
     this.kind = kind
   }
 }
 
 class Bird extends Animal {
-  fun animalWalk {
+  function animalWalk {
     // You can access a overrided member in super class by the super keyword within a method body.
     super.walk()
   }
   // override super class's member
-  fun walk {
+  function walk {
     print('bird walking')
   }
-  fun fly {
+  function fly {
     print('bird flying')
   }
 
   // You can use super class's constructor by the super keyword after a constructor declaration.
-  construct _: super('bird')
+  constructor _: super('bird')
 
   // factory is a special kind of contructor that returns values.
   // factory are static and cannot directly access instance members and constructors.
@@ -99,7 +99,7 @@ class Super3 {
 }
 class Extend3 extends Super3 {
   var name = 'Extend'
-  fun getSuperName() {
+  function getSuperName() {
     return super.name
   }
 }
@@ -130,17 +130,17 @@ print((a as Super3).name) // 'Changed'
 
 Sometimes, we would like to use Class constructors in functional programming situations. However it normally doesn't work because a class name resolves into a 'class' or 'type' object rather than a function which is needed.
 
-However, we can achieve this by accessing the internal name of the constructor(**$construct**):
+However, we can achieve this by accessing the internal name of the constructor(**$constructor**):
 
 ```javascript
 class Person {
   var name
-  construct (name) {
+  constructor (name) {
     this.name = name
   }
 }
 
-final ctor = Person.$construct
+final ctor = Person.$constructor
 final p = ['jimmy', 'wang', 'naruto']
 final objectList = p.map((element) {ctor(element)})
 ```

@@ -1,15 +1,15 @@
 external class Console {
 	// write a line without return
-	static fun write(line: str)
+	static function write(line: str)
 	
 	// write a line ends with return
-	static fun writeln(line: str)
+	static function writeln(line: str)
 	
-	static fun getln(info: str) -> str
+	static function getln(info: str) -> str
 	
-	static fun eraseLine()
+	static function eraseLine()
 	
-	static fun setTitle(title: str)
+	static function setTitle(title: str)
 	
-	static fun clear()
+	static function clear()
 }

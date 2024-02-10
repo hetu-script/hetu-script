@@ -1,6 +1,5 @@
 import 'package:meta/meta.dart';
 
-import '../../grammar/constant.dart';
 import '../../type/type.dart';
 import '../../type/function.dart';
 import '../type/abstract_type_declaration.dart';
@@ -9,6 +8,7 @@ import '../namespace/declaration_namespace.dart';
 import 'abstract_parameter.dart';
 import '../generic/generic_type_parameter.dart';
 import '../../value/entity.dart';
+import '../../common/function_category.dart';
 
 class HTFunctionDeclaration extends HTDeclaration
     implements HasGenericTypeParameter {
@@ -24,11 +24,11 @@ class HTFunctionDeclaration extends HTDeclaration
   /// Wether to check params when called
   /// A function like:
   ///   ```
-  ///     fun { return 42 }
+  ///     function { return 42 }
   ///   ```
   /// will accept any params, while a function:
   ///   ```
-  ///     fun () { return 42 }
+  ///     function () { return 42 }
   ///   ```
   /// will accept 0 params
   final bool hasParamDecls;
@@ -47,7 +47,9 @@ class HTFunctionDeclaration extends HTDeclaration
 
   final bool isAsync;
 
-  final bool isField;
+  // bool get isField =>
+  //     category != FunctionCategory.normal &&
+  //     category != FunctionCategory.literal;
 
   final bool isAbstract;
 
@@ -72,10 +74,11 @@ class HTFunctionDeclaration extends HTDeclaration
     super.closure,
     super.source,
     super.documentation,
-    super.isExternal = false,
-    super.isStatic = false,
-    super.isConst = false,
-    super.isTopLevel = false,
+    super.isExternal,
+    super.isStatic,
+    super.isConst,
+    super.isTopLevel,
+    super.isField,
     this.category = FunctionCategory.normal,
     this.externalTypeId,
     this.genericTypeParameters = const [],
@@ -83,7 +86,6 @@ class HTFunctionDeclaration extends HTDeclaration
     this.paramDecls = const {},
     HTFunctionType? declType,
     this.isAsync = false,
-    this.isField = false,
     this.isAbstract = false,
     this.isVariadic = false,
     this.minArity = 0,

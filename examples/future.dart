@@ -10,7 +10,7 @@ void main() {
   final hetu = Hetu();
   hetu.init(externalFunctions: {'fetch': fetch});
   hetu.eval(r'''
-      external fun fetch
+      external function fetch
       print('begin future here')
       final value = await fetch()
       print('future completed! value="${value}"')

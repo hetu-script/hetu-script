@@ -9,14 +9,14 @@
 如果你想要在值表达式中获取一个类型的值，你必须使用 `type` 关键字：
 
 ```typescript
-fun checkType(t) {
-  when(t) {
-    type {} -> {
+function checkType(t: type) {
+  switch (t) {
+    typeval {} => {
       print('a structural type')
     }
     // the function won't match here
     // you have to use the exact type value here for match
-    type ()->any -> {
+    typeval ()->any => {
       print('a function type')
     }
   }
@@ -86,7 +86,7 @@ type FuncTypedef = (str) -> num
 使用 **is** 关键字可以在运行时动态检查某个值对应的类型。
 
 ```typescript
-fun doSomething(value) {
+function doSomething(value) {
   if (value is str) {
     print('A String!')
   } else if (value is num) {
@@ -102,16 +102,16 @@ fun doSomething(value) {
 使用 **typeof** 关键字可以在运行时动态获取某个值对应的类型。
 
 ```typescript
-fun main {
+function main {
   // decalre a function typedef
-  type FuncTypedef = fun(str) -> num
+  type FuncTypedef = function(str) -> num
   // assign a function to a value of a certain function type
-  var numparse: FuncTypedef = fun(value: str) -> num { return num.parse(value) }
+  var numparse: FuncTypedef = function(value: str) -> num { return num.parse(value) }
   // get a value's runtime type and return it from a function
-  var getType = fun { return typeof numparse }
+  var getType = function { return typeof numparse }
   var FuncTypedef2 = getType()
   // use this new type
-  var strlength: FuncTypedef2 = fun(value: str) -> num { return value.length }
+  var strlength: FuncTypedef2 = function(value: str) -> num { return value.length }
   // expected output: 11
   print(strlength('hello world'))
 }

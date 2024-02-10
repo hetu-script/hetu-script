@@ -25,10 +25,10 @@ enum Country {
 ```dart
 class Country {
   final _name;
-  construct _(name) {
+  constructor _(name) {
     _name = name;
   }
-  fun toString => 'Country.${_name}'
+  function toString => 'Country.${_name}'
   static final kHungary = Country._('kHungary')
   static final kJapan = Country._('kJapan')
   static final kIndia = Country._('kIndia')

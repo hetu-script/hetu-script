@@ -1,7 +1,7 @@
 
 
 // 程序入口
-fun main {
+function main {
   // 列表的创建和添加元素
   var list1 = ['hello', 'world']
   print(list1.valueType)

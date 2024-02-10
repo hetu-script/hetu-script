@@ -221,7 +221,7 @@ abstract class RecursiveASTVisitor<T> implements AbstractASTVisitor<T> {
   }
 
   @override
-  T? visitWhen(WhenStmt node) {
+  T? visitSwitch(SwitchStmt node) {
     node.subAccept(this);
   }
 

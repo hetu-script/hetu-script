@@ -58,7 +58,7 @@ void main() {
 我们可以看到河图的[语法](https://hetu.dev/docs/zh-Hans/grammar/)非常简单，如果你熟悉 dart/typescript/kotlin/swift 等现代语言，只要注意下面几点，就可以直接上手。
 
 - 句末分号可选。
-- 函数名字前面要加关键字： 'fun, get, set, construct'。
+- 函数名字前面要加关键字： 'function, get, set, constructor'。
 - 既可以使用类似 Java 的 class 的继承，也可以使用 Javascript 的对象字面量的原型链，也可以使用函数式的写法。
 - 类型注解和 typescript 一样写在关键字后面。（目前静态分析尚未开发完毕，因此类型目前只是纯粹的注解，所有变量实际上都是 dynamic 类型。）
 
@@ -75,7 +75,7 @@ void main() async {
     'hello': () => {'greeting': 'Hello from Dart!'},
   });
   final hetuValue = hetu.eval(r'''
-      external fun hello
+      external function hello
       var dartValue = hello()
       dartValue['reply'] = 'Hi, this is Hetu.'
       dartValue // the script will return the value of it's last expression
@@ -106,7 +106,7 @@ dart pub global activate hetu_script_dev_tools
 null // repl print
 >>>a
 42 // repl print
->>>fun meaning {\
+>>>function meaning {\
 return a }
 null // repl print
 >>>meaning

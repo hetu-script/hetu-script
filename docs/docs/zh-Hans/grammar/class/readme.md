@@ -4,7 +4,7 @@
 
 但 mixin 和 implements 用法暂时不支持。
 
-类中的方法声明使用专门的关键字：construct/get/set/factory 等等。
+类中的方法声明使用专门的关键字：constructor/get/set/factory 等等。
 
 下面是一个完整的例子：
 
@@ -22,7 +22,7 @@ class Calculator {
     _name = new_name
   }
   // static function
-  static fun greeting {
+  static function greeting {
     print('hello! I\'m ' + name)
   }
 
@@ -35,11 +35,11 @@ class Calculator {
   // you can use `this` syntax in the parameter to
   // quick initialize the member on instance
   // just like in Dart
-  construct (this.x: num, this.y: num, age: int) {
+  constructor (this.x: num, this.y: num, age: int) {
     // use this to access instance members shadowed by function parameters
     this.birthDate = Now() + age
   }
-  fun meaning -> num {
+  function meaning -> num {
     // when there's no shadowing, `this` keyword can be omitted
     return x * y
   }
@@ -52,32 +52,32 @@ class Calculator {
 
 ```typescript
 class Animal {
-  fun walk {
+  function walk {
     print('animal walking')
   }
 
   var kind
 
-  construct (kind) {
+  constructor (kind) {
     this.kind = kind
   }
 }
 
 class Bird extends Animal {
-  fun animalWalk {
+  function animalWalk {
     // You can access a overrided member in super class by the super keyword within a method body.
     super.walk()
   }
   // override super class's member
-  fun walk {
+  function walk {
     print('bird walking')
   }
-  fun fly {
+  function fly {
     print('bird flying')
   }
 
   // You can use super class's constructor by the super keyword after a constructor declaration.
-  construct _: super('bird')
+  constructor _: super('bird')
 
   // factory is a special kind of contructor that returns values.
   // factory are static and cannot directly access instance members and constructors.
@@ -97,7 +97,7 @@ class Super3 {
 }
 class Extend3 extends Super3 {
   var name = 'Extend'
-  fun getSuperName() {
+  function getSuperName() {
     return super.name
   }
 }
@@ -124,17 +124,17 @@ print((a as Super3).name) // 'Changed'
 
 某些时候我们想要在某些函数式编程的场景使用构造函数，例如我们想要向数组的 map 方法传入一个构造函数。通常情况下这不可行。因为直接传递类名，得到的是一个类型，而不是构造函数本身。要实现这一点，在 Dart 中使用的是 [constructor tear-off](https://medium.com/dartlang/dart-2-15-7e7a598e508a#9c16) 的方法。
 
-在河图中，可以通过内部关键字 **$construct** 实现相同的用法：
+在河图中，可以通过内部关键字 **$constructor** 实现相同的用法：
 
 ```javascript
 class Person {
   var name
-  construct (name) {
+  constructor (name) {
     this.name = name
   }
 }
 
-final ctor = Person.$construct
+final ctor = Person.$constructor
 final p = ['jimmy', 'wang', 'naruto']
 final objectList = p.map((element) {ctor(element)})
 ```

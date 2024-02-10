@@ -2,7 +2,7 @@ external class OS {
 
   static get now -> num
 
-  // static fun tik()
+  // static function tik()
 
-  // static fun tok()
+  // static function tok()
 }

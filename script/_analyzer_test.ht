@@ -1,9 +1,9 @@
 class Person {
-  fun d {
+  function d {
 
   }
   var j = 21
-  construct {
+  constructor {
 
   }
 

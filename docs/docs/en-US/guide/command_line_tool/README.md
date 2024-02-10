@@ -28,7 +28,7 @@ If you want to write multiple line in REPL mode, use '\\' to end a line.
 >>>var a = 42
 >>>a
 42
->>>fun hello {\
+>>>function hello {\
 return a }
 >>>hello
 function hello() -> any // repl print

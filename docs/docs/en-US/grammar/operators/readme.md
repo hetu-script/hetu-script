@@ -9,11 +9,11 @@ You can use spread syntax ('...') in three places:
 In function call's arguments. This means to 'spread' the list object here to fill in the positional argument list.
 
 ```javascript
-fun someFunc(a, b) {
-  print(a + b)
+function someFunc(a, b) {
+  print(a + b);
 }
-var list = [5, 6]
-someFunc(...list) // same to 'someFunc(5, 6)'
+var list = [5, 6];
+someFunc(...list); // same to 'someFunc(5, 6)'
 ```
 
 ### List literal
@@ -31,10 +31,10 @@ In struct literal's value list, This means to 'spread' the struct object here to
 
 ```javascript
 var name = {
-  familyName: 'Hord',
-  firstName: 'Luk',
+  familyName: "Hord",
+  firstName: "Luk",
 };
-var job = 'wood cutter';
+var job = "wood cutter";
 var person = {
   ...name,
   age: 23,

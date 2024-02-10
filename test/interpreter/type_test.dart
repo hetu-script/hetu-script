@@ -38,11 +38,11 @@ void main() {
     });
     // test('arguments', () {
     //   final result = hetu.eval(r'''
-    //     fun functionAssign1 {
-    //       fun convert(n) -> num {
+    //     function functionAssign1 {
+    //       function convert(n) -> num {
     //         return num.parse(n)
     //       }
-    //       const a: fun (num) -> num = convert
+    //       const a: function (num) -> num = convert
     //       return a.valueType.toString()
     //     }
     //   ''', invoke: 'functionAssign1');
@@ -53,8 +53,8 @@ void main() {
     // });
     // test('return type', () {
     //   final result = hetu.eval(r'''
-    //     fun functionAssign2 {
-    //       var a: fun (num) -> num = fun (n: any) -> num { return n }
+    //     function functionAssign2 {
+    //       var a: function (num) -> num = function (n: any) -> num { return n }
     //       return a.valueType.toString()
     //     }
     //   ''', invoke: 'functionAssign2');
@@ -65,10 +65,10 @@ void main() {
     // });
     test('function type', () {
       final result = hetu.eval(r'''
-        var numparse: (str) -> num = fun (value: str) -> num { return num.parse(value) }
-        var getType = fun { typeof numparse }
+        var numparse: (str) -> num = function (value: str) -> num { return num.parse(value) }
+        var getType = function { typeof numparse }
         var functype2 = getType()
-        var strlength: functype2 = fun (value: str) -> num { return value.length }
+        var strlength: functype2 = function (value: str) -> num { return value.length }
         strlength('hello world')
       ''');
       expect(
@@ -80,7 +80,7 @@ void main() {
       final result = hetu.eval(r'''
         class A {
           var name: str
-          construct (name: str) {
+          constructor (name: str) {
             this.name = name
           }
         }
@@ -96,7 +96,7 @@ void main() {
     test('type alias function', () {
       final result = hetu.eval(r'''
         type MyFuncType = (num, num) -> num
-        var func: MyFuncType = fun add(a: num, b: num) -> num => a + b
+        var func: MyFuncType = function add(a: num, b: num) -> num => a + b
         func(6, 7)
       ''');
       expect(
@@ -125,12 +125,12 @@ void main() {
     });
     test('type in expression', () {
       final result = hetu.eval(r'''
-        fun checkType(t) {
-          when(t) {
-            typeval {} -> 'a structural type'
+        function checkType(t: type) {
+          switch (t) {
+            typeval {} => 'a structural type'
             // the function won't match here
             // you have to use the exact type value here for match
-            typeval ()->any -> 'a function type'
+            typeval ()->any => 'a function type'
           }
         }
         checkType(typeof () {})

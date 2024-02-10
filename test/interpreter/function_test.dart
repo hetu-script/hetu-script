@@ -12,15 +12,15 @@ void main() {
   group('functions -', () {
     test('nested & anonymous', () {
       final result = hetu.eval(r'''
-        fun literalFunction(func) {
+        function literalFunction(func) {
           var i = 42
-          fun nested() {
+          function nested() {
             i = i + 1
             return (func(i))
           }
           return nested
         }
-        var func = literalFunction( fun (n) { return n * n } )
+        var func = literalFunction( function (n) { return n * n } )
         func()
         func()
       ''');
@@ -33,13 +33,13 @@ void main() {
       final result = hetu.eval(r'''
         var list = [];
         var builders = [];
-        fun build(i, add) {
-          builders.add(fun () {
+        function build(i, add) {
+          builders.add(function () {
             add(i);
           });
         }
         for (var i = 0; i < 5; ++i) {
-          build(i, fun (n)  {
+          build(i, function (n)  {
             list.add(n);
           });
         }
@@ -55,7 +55,7 @@ void main() {
     });
     test('named args', () {
       final result = hetu.eval(r'''
-        fun namedArgFun({a: num, b: num = 2, c: num}) {
+        function namedArgFun({a: num, b: num = 2, c: num}) {
           return a * b
         }
         namedArgFun(a: 21)

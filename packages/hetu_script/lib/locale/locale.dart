@@ -10,6 +10,124 @@ abstract class HTLocale {
   String get scriptStackTrace;
   String get externalStackTrace;
 
+  // Semantic element names.
+  String get compilation;
+  String get source;
+  String get namespace;
+
+  String get global;
+
+  String get keyword;
+  String get identifier;
+  String get punctuation;
+
+  String get module;
+
+  String get statement;
+  String get expression;
+  String get primaryExpression;
+
+  String get comment;
+  String get emptyLine;
+  String get empty;
+
+  String get declarationStatement;
+  String get thenBranch;
+  String get elseBranch;
+  String get caseBranch;
+  String get function;
+  String get functionCall;
+  String get functionDefinition;
+  String get asyncFunction;
+  String get constructor;
+  String get constructorCall;
+  String get factory;
+  String get classDefinition;
+  String get structDefinition;
+
+  String get literalNull;
+  String get literalBoolean;
+  String get literalInteger;
+  String get literalFloat;
+  String get literalString;
+  String get stringInterpolation;
+  String get literalList;
+  String get literalFunction;
+  String get literalStruct;
+  String get literalStructField;
+
+  String get spreadExpression;
+  String get rangeExpression;
+  String get groupExpression;
+  String get commaExpression;
+  String get inOfExpression;
+
+  String get typeParameters;
+  String get typeArguments;
+  String get typeName;
+  String get typeExpression;
+  String get intrinsicTypeExpression;
+  String get nominalTypeExpression;
+  String get literalTypeExpression;
+  String get unionTypeExpression;
+  String get paramTypeExpression;
+  String get functionTypeExpression;
+  String get fieldTypeExpression;
+  String get structuralTypeExpression;
+  String get genericTypeParamExpression;
+
+  String get identifierExpression;
+  String get unaryPrefixExpression;
+  String get unaryPostfixExpression;
+  String get assignExpression;
+  String get binaryExpression;
+  String get ternaryExpression;
+  String get callExpression;
+  String get thisExpression;
+  String get closureExpression;
+  String get subGetExpression;
+  String get subSetExpression;
+  String get memberGetExpression;
+  String get memberSetExpression;
+  String get ifExpression;
+  String get forExpressionInit;
+  String get forExpression;
+  String get forRangeExpression;
+
+  String get constantDeclaration;
+  String get variableDeclaration;
+  String get destructuringDeclaration;
+  String get parameterDeclaration;
+  String get namespaceDeclaration;
+  String get classDeclaration;
+  String get enumDeclaration;
+  String get typeAliasDeclaration;
+  String get returnType;
+  String get redirectingFunctionDefinition;
+  String get redirectingConstructor;
+  String get functionDeclaration;
+  String get structDeclaration;
+
+  String get libraryStatement;
+  String get importStatement;
+  String get exportStatement;
+  String get importSymbols;
+  String get exportSymbols;
+  String get expressionStatement;
+  String get blockStatement;
+  String get assertStatement;
+  String get throwStatement;
+  String get returnStatement;
+  String get breakStatement;
+  String get continueStatement;
+  String get doStatement;
+  String get whileStatement;
+  String get switchStatement;
+  String get deleteStatement;
+  String get deleteMemberStatement;
+  String get deleteSubMemberStatement;
+
+  // generic errors
   String get errorBytecode;
   String get errorVersion;
   String get errorAssertionFailed;
@@ -44,6 +162,7 @@ abstract class HTLocale {
   String get errorPrivateMember;
   String get errorConstMustInit;
   String get errorAwaitExpression;
+  String get errorGetterParam;
 
   // compile time errors
   String get errorDefined;

@@ -1,37 +1,37 @@
 # Function
 
-Function is declared with **fun**, **get**, **set**, **construct**. The parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
+Function is declared with **function**, **get**, **set**, **constructor**. The parameter list, return type and function body are all optional. For functions with no parameters, the empty brackets are also optional.
 
 For a literal function expression, the function name is also optional if there's no type arguments and dart function typedef.
 
 ```typescript
-fun doubleIt(n: num) -> num {
+function doubleIt(n: num) -> num {
   return n * 2
 }
 
-fun main {
+function main {
   var x = doubleIt(7) // expect 14
   print(x)
 }
 ```
 
-For functions declared with **fun**, when no return type is provided in declaration, it will have a return type of **any**. And it will return the last expression's value if you didn't write return statement within the definition body.
+For functions with no return type provided in declaration, it will have a return type of **any**. And it will return the last expression's value if you didn't write return statement within the definition body.
 
 Functions can be nested, and nested functions can have names.
 
 Return type is marked by a single arrow ('->') after the parameters brackets.
 
 ```typescript
-fun closure(func) {
+function closure(func) {
   var i = 42
-  fun nested {
+  function nested {
     i = i + 1
     return(func(i))
   }
   return nested
 }
 
-fun main {
+function main {
   var func = closure( (n) => n * n )
   print(func()) // print: 1849
   print(func()) // print: 1936
@@ -54,13 +54,13 @@ final sq = func(4) // sq = 16
 You can use positional parameter or named parameter in your parameter declarations, and you can give them default values.
 
 ```javascript
-fun posParam(a, [b = 7]) {
+function posParam(a, [b = 7]) {
   return a * b
 }
 
 final r1 = posParam(6) // r1 = 42
 
-fun namedParam({a = 3, b = 9}) {
+function namedParam({a = 3, b = 9}) {
   return a * b
 }
 
@@ -72,7 +72,7 @@ final r2 = namedParam(b: 10) // r2 = 30
 In function declaration's parameters. '...' means you can pass as many positional arguments as you wish.
 
 ```javascript
-external fun print(... args: any)
+external function print(... args: any)
 
 print('hello', 'world!', 42) // okay!
 ```
@@ -82,17 +82,17 @@ print('hello', 'world!', 42) // okay!
 In function declaration's parameters. '\_' means you won't use this positional parameter in this implementation of a function type. This is useful in functional programming.
 
 ```javascript
-fun test1(expect, value, [arg]) {
-  print('running test1 with ${arg}: expect ${expect}, value ${value}')
+function test1(expect, value, [arg]) {
+  print("running test1 with ${arg}: expect ${expect}, value ${value}");
 }
 
-fun test2(_, value, [_]) {
-  print(value)
+function test2(_, value, [_]) {
+  print(value);
 }
 
-fun run(expect, value) {
-  test1(expect, value, 'test1')
-  test2(expect, value, 'test2')
+function run(expect, value) {
+  test1(expect, value, "test1");
+  test2(expect, value, "test2");
 }
 ```
 
@@ -105,25 +105,25 @@ If there's no return type declaration nor return statement in the actual functio
 ## Literal function (sometimes called function expression, anonymous function, closure or lambda)
 
 ```javascript
-fun closure(func) {
-  var i = 42
-  fun nested () {
-    i = i + 1
-    print(func(i))
+function closure(func) {
+  var i = 42;
+  function nested() {
+    i = i + 1;
+    print(func(i));
   }
-  return nested
+  return nested;
 }
 
-var func = closure( (n) => n * n )
-func()
+var func = closure((n) => n * n);
+func();
 ```
 
 A literal function can have no keyword, in this situation, the parameter brackets are not omittable even if it's empty. The following way to define a function is all okay and they are the same to the compiler.
 
 ```dart
-final func0 = fun meaning { return 42 }
-final func1 = fun { return 42 }
-final func2 = fun => 42
+final func0 = function meaning { return 42 }
+final func1 = function { return 42 }
+final func2 = function => 42
 final func3 = () { 42 }
 final func4 = () => 42
 ```

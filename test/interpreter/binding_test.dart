@@ -141,7 +141,7 @@ void main() {
   }
   external class Profile {
     var name
-    construct (familyName: str, firstName: str)
+    constructor (familyName: str, firstName: str)
 
     get isCivilian -> bool
     set isCivilian(value: bool)

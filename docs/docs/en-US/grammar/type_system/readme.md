@@ -9,14 +9,14 @@ Type is a top class value in Hetu, it can be assigned and returned.
 To use a type value in a normal expression, you have to lead it with a `type` keyword.
 
 ```typescript
-fun checkType(t) {
-  when(t) {
-    type {} -> {
+function checkType(t: type) {
+  switch (t) {
+    typeval {} => {
       print('a structural type')
     }
     // the function won't match here
     // you have to use the exact type value here for match
-    type ()->any -> {
+    typeval ()->any => {
       print('a function type')
     }
   }
@@ -90,7 +90,7 @@ type FuncTypedef = (str) -> num
 Use **is** to do a run-time type check. The expression after **is** will be parsed into a valid type value, and you don't need to use `type` keyword after `is`.
 
 ```typescript
-fun doSomething(value) {
+function doSomething(value) {
   if (value is str) {
     print('A String!')
   } else if (value is num) {
@@ -106,16 +106,16 @@ fun doSomething(value) {
 Use **typeof** keyword to dynamically get the runtime type of a value.
 
 ```typescript
-fun main {
+function main {
   // decalre a function type
-  type FuncTypedef = fun(str) -> num
+  type FuncTypedef = function(str) -> num
   // assign a function to a value of a certain function type
-  var numparse: FuncTypedef = fun(value: str) -> num { return num.parse(value) }
+  var numparse: FuncTypedef = function(value: str) -> num { return num.parse(value) }
   // get a value's runtime type and return it from a function
-  var getType = fun { return typeof numparse }
+  var getType = function { return typeof numparse }
   var FuncTypedef2 = getType()
   // use this new type
-  var strlength: FuncTypedef2 = fun(value: str) -> num { return value.length }
+  var strlength: FuncTypedef2 = function(value: str) -> num { return value.length }
   // expected output: 11
   print(strlength('hello world'))
 }

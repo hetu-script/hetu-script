@@ -1,4 +1,4 @@
 
-fun hello {
+function hello {
   return 'hello from a hetu module!'
 }

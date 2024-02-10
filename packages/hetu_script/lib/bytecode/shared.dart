@@ -18,7 +18,7 @@ abstract class OpCode {
   static const ifStmt = 14;
   static const whileStmt = 15;
   static const doStmt = 16;
-  static const whenStmt = 17;
+  static const switchStmt = 17;
   static const codeBlock = 18;
   static const library = 19;
   static const file = 20;
@@ -114,7 +114,7 @@ abstract class HTDeletingTypeCode {
   static const sub = 2;
 }
 
-abstract class HTWhenCaseTypeCode {
+abstract class HTSwitchCaseTypeCode {
   static const equals = 0;
   static const eigherEquals = 1;
   static const elementIn = 2;

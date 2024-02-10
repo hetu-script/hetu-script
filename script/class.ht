@@ -1,7 +1,7 @@
 import 'class_decl.ht'
 
 // 程序入口
-fun main {
+function main {
   // 带有初始化语句的变量定义
   // 从类的构造函数获得对象的实例
 

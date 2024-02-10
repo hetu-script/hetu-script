@@ -1,9 +1,10 @@
 import 'package:hetu_script/value/function/function.dart';
 
 import '../../error/error.dart';
-import '../../grammar/constant.dart';
 import '../../value/namespace/namespace.dart';
 import 'instance.dart';
+import '../../common/internal_identifier.dart';
+import '../../common/function_category.dart';
 
 /// A implementation of [HTNamespace] for [HTInstance].
 /// For interpreter searching for symbols within instance methods.

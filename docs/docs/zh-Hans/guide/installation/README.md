@@ -45,7 +45,7 @@ void main() {
 ```javascript
 import 'hello.ht' as h
 
-fun main {
+function main {
   return h.hello()
 }
 ```

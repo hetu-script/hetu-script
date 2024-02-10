@@ -39,7 +39,7 @@ final hetuscript = Mode(refs: {
   '~contains~3~starts~contains~1':
       Mode(className: "subst", begin: "\\\$\\{", end: "\\}", keywords: {
     "keyword":
-        "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
+        "null true false void type import export from any unknown never var final const def delete typeof namespace class enum function struct this super abstract override external static extends implements with constructor factory get set async await break continue return for in of if else while do when is as",
     "literal": "true false null",
     "built_in":
         "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
@@ -51,7 +51,7 @@ final hetuscript = Mode(refs: {
   '~contains~10~contains~2~contains~3':
       Mode(begin: "\\(", end: "\\)", keywords: {
     "keyword":
-        "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
+        "null true false void type import export from any unknown never var final const def delete typeof namespace class enum function struct this super abstract override external static extends implements with constructor factory get set async await break continue return for in of if else while do when is as",
     "literal": "true false null",
     "built_in":
         "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
@@ -68,7 +68,7 @@ final hetuscript = Mode(refs: {
       excludeEnd: true,
       keywords: {
         "keyword":
-            "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
+            "null true false void type import export from any unknown never var final const def delete typeof namespace class enum function struct this super abstract override external static extends implements with constructor factory get set async await break continue return for in of if else while do when is as",
         "literal": "true false null",
         "built_in":
             "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
@@ -82,7 +82,7 @@ final hetuscript = Mode(refs: {
   "ht"
 ], keywords: {
   "keyword":
-      "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
+      "null true false void type import export from any unknown never var final const def delete typeof namespace class enum function struct this super abstract override external static extends implements with constructor factory get set async await break continue return for in of if else while do when is as",
   "literal": "true false null",
   "built_in":
       "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
@@ -114,7 +114,7 @@ final hetuscript = Mode(refs: {
                     excludeEnd: true,
                     keywords: {
                       "keyword":
-                          "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
+                          "null true false void type import export from any unknown never var final const def delete typeof namespace class enum function struct this super abstract override external static extends implements with constructor factory get set async await break continue return for in of if else while do when is as",
                       "literal": "true false null",
                       "built_in":
                           "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
@@ -130,12 +130,12 @@ final hetuscript = Mode(refs: {
       relevance: 0),
   Mode(
       className: "function",
-      beginKeywords: "fun",
+      beginKeywords: "function",
       end: "[\\{;]",
       excludeEnd: true,
       keywords: {
         "keyword":
-            "null true false void type import export from any unknown never var final const def delete typeof namespace class enum fun struct this super abstract override external static extends implements with construct factory get set async await break continue return for in of if else while do when is as",
+            "null true false void type import export from any unknown never var final const def delete typeof namespace class enum function struct this super abstract override external static extends implements with constructor factory get set async await break continue return for in of if else while do when is as",
         "literal": "true false null",
         "built_in":
             "object function bool num int str List Map prototype Math Future print stringify jsonify toJson toString keys values containsKey contains length fromJson clone"
@@ -151,7 +151,7 @@ final hetuscript = Mode(refs: {
       illegal: "%",
       relevance: 0),
   Mode(
-      beginKeywords: "construct",
+      beginKeywords: "constructor",
       end: "[\\{;]",
       excludeEnd: true,
       contains: [Mode(self: true), Mode(ref: '~contains~10~contains~2')]),

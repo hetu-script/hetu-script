@@ -3,11 +3,11 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../resource/resource.dart';
 import '../resource/resource_context.dart';
-import '../grammar/constant.dart';
 import '../source/source.dart';
 import '../error/error.dart';
 import '../ast/ast.dart';
 import '../parser/parser.dart';
+import '../common/internal_identifier.dart';
 
 class BundlerConfig {
   bool normalizeImportPath;

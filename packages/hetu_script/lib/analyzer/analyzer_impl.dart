@@ -2,7 +2,7 @@ import '../ast/ast.dart';
 import 'analysis_error.dart';
 import 'type_checker.dart';
 import '../error/error.dart';
-import '../lexer/lexicon.dart';
+import '../lexicon/lexicon.dart';
 
 /// A Ast interpreter for static analysis.
 class HTAnalyzerImpl implements AbstractASTVisitor<void> {
@@ -234,7 +234,7 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   }
 
   @override
-  void visitWhen(WhenStmt node) {
+  void visitSwitch(SwitchStmt node) {
     node.subAccept(this);
   }
 

@@ -1,16 +1,17 @@
 import '../struct/named_struct.dart';
 import '../variable/variable.dart';
-import '../../grammar/constant.dart';
 import '../entity.dart';
 import '../function/function.dart';
 import '../../value/namespace/namespace.dart';
 // import '../../shared/stringify.dart' as util;
-import '../../shared/jsonify.dart' as util;
+import '../../utils/jsonify.dart' as util;
 import '../../type/type.dart';
 import '../../type/structural.dart';
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../declaration/declaration.dart';
+import '../../common/internal_identifier.dart';
+import '../../common/function_category.dart';
 
 /// A prototype based dynamic object.
 /// You can define and delete members in runtime.
@@ -44,7 +45,7 @@ class HTStruct with HTEntity {
       final value = _fields[key];
       final encap = interpreter.encapsulate(value);
       fieldTypes[key] = encap.valueType?.resolve(namespace) ??
-          HTTypeAny(interpreter.lexicon.typeAny);
+          HTTypeAny(interpreter.lexicon.kAny);
     }
     return HTStructuralType(fieldTypes: fieldTypes, closure: namespace);
   }

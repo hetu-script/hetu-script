@@ -2,12 +2,13 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../declaration/namespace/declaration_namespace.dart';
 import '../parser/token.dart';
-import '../grammar/constant.dart';
 import '../source/source.dart';
 import '../declaration/declaration.dart';
 import '../../resource/resource.dart' show HTResourceType;
 import '../../source/line_info.dart';
 import '../error/error.dart';
+import '../../common/internal_identifier.dart';
+import '../common/function_category.dart';
 
 part 'visitor/abstract_ast_visitor.dart';
 
@@ -44,7 +45,7 @@ abstract class ASTNode {
   /// i.e. its value is computed before compile into bytecode.
   bool get isConstValue => value != null;
 
-  final bool isAsyncValue;
+  final bool isAwait;
 
   /// If this is a constant expressions, the constant interpreter will compute the value
   /// and assign to this property, otherwise, this peoperty is null.
@@ -73,7 +74,7 @@ abstract class ASTNode {
   ASTNode(
     this.type, {
     this.isStatement = false,
-    this.isAsyncValue = false,
+    this.isAwait = false,
     this.isBlock = false,
     this.source,
     this.line = 0,
@@ -121,7 +122,7 @@ class ASTComment extends ASTAnnotation {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.comment, content: content);
+  }) : super(InternalIdentifier.comment, content: content);
 
   ASTComment.fromCommentToken(TokenComment token)
       : this(
@@ -143,7 +144,7 @@ class ASTEmptyLine extends ASTAnnotation {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.emptyLine,
+          InternalIdentifier.emptyLine,
           content: '\n',
           isDocumentation: false,
         );
@@ -185,7 +186,7 @@ class ASTSource extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.source, isStatement: true) {
+  }) : super(InternalIdentifier.source, isStatement: true) {
     // for (final decl in imports) {
     //   decl.parent = this;
     // }
@@ -234,7 +235,7 @@ class ASTCompilation extends ASTNode {
     super.offset = 0,
     super.length = 0,
     this.version,
-  }) : super(Semantic.compilation, isStatement: true) {
+  }) : super(InternalIdentifier.compilation, isStatement: true) {
     // for (final decl in values.values) {
     //   decl.parent = this;
     // }
@@ -254,7 +255,7 @@ class ASTEmpty extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.empty);
+  }) : super(InternalIdentifier.empty);
 }
 
 class ASTLiteralNull extends ASTNode {
@@ -267,7 +268,7 @@ class ASTLiteralNull extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.literalNull);
+  }) : super(InternalIdentifier.literalNull);
 }
 
 class ASTLiteralBoolean extends ASTNode {
@@ -286,7 +287,7 @@ class ASTLiteralBoolean extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.literalBoolean);
+  }) : super(InternalIdentifier.literalBoolean);
 }
 
 class ASTLiteralInteger extends ASTNode {
@@ -306,7 +307,7 @@ class ASTLiteralInteger extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.literalInteger);
+  }) : super(InternalIdentifier.literalInteger);
 }
 
 class ASTLiteralFloat extends ASTNode {
@@ -326,7 +327,7 @@ class ASTLiteralFloat extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.literalFloat);
+  }) : super(InternalIdentifier.literalFloat);
 }
 
 class ASTLiteralString extends ASTNode {
@@ -352,7 +353,7 @@ class ASTLiteralString extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.literalString);
+  }) : super(InternalIdentifier.literalString);
 }
 
 class ASTStringInterpolation extends ASTNode {
@@ -386,8 +387,8 @@ class ASTStringInterpolation extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.literalStringInterpolation,
-          isAsyncValue: interpolations.any((element) => element.isAsyncValue),
+          InternalIdentifier.stringInterpolation,
+          isAwait: interpolations.any((element) => element.isAwait),
         ) {
     // for (final ast in interpolations) {
     //   ast.parent = this;
@@ -421,7 +422,7 @@ class IdentifierExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.identifierExpr);
+  }) : super(InternalIdentifier.identifierExpression);
 
   IdentifierExpr.fromToken(
     Token idTok, {
@@ -456,8 +457,8 @@ class SpreadExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.spreadExpr,
-          isAsyncValue: collection.isAsyncValue,
+          InternalIdentifier.spreadExpression,
+          isAwait: collection.isAwait,
         );
 }
 
@@ -485,8 +486,8 @@ class CommaExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.commaExpr,
-          isAsyncValue: list.any((element) => element.isAsyncValue),
+          InternalIdentifier.commaExpression,
+          isAwait: list.any((element) => element.isAwait),
         );
 }
 
@@ -511,8 +512,8 @@ class ListExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.literalList,
-          isAsyncValue: list.any((element) => element.isAsyncValue),
+          InternalIdentifier.literalList,
+          isAwait: list.any((element) => element.isAwait),
         );
 }
 
@@ -538,8 +539,8 @@ class InOfExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.inExpr,
-          isAsyncValue: collection.isAsyncValue,
+          InternalIdentifier.inOfExpression,
+          isAwait: collection.isAwait,
         );
 }
 
@@ -562,8 +563,8 @@ class GroupExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.groupExpr,
-          isAsyncValue: inner.isAsyncValue,
+          InternalIdentifier.groupExpression,
+          isAwait: inner.isAwait,
         );
 }
 
@@ -604,7 +605,7 @@ class IntrinsicTypeExpr extends TypeExpr {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.intrinsicTypeExpr);
+  }) : super(InternalIdentifier.intrinsicTypeExpression);
 }
 
 class NominalTypeExpr extends TypeExpr {
@@ -634,7 +635,7 @@ class NominalTypeExpr extends TypeExpr {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.nominalTypeExpr);
+  }) : super(InternalIdentifier.nominalTypeExpression);
 }
 
 class ParamTypeExpr extends ASTNode {
@@ -670,7 +671,7 @@ class ParamTypeExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.paramTypeExpr);
+  }) : super(InternalIdentifier.paramTypeExpression);
 }
 
 class FuncTypeExpr extends TypeExpr {
@@ -711,7 +712,7 @@ class FuncTypeExpr extends TypeExpr {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.funcTypeExpr);
+  }) : super(InternalIdentifier.functionTypeExpression);
 }
 
 class FieldTypeExpr extends ASTNode {
@@ -736,7 +737,7 @@ class FieldTypeExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.fieldTypeExpr);
+  }) : super(InternalIdentifier.fieldTypeExpression);
 }
 
 class StructuralTypeExpr extends TypeExpr {
@@ -764,7 +765,7 @@ class StructuralTypeExpr extends TypeExpr {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.structuralTypeExpr);
+  }) : super(InternalIdentifier.structuralTypeExpression);
 }
 
 class GenericTypeParameterExpr extends ASTNode {
@@ -789,7 +790,7 @@ class GenericTypeParameterExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.genericTypeParamExpr);
+  }) : super(InternalIdentifier.genericTypeParamExpression);
 }
 
 /// -e, !e，++e, --e
@@ -810,13 +811,13 @@ class UnaryPrefixExpr extends ASTNode {
   UnaryPrefixExpr(
     this.op,
     this.object, {
-    super.isAsyncValue,
+    super.isAwait,
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.unaryExpr);
+  }) : super(InternalIdentifier.unaryPrefixExpression);
 }
 
 /// e++, e--
@@ -842,7 +843,7 @@ class UnaryPostfixExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.unaryExpr);
+  }) : super(InternalIdentifier.unaryPostfixExpression);
 }
 
 class BinaryExpr extends ASTNode {
@@ -871,8 +872,8 @@ class BinaryExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.binaryExpr,
-          isAsyncValue: left.isAsyncValue || right.isAsyncValue,
+          InternalIdentifier.binaryExpression,
+          isAwait: left.isAwait || right.isAwait,
         );
 }
 
@@ -903,10 +904,9 @@ class TernaryExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.binaryExpr,
-          isAsyncValue: condition.isAsyncValue ||
-              thenBranch.isAsyncValue ||
-              elseBranch.isAsyncValue,
+          InternalIdentifier.ternaryExpression,
+          isAwait:
+              condition.isAwait || thenBranch.isAwait || elseBranch.isAwait,
         );
 }
 
@@ -936,8 +936,8 @@ class AssignExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.assignExpr,
-          isAsyncValue: right.isAsyncValue,
+          InternalIdentifier.assignExpression,
+          isAwait: right.isAwait,
         );
 }
 
@@ -967,8 +967,8 @@ class MemberExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.memberGetExpr,
-          isAsyncValue: object.isAsyncValue,
+          InternalIdentifier.memberGetExpression,
+          isAwait: object.isAwait,
         );
 }
 
@@ -998,8 +998,8 @@ class SubExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.subGetExpr,
-          isAsyncValue: object.isAsyncValue || key.isAsyncValue,
+          InternalIdentifier.subGetExpression,
+          isAwait: object.isAwait || key.isAwait,
         );
 }
 
@@ -1043,10 +1043,10 @@ class CallExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.callExpr,
-          isAsyncValue: callee.isAsyncValue ||
-              positionalArgs.any((element) => element.isAsyncValue) ||
-              namedArgs.values.any((element) => element.isAsyncValue),
+          InternalIdentifier.callExpression,
+          isAwait: callee.isAwait ||
+              positionalArgs.any((element) => element.isAwait) ||
+              namedArgs.values.any((element) => element.isAwait),
         );
 }
 
@@ -1077,10 +1077,10 @@ class IfExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.ifExpr,
-          isAsyncValue: condition.isAsyncValue ||
-              thenBranch.isAsyncValue ||
-              (elseBranch?.isAsyncValue ?? false),
+          InternalIdentifier.ifExpression,
+          isAwait: condition.isAwait ||
+              thenBranch.isAwait ||
+              (elseBranch?.isAwait ?? false),
           isBlock: thenBranch.isBlock,
         ) {
     if (elseBranch != null) {
@@ -1124,11 +1124,11 @@ class ForExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.forExpr,
-          isAsyncValue: (init?.isAsyncValue ?? false) ||
-              (condition?.isAsyncValue ?? false) ||
-              (increment?.isAsyncValue ?? false) ||
-              loop.isAsyncValue,
+          InternalIdentifier.forExpression,
+          isAwait: (init?.isAwait ?? false) ||
+              (condition?.isAwait ?? false) ||
+              (increment?.isAwait ?? false) ||
+              loop.isAwait,
         );
 }
 
@@ -1166,8 +1166,8 @@ class ForRangeExpr extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.forRangeExpr,
-          isAsyncValue: collection.isAsyncValue || loop.isAsyncValue,
+          InternalIdentifier.forRangeExpression,
+          isAwait: collection.isAwait || loop.isAwait,
         );
 }
 
@@ -1176,7 +1176,7 @@ abstract class Statement extends ASTNode {
 
   Statement(
     super.type, {
-    super.isAsyncValue,
+    super.isAwait,
     this.hasEndOfStmtMark = false,
     super.isStatement = true,
     super.isBlock,
@@ -1212,8 +1212,8 @@ class AssertStmt extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.assertStmt,
-          isAsyncValue: expr.isAsyncValue,
+          InternalIdentifier.assertStatement,
+          isAwait: expr.isAwait,
         );
 }
 
@@ -1232,8 +1232,8 @@ class ThrowStmt extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.throwStmt,
-          isAsyncValue: message.isAsyncValue,
+          InternalIdentifier.throwStatement,
+          isAwait: message.isAwait,
           isBlock: message.isBlock,
         );
 }
@@ -1258,8 +1258,8 @@ class ExprStmt extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.exprStmt,
-          isAsyncValue: expr.isAsyncValue,
+          InternalIdentifier.expressionStatement,
+          isAwait: expr.isAwait,
           isBlock: expr.isBlock,
         );
 }
@@ -1291,8 +1291,8 @@ class BlockStmt extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.blockStmt,
-          isAsyncValue: statements.any((element) => element.isAsyncValue),
+          InternalIdentifier.blockStatement,
+          isAwait: statements.any((element) => element.isAwait),
           isBlock: true,
         );
 }
@@ -1320,8 +1320,8 @@ class ReturnStmt extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.returnStmt,
-          isAsyncValue: returnValue?.isAsyncValue ?? false,
+          InternalIdentifier.returnStatement,
+          isAwait: returnValue?.isAwait ?? false,
           isBlock: returnValue?.isBlock ?? false,
         );
 }
@@ -1351,8 +1351,8 @@ class WhileStmt extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.whileStmt,
-          isAsyncValue: condition.isAsyncValue || loop.isAsyncValue,
+          InternalIdentifier.whileStatement,
+          isAwait: condition.isAwait || loop.isAwait,
         );
 }
 
@@ -1380,14 +1380,14 @@ class DoStmt extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.doStmt,
-          isAsyncValue: loop.isAsyncValue || (condition?.isAsyncValue ?? false),
+          InternalIdentifier.doStatement,
+          isAwait: loop.isAwait || (condition?.isAwait ?? false),
         );
 }
 
-class WhenStmt extends Statement {
+class SwitchStmt extends Statement {
   @override
-  dynamic accept(AbstractASTVisitor visitor) => visitor.visitWhen(this);
+  dynamic accept(AbstractASTVisitor visitor) => visitor.visitSwitch(this);
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
@@ -1406,7 +1406,7 @@ class WhenStmt extends Statement {
 
   final ASTNode? elseBranch;
 
-  WhenStmt(
+  SwitchStmt(
     this.cases,
     this.elseBranch,
     this.condition, {
@@ -1417,11 +1417,11 @@ class WhenStmt extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.whenStmt,
-          isAsyncValue: (condition?.isAsyncValue ?? false) ||
-              (elseBranch?.isAsyncValue ?? false) ||
-              cases.keys.any((element) => element.isAsyncValue) ||
-              cases.values.any((element) => element.isAsyncValue),
+          InternalIdentifier.switchStatement,
+          isAwait: (condition?.isAwait ?? false) ||
+              (elseBranch?.isAwait ?? false) ||
+              cases.keys.any((element) => element.isAwait) ||
+              cases.values.any((element) => element.isAwait),
           isBlock: true,
         );
 }
@@ -1440,7 +1440,7 @@ class BreakStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.breakStmt);
+  }) : super(InternalIdentifier.breakStatement);
 }
 
 class ContinueStmt extends Statement {
@@ -1457,7 +1457,7 @@ class ContinueStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.continueStmt);
+  }) : super(InternalIdentifier.continueStatement);
 }
 
 class DeleteStmt extends Statement {
@@ -1474,7 +1474,7 @@ class DeleteStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.deleteStmt);
+  }) : super(InternalIdentifier.deleteStatement);
 }
 
 class DeleteMemberStmt extends Statement {
@@ -1495,7 +1495,7 @@ class DeleteMemberStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.deleteMemberStmt);
+  }) : super(InternalIdentifier.deleteMemberStatement);
 }
 
 class DeleteSubStmt extends Statement {
@@ -1516,7 +1516,7 @@ class DeleteSubStmt extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.deleteSubMemberStmt);
+  }) : super(InternalIdentifier.deleteSubMemberStatement);
 }
 
 class ImportExportDecl extends Statement {
@@ -1558,7 +1558,9 @@ class ImportExportDecl extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(isExport ? Semantic.exportStmt : Semantic.importStmt);
+  }) : super(isExport
+            ? InternalIdentifier.exportStatement
+            : InternalIdentifier.importStatement);
 }
 
 class NamespaceDecl extends Statement {
@@ -1595,7 +1597,7 @@ class NamespaceDecl extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.namespaceDeclaration,
+          InternalIdentifier.namespaceDeclaration,
           isBlock: true,
         );
 }
@@ -1637,7 +1639,7 @@ class TypeAliasDecl extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.typeAliasDeclaration);
+  }) : super(InternalIdentifier.typeAliasDeclaration);
 }
 
 // class ConstDecl extends AstNode {
@@ -1674,7 +1676,7 @@ class TypeAliasDecl extends Statement {
 //       int column = 0,
 //       int offset = 0,
 //       int length = 0,})
-//       : super(Semantic.constantDeclaration,
+//       : super(InternalIdentifier.constantDeclaration,
 //             source: source,
 //             line: line,
 //             column: column,
@@ -1710,7 +1712,7 @@ class VarDecl extends ASTNode {
 
   final bool isConst;
 
-  final bool isField;
+  final bool isStructField;
 
   final bool isExternal;
 
@@ -1721,6 +1723,8 @@ class VarDecl extends ASTNode {
   final bool isPrivate;
 
   final bool isTopLevel;
+
+  final bool isField;
 
   final bool lateFinalize;
 
@@ -1738,12 +1742,13 @@ class VarDecl extends ASTNode {
     this.hasEndOfStmtMark = false,
     // this.typeInferrence = false,
     this.isConst = false,
-    this.isField = false,
+    this.isStructField = false,
     this.isExternal = false,
     this.isStatic = false,
     this.isMutable = false,
     this.isPrivate = false,
     this.isTopLevel = false,
+    this.isField = false,
     this.lateFinalize = false,
     this.lateInitialize = false,
     super.source,
@@ -1752,7 +1757,7 @@ class VarDecl extends ASTNode {
     super.offset = 0,
     super.length = 0,
   })  : _internalName = internalName,
-        super(Semantic.variableDeclaration);
+        super(InternalIdentifier.variableDeclaration);
 }
 
 class DestructuringDecl extends Statement {
@@ -1787,12 +1792,12 @@ class DestructuringDecl extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.destructuringDeclaration);
+  }) : super(InternalIdentifier.destructuringDeclaration);
 }
 
 class ParamDecl extends VarDecl {
   @override
-  String get type => Semantic.parameterDeclaration;
+  String get type => InternalIdentifier.parameterDeclaration;
 
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitParamDecl(this);
@@ -1862,7 +1867,7 @@ class RedirectingConstructorCallExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.redirectingConstructorCallExpression);
+  }) : super(InternalIdentifier.redirectingConstructor);
 }
 
 class FuncDecl extends Statement {
@@ -1905,13 +1910,9 @@ class FuncDecl extends Statement {
 
   final ASTNode? definition;
 
-  bool get isMember => classId != null;
-
   bool get isAbstract => definition == null && !isExternal;
 
   final bool isAsync;
-
-  final bool isField;
 
   final bool isExternal;
 
@@ -1924,6 +1925,8 @@ class FuncDecl extends Statement {
   final bool isPrivate;
 
   final bool isTopLevel;
+
+  final bool isField;
 
   final FunctionCategory category;
 
@@ -1942,13 +1945,13 @@ class FuncDecl extends Statement {
     this.isExpressionBody = false,
     this.definition,
     this.isAsync = false,
-    this.isField = false,
     this.isExternal = false,
     this.isStatic = false,
     this.isConst = false,
     this.isVariadic = false,
     this.isPrivate = false,
     this.isTopLevel = false,
+    this.isField = false,
     this.category = FunctionCategory.normal,
     super.isStatement,
     super.hasEndOfStmtMark,
@@ -1958,7 +1961,7 @@ class FuncDecl extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.functionDeclaration,
+          InternalIdentifier.functionDeclaration,
           isBlock: (!isExpressionBody && definition != null),
         );
 }
@@ -2030,7 +2033,7 @@ class ClassDecl extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.classDeclaration,
+          InternalIdentifier.classDeclaration,
           isStatement: true,
           isBlock: true,
         );
@@ -2071,7 +2074,7 @@ class EnumDecl extends Statement {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.enumDeclaration,
+          InternalIdentifier.enumDeclaration,
           isStatement: true,
           isBlock: true,
         );
@@ -2117,7 +2120,7 @@ class StructDecl extends ASTNode {
     super.offset = 0,
     super.length = 0,
   }) : super(
-          Semantic.structDeclaration,
+          InternalIdentifier.structDeclaration,
           isBlock: true,
         );
 }
@@ -2147,7 +2150,7 @@ class StructObjField extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.literalStructField);
+  }) : super(InternalIdentifier.literalStructField);
 }
 
 class StructObjExpr extends ASTNode {
@@ -2178,5 +2181,5 @@ class StructObjExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(Semantic.literalStruct);
+  }) : super(InternalIdentifier.literalStruct);
 }

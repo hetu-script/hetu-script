@@ -7,9 +7,9 @@ import '../value/entity.dart';
 import '../type/type.dart';
 import '../locale/locale.dart';
 import '../error/error.dart';
-import '../shared/jsonify.dart';
+import '../utils/jsonify.dart';
 import '../value/function/function.dart';
-import '../shared/deepcopy.dart';
+import '../utils/collection.dart';
 
 extension NumBinding on num {
   dynamic htFetch(String id) {
@@ -838,10 +838,8 @@ extension ListBinding on List {
     switch (id) {
       case 'first':
         first = value;
-        break;
       case 'last':
         last = value;
-        break;
       default:
         throw HTError.undefined(id);
     }

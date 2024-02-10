@@ -4,7 +4,7 @@ Hetu's grammar is close to most modern languages, with a few key characteristics
 
 ## Declaration keyword first
 
-Declarations starts with a keyword before the identifier: var, final, const, fun, construct, get, set, class, type, etc.
+Declarations starts with a keyword before the identifier: var, final, const, function, constructor, get, set, class, type, etc.
 
 ## Semicolon
 
@@ -16,7 +16,7 @@ Type annotation is optional. Type is annotated **with a colon after the identifi
 
 ## Some keyword are different
 
-Use **when** instead of **switch**, with [more complex usage](control_flow/readme.md#when) to match the condition value. This is borrowed from kotlin.
+**switch** do not need `case` and `break` keywords, and with [more complex usage](control_flow/readme.md#switch) to match the condition value.
 
 ## Comments
 
@@ -32,7 +32,7 @@ Documentation comments:
 
 ```typescript
 /// This is a documentation comment
-fun myFunc() -> int {
+function myFunc() -> int {
   // some code
 }
 ```
@@ -44,10 +44,10 @@ You can specify a private member of a class/namespace/source by making its name 
 ```dart
 class Person {
   var _name
-  construct (name) {
+  constructor (name) {
     _name = name
   }
-  fun greeting {
+  function greeting {
     print('Hi, I\'m ', _name)
   }
 }
@@ -75,8 +75,8 @@ For blocks of code (function body), Hetu will implicitly return the last express
 The function below:
 
 ```javascript
-fun test(n) {
-  var x = n * 2
+function test(n) {
+  var x = n * 2;
 }
 ```
 

@@ -16,13 +16,13 @@
 /// }
 
 
-fun isReady(timeframe: int, speed) {
+function isReady(timeframe: int, speed) {
   return timeframe % speed == 0
 }
 
 // damage = ((1 / (Math.log((victim.defense + 5) / 100) + 5)) * 2 * attacker.attack)
 
-fun attack(attacker, victim, [skill = false]) {
+function attack(attacker, victim, [skill = false]) {
   var damage
   if (!skill) {
     damage = attacker.weapon.attack - victim.defense * Math.random();
@@ -76,11 +76,11 @@ final enemy = {
   initiative: 0,
 }
 
-fun main {
+function main {
   battle(hero, enemy)
 }
 
-fun battle(hero, enemy) {
+function battle(hero, enemy) {
 
   print(hero)
   print(enemy)

@@ -39,6 +39,7 @@ enum ErrorCode {
   privateMember,
   constMustInit,
   awaitExpression,
+  getterParam,
 
   defined,
   outsideThis,
@@ -833,6 +834,25 @@ class HTError {
       int? length})
       : this(ErrorCode.awaitExpression, ErrorType.syntacticError,
             message: HTLocale.current.errorAwaitExpression,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Getter should have empty parameters list.
+  HTError.getterParam(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.getterParam, ErrorType.syntacticError,
+            message: HTLocale.current.errorGetterParam,
             extra: extra,
             correction: correction,
             filename: filename,

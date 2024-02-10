@@ -15,9 +15,10 @@ void main() {
       allowImplicitEmptyValueToFalseConversion: true,
       normalizeImportPath: false,
     ),
+    locale: HTLocaleSimplifiedChinese(),
     sourceContext: sourceContext,
   );
-  hetu.init(locale: HTLocaleSimplifiedChinese());
+  hetu.init();
 
   final source1 = HTSource(r'''
     var name = 'Richard Byson'
@@ -27,7 +28,7 @@ void main() {
     export 'source1.ht'
     export { greeting }
     var _age = 42
-    fun greeting(a, b) {
+    function greeting(a, b) {
       if (a?.aaa == null) {
         // assert(name == null)
       }
@@ -35,7 +36,7 @@ void main() {
     }
 // ''', filename: 'source2.ht');
   final source3 = HTSource(r'''
-    fun tutorial {
+    function tutorial {
       print('a guide to use Hetu')
     }
 ''', filename: 'source3.ht');

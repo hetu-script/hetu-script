@@ -9,17 +9,17 @@ void main() {
     class Name {
       var firstName = 'Adam'
       var familyName = 'Christ'
-      fun toString {
+      function toString {
         return '${firstName} ${familyName}'
       }
     }
     class Person {
-      fun greeting {
+      function greeting {
         return 6 * 7
       }
       var name = Name()
     }
-    fun main {
+    function main {
       var j = Person()
       j.name.familyName = 'Luke'
       print(j.name) // Will use overrided toString function in script class

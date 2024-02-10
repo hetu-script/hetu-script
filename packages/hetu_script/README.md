@@ -73,7 +73,7 @@ void main() {
     'hello': () => {'greetings': 'greetings from Dart!'},
   });
   var hetuValue = hetu.eval(r'''
-      external fun hello
+      external function hello
       var dartValue = hello()
       dartValue['reply'] = 'Hi, this is Hetu.'
       dartValue // the script will return the value of it's last expression
@@ -112,7 +112,7 @@ If you want to write multiple line in REPL mode, use '\\' to end a line.
 null // repl print
 >>>a
 42 // repl print
->>>fun meaning {\
+>>>function meaning {\
 return a }
 null // repl print
 >>>meaning

@@ -7,7 +7,7 @@ import '../error/error_handler.dart';
 import 'analysis_result.dart';
 import 'analyzer.dart';
 import '../bundler/bundler.dart';
-import '../parser/parser_default_impl.dart';
+import '../parser/parser_hetu.dart';
 
 class HTAnalysisManager {
   final HTErrorHandlerCallback? errorHandler;
@@ -43,7 +43,7 @@ class HTAnalysisManager {
     final analyzer = _pathsToAnalyzer[fullName]!;
     final source = sourceContextManager.getResource(fullName)!;
     final bundler = HTBundler(sourceContext: analyzer.sourceContext);
-    final parser = HTDefaultParser();
+    final parser = HTParserHetu();
     final compilation = bundler.bundle(source: source, parser: parser);
     final result = analyzer.analyzeCompilation(compilation);
     _cachedSourceAnalysisResults.addAll(result.sourceAnalysisResults);

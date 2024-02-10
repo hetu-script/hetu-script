@@ -27,7 +27,7 @@ void main() {
     });
     test('late initialization', () {
       final result = hetu.eval(r'''
-        fun getIndex {
+        function getIndex {
           return 2
         }
         var tables = { 'weapon': [1,2,3] }
@@ -56,8 +56,8 @@ void main() {
       final result = hetu.eval(r'''
         class Left {
           var age = 10
-          fun m() {
-            var b = Right(fun(n) {
+          function m() {
+            var b = Right(function(n) {
               age = n
             })
             b.exec()
@@ -65,10 +65,10 @@ void main() {
         }
         class Right {
           var f
-          construct(f) {
+          constructor (f) {
             this.f = f
           }
-          fun exec () {
+          function exec () {
             f(5)
           }
         }

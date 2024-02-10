@@ -1,25 +1,25 @@
 external class Hetu {
 
-  fun createStructfromJson(data)
+  function createStructfromJson(data)
 
-  fun stringify(obj: any) -> any
+  function stringify(obj: any) -> any
 
-  fun jsonify(obj: any) -> Map
+  function jsonify(obj: any) -> Map
 
-  fun eval(code: str) -> any
+  function eval(code: str) -> any
 
-  fun require(path: str)
+  function require(path: str)
 
-  fun help(id: str)
+  function help(id: str)
 }
 
 late _hetu
 
-fun initHetuEnv(hetu) {
+function initHetuEnv(hetu) {
   _hetu = hetu
 }
 
-fun createStructfromJson(data) {
+function createStructfromJson(data) {
   if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
@@ -28,19 +28,20 @@ fun createStructfromJson(data) {
   }
 }
 
-external fun _print(obj: any)
+external function _print(obj: any)
 
 /// Stringify and print one or several objects to standard output stream.
-fun print(... args: any) {
+function print(... args: any) {
   if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
   final mapped = args.map((e) => _hetu.stringify(e)).join(' ')
   _print(mapped)
+  // _print(args)
 }
 
 /// Convert an object into a string.
-fun stringify(obj: any) {
+function stringify(obj: any) {
   if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
@@ -48,17 +49,17 @@ fun stringify(obj: any) {
 }
 
 /// Convert an object into a json (a Map object).
-fun jsonify(obj: any) {
+function jsonify(obj: any) {
   if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
   return _hetu.jsonify(obj)
 }
 
-external fun range(startOrStop: num, [stop: num, step: num]) -> Iterable
+external function range(startOrStop: num, [stop: num, step: num]) -> Iterable
 
 /// dynamically eval a string content of hetu script code.
-fun eval(code: str) {
+function eval(code: str) {
   if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
@@ -71,7 +72,7 @@ fun eval(code: str) {
 /// `path` is the fullname of this source.
 /// Usage:
 ///   final nsp = require('source1.ht')
-fun require(path: str) {
+function require(path: str) {
   if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }
@@ -81,7 +82,7 @@ fun require(path: str) {
 /// Print the documentation of an identifier.
 /// Usage:
 ///   help(require)
-fun help(id: str) {
+function help(id: str) {
   if (_hetu == null) {
     throw 'Hetu environment is not initialized!'
   }

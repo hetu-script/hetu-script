@@ -7,7 +7,6 @@ import 'assets_resource_context.dart';
 extension HTFlutterExtension on Hetu {
   Future<void> initFlutter({
     bool useDefaultModuleAndBinding = true,
-    HTLocale? locale,
     Map<String, Function> externalFunctions = const {},
     Map<String, Function Function(HTFunction)> externalFunctionTypedef =
         const {},
@@ -18,7 +17,6 @@ extension HTFlutterExtension on Hetu {
     }
     init(
         useDefaultModuleAndBinding: useDefaultModuleAndBinding,
-        locale: locale,
         externalFunctions: externalFunctions,
         externalFunctionTypedef: externalFunctionTypedef,
         externalClasses: externalClasses);

@@ -8,10 +8,9 @@ void main() {
       allowImplicitNullToZeroConversion: true,
       allowImplicitEmptyValueToFalseConversion: true,
     ),
-  );
-  hetu.init(
     locale: HTLocaleSimplifiedChinese(),
   );
+  hetu.init();
   hetu.eval(r'''
   print(typeof 42.0)
   ''');

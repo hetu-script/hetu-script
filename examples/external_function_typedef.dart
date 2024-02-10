@@ -27,12 +27,12 @@ void main() {
   });
 
   hetu.eval(r'''
-      external fun hetuAdd(func)
-      fun [DartFunction] namedAdd(a: num, b: num) -> num {
+      external function hetuAdd(func)
+      function [DartFunction] namedAdd(a: num, b: num) -> num {
         return a + b
       }
-      fun main {
-        return hetuAdd(fun [DartFunction] (a: num, b: num) -> num {
+      function main {
+        return hetuAdd(function [DartFunction] (a: num, b: num) -> num {
           return a + b
         })
       }''');

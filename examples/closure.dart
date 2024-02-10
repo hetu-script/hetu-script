@@ -4,9 +4,9 @@ void main() {
   final hetu = Hetu();
   hetu.init();
   hetu.eval(r'''
-      fun closure(func) {
+      function closure(func) {
         var i = 42
-        fun nested () {
+        function nested () {
           i = i + 1
           print(func(i))
         }

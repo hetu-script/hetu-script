@@ -6,14 +6,14 @@ void main() {
   hetu.eval(r'''
     class A {
       var name: str
-      static fun create(name) {
+      static function create(name) {
         return A._(name)
       }
-      construct _(name) {
+      constructor _(name) {
         this.name = name
       }
     }
-    fun main {
+    function main {
       // var a = A() // error!
       var a = A.create('Tom')
       print(a.name)

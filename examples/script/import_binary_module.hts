@@ -2,7 +2,7 @@ import 'module:actor' as actor
 
 var p: actor.Person = actor.Person()
 
-fun greeting(person: actor.Person) {
+function greeting(person: actor.Person) {
   print('Hi! I\'m ${person.name}')
 }
 

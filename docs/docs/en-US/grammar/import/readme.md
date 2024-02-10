@@ -10,7 +10,7 @@ You can set an aliases for the imported namespace.
 import 'game.ht'
 import { hello, calculator } from 'hello.ht' as h
 
-fun main {
+function main {
   h.greeting()
 }
 ```
@@ -70,7 +70,7 @@ hetu.eval(r'''
 You have to use it in the form of a variable declaration, otherwise the importing won't have any effect. This is to say, you have to explicitly list all symbols that you wish to import, or to give a alias name to the imported namespace when using this statement.
 
 ```javascript
-require('source1.ht'); // this won't have any effect!
+require("source1.ht"); // this won't have any effect!
 ```
 
 Because the file is loaded dynamically rather than statically before compile, you have to ensure that the source is loaded in the sourceContext before running the script contains the require keyword.

@@ -27,7 +27,7 @@ class Char {
     return age / (12 * 30).truncate()
   }
 
-  construct (professions: List, [age: num]) {
+  constructor (professions: List, [age: num]) {
     this.professions = professions
     if (age != null)
       this.age = age
@@ -58,7 +58,7 @@ class Organization {
     money: 0,
   }
 
-  fun debug(info: List) {
+  function debug(info: List) {
     print('----------------')
     print('population: ' + population.length.toString())
     if (info.contains('class')) {
@@ -90,7 +90,7 @@ class Organization {
     }
   }
 
-  fun addChar(p: Char) {
+  function addChar(p: Char) {
     population.add(p)
 
     for (var prof in p.professions) {
@@ -114,7 +114,7 @@ class Organization {
   }
 }
 
-fun main {
+function main {
   var huaxia = Organization()
   // var c = Char(['farmer'])
   // huaxia.addChar(c)

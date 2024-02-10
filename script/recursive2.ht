@@ -2,6 +2,6 @@ import 'recursive1.ht'
 
 final name = 'r2'
 
-fun main {
+function main {
   hello()
 }

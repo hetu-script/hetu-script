@@ -37,7 +37,7 @@ void main() {
       };
       final result = hetu.eval(
           r'''
-            fun fromJsonTest(data) {
+            function fromJsonTest(data) {
               final obj = Prototype.fromJson(data)
               return obj.volumes
             }
@@ -81,13 +81,13 @@ void main() {
     test('named constructor', () {
       final result = hetu.eval(r'''
         struct DialogContentData {
-          construct({
+          constructor ({
             localeKeys,
           }) {
             this.localeKeys = localeKeys
           }
 
-          construct fromData(data) : this(
+          constructor fromData(data) : this(
             localeKeys: data.localeKeys,
           ) {}
         }

@@ -1,16 +1,16 @@
 # Control flow
 
-Hetu has while, do loops, and classic for(init;condition;increment) and for...in loops. As well as when statement, which works like switch.
+Hetu has while, do loops, and classic for(init;condition;increment) and for...in loops. As well as `switch` statement.
 
 ```dart
-fun main {
+function main {
   var i = 0
   for (;;) {
     ++i
-    when (i % 2) {
-      0 -> print('even:', i)
-      1 -> print('odd:', i)
-      else -> print('never going to happen.')
+    switch (i % 2) {
+      0 => print('even:', i)
+      1 => print('odd:', i)
+      else => print('never going to happen.')
     }
     if (i > 5) {
       break
@@ -81,19 +81,17 @@ for (var item of obj) {
 }
 ```
 
-## When
+## Switch
 
-When is the substitue for 'switch' in older programming languages, we change its name to indicate more complex usages.
+'switch' statement's condition is optional. If not provided, the interpreter will check the cases and jump to the first branch if the expression evaled as true, just like a if else statement.
 
-'when' statement's condition is optional. If not provided, the interpreter will check the cases and jump to the first branch if the expression evaled as true, just like a if else statement.
+However for switch statement's cases, interpreter won't [inexplicitly convert non-boolean values](../strict_mode/readme.md#truth-value).
 
-However for when statement's cases, interpreter won't [inexplicitly convert non-boolean values](../strict_mode/readme.md#truth-value).
+'switch' statement's case could be non-const expression or variables;
 
-'when' statement's case could be non-const expression or variables;
+'switch' statement's body must be enclosed in curly brackets. However, the case branch could be a single statement without brackets;
 
-'when' statement's body must be enclosed in curly brackets. However, the case branch could be a single statement without brackets;
-
-'when' statement's else branch is optional.
+'switch' statement's else branch is optional.
 
 If you want to match multiple values in one branch, use comma expression.
 
@@ -101,17 +99,17 @@ If you want to check if an iterable/object contains the value, use in/of express
 
 ```javascript
 for (final i in range(0, 10)) {
-  when (i) {
-    0 -> {
+  switch (i) {
+    0 => {
       print('number: 0')
     }
-    2, 3, 5, 7 -> {
+    2, 3, 5, 7 => {
       print('prime: ${i}')
     }
-    in [4, 9] -> {
+    in [4, 9] => {
       print('square: ${i}')
     }
-    else -> {
+    else => {
       print('other: ${i}')
     }
   }

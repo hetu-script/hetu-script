@@ -43,6 +43,7 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
     super.isConst = false,
     super.isMutable = false,
     super.isTopLevel = false,
+    super.isField = false,
     super.lateFinalize = false,
     int? ip,
     int? line,

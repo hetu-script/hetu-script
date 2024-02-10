@@ -1,10 +1,10 @@
-export 'lexer/lexicon.dart';
-export 'lexer/lexicon_default_impl.dart';
+export 'lexicon/lexicon.dart';
+export 'lexicon/lexicon_hetu.dart';
 export 'lexer/lexer.dart';
-export 'lexer/lexer_default_impl.dart';
+export 'lexer/lexer_hetu.dart';
 export 'ast/ast.dart';
 export 'ast/visitor/recursive_ast_visitor.dart';
 export 'parser/token_reader.dart';
 export 'parser/token.dart';
 export 'parser/parser.dart';
-export 'parser/parser_default_impl.dart';
+export 'parser/parser_hetu.dart';

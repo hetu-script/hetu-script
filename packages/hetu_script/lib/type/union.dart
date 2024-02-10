@@ -3,5 +3,5 @@
 
 // /// A set of some other types
 // class HTUnionType extends HTType {
-//   const HTUnionType() : super(Semantic.unionTypeExpr);
+//   const HTUnionType() : super(InternalIdentifier.unionTypeExpr);
 // }

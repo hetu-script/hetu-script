@@ -5,7 +5,7 @@ Struct are a prototype base object similar to Javascript's object. It is a proto
 The most significant difference between struct and class, is that struct's member can be created and modified during runtime. And you won't get errors when accessing a non-exist struct member, you simply got a null value.
 
 ```javascript
-obj.race = 'dragon'; // okay, this will define a new member on obj.
+obj.race = "dragon"; // okay, this will define a new member on obj.
 var lvl = obj.level; // okay, although lvl's value will be null
 ```
 
@@ -15,7 +15,7 @@ It is possible to delete a struct field using 'delete' keyword.
 
 ```javascript
 var a = {
-  name: 'the world',
+  name: "the world",
   meaning: 42,
 };
 delete a.meaning;
@@ -43,7 +43,7 @@ You don't have to declare the fields before assign it like you must do in Class 
 
 ```javascript
 struct Named {
-  construct (this.name) {} // a empty brackets is needed
+  constructor (this.name) {} // a empty brackets is needed
 }
 ```
 
@@ -67,7 +67,7 @@ And if you changed the static fields in a named struct. All the object created f
 struct Named {
   static var race = 'Human'
   var name
-  construct(name) {
+  constructor(name) {
     this.name = name
   }
 }
@@ -106,12 +106,12 @@ Redirecting constructors also works in struct. Except you cannot redirect to **s
 
 ```javascript
 struct Tile {
-  construct (left, top) {
+  constructor (left, top) {
     this.left = left
     this.top = top
   }
 
-  construct fromPosition(position) : this(position.left, position.top)
+  constructor fromPosition(position) : this(position.left, position.top)
 }
 
 final t1 = Tile(5, 5)
@@ -120,7 +120,7 @@ final t2 = Tile.fromPosition({left: 5, top: 5})
 print(t1, t2)
 ```
 
-You can also use struct keyword in a struct literal syntax (just like you can use fun keyword in a function literal), this way it is easier to specify the super struct it extends from.
+You can also use struct keyword in a struct literal syntax (just like you can use function keyword in a function literal), this way it is easier to specify the super struct it extends from.
 
 ```dart
 struct P {
@@ -146,7 +146,7 @@ If you wish to copy and assign another content of struct to the declaring struct
 
 ```javascript
 struct Winged {
-  fun fly {
+  function fly {
     print('i\'m flying')
   }
 }

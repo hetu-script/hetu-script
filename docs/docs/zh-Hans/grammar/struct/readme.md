@@ -16,7 +16,7 @@ var lvl = obj.level // okay, although lvl's value will be null
 
 ```javascript
 var a = {
-  name: 'the world',
+  name: "the world",
   meaning: 42,
 };
 delete a.meaning;
@@ -44,7 +44,7 @@ var obj = {
 
 ```javascript
 struct Named {
-  construct (this.name) {} // 需要保留空括号作为函数体
+  constructor (this.name) {} // 需要保留空括号作为函数体
 }
 ```
 
@@ -66,7 +66,7 @@ print(n.name) // 'Jimmy'
 struct Named {
   static var race = 'Human'
   var name
-  construct(name) {
+  constructor(name) {
     this.name = name
   }
 }
@@ -103,12 +103,12 @@ struct Bird extends Animal {
 
 ```javascript
 struct Tile {
-  construct (left, top) {
+  constructor (left, top) {
     this.left = left
     this.top = top
   }
 
-  construct fromPosition(position) : this(position.left, position.top)
+  constructor fromPosition(position) : this(position.left, position.top)
 }
 
 final t1 = Tile(5, 5)
@@ -117,7 +117,7 @@ final t2 = Tile.fromPosition({left: 5, top: 5})
 print(t1, t2)
 ```
 
-你可以在结构体字面量之前使用 struct 关键字（正如你也可以在一个函数字面量之前使用 fun 关键字）。
+你可以在结构体字面量之前使用 struct 关键字（正如你也可以在一个函数字面量之前使用 function 关键字）。
 
 这种写法可以更方便的直接指定一个结构体的原型。
 
@@ -145,7 +145,7 @@ p2.$prototype = P
 
 ```javascript
 struct Winged {
-  fun fly {
+  function fly {
     print('i\'m flying')
   }
 }

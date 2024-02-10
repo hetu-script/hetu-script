@@ -3,14 +3,14 @@
 河图中包含大多数常见的流程控制语句。需要注意的是河图用 when 取代了 switch。
 
 ```dart
-fun main {
+function main {
   var i = 0
   for (;;) {
     ++i
-    when (i % 2) {
-      0 -> print('even:', i)
-      1 -> print('odd:', i)
-      else -> print('never going to happen.')
+    switch (i % 2) {
+      0 => print('even:', i)
+      1 => print('odd:', i)
+      else => print('never going to happen.')
     }
     if (i > 5) {
       break
@@ -79,11 +79,9 @@ for (var item of obj) {
 }
 ```
 
-## when
+## Switch
 
-when 是用来取代 switch 的关键字，这个语法主要参考自 kotlin。
-
-when 关键字之后，可以跟随一个可选的圆括号内的 condition 表达式。
+switch 关键字之后，可以跟随一个可选的圆括号内的 condition 表达式。
 
 如果提供了这个表达式，则会将这个表达式的值和各个分支的值进行匹配。并且跳转到第一个匹配的分支。
 
@@ -97,17 +95,17 @@ when 关键字之后，可以跟随一个可选的圆括号内的 condition 表�
 
 ```javascript
 for (final i in range(0, 10)) {
-  when (i) {
-    0 -> {
+  switch (i) {
+    0 => {
       print('number: 0')
     }
-    2, 3, 5, 7 -> {
+    2, 3, 5, 7 => {
       print('prime: ${i}')
     }
-    in [4, 9] -> {
+    in [4, 9] => {
       print('square: ${i}')
     }
-    else -> {
+    else => {
       print('other: ${i}')
     }
   }

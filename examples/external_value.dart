@@ -19,9 +19,9 @@ void main() {
   );
   hetu.eval(
       '''
-  external fun getA
-  external fun setA(v)
-  fun test() {
+  external function getA
+  external function setA(v)
+  function test() {
     setA(42)
     final a = getA()
     print(a)

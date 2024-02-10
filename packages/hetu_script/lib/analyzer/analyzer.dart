@@ -10,12 +10,12 @@ import '../error/error_handler.dart';
 import '../ast/ast.dart';
 import 'analysis_result.dart';
 import 'analysis_error.dart';
-import '../grammar/constant.dart';
 import '../ast/visitor/recursive_ast_visitor.dart';
 import '../constant/constant_interpreter.dart';
 import 'analyzer_impl.dart';
-import '../lexer/lexicon.dart';
-import '../lexer/lexicon_default_impl.dart';
+import '../lexicon/lexicon.dart';
+import '../lexicon/lexicon_hetu.dart';
+import '../common/internal_identifier.dart';
 
 /// Namespace that holds symbols for analyzing, the value is either the declaration AST or null.
 typedef AnalysisNamespace = HTDeclarationNamespace<ASTNode?>;
@@ -84,9 +84,9 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
     HTLexicon? lexicon,
   })  : config = config ?? AnalyzerConfig(),
         sourceContext = sourceContext ?? HTOverlayContext(),
-        _lexicon = lexicon ?? HTDefaultLexicon() {
-    globalNamespace =
-        HTDeclarationNamespace(lexicon: _lexicon, id: Semantic.global);
+        _lexicon = lexicon ?? HTLexiconHetu() {
+    globalNamespace = HTDeclarationNamespace(
+        lexicon: _lexicon, id: InternalIdentifier.global);
     _currentNamespace = globalNamespace;
   }
 

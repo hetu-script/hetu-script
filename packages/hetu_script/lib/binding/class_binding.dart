@@ -7,10 +7,10 @@ import '../value/entity.dart';
 import '../type/type.dart';
 import '../error/error.dart';
 import 'instance_binding.dart';
-import '../shared/gaussian_noise.dart';
-import '../shared/math.dart';
-import '../shared/uid.dart';
-import '../shared/crc32b.dart';
+import '../utils/gaussian_noise.dart';
+import '../utils/math.dart';
+import '../utils/uid.dart';
+import '../utils/crc32b.dart';
 import '../value/function/function.dart';
 
 class HTNumberClassBinding extends HTExternalClass {
@@ -274,7 +274,6 @@ class HTRandomClassBinding extends HTExternalClass {
                 Map<String, dynamic> namedArgs = const {},
                 List<HTType> typeArgs = const []}) =>
             math.Random(positionalArgs.first);
-
       default:
         throw HTError.undefined(id);
     }
@@ -347,13 +346,10 @@ class HTMathClassBinding extends HTExternalClass {
           switch (noiseTypeString) {
             case 'perlinFractal':
               noiseType = NoiseType.perlinFractal;
-              break;
             case 'perlin':
               noiseType = NoiseType.perlin;
-              break;
             case 'cubicFractal':
               noiseType = NoiseType.cubicFractal;
-              break;
             case 'cubic':
             default:
               noiseType = NoiseType.cubic;

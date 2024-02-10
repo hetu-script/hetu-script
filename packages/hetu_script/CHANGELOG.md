@@ -1,6 +1,6 @@
 ## 0.6.0
 
-- Add support for Record type of Dart.
+- Changed some lexicon and identifiers to make the grammar and api similar to Javascript. The old style is still supported.
 
 ## 0.5.0
 
@@ -107,9 +107,9 @@
 
 ## 0.1.3
 
-- Named constructor can refer to default constructor: 'construct name(): this()'.
-- Feature: Single expression 'function: fun add(a, b) => a + b'.
-- Feature: Type alias: 'type MyFuncType = fun (num, num) -> num'.
+- Named constructor can refer to default constructor: 'constructor name(): this()'.
+- Feature: Single expression 'function: function add(a, b) => a + b'.
+- Feature: Type alias: 'type MyFuncType = function (num, num) -> num'.
 
 ## 0.1.2
 

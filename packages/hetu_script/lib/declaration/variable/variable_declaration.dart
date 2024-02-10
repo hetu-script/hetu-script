@@ -33,6 +33,7 @@ class HTVariableDeclaration extends HTDeclaration {
       super.isConst = false,
       super.isMutable = false,
       super.isTopLevel = false,
+      super.isField = false,
       this.lateFinalize = false})
       : _declType = declType,
         super(id: id) {

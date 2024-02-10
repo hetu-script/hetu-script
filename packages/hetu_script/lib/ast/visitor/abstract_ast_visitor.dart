@@ -92,7 +92,7 @@ abstract class AbstractASTVisitor<T> {
 
   T? visitForRangeStmt(ForRangeExpr node) {}
 
-  T? visitWhen(WhenStmt node) {}
+  T? visitSwitch(SwitchStmt node) {}
 
   T? visitBreakStmt(BreakStmt node) {}
 

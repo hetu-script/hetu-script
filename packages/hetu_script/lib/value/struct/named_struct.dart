@@ -3,11 +3,11 @@ import '../../declaration/declaration.dart';
 import '../../value/namespace/namespace.dart';
 import 'struct.dart';
 import '../../error/error.dart';
-import '../../grammar/constant.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
 import '../function/function.dart';
 import '../../type/type.dart';
+import '../../common/internal_identifier.dart';
 
 /// Unlike class and function, the declaration of a struct is a value
 /// and struct object does not extends from this.

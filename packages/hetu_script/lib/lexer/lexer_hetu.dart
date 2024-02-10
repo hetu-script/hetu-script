@@ -1,7 +1,6 @@
 import 'package:characters/characters.dart';
 
 import '../parser/token.dart';
-import '../grammar/constant.dart';
 import 'lexer.dart';
 
 /// Utility methods on String to check whether it's empty,
@@ -14,7 +13,7 @@ extension on String {
 const _kNewLine = '\n';
 const _kWindowsNewLine = '\r\n';
 
-class HTDefaultLexer extends HTLexer {
+class HTLexerHetu extends HTLexer {
   late final RegExp _identifierStartRegExp;
   late final RegExp _identifierRegExp;
   late final RegExp _numberStartRegExp;
@@ -22,7 +21,7 @@ class HTDefaultLexer extends HTLexer {
   late final RegExp _digitRegExp;
   late final RegExp _hexNumberRegExp;
 
-  HTDefaultLexer({super.lexicon}) {
+  HTLexerHetu({super.lexicon}) {
     _identifierStartRegExp =
         RegExp(lexicon.identifierStartPattern, unicode: true);
     _identifierRegExp = RegExp(lexicon.identifierPattern, unicode: true);
@@ -448,7 +447,7 @@ class HTDefaultLexer extends HTLexer {
     }
 
     final endOfFile = Token(
-        lexeme: Semantic.endOfFile,
+        lexeme: Token.endOfFile,
         line: (lastToken?.line ?? 0) + 1,
         column: 0,
         offset: (lastToken?.offset ?? 0) + 1);

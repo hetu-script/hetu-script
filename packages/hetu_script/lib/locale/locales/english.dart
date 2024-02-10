@@ -3,212 +3,434 @@ part of '../locale.dart';
 /// The English locale for Hetu, contains error messages.
 class HTLocaleEnglish implements HTLocale {
   @override
-  final String percentageMark = '%';
+  String get percentageMark => '%';
 
   @override
-  final String scriptStackTrace = 'Hetu stack trace';
+  String get scriptStackTrace => 'Hetu stack trace';
   @override
-  final String externalStackTrace = 'Dart stack trace';
+  String get externalStackTrace => 'Dart stack trace';
+
+  // Semantic element names.
+  @override
+  String get compilation => 'compilation';
+  @override
+  String get source => 'source';
+  @override
+  String get namespace => 'namespace';
 
   @override
-  final String errorBytecode = 'Unrecognizable bytecode.';
+  String get global => 'global';
+
   @override
-  final String errorVersion =
+  String get keyword => 'keyword';
+  @override
+  String get identifier => 'identifier';
+  @override
+  String get punctuation => 'punctuation';
+
+  @override
+  String get module => 'source module';
+
+  @override
+  String get statement => 'statement';
+  @override
+  String get expression => 'expression';
+  @override
+  String get primaryExpression => 'primary expression';
+
+  @override
+  String get comment => 'comment';
+  @override
+  String get emptyLine => 'empty line';
+  @override
+  String get empty => 'empty';
+
+  @override
+  String get declarationStatement => 'declaration statement';
+  @override
+  String get thenBranch => 'then branch';
+  @override
+  String get elseBranch => 'else branch';
+  @override
+  String get caseBranch => 'case branch';
+  @override
+  String get function => 'function';
+  @override
+  String get functionCall => 'function call';
+  @override
+  String get functionDefinition => 'function definition';
+  @override
+  String get asyncFunction => 'async function';
+  @override
+  String get constructor => 'constructor';
+  @override
+  String get constructorCall => 'constructor call';
+  @override
+  String get factory => 'factory';
+  @override
+  String get classDefinition => 'class definition';
+  @override
+  String get structDefinition => 'struct definition';
+
+  @override
+  String get literalNull => 'literal null';
+  @override
+  String get literalBoolean => 'literal boolean';
+  @override
+  String get literalInteger => 'literal integer';
+  @override
+  String get literalFloat => 'literal float';
+  @override
+  String get literalString => 'literal string';
+  @override
+  String get stringInterpolation => 'literal string interpolation';
+  @override
+  String get literalList => 'literal list';
+  @override
+  String get literalFunction => 'literal function';
+  @override
+  String get literalStruct => 'literal struct';
+  @override
+  String get literalStructField => 'literal struct field';
+
+  @override
+  String get spreadExpression => 'spread expression';
+  @override
+  String get rangeExpression => 'range expression';
+  @override
+  String get groupExpression => 'group expression';
+  @override
+  String get commaExpression => 'comma expression';
+  @override
+  String get inOfExpression => 'in expression';
+
+  @override
+  String get typeParameters => 'type parameters';
+  @override
+  String get typeArguments => 'type arguments';
+  @override
+  String get typeName => 'type name';
+  @override
+  String get typeExpression => 'type expression';
+  @override
+  String get intrinsicTypeExpression => 'intrinsic type expression';
+  @override
+  String get nominalTypeExpression => 'nominal type expression';
+  @override
+  String get literalTypeExpression => 'literal type expression';
+  @override
+  String get unionTypeExpression => 'union type expression';
+  @override
+  String get paramTypeExpression => 'parameter type expression';
+  @override
+  String get functionTypeExpression => 'function type expression';
+  @override
+  String get fieldTypeExpression => 'field type expression';
+  @override
+  String get structuralTypeExpression => 'structural type expression';
+  @override
+  String get genericTypeParamExpression => 'generic type parameter expression';
+
+  @override
+  String get identifierExpression => 'identifier expression';
+  @override
+  String get unaryPrefixExpression => 'unary prefix expression';
+  @override
+  String get unaryPostfixExpression => 'unary postfix expression';
+  @override
+  String get assignExpression => 'assign expression';
+  @override
+  String get binaryExpression => 'binary expression';
+  @override
+  String get ternaryExpression => 'ternary expression';
+  @override
+  String get callExpression => 'call expression';
+  @override
+  String get thisExpression => 'this expression';
+  @override
+  String get closureExpression => 'closure expression';
+  @override
+  String get subGetExpression => 'subscript get expression';
+  @override
+  String get subSetExpression => 'subscript set expression';
+  @override
+  String get memberGetExpression => 'member get expression';
+  @override
+  String get memberSetExpression => 'member set expression';
+  @override
+  String get ifExpression => 'if expression';
+  @override
+  String get forExpression => 'for expression';
+  @override
+  String get forExpressionInit => 'for expression init';
+  @override
+  String get forRangeExpression => 'for range expression';
+
+  @override
+  String get constantDeclaration => 'constant declaration';
+  @override
+  String get variableDeclaration => 'variable declaration';
+  @override
+  String get destructuringDeclaration => 'destructuring declaration';
+  @override
+  String get parameterDeclaration => 'parameter declaration';
+  @override
+  String get namespaceDeclaration => 'namespace declaration';
+  @override
+  String get classDeclaration => 'class declaration';
+  @override
+  String get enumDeclaration => 'enum declaration';
+  @override
+  String get typeAliasDeclaration => 'type alias declaration';
+  @override
+  String get returnType => 'return type';
+  @override
+  String get redirectingFunctionDefinition => 'redirecting function definition';
+  @override
+  String get redirectingConstructor =>
+      'redirecting constructor call expression';
+  @override
+  String get functionDeclaration => 'function declaration';
+  @override
+  String get structDeclaration => 'struct declaration';
+  @override
+  String get libraryStatement => 'library statement';
+  @override
+  String get importStatement => 'import statement';
+  @override
+  String get exportStatement => 'export statement';
+  @override
+  String get importSymbols => 'import symbols';
+  @override
+  String get exportSymbols => 'export symbols';
+  @override
+  String get expressionStatement => 'expression statement';
+  @override
+  String get blockStatement => 'block statement';
+  @override
+  String get assertStatement => 'assert statement';
+  @override
+  String get throwStatement => 'throw statement';
+  @override
+  String get returnStatement => 'return statement';
+  @override
+  String get breakStatement => 'break statement';
+  @override
+  String get continueStatement => 'continue statement';
+  @override
+  String get doStatement => 'do statement';
+  @override
+  String get whileStatement => 'while statement';
+  @override
+  String get switchStatement => 'switch statement';
+  @override
+  String get deleteStatement => 'delete statement';
+  @override
+  String get deleteMemberStatement => 'delete member statement';
+  @override
+  String get deleteSubMemberStatement => 'delete subscript member statement';
+
+  // generic errors
+  @override
+  String get errorBytecode => 'Unrecognizable bytecode.';
+  @override
+  String get errorVersion =>
       'Incompatible version - bytecode: [{0}], interpreter: [{1}].';
   @override
-  final String errorAssertionFailed = "Assertion failed on '{0}'.";
+  String get errorAssertionFailed => "Assertion failed on '{0}'.";
   @override
-  final String errorUnkownSourceType = 'Unknown source type: [{0}].';
+  String get errorUnkownSourceType => 'Unknown source type: [{0}].';
   @override
-  final String errorImportListOnNonHetuSource =
+  String get errorImportListOnNonHetuSource =>
       'Cannot import list from a non hetu source.';
   @override
-  final String errorExportNonHetuSource = 'Cannot export a non hetu source.';
+  String get errorExportNonHetuSource => 'Cannot export a non hetu source.';
 
   // syntactic errors
   @override
-  final String errorUnexpectedToken = 'Expected [{0}], met [{1}].';
+  String get errorUnexpectedToken => 'Expected [{0}], met [{1}].';
   @override
-  final String errorUnexpected =
+  String get errorUnexpected =>
       'While parsing [{0}], expected [{1}], met [{2}].';
   @override
-  final String errorDelete =
+  String get errorDelete =>
       'Can only delete a local variable or a struct member.';
   @override
-  final String errorExternal = 'External [{0}] is not allowed.';
+  String get errorExternal => 'External [{0}] is not allowed.';
   @override
-  final String errorNestedClass = 'Nested class within another nested class.';
+  String get errorNestedClass => 'Nested class within another nested class.';
   @override
-  final String errorConstInClass = 'Const value in class must be also static.';
+  String get errorConstInClass => 'Const value in class must be also static.';
   @override
-  final String errorMisplacedThis =
+  String get errorMisplacedThis =>
       'Unexpected this keyword outside of a instance method.';
   @override
-  final String errorMisplacedSuper =
+  String get errorMisplacedSuper =>
       'Unexpected super keyword outside of a inherited class\'s instance method.';
   @override
-  final String errorMisplacedReturn =
+  String get errorMisplacedReturn =>
       'Unexpected return statement outside of a function.';
   @override
-  final String errorMisplacedContinue =
+  String get errorMisplacedContinue =>
       'Unexpected continue statement outside of a loop.';
   @override
-  final String errorMisplacedBreak =
+  String get errorMisplacedBreak =>
       'Unexpected break statement outside of a loop.';
   @override
-  final String errorSetterArity =
+  String get errorSetterArity =>
       'Setter function must have exactly one parameter.';
   @override
-  final String errorUnexpectedEmptyList = 'Unexpected empty [{0}] list.';
+  String get errorUnexpectedEmptyList => 'Unexpected empty [{0}] list.';
   @override
-  final String errorExtendsSelf = 'Class try to extends itself.';
+  String get errorExtendsSelf => 'Class try to extends itself.';
   @override
-  final String errorMissingFuncBody = 'Missing function definition of [{0}].';
+  String get errorMissingFuncBody => 'Missing function definition of [{0}].';
   @override
-  final String errorExternalCtorWithReferCtor =
+  String get errorExternalCtorWithReferCtor =>
       'Unexpected refer constructor on external constructor.';
   @override
-  final String errorResourceDoesNotExist =
+  String get errorResourceDoesNotExist =>
       'Resource with name [{0}] does not exist.';
   @override
-  final String errorSourceProviderError =
+  String get errorSourceProviderError =>
       'File system error: Could not load resource [{0}] from path [{1}].';
   @override
-  final String errorNotAbsoluteError =
+  String get errorNotAbsoluteError =>
       'Adding source failed, not a absolute path: [{0}].';
   @override
-  final String errorInvalidDeclTypeOfValue =
+  String get errorInvalidDeclTypeOfValue =>
       'decltypeof can only be used on identifier.';
   @override
-  final String errorInvalidLeftValue = 'Value cannot be assigned.';
+  String get errorInvalidLeftValue => 'Value cannot be assigned.';
   @override
-  final String errorAwaitWithoutAsync =
+  String get errorAwaitWithoutAsync =>
       '`await` keyword can only be used inside an async function body.';
   @override
-  final String errorNullableAssign = 'Cannot assign to a nullable value.';
+  String get errorNullableAssign => 'Cannot assign to a nullable value.';
   @override
-  final String errorPrivateMember = 'Could not acess private member [{0}].';
+  String get errorPrivateMember => 'Could not acess private member [{0}].';
   @override
-  final String errorConstMustInit =
+  String get errorConstMustInit =>
       'Constant declaration [{0}] must be initialized.';
   @override
-  final String errorAwaitExpression = 'Unexpected `await` expressions.';
+  String get errorAwaitExpression => 'Unexpected `await` expressions.';
+  @override
+  String get errorGetterParam =>
+      'Unexpected parameter list for getter function.';
 
   // compile time errors
   @override
-  final String errorDefined = '[{0}] is already defined.';
+  String get errorDefined => '[{0}] is already defined.';
   @override
-  final String errorDefinedImportSymbol =
+  String get errorDefinedImportSymbol =>
       'Symbol [{0}] importing from [{1}] is already imported from [{2}].';
   @override
-  final String errorOutsideThis =
+  String get errorOutsideThis =>
       'Unexpected this expression outside of a function.';
   @override
-  final String errorNotMember = '[{0}] is not a class member of [{1}].';
+  String get errorNotMember => '[{0}] is not a class member of [{1}].';
   @override
-  final String errorNotClass = '[{0}] is not a class.';
+  String get errorNotClass => '[{0}] is not a class.';
   @override
-  final String errorAbstracted =
+  String get errorAbstracted =>
       'Cannot create instance from abstract class [{0}].';
   @override
-  final String errorAbstractFunction =
-      'Cannot call an abstract function [{0}].';
+  String get errorAbstractFunction => 'Cannot call an abstract function [{0}].';
 
   // runtime errors
   @override
-  final String errorUnsupported =
+  String get errorUnsupported =>
       '[{0}] is not supported in currect Hetu version: [{1}].';
   @override
-  final String errorUnknownOpCode = 'Unknown opcode [{0}].';
+  String get errorUnknownOpCode => 'Unknown opcode [{0}].';
   @override
-  final String errorNotInitialized = '[{0}] has not yet been initialized.';
+  String get errorNotInitialized => '[{0}] has not yet been initialized.';
   @override
-  final String errorUndefined = 'Undefined identifier [{0}].';
+  String get errorUndefined => 'Undefined identifier [{0}].';
   @override
-  final String errorUndefinedExternal = 'Undefined external identifier [{0}].';
+  String get errorUndefinedExternal => 'Undefined external identifier [{0}].';
   @override
-  final String errorUnknownTypeName = 'Unknown type name: [{0}].';
+  String get errorUnknownTypeName => 'Unknown type name: [{0}].';
   @override
-  final String errorUndefinedOperator = 'Undefined operator: [{0}].';
+  String get errorUndefinedOperator => 'Undefined operator: [{0}].';
   @override
-  final String errorNotNewable = 'Can not use new operator on [{0}].';
+  String get errorNotNewable => 'Can not use new operator on [{0}].';
   @override
-  final String errorNotCallable = '[{0}] is not callable.';
+  String get errorNotCallable => '[{0}] is not callable.';
   @override
-  final String errorUndefinedMember = '[{0}] isn\'t defined for the class.';
+  String get errorUndefinedMember => '[{0}] isn\'t defined for the class.';
   @override
-  final String errorUninitialized = 'Varialbe [{0}] is not initialized yet.';
+  String get errorUninitialized => 'Varialbe [{0}] is not initialized yet.';
   @override
-  final String errorCondition =
+  String get errorCondition =>
       'Condition expression must evaluate to type [bool]';
   @override
-  final String errorNullObject = 'Calling method [{1}] on null object [{0}].';
+  String get errorNullObject => 'Calling method [{1}] on null object [{0}].';
   @override
-  final String errorNullSubSetKey = 'Sub set key is null.';
+  String get errorNullSubSetKey => 'Sub set key is null.';
   @override
-  final String errorSubGetKey = 'Sub get key [{0}] is not of type [int]';
+  String get errorSubGetKey => 'Sub get key [{0}] is not of type [int]';
   @override
-  final String errorOutOfRange = 'Index [{0}] is out of range [{1}].';
+  String get errorOutOfRange => 'Index [{0}] is out of range [{1}].';
   @override
-  final String errorAssignType =
+  String get errorAssignType =>
       'Variable [{0}] with type [{2}] can\'t be assigned with type [{1}].';
   @override
-  final String errorImmutable = '[{0}] is immutable.';
+  String get errorImmutable => '[{0}] is immutable.';
   @override
-  final String errorNotType = '[{0}] is not a type.';
+  String get errorNotType => '[{0}] is not a type.';
   @override
-  final String errorArgType =
+  String get errorArgType =>
       'Argument [{0}] of type [{1}] doesn\'t match parameter type [{2}].';
   @override
-  final String errorArgInit =
+  String get errorArgInit =>
       'Only optional or named arguments can have initializer.';
   @override
-  final String errorReturnType =
+  String get errorReturnType =>
       '[{0}] can\'t be returned from function [{1}] with return type [{2}].';
   @override
-  final String errorStringInterpolation =
+  String get errorStringInterpolation =>
       'String interpolation has to be a single expression.';
   @override
-  final String errorArity =
+  String get errorArity =>
       'Number of arguments [{0}] doesn\'t match function [{1}]\'s parameter requirement [{2}].';
   @override
-  final String errorExternalVar = 'External variable is not allowed.';
+  String get errorExternalVar => 'External variable is not allowed.';
   @override
-  final String errorBytesSig = 'Unknown bytecode signature.';
+  String get errorBytesSig => 'Unknown bytecode signature.';
   @override
-  final String errorCircleInit =
+  String get errorCircleInit =>
       'Variable [{0}]\'s initializer depend on itself.';
   @override
-  final String errorNamedArg = 'Undefined named parameter: [{0}].';
+  String get errorNamedArg => 'Undefined named parameter: [{0}].';
   @override
-  final String errorIterable = '[{0}] is not Iterable.';
+  String get errorIterable => '[{0}] is not Iterable.';
   @override
-  final String errorUnkownValueType = 'Unkown OpCode value type: [{0}].';
+  String get errorUnkownValueType => 'Unkown OpCode value type: [{0}].';
   @override
-  final String errorTypeCast = 'Type [{0}] cannot be cast into type [{1}].';
+  String get errorTypeCast => 'Type [{0}] cannot be cast into type [{1}].';
   @override
-  final String errorCastee = 'Illegal cast target [{0}].';
+  String get errorCastee => 'Illegal cast target [{0}].';
   @override
-  final String errorNotSuper = '[{0}] is not a super class of [{1}].';
+  String get errorNotSuper => '[{0}] is not a super class of [{1}].';
   @override
-  final String errorStructMemberId =
+  String get errorStructMemberId =>
       'Struct member id should be symbol or string, however met id with token type: [{0}].';
   @override
-  final String errorUnresolvedNamedStruct =
+  String get errorUnresolvedNamedStruct =>
       'Cannot create struct object from unresolved prototype [{0}].';
   @override
-  final String errorBinding =
+  String get errorBinding =>
       'Binding is not allowed on non-literal function or non-struct object.';
   @override
-  final String errorNotStruct =
+  String get errorNotStruct =>
       'Value is not a struct literal, which is needed.';
 
   // Analysis errors
   @override
-  final String errorConstValue =
+  String get errorConstValue =>
       'Const declaration [{0}]\'s initializer is not a constant expression.';
 
   @override
-  final String errorImportSelf =
-      'Import path is the same to the source itself.';
+  String get errorImportSelf => 'Import path is the same to the source itself.';
 }

@@ -22,9 +22,9 @@ Future<void> main() async {
       normalizeImportPath: false,
     ),
     sourceContext: sourceContext,
+    locale: HTLocaleSimplifiedChinese(),
   );
   hetu.init(
-    locale: HTLocaleSimplifiedChinese(),
     externalClasses: [
       PersonClassBinding(),
     ],
@@ -37,7 +37,7 @@ Future<void> main() async {
   final source2 = HTSource(r'''
     import 'json_data.json' as jsonData
     struct Person {
-      construct {
+      constructor {
         this.name = jsonData.name
         this.race = 'han'
       }
@@ -48,7 +48,7 @@ Future<void> main() async {
     namespace Person {
       class PersonImpl {
         var name
-        construct {
+        constructor {
           name = 'Jimmy'
         }
       }
@@ -82,7 +82,7 @@ Future<void> main() async {
     r'''
       external class Person {
         var name
-        construct
+        constructor
       }
           ''',
     // isModuleEntryScript: true,
@@ -106,10 +106,10 @@ Future<void> main() async {
 
   final r = hetu.eval('''
     namespace Test {
-      external fun fetch
+      external function fetch
     }
 
-    fun f async {
+    function f async {
       await Test.fetch()
     }
 

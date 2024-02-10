@@ -1,4 +1,4 @@
-fun fib(n: num) -> num {
+function fib(n: num) -> num {
   if (n == 0) {
     return 0
   } else if (n == 1) {
@@ -8,7 +8,7 @@ fun fib(n: num) -> num {
   }
 }
 
-fun fibt(n0, n1, c){
+function fibt(n0, n1, c){
   if (c == 0) {
     return n0
   }
@@ -18,12 +18,12 @@ fun fibt(n0, n1, c){
   return fibt(n1, n0+n1, c-1)
 }
   
-fun fibn(n) {
+function fibn(n) {
   fibt(0, 1, n)
 }
 
 
-fun main {
+function main {
   var before = System.now
   print(before)
 	print('result:', fib(30))

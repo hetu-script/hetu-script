@@ -17,7 +17,7 @@ void main() {
     //       var name = 'Jimmy'
     //       var klass = 'farmer'
     //     }
-    //     fun JsonTest {
+    //     function JsonTest {
     //       var p = SomePerson.fromJson({'age': 8, 'name': 'Lawrence', 'klass': 'magician'})
     //       return p.toJson().toString()
     //     }
@@ -32,7 +32,7 @@ void main() {
     //     class Name {
     //       var first: str
     //       var last: str
-    //       fun toString {
+    //       function toString {
     //         return '{first: ${first}, last: ${last}}'
     //       }
     //     }
@@ -40,18 +40,18 @@ void main() {
     //       var age: int
     //       var height: float
     //       var weight: float
-    //       fun toString {
+    //       function toString {
     //         return '{age: ${age}, height: ${height}, weight: ${weight}}'
     //       }
     //     }
     //     class Profile {
     //       var name: Map<str, Name>
     //       var stats: List<Stats>
-    //       fun toString {
+    //       function toString {
     //         return 'name: ${name}\nstats: ${stats}'
     //       }
     //     }
-    //     fun jsonAssign {
+    //     function jsonAssign {
     //       var pp = Profile.fromJson({
     //         'name': {
     //           'family' : {

@@ -1,15 +1,15 @@
 struct Prototype {
-  static fun fromJson(data) => createStructfromJson(data)
+  static function fromJson(data) => createStructfromJson(data)
 
   external get keys -> Iterable
 
   external get values -> Iterable
 
   /// Check if this struct has the key in its own fields
-  external fun containsKey(key: str) -> bool
+  external function containsKey(key: str) -> bool
 
   /// Check if this struct has the key in its own fields or its prototypes' fields
-  external fun contains(key: str) -> bool
+  external function contains(key: str) -> bool
 
 	external get isEmpty -> bool
 
@@ -18,12 +18,12 @@ struct Prototype {
 	external get length -> int
 
   /// Create a new struct form deepcopying this struct
-  external fun clone() -> {}
+  external function clone() -> {}
 
   /// Assign another struct's value to this struct
-  external fun assign(other)
+  external function assign(other)
 
-  fun toJson() -> Map => jsonify(this)
+  function toJson() -> Map => jsonify(this)
 
-  fun toString() -> str => stringify(this)
+  function toString() -> str => stringify(this)
 }

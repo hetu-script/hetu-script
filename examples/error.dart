@@ -10,8 +10,8 @@ void main() {
     'ext': ext,
   });
   hetu.eval(r'''
-      external fun ext
-      fun main {
+      external function ext
+      function main {
         ext()
       }
       ''', type: HTResourceType.hetuModule, invoke: 'main');

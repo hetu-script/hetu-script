@@ -1,7 +1,6 @@
 // import '../source/source.dart';
 import '../error/error.dart';
 // import '../error/error_handler.dart';
-import '../grammar/constant.dart';
 import 'token.dart';
 
 /// Mixin for handling a token list.
@@ -61,7 +60,7 @@ mixin TokenReader {
         closings.removeLast();
         --depth;
       }
-    } while (depth > 0 && current.type != Semantic.endOfFile);
+    } while (depth > 0 && current.type != Token.endOfFile);
 
     return peek(distance);
   }
@@ -73,7 +72,7 @@ mixin TokenReader {
     do {
       current = peek(distance);
       ++distance;
-    } while (current.type != type && curTok.type != Semantic.endOfFile);
+    } while (current.type != type && curTok.type != Token.endOfFile);
     return peek(distance);
   }
 
@@ -97,6 +96,21 @@ mixin TokenReader {
   Token match(String type) {
     if (curTok.type != type) {
       final err = HTError.unexpectedToken(type, curTok.lexeme,
+          filename: currrentFileName,
+          line: curTok.line,
+          column: curTok.column,
+          offset: curTok.offset,
+          length: curTok.length);
+      errors.add(err);
+    }
+
+    return advance();
+  }
+
+  /// same with [match], with plural types provided.
+  Token match2(Set<String> types) {
+    if (!types.contains(curTok.type)) {
+      final err = HTError.unexpectedToken(types.toString(), curTok.lexeme,
           filename: currrentFileName,
           line: curTok.line,
           column: curTok.column,

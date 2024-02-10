@@ -19,7 +19,7 @@ void main() {
   final hetu = Hetu();
   hetu.init(externalFunctions: {'fetch': fetch});
   hetu.eval(r'''
-      external fun fetch
+      external function fetch
       final future = fetch()
       future.then((value) {
         print('future completed!')
@@ -44,7 +44,7 @@ And you could also create a async function by add `async` keyword before its def
 
 ```dart
 // for declaration
-fun testAsync async {
+function testAsync async {
   // some code
 }
 

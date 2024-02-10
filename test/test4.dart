@@ -11,15 +11,15 @@ type VoidCallback = () -> void
 abstract class ChangeNotifier {
   var _listeners: List<VoidCallback> = []
 
-  fun addListener(listener: VoidCallback) {
+  function addListener(listener: VoidCallback) {
     _listeners.add(listener);
   }
 
-  fun removeListener(listener: VoidCallback) {
+  function removeListener(listener: VoidCallback) {
     _listeners.remove(listener);
   }
 
-  fun notifyListeners() {
+  function notifyListeners() {
     for (var listener in _listeners) {
       listener();
     }
@@ -43,7 +43,7 @@ class Listenable extends ChangeNotifier {
   }
 }
 
-fun main() {
+function main() {
   var l = Listenable()
   print(l.name)
   

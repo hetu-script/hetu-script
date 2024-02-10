@@ -61,7 +61,7 @@ void main() {
         ukraine,
       }
       
-      fun main {
+      function main {
         print(Country.values)
         var country = Country.Japan
         print(country.index);

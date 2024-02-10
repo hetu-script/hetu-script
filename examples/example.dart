@@ -9,8 +9,8 @@ void main() {
     'setValue': (Map value) => dartMapValue = value,
   });
   hetu.eval(r'''
-      external fun getValue
-      external fun setValue(key)
+      external function getValue
+      external function setValue(key)
 
       final dartValue = getValue()
       print(dartValue)

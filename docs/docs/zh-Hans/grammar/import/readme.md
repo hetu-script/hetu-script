@@ -12,12 +12,12 @@
 import 'game.ht'
 import { hello, calculator } from 'hello.ht' as h
 
-fun main {
+function main {
   h.greeting()
 }
 ```
 
-导入、导出时，你必须明确指定文件后缀（.ht 或者.json等）。
+导入、导出时，你必须明确指定文件后缀（.ht 或者.json 等）。
 
 你可以在路径中使用相对路径符号 '..' （在 export 和 require 中也可以）。
 
@@ -72,7 +72,7 @@ hetu.eval(r'''
 注意你必须以声明变量并给与其初始化值的方式来导入。单纯使用 require 并没有任何效果。
 
 ```javascript
-require('source1.ht'); // 这样写不会有任何效果！
+require("source1.ht"); // 这样写不会有任何效果！
 ```
 
 因为这种方式的导入会在运行时导入文件，因此你必须手动保证在代码运行之前，就已经在 sourceContext 中载入了对应路径名的文件。

@@ -8,7 +8,7 @@ import    'utility.ht'
 external abstract class Animal {
   static var race: str; // trailing comment
 
-  construct (race: str) {
+  constructor (race: str) {
     this.race = race;
   }
 }
@@ -16,7 +16,7 @@ external abstract class Animal {
 class Converser {
 
   // docs of method
-  fun talk    (other: 
+  function talk    (other: 
     Converser) {}
 }
 
@@ -26,23 +26,23 @@ class Profile {
 
 class Person extends Animal   {
   var name: str
-  construct (name: str):  super(name) {
+  constructor (name: str):  super(name) {
     this.name = name
   }
-  fun greeting {
+  function greeting {
     print   ('Hi! I\'m'  ,   name)
   }
 }
 
 // This is where the script starts executing.
-fun main {
-  fun nested ([arg: str = 'catchya'])  ->void { const cc = arg return cc;// comment in block  } 
+function main {
+  function nested ([arg: str = 'catchya'])  ->void { const cc = arg return cc;// comment in block  } 
 
   if (nested() == -1) 
     main();
       else return 1 + 1;;;;;
 
-  (fun (num) { return num * num   
+  (function (num) { return num * num   
   }) ();
 
   for (var i = 0; i< max ; i *= 5) {
@@ -60,16 +60,16 @@ fun main {
     } while (value is! bool)
   }
 
-  when (true) {
-    1 ->   '1'
-    2 -> {
+  switch (true) {
+    1 =>    '1'
+    2 => {
       return [
         1,
         2,
         3
       ]
     }
-    else -> print(  { "name": "Kevin",
+    else => print(  { "name": "Kevin",
     
     
     "age": 16}, 7> 2 ? true : cal(42))

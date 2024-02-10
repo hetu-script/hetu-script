@@ -21,7 +21,6 @@ extension GenericBinding on Generic {
     switch (id) {
       case 'value':
         this.value = value;
-        break;
       default:
         throw HTError.undefined(id);
     }
@@ -76,7 +75,7 @@ void main() {
   hetu.init(externalClasses: [GenericClassBinding()]);
   hetu.eval('''
       external class Generic {
-        construct (value)
+        constructor (value)
         final value
       }
       var obj = Generic<str>('hello world')

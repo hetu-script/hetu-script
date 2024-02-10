@@ -2,13 +2,13 @@ import 'utility.ht' as util show isEqual
 
 external abstract class Animal {
   external static var Animal.race: str
-  external construct(race: str) {
+  external constructor(race: str) {
     this.race = race
   }
 }
 
 class Converser {
-  fun talk(other: Converser)  {}
+  function talk(other: Converser)  {}
 }
 
 class Profile {
@@ -17,16 +17,16 @@ class Profile {
 
 class Person extends Animal {
   var name: str
-  construct(name: str) : super(name) {
+  constructor(name: str) : super(name) {
     this.name = name
   }
-  fun greeting() {
+  function greeting() {
     print('Hi! I\'m', name)
   }
 }
 
-fun main() {
-  fun nested([arg: str = 'catchya') -> void {
+function main() {
+  function nested([arg: str = 'catchya') -> void {
     const cc = arg
     return cc
   }
@@ -35,7 +35,7 @@ fun main() {
   } else {
     return 1 + 1
   }
-  (fun(num) {
+  (function(num) {
     return num * num
   })()
   for (var i = 0; i < max; i *= 5) {
@@ -48,14 +48,14 @@ fun main() {
       continue
     } while (value is! bool)
   }
-  when (true) {
-    1 -> {
+  switch (true) {
+    1 => {
       '1'
     }
-    2 -> {
+    2 => {
       return [1, 2, 3]
     }
-    else -> {
+    else => {
       print({
         'name': 'Kevin', 
         'age': 16

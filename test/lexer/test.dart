@@ -8,7 +8,7 @@ void main() {
 
     3
 ''';
-  final lexer = HTDefaultLexer();
+  final lexer = HTLexerHetu();
   Token? token = lexer.lex(source);
   do {
     print(token?.lexeme);

@@ -2,7 +2,7 @@ import '../value/entity.dart';
 import '../type/type.dart';
 import '../type/nominal.dart';
 import '../type/external.dart';
-// import '../grammar/semantic.dart';
+// import '../grammar/HTLocale.current.dart';
 import '../error/error.dart';
 import '../value/function/function.dart';
 import '../value/class/class.dart';
@@ -62,11 +62,10 @@ class HTExternalInstance<T> with HTEntity, InterpreterRef {
           decl = currentKlass.memberGet(id, throws: false);
           currentKlass = currentKlass.superClass;
         }
-        if (decl != null) {
-          // Assign the value as if we are doing decl.resolve() here.
-          decl.externalFunc = member;
-          return decl;
-        }
+        assert(decl != null);
+        // Assign the value as if we are doing decl.resolve() here.
+        decl!.externalFunc = member;
+        return decl;
       } else {
         return member;
       }

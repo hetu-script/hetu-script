@@ -28,7 +28,7 @@ REPL 的意思是 Read–Eval–Print Loop。在这个模式下，你可以直�
 >>>var a = 42
 >>>a
 42
->>>fun hello {\
+>>>function hello {\
 return a }
 >>>hello
 function hello() -> any // repl print

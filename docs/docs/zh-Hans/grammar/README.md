@@ -6,7 +6,7 @@
 
 河图中所有的声明都以关键字开头。例如：
 
-**var, final, const, fun, construct, get, set, class, type**
+**var, final, const, function, constructor, get, set, class, type**
 
 ## 分号可选
 
@@ -18,7 +18,7 @@
 
 ## 模式匹配
 
-河图没有使用 switch，而是使用 [when 语句](control_flow/readme.md#when) 进行简单的模式匹配。
+河图使用 [switch 语句](control_flow/readme.md#switch) 进行简单的模式匹配。
 
 ## 注释
 
@@ -34,7 +34,7 @@ another line.*/
 
 ```typescript
 /// This is a documentation comment
-fun myFunc() -> int {
+function myFunc() -> int {
   ...
 }
 ```
@@ -46,10 +46,10 @@ fun myFunc() -> int {
 ```dart
 class Person {
   var _name
-  construct (name) {
+  constructor (name) {
     _name = name
   }
-  fun greeting {
+  function greeting {
     print('Hi, I\'m ', _name)
   }
 }
@@ -77,9 +77,9 @@ if (a = fetch()) {
 河图中的代码块会返回最后一个表达式的值：
 
 ```javascript
-fun test(n) {
-  var x = n * 2
+function test(n) {
+  var x = n * 2;
 }
 ```
 
-上述函数的返回值就是 n * 2
+上述函数的返回值就是 n \* 2

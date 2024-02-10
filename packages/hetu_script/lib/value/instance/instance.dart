@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'package:quiver/core.dart';
 
 import '../../error/error.dart';
-import '../../grammar/constant.dart';
 import '../../type/type.dart';
 import '../../type/nominal.dart';
 import '../function/function.dart';
@@ -13,6 +12,8 @@ import '../../value/namespace/namespace.dart';
 import '../entity.dart';
 import 'instance_namespace.dart';
 import '../../interpreter/interpreter.dart';
+import '../../common/internal_identifier.dart';
+import '../../common/function_category.dart';
 
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
@@ -98,7 +99,7 @@ class HTInstance with HTEntity, InterpreterRef {
 
   String getTypeString() {
     // TODO: type args
-    return '${InternalIdentifier.instanceOfDescription} $classId';
+    return '${InternalIdentifier.instanceOf} $classId';
   }
 
   @override
@@ -142,6 +143,8 @@ class HTInstance with HTEntity, InterpreterRef {
     return false;
   }
 
+  /// Get the value of a member from this [HTInstace] via memberGet operator '.'
+  /// for symbol searching, use the same name method on [HTInstanceNamespace] instead.
   /// [HTInstance] overrided [HTEntity]'s [memberGet],
   /// with a new named parameter [cast].
   /// If [cast] is provided, then the instance will
@@ -215,6 +218,8 @@ class HTInstance with HTEntity, InterpreterRef {
     }
   }
 
+  /// Set the value of a member from this [HTInstace] via memberGet operator '.'
+  /// for symbol searching, use the same name method on [HTInstanceNamespace] instead.
   /// [HTInstance] overrided [HTEntity]'s [memberSet],
   /// with a new named parameter [cast].
   /// If [cast] is provided, then the instance will

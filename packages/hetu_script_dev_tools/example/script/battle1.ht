@@ -14,7 +14,7 @@ var enemy = char_info()
 
 var charList = [player, enemy]
 
-fun main {
+function main {
   player.strength = 76
   player.vitality = 76 * 1.2
   player.name = 'player'
@@ -25,7 +25,7 @@ fun main {
   start(92, 103)
 }
 
-fun start(player_dex: num, enemy_dex: num) {
+function start(player_dex: num, enemy_dex: num) {
   print('战斗开始！')
 
   player.initiative = 1000 / Math.sqrt(player_dex) - 20

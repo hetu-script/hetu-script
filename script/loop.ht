@@ -1,6 +1,6 @@
 
 // 程序入口
-fun main {
+function main {
   var i = 0
   while (true) {
     i = i + 1

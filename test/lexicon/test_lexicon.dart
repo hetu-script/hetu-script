@@ -4,8 +4,8 @@ void main() {
   final config = HetuConfig(
     allowImplicitVariableDeclaration: true,
   );
-  final lexicon = HTDefaultLexicon();
-  final parser = HTDefaultParser(config: config);
+  final lexicon = HTLexiconHetu();
+  final parser = HTParserHetu(config: config);
   final hetu = Hetu(
     config: config,
     lexicon: lexicon,
