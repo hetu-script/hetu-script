@@ -83,7 +83,7 @@ class HTLocaleEnglish implements HTLocale {
   @override
   String get literalString => 'literal string';
   @override
-  String get stringInterpolation => 'literal string interpolation';
+  String get stringInterpolation => 'string interpolation';
   @override
   String get literalList => 'literal list';
   @override

@@ -85,10 +85,10 @@ abstract class HTParser with TokenReader {
   }) {
     final List<T> listResult = [];
     final savedPrecedings = savePrecedings();
-    while (curTok.type != endToken && curTok.type != Token.endOfFile) {
+    while (curTok.lexeme != endToken && curTok.lexeme != Token.endOfFile) {
       // deal with comments or empty liens before spread syntax
       handlePrecedings();
-      if (curTok.type == endToken) break;
+      if (curTok.lexeme == endToken) break;
       final expr = parseFunction();
       if (expr != null) {
         listResult.add(expr);
@@ -163,7 +163,7 @@ abstract class HTParser with TokenReader {
       {bool handleComma = true, String? endMarkForCommaExpressions}) {
     _handleTrailing(expr);
     if (endMarkForCommaExpressions != null &&
-        curTok.type != endMarkForCommaExpressions) {
+        curTok.lexeme != endMarkForCommaExpressions) {
       if (handleComma) match(lexer.lexicon.comma);
       _handleTrailing(expr, afterComma: true);
     }
@@ -206,7 +206,7 @@ abstract class HTParser with TokenReader {
       }
     }
 
-    while (curTok.type != Token.endOfFile) {
+    while (curTok.lexeme != Token.endOfFile) {
       final stmt = parseStmt(style: style);
       if (stmt != null) {
         if (stmt is ASTEmptyLine && style == ParseStyle.expression) {

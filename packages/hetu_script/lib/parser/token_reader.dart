@@ -1,4 +1,6 @@
 // import '../source/source.dart';
+import '../locale/locale.dart';
+
 import '../error/error.dart';
 // import '../error/error_handler.dart';
 import 'token.dart';
@@ -53,14 +55,14 @@ mixin TokenReader {
     do {
       current = peek(distance);
       ++distance;
-      if (groupClosings.containsKey(current.type)) {
-        closings.add(groupClosings[current.type]!);
+      if (groupClosings.containsKey(current.lexeme)) {
+        closings.add(groupClosings[current.lexeme]!);
         ++depth;
-      } else if (closings.isNotEmpty && (current.type == closings.last)) {
+      } else if (closings.isNotEmpty && (current.lexeme == closings.last)) {
         closings.removeLast();
         --depth;
       }
-    } while (depth > 0 && current.type != Token.endOfFile);
+    } while (depth > 0 && current.lexeme != Token.endOfFile);
 
     return peek(distance);
   }
@@ -72,30 +74,69 @@ mixin TokenReader {
     do {
       current = peek(distance);
       ++distance;
-    } while (current.type != type && curTok.type != Token.endOfFile);
+    } while (current.lexeme != type && curTok.lexeme != Token.endOfFile);
     return peek(distance);
   }
 
   /// Check current token and some tokens after it to see if the [types] match,
   /// return a boolean result.
   /// If [consume] is true, will advance.
-  bool expect(List<String> types, {bool consume = false}) {
-    for (var i = 0; i < types.length; ++i) {
-      if (peek(i).type != types[i]) {
+  bool expect(List<String> lexemes, {bool consume = false}) {
+    for (var i = 0; i < lexemes.length; ++i) {
+      if (peek(i).lexeme != lexemes[i]) {
         return false;
       }
     }
     if (consume) {
-      advance(types.length);
+      advance(lexemes.length);
     }
     return true;
   }
 
-  /// If the token match the [type] provided, advance 1
+  /// If the current token is an identifier, advance 1
   /// and return the original token. If not, generate an error.
-  Token match(String type) {
-    if (curTok.type != type) {
-      final err = HTError.unexpectedToken(type, curTok.lexeme,
+  TokenIdentifier matchId() {
+    if (curTok is! TokenIdentifier) {
+      final err = HTError.unexpectedToken(
+        HTLocale.current.identifier,
+        curTok.lexeme,
+        filename: currrentFileName,
+        line: curTok.line,
+        column: curTok.column,
+        offset: curTok.offset,
+        length: curTok.length,
+      );
+      errors.add(err);
+    }
+
+    return advance() as TokenIdentifier;
+  }
+
+  /// If the current token is an identifier, advance 1
+  /// and return the original token. If not, generate an error.
+  /// Note this only accept string literal but not string interpolation.
+  TokenStringLiteral matchString() {
+    if (curTok is! TokenStringLiteral) {
+      final err = HTError.unexpectedToken(
+        HTLocale.current.literalString,
+        curTok.lexeme,
+        filename: currrentFileName,
+        line: curTok.line,
+        column: curTok.column,
+        offset: curTok.offset,
+        length: curTok.length,
+      );
+      errors.add(err);
+    }
+
+    return advance() as TokenStringLiteral;
+  }
+
+  /// If the token lexeme the [lexeme] provided, advance 1
+  /// and return the original token. If not, generate an error.
+  Token match(String lexeme) {
+    if (curTok.lexeme != lexeme) {
+      final err = HTError.unexpectedToken(lexeme, curTok.lexeme,
           filename: currrentFileName,
           line: curTok.line,
           column: curTok.column,
@@ -108,9 +149,9 @@ mixin TokenReader {
   }
 
   /// same with [match], with plural types provided.
-  Token match2(Set<String> types) {
-    if (!types.contains(curTok.type)) {
-      final err = HTError.unexpectedToken(types.toString(), curTok.lexeme,
+  Token match2(Set<String> lexemes) {
+    if (!lexemes.contains(curTok.lexeme)) {
+      final err = HTError.unexpectedToken(lexemes.toString(), curTok.lexeme,
           filename: currrentFileName,
           line: curTok.line,
           column: curTok.column,

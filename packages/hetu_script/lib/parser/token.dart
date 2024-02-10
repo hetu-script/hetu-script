@@ -17,7 +17,7 @@ class Token {
 
   int get end => offset + length;
 
-  String get type => lexeme;
+  // String get type => lexeme;
 
   dynamic get literal => lexeme;
 
@@ -42,8 +42,8 @@ class Token {
 }
 
 class TokenComment extends Token {
-  @override
-  String get type => InternalIdentifier.comment;
+  // @override
+  // String get type => InternalIdentifier.comment;
 
   @override
   final String literal;
@@ -79,8 +79,8 @@ class TokenEmptyLine extends Token {
 }
 
 class TokenIdentifier extends Token {
-  @override
-  String get type => InternalIdentifier.identifier;
+  // @override
+  // String get type => InternalIdentifier.identifier;
 
   /// whether this identifier is marked by grave accent marks.
   final bool isMarked;
@@ -100,8 +100,8 @@ class TokenIdentifier extends Token {
 }
 
 class TokenBooleanLiteral extends Token {
-  @override
-  String get type => InternalIdentifier.literalBoolean;
+  // @override
+  // String get type => InternalIdentifier.literalBoolean;
 
   @override
   final bool literal;
@@ -116,14 +116,14 @@ class TokenBooleanLiteral extends Token {
       required this.literal});
 }
 
-class TokenIntLiteral extends Token {
-  @override
-  String get type => InternalIdentifier.literalInteger;
+class TokenIntegerLiteral extends Token {
+  // @override
+  // String get type => InternalIdentifier.literalInteger;
 
   @override
   final int literal;
 
-  TokenIntLiteral(
+  TokenIntegerLiteral(
       {required super.lexeme,
       required super.line,
       required super.column,
@@ -134,8 +134,8 @@ class TokenIntLiteral extends Token {
 }
 
 class TokenFloatLiteral extends Token {
-  @override
-  String get type => InternalIdentifier.literalFloat;
+  // @override
+  // String get type => InternalIdentifier.literalFloat;
 
   @override
   final double literal;
@@ -151,8 +151,8 @@ class TokenFloatLiteral extends Token {
 }
 
 class TokenStringLiteral extends Token {
-  @override
-  String get type => InternalIdentifier.literalString;
+  // @override
+  // String get type => InternalIdentifier.literalString;
 
   final String _literal;
 
@@ -176,8 +176,8 @@ class TokenStringLiteral extends Token {
 }
 
 class TokenStringInterpolation extends TokenStringLiteral {
-  @override
-  String get type => InternalIdentifier.stringInterpolation;
+  // @override
+  // String get type => InternalIdentifier.stringInterpolation;
 
   final List<Token> interpolations;
 

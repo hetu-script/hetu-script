@@ -5,18 +5,10 @@ Future<void> main() async {
   hetu.init();
 
   final r = hetu.eval(r'''
-  class Calculator {
-    var x: num
-    var y: num
+    let a = 'aaa'
+    let b = 'bbb'
 
-    constructor (x: num, y: num) {
-      // 语句块中会覆盖上一级的同名变量，所以这里使用this关键字指定
-      this.x = x
-      this.y = y
-    }
-  }
-
-  final c = Calculator()
+    print('${a} and ${b}')
 ''');
 
   if (r != null) {

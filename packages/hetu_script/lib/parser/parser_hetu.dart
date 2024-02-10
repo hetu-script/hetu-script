@@ -57,12 +57,12 @@ class HTParserHetu extends HTParser {
     handlePrecedings();
 
     // handle emtpy statement.
-    if (curTok.type == lexer.lexicon.endOfStatementMark) {
+    if (curTok.lexeme == lexer.lexicon.endOfStatementMark) {
       advance();
       return null;
     }
 
-    if (curTok.type == Token.endOfFile) {
+    if (curTok.lexeme == Token.endOfFile) {
       return null;
     }
 
@@ -83,18 +83,18 @@ class HTParserHetu extends HTParser {
           stmt = _parseNamespaceDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kAssert) {
           stmt = _parseAssertStmt();
-        } else if (curTok.type == lexer.lexicon.kExternal) {
+        } else if (curTok.lexeme == lexer.lexicon.kExternal) {
           advance();
-          if (curTok.type == lexer.lexicon.kAbstract) {
+          if (curTok.lexeme == lexer.lexicon.kAbstract) {
             advance();
             stmt = _parseClassDecl(
                 isAbstract: true, isExternal: true, isTopLevel: true);
-          } else if (curTok.type == lexer.lexicon.kClass) {
+          } else if (curTok.lexeme == lexer.lexicon.kClass) {
             stmt = _parseClassDecl(isExternal: true, isTopLevel: true);
-          } else if (curTok.type == lexer.lexicon.kEnum) {
+          } else if (curTok.lexeme == lexer.lexicon.kEnum) {
             stmt = _parseEnumDecl(isExternal: true, isTopLevel: true);
           } else if (lexer.lexicon.variableDeclarationKeywords
-              .contains(curTok.type)) {
+              .contains(curTok.lexeme)) {
             final err = HTError.externalVar(
                 filename: currrentFileName,
                 line: curTok.line,
@@ -108,11 +108,11 @@ class HTParserHetu extends HTParser {
                 line: errToken.line,
                 column: errToken.column,
                 offset: errToken.offset);
-          } else if (curTok.type == lexer.lexicon.kAsync) {
+          } else if (curTok.lexeme == lexer.lexicon.kAsync) {
             advance();
             stmt = _parseFunction(
                 isAsync: true, isExternal: true, isTopLevel: true);
-          } else if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+          } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
             stmt = _parseFunction(isExternal: true, isTopLevel: true);
           } else {
             final err = HTError.unexpected(lexer.lexicon.kExternal,
@@ -130,66 +130,53 @@ class HTParserHetu extends HTParser {
                 column: errToken.column,
                 offset: errToken.offset);
           }
-        } else if (curTok.type == lexer.lexicon.kAbstract) {
+        } else if (curTok.lexeme == lexer.lexicon.kAbstract) {
           advance();
           stmt = _parseClassDecl(
               isAbstract: true, isTopLevel: true, lateResolve: false);
-        } else if (curTok.type == lexer.lexicon.kClass) {
+        } else if (curTok.lexeme == lexer.lexicon.kClass) {
           stmt = _parseClassDecl(isTopLevel: true, lateResolve: false);
-        } else if (curTok.type == lexer.lexicon.kEnum) {
+        } else if (curTok.lexeme == lexer.lexicon.kEnum) {
           stmt = _parseEnumDecl(isTopLevel: true);
-        } else if (lexer.lexicon.kMutables.contains(curTok.type)) {
+        } else if (lexer.lexicon.kMutables.contains(curTok.lexeme)) {
           if (lexer.lexicon.destructuringDeclarationMarks
-              .contains(peek(1).type)) {
+              .contains(peek(1).lexeme)) {
             stmt = _parseDestructuringDecl(isTopLevel: true, isMutable: true);
           } else {
             stmt = _parseVarDecl(isMutable: true, isTopLevel: true);
           }
-        } else if (curTok.type == lexer.lexicon.kImmutable) {
+        } else if (curTok.lexeme == lexer.lexicon.kImmutable) {
           if (lexer.lexicon.destructuringDeclarationMarks
-              .contains(peek(1).type)) {
+              .contains(peek(1).lexeme)) {
             stmt = _parseDestructuringDecl(isTopLevel: true);
           } else {
             stmt = _parseVarDecl(isTopLevel: true);
           }
-        } else if (curTok.type == lexer.lexicon.kLate) {
+        } else if (curTok.lexeme == lexer.lexicon.kLate) {
           stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
-        } else if (curTok.type == lexer.lexicon.kConst) {
+        } else if (curTok.lexeme == lexer.lexicon.kConst) {
           stmt = _parseVarDecl(isConst: true, isTopLevel: true);
-        } else if (curTok.type == lexer.lexicon.kAsync) {
+        } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
           stmt = _parseFunction(isAsync: true, isTopLevel: true);
-        } else if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+        } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
           stmt = _parseFunction(isTopLevel: true);
-          // if (expect([lexer.lexicon.kFunction, InternalIdentifier.identifier]) ||
-          //     expect([
-          //       lexer.lexicon.kFunction,
-          //       lexer.lexicon.externalFunctionTypeDefStart,
-          //       InternalIdentifier.identifier,
-          //       lexer.lexicon.externalFunctionTypeDefEnd,
-          //       InternalIdentifier.identifier
-          //     ])) {
-          //   stmt = _parseFunction(isTopLevel: true);
-          // } else {
-          //   stmt = _parseFunction(
-          //       category: FunctionCategory.literal, isTopLevel: true);
-          // }
-        } else if (curTok.type == lexer.lexicon.kStruct) {
+        } else if (curTok.lexeme == lexer.lexicon.kStruct) {
           stmt =
               _parseStructDecl(isTopLevel: true); // , lateInitialize: false);
-        } else if (curTok.type == lexer.lexicon.kDelete) {
+        } else if (curTok.lexeme == lexer.lexicon.kDelete) {
           stmt = _parseDeleteStmt();
-        } else if (curTok.type == lexer.lexicon.kIf) {
+        } else if (curTok.lexeme == lexer.lexicon.kIf) {
           stmt = _parseIf();
-        } else if (curTok.type == lexer.lexicon.kWhile) {
+        } else if (curTok.lexeme == lexer.lexicon.kWhile) {
           stmt = _parseWhileStmt();
-        } else if (curTok.type == lexer.lexicon.kDo) {
+        } else if (curTok.lexeme == lexer.lexicon.kDo) {
           stmt = _parseDoStmt();
-        } else if (curTok.type == lexer.lexicon.kFor) {
+        } else if (curTok.lexeme == lexer.lexicon.kFor) {
           stmt = _parseForStmt();
-        } else if (lexer.lexicon.kSwitchs.contains(curTok.type)) {
+        } else if (lexer.lexicon.kSwitchs.contains(curTok.lexeme)) {
           stmt = _parseSwitch();
-        } else if (curTok.type == lexer.lexicon.kThrow) {
+        } else if (curTok.lexeme == lexer.lexicon.kThrow) {
           stmt = _parseThrowStmt();
         } else {
           stmt = _parseExprStmt();
@@ -203,11 +190,11 @@ class HTParserHetu extends HTParser {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
           stmt = _parseNamespaceDecl(isTopLevel: true);
-        } else if (curTok.type == lexer.lexicon.kExternal) {
+        } else if (curTok.lexeme == lexer.lexicon.kExternal) {
           advance();
-          if (curTok.type == lexer.lexicon.kAbstract) {
+          if (curTok.lexeme == lexer.lexicon.kAbstract) {
             advance();
-            if (curTok.type != lexer.lexicon.kClass) {
+            if (curTok.lexeme != lexer.lexicon.kClass) {
               final err = HTError.unexpected(lexer.lexicon.kAbstract,
                   HTLocale.current.classDeclaration, curTok.lexeme,
                   filename: currrentFileName,
@@ -226,18 +213,18 @@ class HTParserHetu extends HTParser {
               stmt = _parseClassDecl(
                   isAbstract: true, isExternal: true, isTopLevel: true);
             }
-          } else if (curTok.type == lexer.lexicon.kClass) {
+          } else if (curTok.lexeme == lexer.lexicon.kClass) {
             stmt = _parseClassDecl(isExternal: true, isTopLevel: true);
-          } else if (curTok.type == lexer.lexicon.kEnum) {
+          } else if (curTok.lexeme == lexer.lexicon.kEnum) {
             stmt = _parseEnumDecl(isExternal: true, isTopLevel: true);
-          } else if (curTok.type == lexer.lexicon.kAsync) {
+          } else if (curTok.lexeme == lexer.lexicon.kAsync) {
             advance();
             stmt = _parseFunction(
                 isAsync: true, isExternal: true, isTopLevel: true);
-          } else if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+          } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
             stmt = _parseFunction(isExternal: true, isTopLevel: true);
           } else if (lexer.lexicon.variableDeclarationKeywords
-              .contains(curTok.type)) {
+              .contains(curTok.lexeme)) {
             final err = HTError.externalVar(
                 filename: currrentFileName,
                 line: curTok.line,
@@ -267,28 +254,28 @@ class HTParserHetu extends HTParser {
                 column: errToken.column,
                 offset: errToken.offset);
           }
-        } else if (curTok.type == lexer.lexicon.kAbstract) {
+        } else if (curTok.lexeme == lexer.lexicon.kAbstract) {
           advance();
           stmt = _parseClassDecl(isAbstract: true, isTopLevel: true);
-        } else if (curTok.type == lexer.lexicon.kClass) {
+        } else if (curTok.lexeme == lexer.lexicon.kClass) {
           stmt = _parseClassDecl(isTopLevel: true);
-        } else if (curTok.type == lexer.lexicon.kEnum) {
+        } else if (curTok.lexeme == lexer.lexicon.kEnum) {
           stmt = _parseEnumDecl(isTopLevel: true);
-        } else if (lexer.lexicon.kMutables.contains(curTok.type)) {
+        } else if (lexer.lexicon.kMutables.contains(curTok.lexeme)) {
           stmt = _parseVarDecl(
               isMutable: true, isTopLevel: true, lateInitialize: true);
-        } else if (curTok.type == lexer.lexicon.kImmutable) {
+        } else if (curTok.lexeme == lexer.lexicon.kImmutable) {
           stmt = _parseVarDecl(lateInitialize: true, isTopLevel: true);
-        } else if (curTok.type == lexer.lexicon.kLate) {
+        } else if (curTok.lexeme == lexer.lexicon.kLate) {
           stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
-        } else if (curTok.type == lexer.lexicon.kConst) {
+        } else if (curTok.lexeme == lexer.lexicon.kConst) {
           stmt = _parseVarDecl(isConst: true, isTopLevel: true);
-        } else if (curTok.type == lexer.lexicon.kAsync) {
+        } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
           stmt = _parseFunction(isAsync: true, isTopLevel: true);
-        } else if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+        } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
           stmt = _parseFunction(isTopLevel: true);
-        } else if (curTok.type == lexer.lexicon.kStruct) {
+        } else if (curTok.lexeme == lexer.lexicon.kStruct) {
           stmt = _parseStructDecl(isTopLevel: true);
         } else {
           final err = HTError.unexpected(HTLocale.current.module,
@@ -311,11 +298,11 @@ class HTParserHetu extends HTParser {
           stmt = _parseTypeAliasDecl();
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
           stmt = _parseNamespaceDecl();
-        } else if (curTok.type == lexer.lexicon.kExternal) {
+        } else if (curTok.lexeme == lexer.lexicon.kExternal) {
           advance();
-          if (curTok.type == lexer.lexicon.kAbstract) {
+          if (curTok.lexeme == lexer.lexicon.kAbstract) {
             advance();
-            if (curTok.type != lexer.lexicon.kClass) {
+            if (curTok.lexeme != lexer.lexicon.kClass) {
               final err = HTError.unexpected(lexer.lexicon.kAbstract,
                   HTLocale.current.classDeclaration, curTok.lexeme,
                   filename: currrentFileName,
@@ -333,17 +320,17 @@ class HTParserHetu extends HTParser {
             } else {
               stmt = _parseClassDecl(isAbstract: true, isExternal: true);
             }
-          } else if (curTok.type == lexer.lexicon.kClass) {
+          } else if (curTok.lexeme == lexer.lexicon.kClass) {
             stmt = _parseClassDecl(isExternal: true);
-          } else if (curTok.type == lexer.lexicon.kEnum) {
+          } else if (curTok.lexeme == lexer.lexicon.kEnum) {
             stmt = _parseEnumDecl(isExternal: true);
-          } else if (curTok.type == lexer.lexicon.kAsync) {
+          } else if (curTok.lexeme == lexer.lexicon.kAsync) {
             advance();
             stmt = _parseFunction(isAsync: true, isExternal: true);
-          } else if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+          } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
             stmt = _parseFunction(isExternal: true);
           } else if (lexer.lexicon.variableDeclarationKeywords
-              .contains(curTok.type)) {
+              .contains(curTok.lexeme)) {
             final err = HTError.externalVar(
                 filename: currrentFileName,
                 line: curTok.line,
@@ -373,27 +360,27 @@ class HTParserHetu extends HTParser {
                 column: errToken.column,
                 offset: errToken.offset);
           }
-        } else if (curTok.type == lexer.lexicon.kAbstract) {
+        } else if (curTok.lexeme == lexer.lexicon.kAbstract) {
           advance();
           stmt = _parseClassDecl(
               isAbstract: true, lateResolve: _isWithinModuleNamespace);
-        } else if (curTok.type == lexer.lexicon.kClass) {
+        } else if (curTok.lexeme == lexer.lexicon.kClass) {
           stmt = _parseClassDecl(lateResolve: _isWithinModuleNamespace);
-        } else if (curTok.type == lexer.lexicon.kEnum) {
+        } else if (curTok.lexeme == lexer.lexicon.kEnum) {
           stmt = _parseEnumDecl();
-        } else if (lexer.lexicon.kMutables.contains(curTok.type)) {
+        } else if (lexer.lexicon.kMutables.contains(curTok.lexeme)) {
           stmt = _parseVarDecl(
               isMutable: true, lateInitialize: _isWithinModuleNamespace);
-        } else if (curTok.type == lexer.lexicon.kImmutable) {
+        } else if (curTok.lexeme == lexer.lexicon.kImmutable) {
           stmt = _parseVarDecl(lateInitialize: _isWithinModuleNamespace);
-        } else if (curTok.type == lexer.lexicon.kConst) {
+        } else if (curTok.lexeme == lexer.lexicon.kConst) {
           stmt = _parseVarDecl(isConst: true);
-        } else if (curTok.type == lexer.lexicon.kAsync) {
+        } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
           stmt = _parseFunction(isAsync: true);
-        } else if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+        } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
           stmt = _parseFunction();
-        } else if (curTok.type == lexer.lexicon.kStruct) {
+        } else if (curTok.lexeme == lexer.lexicon.kStruct) {
           stmt = _parseStructDecl();
         } else {
           final err = HTError.unexpected(HTLocale.current.namespace,
@@ -445,7 +432,7 @@ class HTParserHetu extends HTParser {
             stmt = _parseTypeAliasDecl();
           }
         } else {
-          if (lexer.lexicon.kMutables.contains(curTok.type)) {
+          if (lexer.lexicon.kMutables.contains(curTok.lexeme)) {
             stmt = _parseVarDecl(
               classId: _currentClassDeclaration?.id,
               // isOverrided: isOverrided,
@@ -454,7 +441,7 @@ class HTParserHetu extends HTParser {
               isStatic: isStatic,
               lateInitialize: true,
             );
-          } else if (curTok.type == lexer.lexicon.kImmutable) {
+          } else if (curTok.lexeme == lexer.lexicon.kImmutable) {
             stmt = _parseVarDecl(
               classId: _currentClassDeclaration?.id,
               // isOverrided: isOverrided,
@@ -462,7 +449,7 @@ class HTParserHetu extends HTParser {
               isStatic: isStatic,
               lateInitialize: true,
             );
-          } else if (curTok.type == lexer.lexicon.kLate) {
+          } else if (curTok.lexeme == lexer.lexicon.kLate) {
             stmt = _parseVarDecl(
               classId: _currentClassDeclaration?.id,
               // isOverrided: isOverrided,
@@ -470,7 +457,7 @@ class HTParserHetu extends HTParser {
               isStatic: isStatic,
               lateFinalize: true,
             );
-          } else if (curTok.type == lexer.lexicon.kConst) {
+          } else if (curTok.lexeme == lexer.lexicon.kConst) {
             if (isStatic) {
               stmt = _parseVarDecl(
                   isConst: true, classId: _currentClassDeclaration?.id);
@@ -492,7 +479,7 @@ class HTParserHetu extends HTParser {
                 offset: errToken.offset,
               );
             }
-          } else if (curTok.type == lexer.lexicon.kAsync) {
+          } else if (curTok.lexeme == lexer.lexicon.kAsync) {
             if (isExternal) {
               final err = HTError.external(
                 HTLocale.current.asyncFunction,
@@ -520,28 +507,28 @@ class HTParserHetu extends HTParser {
                 isStatic: isStatic,
               );
             }
-          } else if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+          } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
             stmt = _parseFunction(
                 // category: FunctionCategory.method,
                 classId: _currentClassDeclaration?.id,
                 // isOverrided: isOverrided,
                 isExternal: isExternal,
                 isStatic: isStatic);
-          } else if (curTok.type == lexer.lexicon.kGet) {
+          } else if (curTok.lexeme == lexer.lexicon.kGet) {
             stmt = _parseFunction(
                 category: FunctionCategory.getter,
                 classId: _currentClassDeclaration?.id,
                 // isOverrided: isOverrided,
                 isExternal: isExternal,
                 isStatic: isStatic);
-          } else if (curTok.type == lexer.lexicon.kSet) {
+          } else if (curTok.lexeme == lexer.lexicon.kSet) {
             stmt = _parseFunction(
                 category: FunctionCategory.setter,
                 classId: _currentClassDeclaration?.id,
                 // isOverrided: isOverrided,
                 isExternal: isExternal,
                 isStatic: isStatic);
-          } else if (lexer.lexicon.kConstructors.contains(curTok.type)) {
+          } else if (lexer.lexicon.kConstructors.contains(curTok.lexeme)) {
             if (isStatic) {
               final err = HTError.unexpected(lexer.lexicon.kStatic,
                   HTLocale.current.declarationStatement, curTok.lexeme,
@@ -578,7 +565,7 @@ class HTParserHetu extends HTParser {
                 isExternal: isExternal,
               );
             }
-          } else if (curTok.type == lexer.lexicon.kFactory) {
+          } else if (curTok.lexeme == lexer.lexicon.kFactory) {
             if (isStatic) {
               final err = HTError.unexpected(lexer.lexicon.kStatic,
                   HTLocale.current.declarationStatement, curTok.lexeme,
@@ -636,7 +623,7 @@ class HTParserHetu extends HTParser {
       case ParseStyle.structDefinition:
         final isExternal = expect([lexer.lexicon.kExternal], consume: true);
         final isStatic = expect([lexer.lexicon.kStatic], consume: true);
-        if (lexer.lexicon.kMutables.contains(curTok.type)) {
+        if (lexer.lexicon.kMutables.contains(curTok.lexeme)) {
           stmt = _parseVarDecl(
             classId: _currentStructId,
             isExternal: isExternal,
@@ -645,7 +632,7 @@ class HTParserHetu extends HTParser {
             isField: true,
             lateInitialize: true,
           );
-        } else if (curTok.type == lexer.lexicon.kImmutable) {
+        } else if (curTok.lexeme == lexer.lexicon.kImmutable) {
           stmt = _parseVarDecl(
             classId: _currentStructId,
             isExternal: isExternal,
@@ -653,7 +640,7 @@ class HTParserHetu extends HTParser {
             isField: true,
             lateInitialize: true,
           );
-        } else if (curTok.type == lexer.lexicon.kAsync) {
+        } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
           stmt = _parseFunction(
             // category: FunctionCategory.method,
@@ -663,7 +650,7 @@ class HTParserHetu extends HTParser {
             isStatic: isStatic,
             isField: true,
           );
-        } else if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+        } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
           stmt = _parseFunction(
             // category: FunctionCategory.method,
             classId: _currentStructId,
@@ -672,7 +659,7 @@ class HTParserHetu extends HTParser {
             isField: true,
           );
         }
-        // else if (curTok.type == lexer.lexicon.kAsync) {
+        // else if (curTok.lexeme == lexer.lexicon.kAsync) {
         //   if (isExternal) {
         //     final err = HTError.external(HTLocale.current.asyncFunction,
         //         filename: currrentFileName,
@@ -697,7 +684,7 @@ class HTParserHetu extends HTParser {
         //         isStatic: isStatic);
         //   }
         // }
-        else if (curTok.type == lexer.lexicon.kGet) {
+        else if (curTok.lexeme == lexer.lexicon.kGet) {
           stmt = _parseFunction(
             category: FunctionCategory.getter,
             classId: _currentStructId,
@@ -705,7 +692,7 @@ class HTParserHetu extends HTParser {
             isStatic: isStatic,
             isField: true,
           );
-        } else if (curTok.type == lexer.lexicon.kSet) {
+        } else if (curTok.lexeme == lexer.lexicon.kSet) {
           stmt = _parseFunction(
             category: FunctionCategory.setter,
             classId: _currentStructId,
@@ -713,7 +700,7 @@ class HTParserHetu extends HTParser {
             isStatic: isStatic,
             isField: true,
           );
-        } else if (lexer.lexicon.kConstructors.contains(curTok.type)) {
+        } else if (lexer.lexicon.kConstructors.contains(curTok.lexeme)) {
           if (isStatic) {
             final err = HTError.unexpected(lexer.lexicon.kStatic,
                 HTLocale.current.declarationStatement, curTok.lexeme,
@@ -775,65 +762,53 @@ class HTParserHetu extends HTParser {
           stmt = _parseNamespaceDecl();
         } else if (curTok.lexeme == lexer.lexicon.kAssert) {
           stmt = _parseAssertStmt();
-        } else if (curTok.type == lexer.lexicon.kAbstract) {
+        } else if (curTok.lexeme == lexer.lexicon.kAbstract) {
           advance();
           stmt = _parseClassDecl(isAbstract: true, lateResolve: false);
-        } else if (curTok.type == lexer.lexicon.kClass) {
+        } else if (curTok.lexeme == lexer.lexicon.kClass) {
           stmt = _parseClassDecl(lateResolve: false);
-        } else if (curTok.type == lexer.lexicon.kEnum) {
+        } else if (curTok.lexeme == lexer.lexicon.kEnum) {
           stmt = _parseEnumDecl();
-        } else if (lexer.lexicon.kMutables.contains(curTok.type)) {
+        } else if (lexer.lexicon.kMutables.contains(curTok.lexeme)) {
           if (lexer.lexicon.destructuringDeclarationMarks
-              .contains(peek(1).type)) {
+              .contains(peek(1).lexeme)) {
             stmt = _parseDestructuringDecl(isMutable: true);
           } else {
             stmt = _parseVarDecl(isMutable: true);
           }
-        } else if (curTok.type == lexer.lexicon.kImmutable) {
+        } else if (curTok.lexeme == lexer.lexicon.kImmutable) {
           if (lexer.lexicon.destructuringDeclarationMarks
-              .contains(peek(1).type)) {
+              .contains(peek(1).lexeme)) {
             stmt = _parseDestructuringDecl();
           } else {
             stmt = _parseVarDecl();
           }
-        } else if (curTok.type == lexer.lexicon.kLate) {
+        } else if (curTok.lexeme == lexer.lexicon.kLate) {
           stmt = _parseVarDecl(lateFinalize: true);
-        } else if (curTok.type == lexer.lexicon.kConst) {
+        } else if (curTok.lexeme == lexer.lexicon.kConst) {
           stmt = _parseVarDecl(isConst: true);
-        } else if (curTok.type == lexer.lexicon.kAsync) {
+        } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
           stmt = _parseFunction(isAsync: true);
-        } else if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+        } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
           stmt = _parseFunction();
-          // if (expect([lexer.lexicon.kFunction, InternalIdentifier.identifier]) ||
-          //     expect([
-          //       lexer.lexicon.kFunction,
-          //       lexer.lexicon.externalFunctionTypeDefStart,
-          //       InternalIdentifier.identifier,
-          //       lexer.lexicon.externalFunctionTypeDefEnd,
-          //       InternalIdentifier.identifier
-          //     ])) {
-          //   stmt = _parseFunction();
-          // } else {
-          //   stmt = _parseFunction(category: FunctionCategory.literal);
-          // }
-        } else if (curTok.type == lexer.lexicon.kStruct) {
+        } else if (curTok.lexeme == lexer.lexicon.kStruct) {
           stmt = _parseStructDecl(); // (lateInitialize: false);
-        } else if (curTok.type == lexer.lexicon.kDelete) {
+        } else if (curTok.lexeme == lexer.lexicon.kDelete) {
           stmt = _parseDeleteStmt();
-        } else if (curTok.type == lexer.lexicon.kIf) {
+        } else if (curTok.lexeme == lexer.lexicon.kIf) {
           stmt = _parseIf();
-        } else if (curTok.type == lexer.lexicon.kWhile) {
+        } else if (curTok.lexeme == lexer.lexicon.kWhile) {
           stmt = _parseWhileStmt();
-        } else if (curTok.type == lexer.lexicon.kDo) {
+        } else if (curTok.lexeme == lexer.lexicon.kDo) {
           stmt = _parseDoStmt();
-        } else if (curTok.type == lexer.lexicon.kFor) {
+        } else if (curTok.lexeme == lexer.lexicon.kFor) {
           stmt = _parseForStmt();
-        } else if (lexer.lexicon.kSwitchs.contains(curTok.type)) {
+        } else if (lexer.lexicon.kSwitchs.contains(curTok.lexeme)) {
           stmt = _parseSwitch();
-        } else if (curTok.type == lexer.lexicon.kThrow) {
+        } else if (curTok.lexeme == lexer.lexicon.kThrow) {
           stmt = _parseThrowStmt();
-        } else if (curTok.type == lexer.lexicon.kBreak) {
+        } else if (curTok.lexeme == lexer.lexicon.kBreak) {
           if (!_isInLoop) {
             final err = HTError.misplacedBreak(
                 filename: currrentFileName,
@@ -852,7 +827,7 @@ class HTParserHetu extends HTParser {
               column: keyword.column,
               offset: keyword.offset,
               length: keyword.length);
-        } else if (curTok.type == lexer.lexicon.kContinue) {
+        } else if (curTok.lexeme == lexer.lexicon.kContinue) {
           if (!_isInLoop) {
             final err = HTError.misplacedContinue(
                 filename: currrentFileName,
@@ -871,7 +846,7 @@ class HTParserHetu extends HTParser {
               column: keyword.column,
               offset: keyword.offset,
               length: keyword.length);
-        } else if (curTok.type == lexer.lexicon.kReturn) {
+        } else if (curTok.lexeme == lexer.lexicon.kReturn) {
           if (_currentFunctionDeclaration?.category ==
               FunctionCategory.constructor) {
             final err = HTError.misplacedReturn(
@@ -933,17 +908,15 @@ class HTParserHetu extends HTParser {
     bool hasAnyArgs = false;
     final savedPrecedings = savePrecedings();
     // call arguments are a bit complex so we didn't use [parseExprList] here.
-    while (curTok.type != lexer.lexicon.functionParameterEnd &&
-        curTok.type != Token.endOfFile) {
+    while (curTok.lexeme != lexer.lexicon.functionParameterEnd &&
+        curTok.lexeme != Token.endOfFile) {
       // it's possible that it's an empty arguments list, so we manually handle precedings here
       handlePrecedings();
-      if (curTok.type == lexer.lexicon.functionParameterEnd) break;
+      if (curTok.lexeme == lexer.lexicon.functionParameterEnd) break;
       hasAnyArgs = true;
-      if (expect([
-        InternalIdentifier.identifier,
-        lexer.lexicon.namedArgumentValueIndicator
-      ], consume: false)) {
-        final name = match(InternalIdentifier.identifier).lexeme;
+      if (curTok is TokenIdentifier &&
+          peek(1).lexeme == lexer.lexicon.namedArgumentValueIndicator) {
+        final name = matchId().lexeme;
         match(lexer.lexicon.namedArgumentValueIndicator);
         final namedArg = parseExpr();
         handleTrailing(namedArg,
@@ -951,7 +924,7 @@ class HTParserHetu extends HTParser {
         namedArgs[name] = namedArg;
       } else {
         ASTNode positionalArg;
-        if (curTok.type == lexer.lexicon.spreadSyntax) {
+        if (curTok.lexeme == lexer.lexicon.spreadSyntax) {
           final spreadTok = advance();
           final spread = parseExpr();
           positionalArg = SpreadExpr(spread,
@@ -994,7 +967,7 @@ class HTParserHetu extends HTParser {
   ASTNode parseExpr() {
     ASTNode? expr;
     final left = _parseTernaryExpr();
-    if (lexer.lexicon.assignments.contains(curTok.type)) {
+    if (lexer.lexicon.assignments.contains(curTok.lexeme)) {
       if (!_isLegalLeftValue) {
         final err = HTError.invalidLeftValue(
             filename: currrentFileName,
@@ -1042,9 +1015,9 @@ class HTParserHetu extends HTParser {
   /// precedence 4, associativity left
   ASTNode _parseIfNullExpr() {
     var left = _parseLogicalOrExpr();
-    if (curTok.type == lexer.lexicon.ifNull) {
+    if (curTok.lexeme == lexer.lexicon.ifNull) {
       _isLegalLeftValue = false;
-      while (curTok.type == lexer.lexicon.ifNull) {
+      while (curTok.lexeme == lexer.lexicon.ifNull) {
         final op = advance();
         final right = _parseLogicalOrExpr();
         left = BinaryExpr(left, op.lexeme, right,
@@ -1062,9 +1035,9 @@ class HTParserHetu extends HTParser {
   /// precedence 5, associativity left
   ASTNode _parseLogicalOrExpr() {
     var left = _parseLogicalAndExpr();
-    if (curTok.type == lexer.lexicon.logicalOr) {
+    if (curTok.lexeme == lexer.lexicon.logicalOr) {
       _isLegalLeftValue = false;
-      while (curTok.type == lexer.lexicon.logicalOr) {
+      while (curTok.lexeme == lexer.lexicon.logicalOr) {
         final op = advance();
         final right = _parseLogicalAndExpr();
         left = BinaryExpr(left, op.lexeme, right,
@@ -1082,9 +1055,9 @@ class HTParserHetu extends HTParser {
   /// precedence 6, associativity left
   ASTNode _parseLogicalAndExpr() {
     var left = _parseEqualityExpr();
-    if (curTok.type == lexer.lexicon.logicalAnd) {
+    if (curTok.lexeme == lexer.lexicon.logicalAnd) {
       _isLegalLeftValue = false;
-      while (curTok.type == lexer.lexicon.logicalAnd) {
+      while (curTok.lexeme == lexer.lexicon.logicalAnd) {
         final op = advance();
         final right = _parseEqualityExpr();
         left = BinaryExpr(left, op.lexeme, right,
@@ -1102,7 +1075,7 @@ class HTParserHetu extends HTParser {
   /// precedence 7, associativity none
   ASTNode _parseEqualityExpr() {
     var left = _parseRelationalExpr();
-    if (lexer.lexicon.equalitys.contains(curTok.type)) {
+    if (lexer.lexicon.equalitys.contains(curTok.lexeme)) {
       _isLegalLeftValue = false;
       final op = advance();
       final right = _parseRelationalExpr();
@@ -1120,7 +1093,7 @@ class HTParserHetu extends HTParser {
   /// precedence 8, associativity none
   ASTNode _parseRelationalExpr() {
     var left = _parseAdditiveExpr();
-    if (lexer.lexicon.logicalRelationals.contains(curTok.type)) {
+    if (lexer.lexicon.logicalRelationals.contains(curTok.lexeme)) {
       _isLegalLeftValue = false;
       final op = advance();
       final right = _parseAdditiveExpr();
@@ -1130,7 +1103,7 @@ class HTParserHetu extends HTParser {
           column: left.column,
           offset: left.offset,
           length: curTok.offset - left.offset);
-    } else if (lexer.lexicon.setRelationals.contains(curTok.type)) {
+    } else if (lexer.lexicon.setRelationals.contains(curTok.lexeme)) {
       _isLegalLeftValue = false;
       final op = advance();
       late final String opLexeme;
@@ -1148,7 +1121,7 @@ class HTParserHetu extends HTParser {
           column: left.column,
           offset: left.offset,
           length: curTok.offset - left.offset);
-    } else if (lexer.lexicon.typeRelationals.contains(curTok.type)) {
+    } else if (lexer.lexicon.typeRelationals.contains(curTok.lexeme)) {
       _isLegalLeftValue = false;
       final op = advance();
       late final String opLexeme;
@@ -1174,9 +1147,9 @@ class HTParserHetu extends HTParser {
   /// precedence 13, associativity left
   ASTNode _parseAdditiveExpr() {
     var left = _parseMultiplicativeExpr();
-    if (lexer.lexicon.additives.contains(curTok.type)) {
+    if (lexer.lexicon.additives.contains(curTok.lexeme)) {
       _isLegalLeftValue = false;
-      while (lexer.lexicon.additives.contains(curTok.type)) {
+      while (lexer.lexicon.additives.contains(curTok.lexeme)) {
         final op = advance();
         final right = _parseMultiplicativeExpr();
         left = BinaryExpr(left, op.lexeme, right,
@@ -1194,9 +1167,9 @@ class HTParserHetu extends HTParser {
   /// precedence 14, associativity left
   ASTNode _parseMultiplicativeExpr() {
     var left = _parseUnaryPrefixExpr();
-    if (lexer.lexicon.multiplicatives.contains(curTok.type)) {
+    if (lexer.lexicon.multiplicatives.contains(curTok.lexeme)) {
       _isLegalLeftValue = false;
-      while (lexer.lexicon.multiplicatives.contains(curTok.type)) {
+      while (lexer.lexicon.multiplicatives.contains(curTok.lexeme)) {
         final op = advance();
         final right = _parseUnaryPrefixExpr();
         left = BinaryExpr(left, op.lexeme, right,
@@ -1213,13 +1186,13 @@ class HTParserHetu extends HTParser {
   /// Prefix -e, !e，++e, --e, await e
   /// precedence 15, associativity none
   ASTNode _parseUnaryPrefixExpr() {
-    if (!lexer.lexicon.unaryPrefixs.contains(curTok.type)) {
+    if (!lexer.lexicon.unaryPrefixs.contains(curTok.lexeme)) {
       return _parseUnaryPostfixExpr();
     } else {
       _isLegalLeftValue = false;
       final op = advance();
       final value = _parseUnaryPostfixExpr();
-      if (op.type == lexer.lexicon.kDeclTypeof) {
+      if (op.lexeme == lexer.lexicon.kDeclTypeof) {
         if (value is! IdentifierExpr) {
           final err = HTError.invalidDeclTypeOfValue(
               filename: currrentFileName,
@@ -1230,7 +1203,7 @@ class HTParserHetu extends HTParser {
           errors.add(err);
         }
       }
-      if (lexer.lexicon.unaryPrefixsThatChangeTheValue.contains(op.type)) {
+      if (lexer.lexicon.unaryPrefixsThatChangeTheValue.contains(op.lexeme)) {
         if (!_isLegalLeftValue) {
           final err = HTError.invalidLeftValue(
               filename: currrentFileName,
@@ -1241,7 +1214,7 @@ class HTParserHetu extends HTParser {
           errors.add(err);
         }
       }
-      final isAwait = op.type == lexer.lexicon.kAwait;
+      final isAwait = op.lexeme == lexer.lexicon.kAwait;
       if (isAwait) {
         if (_currentFunctionDeclaration != null &&
             !_currentFunctionDeclaration!.isAsync) {
@@ -1269,9 +1242,9 @@ class HTParserHetu extends HTParser {
   /// precedence 16, associativity right
   ASTNode _parseUnaryPostfixExpr() {
     var expr = _parsePrimaryExpr();
-    while (lexer.lexicon.unaryPostfixs.contains(curTok.type)) {
+    while (lexer.lexicon.unaryPostfixs.contains(curTok.lexeme)) {
       final op = advance();
-      if (op.type == lexer.lexicon.memberGet) {
+      if (op.lexeme == lexer.lexicon.memberGet) {
         var isNullable = false;
         if ((expr is MemberExpr && expr.isNullable) ||
             (expr is SubExpr && expr.isNullable) ||
@@ -1279,7 +1252,7 @@ class HTParserHetu extends HTParser {
           isNullable = true;
         }
         _isLegalLeftValue = true;
-        final name = match(InternalIdentifier.identifier);
+        final name = matchId();
         final key = IdentifierExpr(
             name.literal, // use literal here to strip the graves.
             isLocal: false,
@@ -1295,9 +1268,9 @@ class HTParserHetu extends HTParser {
             column: expr.column,
             offset: expr.offset,
             length: curTok.offset - expr.offset);
-      } else if (op.type == lexer.lexicon.nullableMemberGet) {
+      } else if (op.lexeme == lexer.lexicon.nullableMemberGet) {
         _isLegalLeftValue = false;
-        final name = match(InternalIdentifier.identifier);
+        final name = matchId();
         final key = IdentifierExpr(
             name.literal, // use literal here to strip the graves.
             isLocal: false,
@@ -1313,7 +1286,7 @@ class HTParserHetu extends HTParser {
             column: expr.column,
             offset: expr.offset,
             length: curTok.offset - expr.offset);
-      } else if (op.type == lexer.lexicon.subGetStart) {
+      } else if (op.lexeme == lexer.lexicon.subGetStart) {
         var isNullable = false;
         if ((expr is MemberExpr && expr.isNullable) ||
             (expr is SubExpr && expr.isNullable) ||
@@ -1330,7 +1303,7 @@ class HTParserHetu extends HTParser {
             column: expr.column,
             offset: expr.offset,
             length: curTok.offset - expr.offset);
-      } else if (op.type == lexer.lexicon.nullableSubGet) {
+      } else if (op.lexeme == lexer.lexicon.nullableSubGet) {
         var indexExpr = parseExpr();
         _isLegalLeftValue = true;
         match(lexer.lexicon.listEnd);
@@ -1341,7 +1314,7 @@ class HTParserHetu extends HTParser {
             column: expr.column,
             offset: expr.offset,
             length: curTok.offset - expr.offset);
-      } else if (op.type == lexer.lexicon.nullableFunctionArgumentCall) {
+      } else if (op.lexeme == lexer.lexicon.nullableFunctionArgumentCall) {
         _isLegalLeftValue = false;
         var positionalArgs = <ASTNode>[];
         var namedArgs = <String, ASTNode>{};
@@ -1355,7 +1328,7 @@ class HTParserHetu extends HTParser {
             column: expr.column,
             offset: expr.offset,
             length: curTok.offset - expr.offset);
-      } else if (op.type == lexer.lexicon.functionParameterStart) {
+      } else if (op.lexeme == lexer.lexicon.functionParameterStart) {
         var isNullable = false;
         if ((expr is MemberExpr && expr.isNullable) ||
             (expr is SubExpr && expr.isNullable) ||
@@ -1375,8 +1348,8 @@ class HTParserHetu extends HTParser {
             column: expr.column,
             offset: expr.offset,
             length: curTok.offset - expr.offset);
-      } else if (op.type == lexer.lexicon.postIncrement ||
-          op.type == lexer.lexicon.postDecrement) {
+      } else if (op.lexeme == lexer.lexicon.postIncrement ||
+          op.lexeme == lexer.lexicon.postDecrement) {
         if (!_isLegalLeftValue) {
           final err = HTError.invalidLeftValue(
               filename: currrentFileName,
@@ -1409,31 +1382,31 @@ class HTParserHetu extends HTParser {
     // We also cannot put this paragraph in else if, because
     // the literal function parsing need to look ahead a lot of tokens,
     // thus we have to try parse as literal function even if it may not be.
-    if (curTok.type == lexer.lexicon.functionParameterStart) {
+    if (curTok.lexeme == lexer.lexicon.functionParameterStart) {
       final tokenAtParameterStart = curTok.next;
       final tokenAfterParameterList = seekGroupClosing({
         lexer.lexicon.functionParameterStart: lexer.lexicon.functionParameterEnd
       });
-      if ((tokenAtParameterStart?.type == lexer.lexicon.groupExprEnd ||
-              (tokenAtParameterStart?.type == InternalIdentifier.identifier &&
-                  (tokenAtParameterStart?.next?.type == lexer.lexicon.comma ||
-                      tokenAtParameterStart?.next?.type ==
+      if ((tokenAtParameterStart?.lexeme == lexer.lexicon.groupExprEnd ||
+              (tokenAtParameterStart is TokenIdentifier &&
+                  (tokenAtParameterStart.next?.lexeme == lexer.lexicon.comma ||
+                      tokenAtParameterStart.next?.lexeme ==
                           lexer.lexicon.typeIndicator ||
-                      tokenAtParameterStart?.next?.type ==
+                      tokenAtParameterStart.next?.lexeme ==
                           lexer.lexicon.groupExprEnd))) &&
           //     (tokenAfterGroupExprEnd.type ==
           //         lexer.lexicon.literalFunctionDefinitionIndicator)) {
-          (tokenAfterParameterList.type == lexer.lexicon.blockStart ||
-              tokenAfterParameterList.type ==
+          (tokenAfterParameterList.lexeme == lexer.lexicon.blockStart ||
+              tokenAfterParameterList.lexeme ==
                   lexer.lexicon.singleLineFunctionIndicator ||
-              tokenAfterParameterList.type == lexer.lexicon.kAsync)) {
+              tokenAfterParameterList.lexeme == lexer.lexicon.kAsync)) {
         _isLegalLeftValue = false;
         expr = _parseFunction(category: FunctionCategory.literal);
       }
     }
 
     if (expr == null) {
-      if (curTok.type == lexer.lexicon.kNull) {
+      if (curTok.lexeme == lexer.lexicon.kNull) {
         final token = advance();
         _isLegalLeftValue = false;
         expr = ASTLiteralNull(
@@ -1442,9 +1415,8 @@ class HTParserHetu extends HTParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      } else if (curTok.type == InternalIdentifier.literalBoolean) {
-        final token =
-            match(InternalIdentifier.literalBoolean) as TokenBooleanLiteral;
+      } else if (curTok is TokenBooleanLiteral) {
+        final token = advance() as TokenBooleanLiteral;
         _isLegalLeftValue = false;
         expr = ASTLiteralBoolean(token.literal,
             source: currentSource,
@@ -1452,9 +1424,8 @@ class HTParserHetu extends HTParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      } else if (curTok.type == InternalIdentifier.literalInteger) {
-        final token =
-            match(InternalIdentifier.literalInteger) as TokenIntLiteral;
+      } else if (curTok is TokenIntegerLiteral) {
+        final token = advance() as TokenIntegerLiteral;
         _isLegalLeftValue = false;
         expr = ASTLiteralInteger(token.literal,
             source: currentSource,
@@ -1462,7 +1433,7 @@ class HTParserHetu extends HTParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      } else if (curTok.type == InternalIdentifier.literalFloat) {
+      } else if (curTok is TokenFloatLiteral) {
         final token = advance() as TokenFloatLiteral;
         _isLegalLeftValue = false;
         expr = ASTLiteralFloat(token.literal,
@@ -1471,16 +1442,7 @@ class HTParserHetu extends HTParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      } else if (curTok.type == InternalIdentifier.literalString) {
-        final token = advance() as TokenStringLiteral;
-        _isLegalLeftValue = false;
-        expr = ASTLiteralString(token.literal, token.startMark, token.endMark,
-            source: currentSource,
-            line: token.line,
-            column: token.column,
-            offset: token.offset,
-            length: token.length);
-      } else if (curTok.type == InternalIdentifier.stringInterpolation) {
+      } else if (curTok is TokenStringInterpolation) {
         final token = advance() as TokenStringInterpolation;
         final interpolations = <ASTNode>[];
         final savedCurrent = curTok;
@@ -1533,7 +1495,16 @@ class HTParserHetu extends HTParser {
             column: token.column,
             offset: token.offset,
             length: token.length);
-      } else if (curTok.type == lexer.lexicon.kThis) {
+      } else if (curTok is TokenStringLiteral) {
+        final token = matchString();
+        _isLegalLeftValue = false;
+        expr = ASTLiteralString(token.literal, token.startMark, token.endMark,
+            source: currentSource,
+            line: token.line,
+            column: token.column,
+            offset: token.offset,
+            length: token.length);
+      } else if (curTok.lexeme == lexer.lexicon.kThis) {
         // this expression
         if (_currentFunctionDeclaration?.category != FunctionCategory.literal &&
             (_currentClassDeclaration == null && _currentStructId == null)) {
@@ -1553,7 +1524,7 @@ class HTParserHetu extends HTParser {
             column: keyword.column,
             offset: keyword.offset,
             length: keyword.length);
-      } else if (curTok.type == lexer.lexicon.kSuper) {
+      } else if (curTok.lexeme == lexer.lexicon.kSuper) {
         // super constructor call
         if (_currentClassDeclaration == null ||
             _currentFunctionDeclaration == null) {
@@ -1573,11 +1544,11 @@ class HTParserHetu extends HTParser {
             column: keyword.column,
             offset: keyword.offset,
             length: keyword.length);
-      } else if (curTok.type == lexer.lexicon.kNew) {
+      } else if (curTok.lexeme == lexer.lexicon.kNew) {
         // constructor call
         final keyword = advance();
         _isLegalLeftValue = false;
-        final idTok = match(InternalIdentifier.identifier) as TokenIdentifier;
+        final idTok = matchId();
         final id = IdentifierExpr.fromToken(idTok,
             isMarked: idTok.isMarked, source: currentSource);
         var positionalArgs = <ASTNode>[];
@@ -1596,15 +1567,15 @@ class HTParserHetu extends HTParser {
             column: keyword.column,
             offset: keyword.offset,
             length: curTok.offset - keyword.offset);
-      } else if (curTok.type == lexer.lexicon.kIf) {
+      } else if (curTok.lexeme == lexer.lexicon.kIf) {
         // if expression
         _isLegalLeftValue = false;
         expr = _parseIf(isStatement: false);
-      } else if (lexer.lexicon.kSwitchs.contains(curTok.type)) {
+      } else if (lexer.lexicon.kSwitchs.contains(curTok.lexeme)) {
         // switch expression
         _isLegalLeftValue = false;
         expr = _parseSwitch(isStatement: false);
-      } else if (curTok.type == lexer.lexicon.groupExprStart) {
+      } else if (curTok.lexeme == lexer.lexicon.groupExprStart) {
         // group expression
         final start = advance();
         final innerExpr = parseExpr();
@@ -1616,15 +1587,15 @@ class HTParserHetu extends HTParser {
             column: start.column,
             offset: start.offset,
             length: end.offset + end.length - start.offset);
-      } else if (curTok.type == lexer.lexicon.listStart) {
+      } else if (curTok.lexeme == lexer.lexicon.listStart) {
         // literal list value
         final start = advance();
         final listExprs = parseExprList(
           endToken: lexer.lexicon.listEnd,
           parseFunction: () {
-            if (curTok.type == lexer.lexicon.listEnd) return null;
+            if (curTok.lexeme == lexer.lexicon.listEnd) return null;
             ASTNode item;
-            if (curTok.type == lexer.lexicon.spreadSyntax) {
+            if (curTok.lexeme == lexer.lexicon.spreadSyntax) {
               final spreadTok = advance();
               item = parseExpr();
               final spreadExpr = SpreadExpr(item,
@@ -1648,27 +1619,27 @@ class HTParserHetu extends HTParser {
             column: start.column,
             offset: start.offset,
             length: endTok.end - start.offset);
-      } else if (curTok.type == lexer.lexicon.structStart) {
+      } else if (curTok.lexeme == lexer.lexicon.structStart) {
         _isLegalLeftValue = false;
         expr = _parseStructObj();
-      } else if (curTok.type == lexer.lexicon.kStruct) {
+      } else if (curTok.lexeme == lexer.lexicon.kStruct) {
         _isLegalLeftValue = false;
         expr = _parseStructObj(hasKeyword: true);
-      } else if (curTok.type == lexer.lexicon.kAsync) {
+      } else if (curTok.lexeme == lexer.lexicon.kAsync) {
         _isLegalLeftValue = false;
         expr =
             _parseFunction(category: FunctionCategory.literal, isAsync: true);
-      } else if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+      } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
         _isLegalLeftValue = false;
         expr = _parseFunction(category: FunctionCategory.literal);
-      } else if (curTok.type == lexer.lexicon.kTypeValue) {
+      } else if (curTok.lexeme == lexer.lexicon.kTypeValue) {
         // `type` is a common word that could appear in a json5 file,
         // so we used a special keyword `typeval` here to parse a literal type value
         _isLegalLeftValue = false;
         expr = _parseTypeExpr(handleDeclKeyword: true, isLocal: true);
-      } else if (curTok.type == InternalIdentifier.identifier) {
+      } else if (curTok is TokenIdentifier) {
         final id = advance() as TokenIdentifier;
-        final isLocal = curTok.type != lexer.lexicon.assign;
+        final isLocal = curTok.lexeme != lexer.lexicon.assign;
         // TODO: type arguments
         _isLegalLeftValue = true;
         expr = IdentifierExpr.fromToken(id,
@@ -1733,7 +1704,7 @@ class HTParserHetu extends HTParser {
       match(lexer.lexicon.kTypeValue);
     }
     // function type
-    if (curTok.type == lexer.lexicon.groupExprStart) {
+    if (curTok.lexeme == lexer.lexicon.groupExprStart) {
       final savedPrecedings = savePrecedings();
       final startTok = advance();
       // TODO: generic parameters
@@ -1741,10 +1712,10 @@ class HTParserHetu extends HTParser {
       var isNamed = false;
       final parameters = <ParamTypeExpr>[];
       // function parameters are a bit complex so we didn't use [parseExprList] here.
-      while (curTok.type != lexer.lexicon.functionParameterEnd &&
-          curTok.type != Token.endOfFile) {
+      while (curTok.lexeme != lexer.lexicon.functionParameterEnd &&
+          curTok.lexeme != Token.endOfFile) {
         handlePrecedings();
-        if (curTok.type == lexer.lexicon.functionParameterEnd) {
+        if (curTok.lexeme == lexer.lexicon.functionParameterEnd) {
           // TODO: store comments within empty function parameter list
           break;
         }
@@ -1798,7 +1769,7 @@ class HTParserHetu extends HTParser {
           final namedParameters = parseExprList(
             endToken: lexer.lexicon.functionNamedParameterEnd,
             parseFunction: () {
-              final paramId = match(InternalIdentifier.identifier);
+              final paramId = matchId();
               final paramSymbol =
                   IdentifierExpr.fromToken(paramId, source: currentSource);
               match(lexer.lexicon.typeIndicator);
@@ -1853,14 +1824,13 @@ class HTParserHetu extends HTParser {
       return funcType;
     }
     // structural type (interface of struct)
-    else if (curTok.type == lexer.lexicon.structStart) {
+    else if (curTok.lexeme == lexer.lexicon.structStart) {
       final savedPrecedings = savePrecedings();
       final startTok = advance();
       final fieldTypes = parseExprList(
         endToken: lexer.lexicon.blockEnd,
         parseFunction: () {
-          if (curTok.type == InternalIdentifier.literalString ||
-              curTok.type == InternalIdentifier.identifier) {
+          if (curTok is TokenStringLiteral || curTok is TokenIdentifier) {
             final savedPrecedings = savePrecedings();
             final idTok = advance();
             match(lexer.lexicon.typeIndicator);
@@ -1994,7 +1964,7 @@ class HTParserHetu extends HTParser {
         setPrecedings(typeExpr);
         return typeExpr;
       } else {
-        if (idTok.type != InternalIdentifier.identifier) {
+        if (idTok is! TokenIdentifier) {
           final err = HTError.unexpected(HTLocale.current.typeExpression,
               HTLocale.current.identifier, idTok.lexeme,
               filename: currrentFileName,
@@ -2005,10 +1975,10 @@ class HTParserHetu extends HTParser {
           errors.add(err);
         }
         List<IdentifierExpr> namespacesWithin = [];
-        if (curTok.type == lexer.lexicon.memberGet) {
+        if (curTok.lexeme == lexer.lexicon.memberGet) {
           while (expect([lexer.lexicon.memberGet], consume: true)) {
             namespacesWithin.add(id);
-            final nextIdTok = match(InternalIdentifier.identifier);
+            final nextIdTok = matchId();
             id = IdentifierExpr.fromToken(nextIdTok, source: currentSource);
           }
         }
@@ -2126,8 +2096,8 @@ class HTParserHetu extends HTParser {
     var keyword = advance();
     ASTNode? expr;
     bool hasEndOfStmtMark = true;
-    if (curTok.type != lexer.lexicon.blockEnd &&
-        curTok.type != lexer.lexicon.endOfStatementMark) {
+    if (curTok.lexeme != lexer.lexicon.blockEnd &&
+        curTok.lexeme != lexer.lexicon.endOfStatementMark) {
       expr = parseExpr();
       if (!expr.isBlock) {
         hasEndOfStmtMark = parseEndOfStmtMark();
@@ -2146,7 +2116,7 @@ class HTParserHetu extends HTParser {
   }
 
   ASTNode _parseExprStmtOrBlock({bool isStatement = true}) {
-    if (curTok.type == lexer.lexicon.blockStart) {
+    if (curTok.lexeme == lexer.lexicon.blockStart) {
       return _parseBlockStmt(id: InternalIdentifier.blockStatement);
     } else {
       if (isStatement) {
@@ -2245,8 +2215,7 @@ class HTParserHetu extends HTParser {
     ASTNode? condition;
     ASTNode? increment;
     bool implicitVariableDeclaration = false;
-    if (config.allowImplicitVariableDeclaration &&
-        curTok.type == InternalIdentifier.identifier) {
+    if (config.allowImplicitVariableDeclaration && curTok is TokenIdentifier) {
       implicitVariableDeclaration = true;
     }
     String forStmtType;
@@ -2257,7 +2226,7 @@ class HTParserHetu extends HTParser {
     }
     if (forStmtType == lexer.lexicon.kIn || forStmtType == lexer.lexicon.kOf) {
       decl = _parseVarDecl(
-        isMutable: curTok.type != lexer.lexicon.kImmutable,
+        isMutable: curTok.lexeme != lexer.lexicon.kImmutable,
         implicitVariableDeclaration: implicitVariableDeclaration,
       );
       advance();
@@ -2278,7 +2247,7 @@ class HTParserHetu extends HTParser {
     } else {
       if (!expect([lexer.lexicon.endOfStatementMark], consume: false)) {
         decl = _parseVarDecl(
-          isMutable: curTok.type != lexer.lexicon.kImmutable,
+          isMutable: curTok.lexeme != lexer.lexicon.kImmutable,
           requireEndOfStatement: true,
           implicitVariableDeclaration: implicitVariableDeclaration,
         );
@@ -2310,7 +2279,7 @@ class HTParserHetu extends HTParser {
   SwitchStmt _parseSwitch({bool isStatement = true}) {
     final keyword = advance();
     ASTNode? condition;
-    if (curTok.type != lexer.lexicon.blockStart) {
+    if (curTok.lexeme != lexer.lexicon.blockStart) {
       match(lexer.lexicon.groupExprStart);
       condition = parseExpr();
       match(lexer.lexicon.groupExprEnd);
@@ -2319,10 +2288,10 @@ class HTParserHetu extends HTParser {
     ASTNode? elseBranch;
     match(lexer.lexicon.blockStart);
     // when branches are a bit complex so we didn't use [parseExprList] here.
-    while (curTok.type != lexer.lexicon.blockEnd &&
-        curTok.type != Token.endOfFile) {
+    while (curTok.lexeme != lexer.lexicon.blockEnd &&
+        curTok.lexeme != Token.endOfFile) {
       handlePrecedings();
-      if (curTok.type == lexer.lexicon.blockEnd && options.isNotEmpty) {
+      if (curTok.lexeme == lexer.lexicon.blockEnd && options.isNotEmpty) {
         break;
       }
       if (curTok.lexeme == lexer.lexicon.kElse) {
@@ -2331,10 +2300,11 @@ class HTParserHetu extends HTParser {
         elseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
       } else {
         ASTNode caseExpr;
-        if (peek(1).type == lexer.lexicon.comma) {
+        // TODO: this part is dubious, might have edge cases that not covered
+        if (peek(1).lexeme == lexer.lexicon.comma) {
           caseExpr = _handleCommaExpr(lexer.lexicon.switchBranchIndicator,
               isLocal: false);
-        } else if (curTok.type == lexer.lexicon.kIn) {
+        } else if (curTok.lexeme == lexer.lexicon.kIn) {
           caseExpr = _handleInOfExpr();
         } else {
           caseExpr = parseExpr();
@@ -2365,7 +2335,7 @@ class HTParserHetu extends HTParser {
       genericParams = parseExprList(
         endToken: lexer.lexicon.typeListEnd,
         parseFunction: () {
-          final idTok = match(InternalIdentifier.identifier);
+          final idTok = matchId();
           final id = IdentifierExpr.fromToken(idTok, source: currentSource);
           final param = GenericTypeParameterExpr(id,
               source: currentSource,
@@ -2385,12 +2355,12 @@ class HTParserHetu extends HTParser {
   ImportExportDecl _parseImportDecl() {
     final keyword = advance(); // not a keyword so don't use match
     List<IdentifierExpr> showList = [];
-    if (curTok.type == lexer.lexicon.importExportListStart) {
+    if (curTok.lexeme == lexer.lexicon.importExportListStart) {
       advance();
       showList = parseExprList(
         endToken: lexer.lexicon.importExportListEnd,
         parseFunction: () {
-          final idTok = match(InternalIdentifier.identifier);
+          final idTok = matchId();
           final id = IdentifierExpr.fromToken(idTok, source: currentSource);
           setPrecedings(id);
           return id;
@@ -2424,11 +2394,11 @@ class HTParserHetu extends HTParser {
 
     void handleAlias() {
       match(lexer.lexicon.kAs);
-      final aliasId = match(InternalIdentifier.identifier);
+      final aliasId = matchId();
       alias = IdentifierExpr.fromToken(aliasId, source: currentSource);
     }
 
-    final fromPathTok = match(InternalIdentifier.literalString);
+    final fromPathTok = matchString();
     String fromPathRaw = fromPathTok.literal;
     String fromPath;
     bool isPreloadedModule = false;
@@ -2452,7 +2422,7 @@ class HTParserHetu extends HTParser {
         }
         handleAlias();
       } else {
-        if (curTok.type == lexer.lexicon.kAs) {
+        if (curTok.lexeme == lexer.lexicon.kAs) {
           handleAlias();
         }
       }
@@ -2483,7 +2453,7 @@ class HTParserHetu extends HTParser {
       final showList = parseExprList(
         endToken: lexer.lexicon.importExportListEnd,
         parseFunction: () {
-          final idTok = match(InternalIdentifier.identifier);
+          final idTok = matchId();
           final id = IdentifierExpr.fromToken(idTok, source: currentSource);
           setPrecedings(id);
           return id;
@@ -2493,7 +2463,7 @@ class HTParserHetu extends HTParser {
       // String? fromPath;
       if (curTok.lexeme == lexer.lexicon.kFrom) {
         advance();
-        final fromPathTok = match(InternalIdentifier.literalString);
+        final fromPathTok = matchString();
         final ext = path.extension(fromPathTok.literal);
         if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
           final err = HTError.importListOnNonHetuSource(
@@ -2526,7 +2496,7 @@ class HTParserHetu extends HTParser {
           offset: keyword.offset,
           length: curTok.offset - keyword.offset);
     } else {
-      final key = match(InternalIdentifier.literalString);
+      final key = matchString();
       stmt = ImportExportDecl(
           fromPath: key.literal,
           isExport: true,
@@ -2546,9 +2516,9 @@ class HTParserHetu extends HTParser {
   ASTNode _parseDeleteStmt() {
     var keyword = advance();
     final nextTok = peek(1);
-    if (curTok.type == InternalIdentifier.identifier &&
-        nextTok.type != lexer.lexicon.memberGet &&
-        nextTok.type != lexer.lexicon.subGetStart) {
+    if (curTok is TokenIdentifier &&
+        nextTok.lexeme != lexer.lexicon.memberGet &&
+        nextTok.lexeme != lexer.lexicon.subGetStart) {
       final id = advance().lexeme;
 
       final hasEndOfStmtMark = parseEndOfStmtMark();
@@ -2598,7 +2568,7 @@ class HTParserHetu extends HTParser {
 
   NamespaceDecl _parseNamespaceDecl({bool isTopLevel = false}) {
     final keyword = advance();
-    final idTok = match(InternalIdentifier.identifier);
+    final idTok = matchId();
     final id = IdentifierExpr.fromToken(idTok, source: currentSource);
     // final savedSurrentExplicitNamespaceId = _currentExplicitNamespaceId;
     // _currentExplicitNamespaceId = idTok.lexeme;
@@ -2625,7 +2595,7 @@ class HTParserHetu extends HTParser {
   TypeAliasDecl _parseTypeAliasDecl(
       {String? classId, bool isTopLevel = false}) {
     final keyword = advance();
-    final idTok = match(InternalIdentifier.identifier);
+    final idTok = matchId();
     final id = IdentifierExpr.fromToken(idTok, source: currentSource);
     final genericParameters = _getGenericParams();
     match(lexer.lexicon.assign);
@@ -2660,7 +2630,7 @@ class HTParserHetu extends HTParser {
     if (!implicitVariableDeclaration) {
       keyword = advance();
     }
-    final idTok = match(InternalIdentifier.identifier);
+    final idTok = matchId();
     final id = IdentifierExpr.fromToken(idTok, source: currentSource);
     String? internalName;
     if (classId != null && isExternal) {
@@ -2722,16 +2692,16 @@ class HTParserHetu extends HTParser {
     final ids = <IdentifierExpr, TypeExpr?>{};
     bool isVector = false;
     String endMark;
-    if (peek(-1).type == lexer.lexicon.listStart) {
+    if (peek(-1).lexeme == lexer.lexicon.listStart) {
       endMark = lexer.lexicon.listEnd;
       isVector = true;
     } else {
       endMark = lexer.lexicon.blockEnd;
     }
     // declarations are a bit complex so we didn't use [parseExprList] here.
-    while (curTok.type != endMark && curTok.type != Token.endOfFile) {
+    while (curTok.lexeme != endMark && curTok.lexeme != Token.endOfFile) {
       handlePrecedings();
-      final idTok = match(InternalIdentifier.identifier);
+      final idTok = matchId();
       final id = IdentifierExpr.fromToken(idTok, source: currentSource);
       setPrecedings(id);
       TypeExpr? declType;
@@ -2793,7 +2763,7 @@ class HTParserHetu extends HTParser {
       case FunctionCategory.setter:
         match(lexer.lexicon.kSet);
       case FunctionCategory.literal:
-        if (lexer.lexicon.kFunctions.contains(curTok.type)) {
+        if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
           advance();
         }
     }
@@ -2805,7 +2775,7 @@ class HTParserHetu extends HTParser {
             category == FunctionCategory.normal ||
             category == FunctionCategory.literal)) {
       if (expect([lexer.lexicon.listStart], consume: true)) {
-        externalTypeId = match(InternalIdentifier.identifier).lexeme;
+        externalTypeId = matchId().lexeme;
         match(lexer.lexicon.listEnd);
       }
     }
@@ -2817,27 +2787,27 @@ class HTParserHetu extends HTParser {
       case FunctionCategory.factoryConstructor:
       case FunctionCategory.constructor:
         _hasUserDefinedConstructor = true;
-        if (curTok.type == InternalIdentifier.identifier) {
+        if (curTok is TokenIdentifier) {
           id = advance();
         }
         internalName = (id == null)
             ? InternalIdentifier.defaultConstructor
             : '${InternalIdentifier.namedConstructorPrefix}$id';
       case FunctionCategory.literal:
-        if (curTok.type == InternalIdentifier.identifier) {
+        if (curTok is TokenIdentifier) {
           id = advance();
         }
         internalName = (id == null)
             ? '${InternalIdentifier.anonymousFunction}${HTParser.anonymousFunctionIndex++}'
             : id.lexeme;
       case FunctionCategory.getter:
-        id = match(InternalIdentifier.identifier);
+        id = matchId();
         internalName = '${InternalIdentifier.getter}$id';
       case FunctionCategory.setter:
-        id = match(InternalIdentifier.identifier);
+        id = matchId();
         internalName = '${InternalIdentifier.setter}$id';
       default:
-        id = match(InternalIdentifier.identifier);
+        id = matchId();
         internalName = id.lexeme;
     }
     final genericTypeParameters = _getGenericParams();
@@ -2848,7 +2818,7 @@ class HTParserHetu extends HTParser {
     var hasParamDecls = false;
     if (expect([lexer.lexicon.functionParameterStart], consume: true)) {
       if (category == FunctionCategory.getter &&
-          curTok.type != lexer.lexicon.functionParameterEnd) {
+          curTok.lexeme != lexer.lexicon.functionParameterEnd) {
         final err = HTError.getterParam(
             filename: currrentFileName,
             line: curTok.line,
@@ -2892,7 +2862,7 @@ class HTParserHetu extends HTParser {
           hasThisInitializingSyntax = true;
           match(lexer.lexicon.memberGet);
         }
-        final paramId = match(InternalIdentifier.identifier);
+        final paramId = matchId();
         paramSymbol = IdentifierExpr.fromToken(paramId, source: currentSource);
 
         if (!hasThisInitializingSyntax) {
@@ -2941,10 +2911,10 @@ class HTParserHetu extends HTParser {
         return param;
       }
 
-      while (curTok.type != lexer.lexicon.functionParameterEnd &&
-          curTok.type != Token.endOfFile) {
+      while (curTok.lexeme != lexer.lexicon.functionParameterEnd &&
+          curTok.lexeme != Token.endOfFile) {
         handlePrecedings();
-        if (curTok.type == lexer.lexicon.functionParameterEnd) {
+        if (curTok.lexeme == lexer.lexicon.functionParameterEnd) {
           // TODO: store comments within empty function parameter list
           break;
         }
@@ -3054,7 +3024,7 @@ class HTParserHetu extends HTParser {
       }
       Token? ctorKey;
       if (expect([lexer.lexicon.memberGet], consume: true)) {
-        ctorKey = match(InternalIdentifier.identifier);
+        ctorKey = matchId();
         match(lexer.lexicon.groupExprStart);
       } else {
         match(lexer.lexicon.groupExprStart);
@@ -3110,7 +3080,7 @@ class HTParserHetu extends HTParser {
     bool isExpressionBody = false;
     bool hasEndOfStmtMark = false;
     ASTNode? definition;
-    if (curTok.type == lexer.lexicon.functionStart) {
+    if (curTok.lexeme == lexer.lexicon.functionStart) {
       definition = _parseBlockStmt(
         id: HTLocale.current.functionCall,
         blockStartMark: lexer.lexicon.functionStart,
@@ -3199,7 +3169,7 @@ class HTParserHetu extends HTParser {
           length: keyword.length);
       errors.add(err);
     }
-    final id = match(InternalIdentifier.identifier);
+    final id = matchId();
     final genericParameters = _getGenericParams();
     TypeExpr? superClassType;
     if (curTok.lexeme == lexer.lexicon.kExtends) {
@@ -3252,13 +3222,13 @@ class HTParserHetu extends HTParser {
 
   EnumDecl _parseEnumDecl({bool isExternal = false, bool isTopLevel = false}) {
     final keyword = match(lexer.lexicon.kEnum);
-    final id = match(InternalIdentifier.identifier);
+    final id = matchId();
     var enumerations = <IdentifierExpr>[];
     bool isPreviousItemEndedWithComma = false;
     bool hasEndOfStmtMark = false;
     if (expect([lexer.lexicon.enumStart], consume: true)) {
-      while (curTok.type != lexer.lexicon.blockEnd &&
-          curTok.type != Token.endOfFile) {
+      while (curTok.lexeme != lexer.lexicon.blockEnd &&
+          curTok.lexeme != Token.endOfFile) {
         final hasPrecedingComments = handlePrecedings();
         if (hasPrecedingComments &&
             !isPreviousItemEndedWithComma &&
@@ -3266,12 +3236,12 @@ class HTParserHetu extends HTParser {
           enumerations.last.succeedings.addAll(currentPrecedings);
           break;
         }
-        if ((curTok.type == lexer.lexicon.blockEnd) ||
-            (curTok.type == Token.endOfFile)) {
+        if ((curTok.lexeme == lexer.lexicon.blockEnd) ||
+            (curTok.lexeme == Token.endOfFile)) {
           break;
         }
         isPreviousItemEndedWithComma = false;
-        final enumIdTok = match(InternalIdentifier.identifier);
+        final enumIdTok = matchId();
         final enumId =
             IdentifierExpr.fromToken(enumIdTok, source: currentSource);
         setPrecedings(enumId);
@@ -3303,12 +3273,12 @@ class HTParserHetu extends HTParser {
   StructDecl _parseStructDecl({bool isTopLevel = false}) {
     //, bool lateInitialize = true}) {
     final keyword = match(lexer.lexicon.kStruct);
-    final idTok = match(InternalIdentifier.identifier);
+    final idTok = matchId();
     final id = IdentifierExpr.fromToken(idTok, source: currentSource);
     IdentifierExpr? prototypeId;
     List<IdentifierExpr> mixinIds = [];
     if (expect([lexer.lexicon.kExtends], consume: true)) {
-      final prototypeIdTok = match(InternalIdentifier.identifier);
+      final prototypeIdTok = matchId();
       if (prototypeIdTok.lexeme == id.id) {
         final err = HTError.extendsSelf(
             filename: currrentFileName,
@@ -3321,9 +3291,9 @@ class HTParserHetu extends HTParser {
       prototypeId =
           IdentifierExpr.fromToken(prototypeIdTok, source: currentSource);
     } else if (expect([lexer.lexicon.kWith], consume: true)) {
-      while (curTok.type != lexer.lexicon.structStart &&
-          curTok.type != Token.endOfFile) {
-        final mixinIdTok = match(InternalIdentifier.identifier);
+      while (curTok.lexeme != lexer.lexicon.structStart &&
+          curTok.lexeme != Token.endOfFile) {
+        final mixinIdTok = matchId();
         if (mixinIdTok.lexeme == id.id) {
           final err = HTError.extendsSelf(
               filename: currrentFileName,
@@ -3344,10 +3314,10 @@ class HTParserHetu extends HTParser {
     _currentStructId = id.id;
     final definition = <ASTNode>[];
     final startTok = match(lexer.lexicon.structStart);
-    while (curTok.type != lexer.lexicon.structEnd &&
-        curTok.type != Token.endOfFile) {
+    while (curTok.lexeme != lexer.lexicon.structEnd &&
+        curTok.lexeme != Token.endOfFile) {
       handlePrecedings();
-      if (curTok.type == lexer.lexicon.structEnd) break;
+      if (curTok.lexeme == lexer.lexicon.structEnd) break;
       final stmt = parseStmt(style: ParseStyle.structDefinition);
       if (stmt != null) {
         definition.add(stmt);
@@ -3384,7 +3354,7 @@ class HTParserHetu extends HTParser {
     if (hasKeyword) {
       match(lexer.lexicon.kStruct);
       if (hasKeyword && expect([lexer.lexicon.kExtends], consume: true)) {
-        final idTok = match(InternalIdentifier.identifier);
+        final idTok = matchId();
         prototypeId = IdentifierExpr.fromToken(idTok, source: currentSource);
       }
     }
@@ -3392,18 +3362,17 @@ class HTParserHetu extends HTParser {
     final structBlockStartTok = match(lexer.lexicon.structStart);
     final fields = <StructObjField>[];
     // struct are a bit complex so we didn't use [parseExprList] here.
-    while (curTok.type != lexer.lexicon.structEnd &&
-        curTok.type != Token.endOfFile) {
+    while (curTok.lexeme != lexer.lexicon.structEnd &&
+        curTok.lexeme != Token.endOfFile) {
       handlePrecedings();
-      if (curTok.type == lexer.lexicon.structEnd) {
+      if (curTok.lexeme == lexer.lexicon.structEnd) {
         break;
       }
-      if (curTok.type == InternalIdentifier.identifier ||
-          curTok.type == InternalIdentifier.literalString) {
+      if (curTok is TokenIdentifier || curTok is TokenStringLiteral) {
         final keyTok = advance();
         StructObjField field;
-        if (curTok.type == lexer.lexicon.comma ||
-            curTok.type == lexer.lexicon.structEnd) {
+        if (curTok.lexeme == lexer.lexicon.comma ||
+            curTok.lexeme == lexer.lexicon.structEnd) {
           final id = IdentifierExpr.fromToken(keyTok, source: currentSource);
           field = StructObjField(
               key: IdentifierExpr.fromToken(
@@ -3427,7 +3396,7 @@ class HTParserHetu extends HTParser {
         fields.add(field);
         handleTrailing(field,
             endMarkForCommaExpressions: lexer.lexicon.structEnd);
-      } else if (curTok.type == lexer.lexicon.spreadSyntax) {
+      } else if (curTok.lexeme == lexer.lexicon.spreadSyntax) {
         advance();
         final value = parseExpr();
         final field = StructObjField(fieldValue: value);
@@ -3437,7 +3406,7 @@ class HTParserHetu extends HTParser {
             endMarkForCommaExpressions: lexer.lexicon.structEnd);
       } else {
         final errTok = advance();
-        final err = HTError.structMemberId(curTok.type,
+        final err = HTError.structMemberId(curTok.lexeme,
             filename: currrentFileName,
             line: errTok.line,
             column: errTok.column,

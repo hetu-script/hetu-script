@@ -50,11 +50,11 @@ class HTLexerHetu extends HTLexer {
     void handleEndOfLine() {
       if (firstTokenOfCurrentLine != null) {
         if (lexicon.autoEndOfStatementMarkInsertionBeforeLineStart
-            .contains(firstTokenOfCurrentLine!.type)) {
+            .contains(firstTokenOfCurrentLine!.lexeme)) {
           /// Add end of statement mark before a newline if the new line starting with '{, [, (, +, -' tokens
           /// and the previous line does not ends with an unfinished token.
           if (lastToken != null) {
-            if (!lexicon.unfinishedTokens.contains(lastToken!.type)) {
+            if (!lexicon.unfinishedTokens.contains(lastToken!.lexeme)) {
               final token = Token(
                   lexeme: lexicon.endOfStatementMark,
                   line: line,
@@ -68,7 +68,7 @@ class HTLexerHetu extends HTLexer {
             }
           }
         } else if (lastTokenOfCurrentLine != null &&
-            lastTokenOfCurrentLine!.type == lexicon.kReturn) {
+            lastTokenOfCurrentLine!.lexeme == lexicon.kReturn) {
           final token = Token(
               lexeme: lexicon.endOfStatementMark,
               line: line,
@@ -400,7 +400,7 @@ class HTLexerHetu extends HTLexer {
                     literal: n);
               } else {
                 final n = int.parse(lexeme);
-                token = TokenIntLiteral(
+                token = TokenIntegerLiteral(
                     lexeme: lexeme,
                     line: line,
                     column: column,
@@ -425,7 +425,7 @@ class HTLexerHetu extends HTLexer {
               }
               final lexeme = buffer.toString();
               final n = int.parse(lexeme);
-              final token = TokenIntLiteral(
+              final token = TokenIntegerLiteral(
                   lexeme: lexeme,
                   line: line,
                   column: column,
