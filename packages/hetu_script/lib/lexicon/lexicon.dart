@@ -109,7 +109,8 @@ abstract class HTLexicon {
   String get globalObjectId;
   String get globalPrototypeId;
 
-  String get privatePrefix;
+  Set<String> get privatePrefixes;
+  String get preferredPrivatePrefix;
   String get internalPrefix;
 
   bool preferVariantOfMutableKeyword = false;
@@ -368,7 +369,7 @@ abstract class HTLexicon {
       };
 
   /// prefix operators that modify the value
-  Set<String> get unaryPrefixsThatChangeTheValue => {
+  Set<String> get unaryPrefixesThatChangeTheValue => {
         preIncrement,
         preDecrement,
       };
@@ -383,7 +384,7 @@ abstract class HTLexicon {
 
   String get preDecrement;
 
-  Set<String> get unaryPrefixs => {
+  Set<String> get unaryPrefixes => {
         logicalNot,
         bitwiseNot,
         negative,
@@ -748,7 +749,14 @@ abstract class HTLexicon {
     }
   }
 
-  bool isPrivate(String id) => id.startsWith(privatePrefix);
+  bool isPrivate(String? id) {
+    if (id == null) return true;
+    for (final prefix in privatePrefixes) {
+      if (id.startsWith(prefix)) return true;
+    }
+
+    return false;
+  }
 
   var _curIndentCount = 0;
 

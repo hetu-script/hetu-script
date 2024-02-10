@@ -33,6 +33,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
     this.prototypeId,
     this.mixinIds = const [],
     super.source,
+    super.isPrivate,
     super.isTopLevel = false,
     this.staticDefinitionIp,
     int? definitionIp,

@@ -1186,7 +1186,7 @@ class HTParserHetu extends HTParser {
   /// Prefix -e, !e，++e, --e, await e
   /// precedence 15, associativity none
   ASTNode _parseUnaryPrefixExpr() {
-    if (!lexer.lexicon.unaryPrefixs.contains(curTok.lexeme)) {
+    if (!lexer.lexicon.unaryPrefixes.contains(curTok.lexeme)) {
       return _parseUnaryPostfixExpr();
     } else {
       _isLegalLeftValue = false;
@@ -1203,7 +1203,7 @@ class HTParserHetu extends HTParser {
           errors.add(err);
         }
       }
-      if (lexer.lexicon.unaryPrefixsThatChangeTheValue.contains(op.lexeme)) {
+      if (lexer.lexicon.unaryPrefixesThatChangeTheValue.contains(op.lexeme)) {
         if (!_isLegalLeftValue) {
           final err = HTError.invalidLeftValue(
               filename: currrentFileName,
@@ -2583,6 +2583,7 @@ class HTParserHetu extends HTParser {
       id,
       definition,
       classId: _currentClassDeclaration?.id,
+      isPrivate: lexer.lexicon.isPrivate(id.id),
       isTopLevel: isTopLevel,
       source: currentSource,
       line: keyword.line,
@@ -2600,15 +2601,19 @@ class HTParserHetu extends HTParser {
     final genericParameters = _getGenericParams();
     match(lexer.lexicon.assign);
     final value = _parseTypeExpr();
-    return TypeAliasDecl(id, value,
-        classId: classId,
-        genericTypeParameters: genericParameters,
-        isTopLevel: isTopLevel,
-        source: currentSource,
-        line: keyword.line,
-        column: keyword.column,
-        offset: keyword.offset,
-        length: curTok.offset - keyword.offset);
+    return TypeAliasDecl(
+      id,
+      value,
+      classId: classId,
+      genericTypeParameters: genericParameters,
+      isPrivate: lexer.lexicon.isPrivate(id.id),
+      isTopLevel: isTopLevel,
+      source: currentSource,
+      line: keyword.line,
+      column: keyword.column,
+      offset: keyword.offset,
+      length: curTok.offset - keyword.offset,
+    );
   }
 
   VarDecl _parseVarDecl({
@@ -2670,6 +2675,7 @@ class HTParserHetu extends HTParser {
       declType: declType,
       initializer: initializer,
       hasEndOfStmtMark: hasEndOfStmtMark,
+      isPrivate: lexer.lexicon.isPrivate(id.id),
       isField: isField,
       isExternal: isExternal,
       isStatic: isConst && classId != null ? true : isStatic,
@@ -2686,6 +2692,7 @@ class HTParserHetu extends HTParser {
     );
   }
 
+  //TODO: 解构赋值还原每个id为单独的decl比较好，因为涉及到私有性。
   DestructuringDecl _parseDestructuringDecl(
       {bool isTopLevel = false, bool isMutable = false}) {
     final keyword = advance(2);
@@ -3060,6 +3067,7 @@ class HTParserHetu extends HTParser {
       internalName: internalName,
       id: id?.lexeme,
       classId: classId,
+      isPrivate: lexer.lexicon.isPrivate(id?.lexeme),
       isExternal: isExternal,
       isStatic: isStatic,
       isConst: isConst,
@@ -3132,6 +3140,7 @@ class HTParserHetu extends HTParser {
       isExpressionBody: isExpressionBody,
       hasEndOfStmtMark: hasEndOfStmtMark,
       definition: definition,
+      isPrivate: lexer.lexicon.isPrivate(id?.lexeme),
       isAsync: isAsync,
       isField: isField,
       // isField: isField,
@@ -3201,19 +3210,22 @@ class HTParserHetu extends HTParser {
       blockStartMark: lexer.lexicon.classStart,
     );
     final classDecl = ClassDecl(
-        IdentifierExpr.fromToken(id, source: currentSource), definition,
-        genericTypeParameters: genericParameters,
-        superType: superClassType,
-        isExternal: isExternal,
-        isAbstract: isAbstract,
-        isTopLevel: isTopLevel,
-        hasUserDefinedConstructor: _hasUserDefinedConstructor,
-        lateResolve: lateResolve,
-        source: currentSource,
-        line: keyword.line,
-        column: keyword.column,
-        offset: keyword.offset,
-        length: curTok.offset - keyword.offset);
+      IdentifierExpr.fromToken(id, source: currentSource),
+      definition,
+      genericTypeParameters: genericParameters,
+      superType: superClassType,
+      isPrivate: lexer.lexicon.isPrivate(id.lexeme),
+      isExternal: isExternal,
+      isAbstract: isAbstract,
+      isTopLevel: isTopLevel,
+      hasUserDefinedConstructor: _hasUserDefinedConstructor,
+      lateResolve: lateResolve,
+      source: currentSource,
+      line: keyword.line,
+      column: keyword.column,
+      offset: keyword.offset,
+      length: curTok.offset - keyword.offset,
+    );
     _hasUserDefinedConstructor = savedHasUsrDefCtor;
     _currentClassDeclaration = savedClass;
 
@@ -3257,6 +3269,7 @@ class HTParserHetu extends HTParser {
     final enumDecl = EnumDecl(
       IdentifierExpr.fromToken(id, source: currentSource),
       enumerations,
+      isPrivate: lexer.lexicon.isPrivate(id.lexeme),
       isExternal: isExternal,
       isTopLevel: isTopLevel,
       hasEndOfStmtMark: hasEndOfStmtMark,
@@ -3336,16 +3349,19 @@ class HTParserHetu extends HTParser {
       definition.add(empty);
     }
     _currentStructId = savedStructId;
-    final structDecl = StructDecl(id, definition,
-        prototypeId: prototypeId,
-        mixinIds: mixinIds,
-        isTopLevel: isTopLevel,
-        // lateInitialize: lateInitialize,
-        source: currentSource,
-        line: keyword.line,
-        column: keyword.column,
-        offset: keyword.offset,
-        length: curTok.offset - keyword.offset);
+    final structDecl = StructDecl(
+      id, definition,
+      prototypeId: prototypeId,
+      mixinIds: mixinIds,
+      isPrivate: lexer.lexicon.isPrivate(id.id),
+      isTopLevel: isTopLevel,
+      // lateInitialize: lateInitialize,
+      source: currentSource,
+      line: keyword.line,
+      column: keyword.column,
+      offset: keyword.offset,
+      length: curTok.offset - keyword.offset,
+    );
     return structDecl;
   }
 
@@ -3425,12 +3441,14 @@ class HTParserHetu extends HTParser {
     //   setPrecedings(empty);
     // }
     match(lexer.lexicon.structEnd);
-    return StructObjExpr(fields,
-        prototypeId: prototypeId,
-        source: currentSource,
-        line: structBlockStartTok.line,
-        column: structBlockStartTok.column,
-        offset: structBlockStartTok.offset,
-        length: curTok.offset - structBlockStartTok.offset);
+    return StructObjExpr(
+      fields,
+      prototypeId: prototypeId,
+      source: currentSource,
+      line: structBlockStartTok.line,
+      column: structBlockStartTok.column,
+      offset: structBlockStartTok.offset,
+      length: curTok.offset - structBlockStartTok.offset,
+    );
   }
 }

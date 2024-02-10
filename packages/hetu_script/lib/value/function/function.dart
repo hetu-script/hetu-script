@@ -68,6 +68,7 @@ class HTFunction extends HTFunctionDeclaration
     super.closure,
     super.source,
     super.documentation,
+    super.isPrivate,
     super.isExternal,
     super.isStatic,
     super.isConst,

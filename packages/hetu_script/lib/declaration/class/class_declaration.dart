@@ -49,6 +49,7 @@ class HTClassDeclaration extends HTDeclaration
     HTType? superType,
     this.implementsTypes = const [],
     this.withTypes = const [],
+    super.isPrivate,
     super.isExternal = false,
     super.isTopLevel = false,
     this.isAbstract = false,

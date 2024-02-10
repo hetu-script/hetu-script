@@ -13,15 +13,16 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
   @override
   HTNamespace? get closure => _closure;
 
-  HTNamespace(
-      {required super.lexicon,
-      super.id,
-      super.classId,
-      HTNamespace? closure,
-      super.source,
-      super.documentation,
-      bool isTopLevel = false})
-      : _closure = closure,
+  HTNamespace({
+    required super.lexicon,
+    super.id,
+    super.classId,
+    HTNamespace? closure,
+    super.source,
+    super.documentation,
+    super.isPrivate,
+    bool isTopLevel = false,
+  })  : _closure = closure,
         super(closure: closure);
 
   String? help(String id) {

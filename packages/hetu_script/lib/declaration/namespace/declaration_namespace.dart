@@ -33,6 +33,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
     super.source,
     super.documentation,
     required this.lexicon,
+    super.isPrivate,
   }) {
     // calculate the full name of this namespace
     _fullName = displayName;

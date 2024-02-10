@@ -1554,6 +1554,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
+    bytesBuilder.addByte(stmt.isPrivate ? 1 : 0);
     bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     final bytes = visitBlockStmt(stmt.definition);
     bytesBuilder.add(bytes);
@@ -1579,6 +1580,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0); // bool: has class id
     }
+    bytesBuilder.addByte(stmt.isPrivate ? 1 : 0);
     bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     // do not use visitTypeExpr here because the value could be a function type
     final bytes = compileAST(stmt.typeValue);
@@ -1609,6 +1611,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else {
         bytesBuilder.addByte(0); // bool: has class id
       }
+      bytesBuilder.addByte(stmt.isPrivate ? 1 : 0);
       bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
       late int type, index;
       if (stmt.value is bool) {
@@ -1643,6 +1646,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else {
         bytesBuilder.addByte(0); // bool: has class id
       }
+      bytesBuilder.addByte(stmt.isPrivate ? 1 : 0);
       bytesBuilder.addByte(stmt.isField ? 1 : 0);
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(stmt.isStatic ? 1 : 0);
@@ -1786,6 +1790,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.addByte(0); // bool: hasExternalTypedef
       }
       bytesBuilder.addByte(stmt.category.index);
+      bytesBuilder.addByte(stmt.isPrivate ? 1 : 0);
       bytesBuilder.addByte(stmt.isAsync ? 1 : 0);
       bytesBuilder.addByte(stmt.isField ? 1 : 0);
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
@@ -1863,6 +1868,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     }
     bytesBuilder.add(_identifier(stmt.id.id));
     // TODO: generic param
+    bytesBuilder.addByte(stmt.isPrivate ? 1 : 0);
     bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
     bytesBuilder.addByte(stmt.isAbstract ? 1 : 0);
     bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
@@ -1896,6 +1902,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.addByte(0); // bool: has doc
       }
       bytesBuilder.add(_identifier(stmt.id.id));
+      bytesBuilder.addByte(stmt.isPrivate ? 1 : 0);
       bytesBuilder.addByte(stmt.isExternal ? 1 : 0);
       bytesBuilder.addByte(0); // bool: is abstract
       bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
@@ -1903,7 +1910,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: has super class
       bytesBuilder.addByte(1); // bool: is enum
 
-      final valueId = '${_lexicon.privatePrefix}${_lexicon.idEnumItemName}';
+      final valueId =
+          '${_lexicon.preferredPrivatePrefix}${_lexicon.idEnumItemName}';
       final value = VarDecl(IdentifierExpr(valueId), classId: stmt.id.id);
       final valueBytes = visitVarDecl(value);
       bytesBuilder.add(valueBytes);
@@ -1911,9 +1919,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final ctorParam = ParamDecl(IdentifierExpr(_lexicon.idEnumItemName));
       final ctorDef = AssignExpr(IdentifierExpr(valueId), _lexicon.assign,
           IdentifierExpr(_lexicon.idEnumItemName));
-      final constructor = FuncDecl(
-          '${InternalIdentifier.namedConstructorPrefix}${_lexicon.privatePrefix}',
-          id: IdentifierExpr(_lexicon.privatePrefix),
+      final ctorId =
+          '${InternalIdentifier.namedConstructorPrefix}${_lexicon.preferredPrivatePrefix}';
+      final constructor = FuncDecl(ctorId,
+          id: IdentifierExpr(ctorId),
           classId: stmt.id.id,
           paramDecls: [ctorParam],
           minArity: 1,
@@ -1941,8 +1950,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       for (final item in stmt.enumerations) {
         itemList.add(item);
         final itemInit = CallExpr(
-            MemberExpr(stmt.id,
-                IdentifierExpr(_lexicon.privatePrefix, isLocal: false)),
+            MemberExpr(
+                stmt.id,
+                IdentifierExpr(_lexicon.preferredPrivatePrefix,
+                    isLocal: false)),
             positionalArgs: [
               ASTLiteralString(
                   item.id, _lexicon.stringStart1, _lexicon.stringEnd1)
@@ -1993,6 +2004,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: has doc
     }
     bytesBuilder.add(_identifier(stmt.id.id));
+    bytesBuilder.addByte(stmt.isPrivate ? 1 : 0);
     bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     if (stmt.prototypeId != null) {
       bytesBuilder.addByte(1); // bool: hasPrototypeId

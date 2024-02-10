@@ -19,6 +19,7 @@ class HTConstantValue extends HTDeclaration {
     super.documentation,
     super.isTopLevel = false,
     required this.globalConstantTable,
+    super.isPrivate,
   }) : super(id: id);
 
   @override

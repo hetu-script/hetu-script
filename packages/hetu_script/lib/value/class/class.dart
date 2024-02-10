@@ -56,6 +56,7 @@ class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
     super.superType,
     super.withTypes = const [],
     super.implementsTypes = const [],
+    super.isPrivate,
     super.isExternal = false,
     super.isAbstract = false,
     super.isEnum = false,

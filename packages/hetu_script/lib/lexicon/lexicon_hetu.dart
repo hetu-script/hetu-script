@@ -68,7 +68,14 @@ class HTLexiconHetu extends HTLexicon {
   String get globalPrototypeId => 'Prototype';
 
   @override
-  String get privatePrefix => '#';
+  Set<String> get privatePrefixes => {
+        '#',
+        '_',
+        '\$',
+      };
+
+  @override
+  String get preferredPrivatePrefix => '#';
 
   @override
   String get internalPrefix => r'__';
