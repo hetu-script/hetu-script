@@ -1894,21 +1894,24 @@ class HTInterpreter {
     // already loaded by the loadBytecode() method.
     if (isPreloadedModule) {
       assert(fromPath != null);
-      final importedModule = cachedModules[fromPath]!;
-      final importedNamespace = importedModule.namespaces.values.last;
-      if (showList.isEmpty) {
-        currentNamespace.defineImport(
-            alias!, importedNamespace, 'module:${importedModule.id}');
-      } else {
-        final aliasNamespace = HTNamespace(
-            lexicon: _lexicon, id: alias!, closure: currentNamespace.closure);
-        for (final id in showList) {
-          final decl = importedNamespace.symbols[id]!;
-          assert(!decl.isPrivate);
-          aliasNamespace.define(id, decl);
+      assert(cachedModules.containsKey(fromPath));
+      if (cachedModules.containsKey(fromPath)) {
+        final importedModule = cachedModules[fromPath]!;
+        final importedNamespace = importedModule.namespaces.values.last;
+        if (showList.isEmpty) {
+          currentNamespace.defineImport(
+              alias!, importedNamespace, 'module:${importedModule.id}');
+        } else {
+          final aliasNamespace = HTNamespace(
+              lexicon: _lexicon, id: alias!, closure: currentNamespace.closure);
+          for (final id in showList) {
+            final decl = importedNamespace.symbols[id]!;
+            assert(!decl.isPrivate);
+            aliasNamespace.define(id, decl);
+          }
+          currentNamespace.defineImport(
+              alias, aliasNamespace, 'module:${importedModule.id}');
         }
-        currentNamespace.defineImport(
-            alias, aliasNamespace, 'module:${importedModule.id}');
       }
     }
     // TODO: If the import path starts with 'package:', will try to fetch the source file from '.hetu_packages' under root.
@@ -1917,20 +1920,22 @@ class HTInterpreter {
         final ext = path.extension(fromPath);
         if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
           // TODO: import binary bytes
-          final jsonSource = _currentBytecodeModule.jsonSources[fromPath];
-          assert(jsonSource != null);
-          currentNamespace.defineImport(
-            alias!,
-            HTVariable(
-              id: alias,
-              interpreter: this,
-              value: jsonSource!.value,
-              closure: currentNamespace,
-            ),
-            jsonSource.fullName,
-          );
-          if (isExported) {
-            currentNamespace.declareExport(alias);
+          assert(_currentBytecodeModule.jsonSources.containsKey(fromPath));
+          if (_currentBytecodeModule.jsonSources.containsKey(fromPath)) {
+            final jsonSource = _currentBytecodeModule.jsonSources[fromPath];
+            currentNamespace.defineImport(
+              alias!,
+              HTVariable(
+                id: alias,
+                interpreter: this,
+                value: jsonSource!.value,
+                closure: currentNamespace,
+              ),
+              jsonSource.fullName,
+            );
+            if (isExported) {
+              currentNamespace.declareExport(alias);
+            }
           }
         } else {
           final decl = UnresolvedImport(fromPath,

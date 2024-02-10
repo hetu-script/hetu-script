@@ -7,7 +7,7 @@ class HTLexiconHetu extends HTLexicon {
   String get name => r'lexicon_javascript';
 
   @override
-  String get identifierStartPattern => r'[_\$\p{L}]';
+  String get identifierStartPattern => r'[_#\$\p{L}]';
 
   @override
   String get identifierPattern => r'[_\$\p{L}0-9]';

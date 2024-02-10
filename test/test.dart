@@ -5,10 +5,12 @@ Future<void> main() async {
   hetu.init();
 
   final r = hetu.eval(r'''
-    let a = 'aaa'
-    let b = 'bbb'
+    let #a = 'aaa'
+    let #b = 'bbb'
 
-    print('${a} and ${b}')
+    print(#a, #b)
+
+    print('${#a} and ${#b}')
 ''');
 
   if (r != null) {
