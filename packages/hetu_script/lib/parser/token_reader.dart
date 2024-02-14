@@ -126,7 +126,9 @@ mixin TokenReader {
   /// and return the original token. If not, generate an error.
   /// Note this only accept string literal but not string interpolation.
   TokenStringLiteral matchString() {
-    if (curTok is! TokenStringLiteral) {
+    if (curTok is TokenStringLiteral) {
+      return advance() as TokenStringLiteral;
+    } else {
       final err = HTError.unexpectedToken(
         HTLocale.current.literalString,
         curTok.lexeme,
@@ -137,9 +139,18 @@ mixin TokenReader {
         length: curTok.length,
       );
       errors.add(err);
+      final idTok = advance();
+      return TokenStringLiteral(
+        lexeme: idTok.lexeme,
+        line: idTok.line,
+        column: idTok.column,
+        offset: idTok.offset,
+        previous: idTok.previous,
+        next: idTok.next,
+        startMark: '"',
+        endMark: '"',
+      );
     }
-
-    return advance() as TokenStringLiteral;
   }
 
   /// If the token lexeme the [lexeme] provided, advance 1

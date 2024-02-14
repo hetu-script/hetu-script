@@ -163,12 +163,13 @@ class HTLexerHetu extends HTLexer {
       Token token;
       if (interpolations.isEmpty) {
         token = TokenStringLiteral(
-            lexeme: lexeme,
-            line: line,
-            column: column,
-            offset: offset,
-            startMark: startMark,
-            endMark: endMark);
+          lexeme: lexeme,
+          line: line,
+          column: column,
+          offset: offset,
+          startMark: startMark,
+          endMark: endMark,
+        );
       } else {
         token = TokenStringInterpolation(
             lexeme: lexeme,

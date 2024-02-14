@@ -159,20 +159,18 @@ class TokenStringLiteral extends Token {
   @override
   String get literal => _literal;
 
-  final String startMark;
+  final String startMark, endMark;
 
-  final String endMark;
-
-  TokenStringLiteral(
-      {required super.lexeme,
-      required super.line,
-      required super.column,
-      required super.offset,
-      super.previous,
-      super.next,
-      required this.startMark,
-      required this.endMark})
-      : _literal = lexeme.substring(1, lexeme.length - 1);
+  TokenStringLiteral({
+    required super.lexeme,
+    required super.line,
+    required super.column,
+    required super.offset,
+    super.previous,
+    super.next,
+    required this.startMark,
+    required this.endMark,
+  }) : _literal = lexeme.substring(1, lexeme.length - 1);
 }
 
 class TokenStringInterpolation extends TokenStringLiteral {
@@ -181,14 +179,15 @@ class TokenStringInterpolation extends TokenStringLiteral {
 
   final List<Token> interpolations;
 
-  TokenStringInterpolation(
-      {required super.lexeme,
-      required super.line,
-      required super.column,
-      required super.offset,
-      super.previous,
-      super.next,
-      required super.startMark,
-      required super.endMark,
-      required this.interpolations});
+  TokenStringInterpolation({
+    required super.lexeme,
+    required super.line,
+    required super.column,
+    required super.offset,
+    super.previous,
+    super.next,
+    required super.startMark,
+    required super.endMark,
+    required this.interpolations,
+  });
 }
