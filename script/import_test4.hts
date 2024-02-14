@@ -1,0 +1,6 @@
+import 'tool/datetime.ht'
+
+const _kPregnancyTime = kTicksPerMonth * 9
+const _kPregnancyTimeVariable = kTicksPerMonth * 2
+
+print(_kPregnancyTime, _kPregnancyTimeVariable)

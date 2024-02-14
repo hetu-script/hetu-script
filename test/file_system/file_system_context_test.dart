@@ -34,5 +34,12 @@ void main() {
         'hello, r2, I\'m r1!',
       );
     });
+    test('const import', () {
+      hetu.evalFile('import_test4.hts');
+      // expect(
+      //   result,
+      //   'hello, r2, I\'m r1!',
+      // );
+    });
   });
 }

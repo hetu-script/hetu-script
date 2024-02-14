@@ -752,7 +752,9 @@ abstract class HTLexicon {
   bool isPrivate(String? id) {
     if (id == null) return true;
     for (final prefix in privatePrefixes) {
-      if (id.startsWith(prefix)) return true;
+      if (id.startsWith(prefix) && !id.startsWith(internalPrefix)) {
+        return true;
+      }
     }
 
     return false;

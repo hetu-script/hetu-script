@@ -1,0 +1,8 @@
+
+const kTicksPerDay = 4 //每天的回合数 morning, afternoon, evening, night
+const kDaysPerWeek = 10 //每旬的天数
+const kTicksPerWeek = kDaysPerWeek * kTicksPerDay //每旬的回合数 40
+const kDaysPerMonth = 30 //每月的天数
+const kTicksPerMonth = kDaysPerMonth * kTicksPerDay //每月的回合数 120
+const kMonthsPerYear = 12 //每年的月数
+const kTicksPerYear = kMonthsPerYear * kTicksPerMonth //每年的回合数 1440

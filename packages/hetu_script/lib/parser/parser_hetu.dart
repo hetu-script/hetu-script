@@ -157,7 +157,10 @@ class HTParserHetu extends HTParser {
               .contains(peek(1).lexeme)) {
             stmt = _parseDestructuringDecl(isTopLevel: true);
           } else {
-            stmt = _parseVarDecl(isConst: true, isTopLevel: true);
+            stmt = _parseVarDecl(
+              // isConst: true,
+              isTopLevel: true,
+            );
           }
         } else if (curTok.lexeme == lexer.lexicon.kLate) {
           stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
@@ -274,7 +277,11 @@ class HTParserHetu extends HTParser {
         } else if (curTok.lexeme == lexer.lexicon.kLate) {
           stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kConst) {
-          stmt = _parseVarDecl(isConst: true, isTopLevel: true);
+          stmt = _parseVarDecl(
+            lateInitialize: true,
+            // isConst: true,
+            isTopLevel: true,
+          );
         } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
           stmt = _parseFunction(isAsync: true, isTopLevel: true);
@@ -379,7 +386,9 @@ class HTParserHetu extends HTParser {
         } else if (curTok.lexeme == lexer.lexicon.kImmutable) {
           stmt = _parseVarDecl(lateInitialize: _isWithinModuleNamespace);
         } else if (curTok.lexeme == lexer.lexicon.kConst) {
-          stmt = _parseVarDecl(isConst: true);
+          stmt = _parseVarDecl(lateInitialize: _isWithinModuleNamespace
+              // isConst: true,
+              );
         } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
           stmt = _parseFunction(isAsync: true);
@@ -465,7 +474,9 @@ class HTParserHetu extends HTParser {
           } else if (curTok.lexeme == lexer.lexicon.kConst) {
             if (isStatic) {
               stmt = _parseVarDecl(
-                  isConst: true, classId: _currentClassDeclaration?.id);
+                // isConst: true,
+                classId: _currentClassDeclaration?.id,
+              );
             } else {
               final err = HTError.external(
                 HTLocale.current.typeAliasDeclaration,
@@ -793,7 +804,9 @@ class HTParserHetu extends HTParser {
               .contains(peek(1).lexeme)) {
             stmt = _parseDestructuringDecl();
           } else {
-            stmt = _parseVarDecl(isConst: true);
+            stmt = _parseVarDecl(
+                // isConst: true,
+                );
           }
         } else if (curTok.lexeme == lexer.lexicon.kLate) {
           stmt = _parseVarDecl(lateFinalize: true);
@@ -2632,7 +2645,7 @@ class HTParserHetu extends HTParser {
     // bool isOverrided = false,
     bool isExternal = false,
     bool isStatic = false,
-    bool isConst = false,
+    // bool isConst = false,
     bool isMutable = false,
     bool isTopLevel = false,
     bool lateFinalize = false,
@@ -2666,26 +2679,26 @@ class HTParserHetu extends HTParser {
     }
     ASTNode? initializer;
     if (!lateFinalize) {
-      if (isConst) {
-        if (curTok.lexeme != lexer.lexicon.assign) {
-          final err = HTError.constMustInit(id.id,
-              filename: currrentFileName,
-              line: curTok.line,
-              column: curTok.column,
-              offset: curTok.offset,
-              length: curTok.length);
-          errors.add(err);
-        } else {
-          match(lexer.lexicon.assign);
-          initializer = parseExpr();
-        }
+      // if (isConst) {
+      //   if (curTok.lexeme != lexer.lexicon.assign) {
+      //     final err = HTError.constMustInit(id.id,
+      //         filename: currrentFileName,
+      //         line: curTok.line,
+      //         column: curTok.column,
+      //         offset: curTok.offset,
+      //         length: curTok.length);
+      //     errors.add(err);
+      //   } else {
+      //     match(lexer.lexicon.assign);
+      //     initializer = parseExpr();
+      //   }
+      // } else {
+      if (expect([lexer.lexicon.assign], consume: true)) {
+        initializer = parseExpr();
       } else {
-        if (expect([lexer.lexicon.assign], consume: true)) {
-          initializer = parseExpr();
-        } else {
-          initializer = additionalInitializer;
-        }
+        initializer = additionalInitializer;
       }
+      // }
     }
     bool hasEndOfStmtMark = parseEndOfStmtMark(required: requireEndOfStatement);
     return VarDecl(
@@ -2698,9 +2711,11 @@ class HTParserHetu extends HTParser {
       isPrivate: lexer.lexicon.isPrivate(id.id),
       isField: isField,
       isExternal: isExternal,
-      isStatic: isConst && classId != null ? true : isStatic,
-      isConst: isConst,
-      isMutable: !isConst && isMutable,
+      isStatic: // isConst &&
+          classId != null ? true : isStatic,
+      // isConst: isConst,
+      isMutable: //!isConst &&
+          isMutable,
       isTopLevel: isTopLevel,
       lateFinalize: lateFinalize,
       lateInitialize: lateInitialize,

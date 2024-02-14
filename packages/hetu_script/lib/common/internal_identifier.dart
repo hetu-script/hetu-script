@@ -1,19 +1,19 @@
 base class InternalIdentifier {
-  static const prototype = r'$prototype';
-  static const call = r'$call';
-  static const instance = r'$instance';
-  static const defaultConstructor = r'$constructor';
-  static const namedConstructorPrefix = r'$construct_';
-  static const getter = r'$getter_';
-  static const setter = r'$setter_';
-  static const subGetter = r'$sub_getter_';
-  static const subSetter = r'$sub_setter_';
+  static const prototype = r'__proto__';
+  static const call = r'__call__';
+  static const instance = r'__instance__';
+  static const defaultConstructor = r'__constructor__';
+  static const namedConstructorPrefix = r'__constructor$';
+  static const getter = r'__getter$';
+  static const setter = r'__setter$';
+  static const subGetter = r'__sub_getter$';
+  static const subSetter = r'__sub_setter$';
 
-  static const anonymousScript = r'$script';
-  static const anonymousClass = r'$class';
-  static const anonymousStruct = r'$struct';
-  static const anonymousFunction = r'$function';
-  static const anonymousBlock = r'$block';
+  static const anonymousScript = r'__script';
+  static const anonymousClass = r'__class';
+  static const anonymousStruct = r'__struct';
+  static const anonymousFunction = r'__function';
+  static const anonymousBlock = r'__block';
 
   static const instanceOf = 'instanceOf';
   static const externalType = 'externalType';

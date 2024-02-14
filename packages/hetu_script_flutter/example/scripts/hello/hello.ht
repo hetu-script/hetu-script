@@ -1,4 +1,7 @@
+import '../utils.ht'
+
+const msg = kGreetings + '!!!'
 
 function hello {
-  return 'hello from a hetu module!'
+  return msg
 }

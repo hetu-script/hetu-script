@@ -1,14 +1,34 @@
 import 'package:hetu_script/hetu_script.dart';
 
 Future<void> main() async {
-  var hetu = Hetu(locale: HTLocaleSimplifiedChinese());
+  final sourceContext = HTOverlayContext();
+  final hetu = Hetu(
+    sourceContext: sourceContext,
+    locale: HTLocaleSimplifiedChinese(),
+    config: HetuConfig(normalizeImportPath: false),
+  );
   hetu.init();
 
-  final r = hetu.eval(r'''
-  let arr = [1,2,3]
+  sourceContext.addResource(
+    'test.ht',
+    HTSource(r'''const kWords = 'the thing behind everything'
+'''),
+  );
 
-  const [a,b,c] = arr
-  print(a,b,c)
+  final r = hetu.eval(r'''
+  import 'test.ht'
+
+  const _kNewWords = kWords + '!!!'
+
+  print(_kNewWords)
+
+  const obj = {a:'aaa'}
+
+  print(obj.keys)
+
+  // for (const k in obj.keys) {
+  //   print(k)
+  // }
 ''');
 
   if (r != null) {
