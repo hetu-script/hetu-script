@@ -5,10 +5,17 @@ Future<void> main() async {
   hetu.init();
 
   final r = hetu.eval(r'''
-    let a = 42
-    let b = 2047
+  external class SamsaraEngine {
+    fun loadLocale(data: Map)
+  }
 
-    const c // = 'sum: ${a + b}'
+  var buildContext
+
+  fun build(ctx) {
+    buildContext = ctx
+  }
+
+  var engine: SamsaraEngine
 ''');
 
   if (r != null) {

@@ -96,7 +96,9 @@ mixin TokenReader {
   /// If the current token is an identifier, advance 1
   /// and return the original token. If not, generate an error.
   TokenIdentifier matchId() {
-    if (curTok is! TokenIdentifier) {
+    if (curTok is TokenIdentifier) {
+      return advance() as TokenIdentifier;
+    } else {
       final err = HTError.unexpectedToken(
         HTLocale.current.identifier,
         curTok.lexeme,
@@ -107,17 +109,17 @@ mixin TokenReader {
         length: curTok.length,
       );
       errors.add(err);
+      final idTok = advance();
+      return TokenIdentifier(
+        lexeme: idTok.lexeme,
+        line: idTok.line,
+        column: idTok.column,
+        offset: idTok.offset,
+        previous: idTok.previous,
+        next: idTok.next,
+        isMarked: true,
+      );
     }
-
-    return TokenIdentifier(
-      lexeme: curTok.lexeme,
-      line: curTok.line,
-      column: curTok.column,
-      offset: curTok.offset,
-      previous: curTok.previous,
-      next: curTok.next,
-      isMarked: true,
-    );
   }
 
   /// If the current token is an identifier, advance 1
