@@ -5,17 +5,10 @@ Future<void> main() async {
   hetu.init();
 
   final r = hetu.eval(r'''
-  external class SamsaraEngine {
-    fun loadLocale(data: Map)
-  }
+  let arr = [1,2,3]
 
-  var buildContext
-
-  fun build(ctx) {
-    buildContext = ctx
-  }
-
-  var engine: SamsaraEngine
+  const [a,b,c] = arr
+  print(a,b,c)
 ''');
 
   if (r != null) {

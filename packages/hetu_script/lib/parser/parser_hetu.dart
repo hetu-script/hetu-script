@@ -152,10 +152,15 @@ class HTParserHetu extends HTParser {
           } else {
             stmt = _parseVarDecl(isTopLevel: true);
           }
+        } else if (curTok.lexeme == lexer.lexicon.kConst) {
+          if (lexer.lexicon.destructuringDeclarationMarks
+              .contains(peek(1).lexeme)) {
+            stmt = _parseDestructuringDecl(isTopLevel: true);
+          } else {
+            stmt = _parseVarDecl(isConst: true, isTopLevel: true);
+          }
         } else if (curTok.lexeme == lexer.lexicon.kLate) {
           stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
-        } else if (curTok.lexeme == lexer.lexicon.kConst) {
-          stmt = _parseVarDecl(isConst: true, isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
           stmt = _parseFunction(isAsync: true, isTopLevel: true);
