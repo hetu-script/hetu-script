@@ -117,7 +117,6 @@ mixin TokenReader {
         offset: idTok.offset,
         previous: idTok.previous,
         next: idTok.next,
-        isMarked: true,
       );
     }
   }
