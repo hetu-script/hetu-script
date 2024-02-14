@@ -229,6 +229,34 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   String get deleteSubMemberStatement => '删除下标语句';
 
+  // error related info
+  @override
+  String get file => '文件';
+  @override
+  String get line => '行';
+  @override
+  String get column => '列';
+  @override
+  String get errorType => '错误类型';
+  @override
+  String get message => '详细信息';
+
+  @override
+  String getErrorType(String errType) {
+    return switch (errType) {
+      'TODO' => '待办',
+      'HINT' => '提示',
+      'LINT' => '格式化',
+      'SYNTACTIC_ERROR' => '句法',
+      'STATIC_TYPE_WARNING' => '类型分析',
+      'STATIC_WARNING' => '静态分析',
+      'COMPILE_TIME_ERROR' => '编译',
+      'RUNTIME_ERROR' => '运行时',
+      'EXTERNAL_ERROR' => '外部',
+      _ => 'unknown',
+    };
+  }
+
   // generic errors
   @override
   String get errorBytecode => '无法识别的字节码文件。';

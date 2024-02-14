@@ -2657,8 +2657,18 @@ class HTParserHetu extends HTParser {
     ASTNode? initializer;
     if (!lateFinalize) {
       if (isConst) {
-        match(lexer.lexicon.assign);
-        initializer = parseExpr();
+        if (curTok.lexeme != lexer.lexicon.assign) {
+          final err = HTError.constMustInit(id.id,
+              filename: currrentFileName,
+              line: curTok.line,
+              column: curTok.column,
+              offset: curTok.offset,
+              length: curTok.length);
+          errors.add(err);
+        } else {
+          match(lexer.lexicon.assign);
+          initializer = parseExpr();
+        }
       } else {
         if (expect([lexer.lexicon.assign], consume: true)) {
           initializer = parseExpr();

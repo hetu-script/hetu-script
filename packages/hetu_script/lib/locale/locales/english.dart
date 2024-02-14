@@ -230,6 +230,23 @@ class HTLocaleEnglish implements HTLocale {
   @override
   String get deleteSubMemberStatement => 'delete subscript member statement';
 
+  // error related info
+  @override
+  String get file => 'File';
+  @override
+  String get line => 'Line';
+  @override
+  String get column => 'Column';
+  @override
+  String get errorType => 'Error type';
+  @override
+  String get message => 'Message';
+
+  @override
+  String getErrorType(String errType) {
+    return ReCase(errType).sentenceCase;
+  }
+
   // generic errors
   @override
   String get errorBytecode => 'Unrecognizable bytecode.';

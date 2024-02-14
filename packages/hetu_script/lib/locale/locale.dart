@@ -1,3 +1,5 @@
+import 'package:recase/recase.dart';
+
 part 'locales/english.dart';
 part 'locales/simplified_chinese.dart';
 
@@ -11,6 +13,7 @@ abstract class HTLocale {
   String get externalStackTrace;
 
   // Semantic element names.
+
   String get compilation;
   String get source;
   String get namespace;
@@ -126,6 +129,15 @@ abstract class HTLocale {
   String get deleteStatement;
   String get deleteMemberStatement;
   String get deleteSubMemberStatement;
+
+  // error related info
+  String get file;
+  String get line;
+  String get column;
+  String get errorType;
+  String get message;
+
+  String getErrorType(String errType);
 
   // generic errors
   String get errorBytecode;

@@ -1,5 +1,3 @@
-import 'package:recase/recase.dart';
-
 import '../locale/locale.dart';
 import '../analyzer/analyzer.dart';
 import 'error_severity.dart';
@@ -116,7 +114,7 @@ class ErrorType implements Comparable<ErrorType> {
 
   /// Reported by analyzer.
   static const staticTypeWarning =
-      ErrorType('STATIC_TYPE_WARNING', 4, ErrorSeverity.warning);
+      ErrorType('TYPE_WARNING', 4, ErrorSeverity.warning);
 
   /// Reported by analyzer.
   static const staticWarning =
@@ -210,14 +208,15 @@ class HTError {
   String toString() {
     final output = StringBuffer();
     if (filename != null) {
-      output.writeln('File: $filename');
+      output.writeln('${HTLocale.current.file}: $filename');
       if (line != null && column != null) {
-        output.writeln('Line: $line, Column: $column');
+        output.writeln(
+            '${HTLocale.current.line}: $line, ${HTLocale.current.column}: $column');
       }
     }
-    final recase = ReCase(type.name);
-    output.writeln('${recase.sentenceCase}: $name');
-    output.writeln('Message: $message');
+    output.writeln(
+        '${HTLocale.current.errorType}: ${HTLocale.current.getErrorType(type.name)}($name)');
+    output.writeln('${HTLocale.current.message}: $message');
     if (extra != null) {
       output.writeln(extra);
     }
