@@ -109,7 +109,15 @@ mixin TokenReader {
       errors.add(err);
     }
 
-    return advance() as TokenIdentifier;
+    return TokenIdentifier(
+      lexeme: curTok.lexeme,
+      line: curTok.line,
+      column: curTok.column,
+      offset: curTok.offset,
+      previous: curTok.previous,
+      next: curTok.next,
+      isMarked: true,
+    );
   }
 
   /// If the current token is an identifier, advance 1
