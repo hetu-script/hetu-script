@@ -10,7 +10,7 @@ import 'package:pub_semver/pub_semver.dart';
 import '../value/class/class_namespace.dart';
 import '../value/namespace/namespace.dart';
 import '../value/struct/named_struct.dart';
-import '../value/entity.dart';
+import '../value/object.dart';
 import '../value/class/class.dart';
 import '../value/instance/cast.dart';
 import '../value/function/function.dart';
@@ -144,13 +144,7 @@ class HTInterpreter {
 
   int tik = 0;
 
-  List<dynamic> positionalArgs = const [];
-  Map<String, dynamic> namedArgs = const {};
-  List<HTType> typeArgs = const [];
-
   bool _scriptMode = false, _globallyImport = false;
-
-  String? _invoke;
 
   late Version compilerVersion;
 
@@ -390,10 +384,12 @@ class HTInterpreter {
       // calle is a dart function
       else if (callee is Function) {
         if (callee is HTExternalFunction) {
-          return callee(currentNamespace,
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
+          return callee(
+            // namespace: currentNamespace,
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            // typeArgs: typeArgs,
+          );
         } else {
           return Function.apply(
               callee,
@@ -540,7 +536,7 @@ class HTInterpreter {
 
       dynamic callee;
       if (namespace != null) {
-        HTEntity fromNsp = nsp.memberGet(namespace, isRecursive: true);
+        HTObject fromNsp = nsp.memberGet(namespace, isRecursive: true);
         callee = fromNsp.memberGet(func);
       } else {
         callee = nsp.memberGet(func, isRecursive: true);
@@ -652,7 +648,7 @@ class HTInterpreter {
   HTType typeof(dynamic object) {
     final encap = encapsulate(object);
     HTType type;
-    if (encap == HTEntity.nullValue) {
+    if (encap == HTObject.nullValue) {
       type = HTTypeNull(_lexicon.kNull);
     } else if (encap is HTType) {
       type = HTTypeType(_lexicon.kType);
@@ -678,11 +674,11 @@ class HTInterpreter {
   }
 
   /// Encapsulate any value to a Hetu object, for members accessing and type check.
-  HTEntity encapsulate(dynamic object) {
-    if (object is HTEntity) {
+  HTObject encapsulate(dynamic object) {
+    if (object is HTObject) {
       return object;
     } else if (object == null) {
-      return HTEntity.nullValue;
+      return HTObject.nullValue;
     }
     late String typeString;
     if (object is bool) {
@@ -883,10 +879,6 @@ class HTInterpreter {
   }) {
     try {
       _globallyImport = globallyImport;
-      _invoke = invoke;
-      this.positionalArgs = positionalArgs;
-      this.namedArgs = namedArgs;
-      this.typeArgs = typeArgs;
 
       tik = DateTime.now().millisecondsSinceEpoch;
       if (cachedModules.containsKey(module)) {
@@ -896,6 +888,10 @@ class HTInterpreter {
         cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       }
       _currentBytecodeModule.ip = 0;
+      _currentBytecodeModule.invoke = invoke;
+      _currentBytecodeModule.positionalArgs = positionalArgs;
+      _currentBytecodeModule.namedArgs = namedArgs;
+      _currentBytecodeModule.typeArgs = typeArgs;
 
       final signature = _currentBytecodeModule.readUint32();
       if (signature != HTCompiler.hetuSignature) {
@@ -1247,13 +1243,13 @@ class HTInterpreter {
             globalNamespace.import(currentNamespace);
           }
           dynamic r;
-          if (_invoke != null) {
+          if (_currentBytecodeModule.invoke != null) {
             r = invoke(
-              _invoke!,
+              _currentBytecodeModule.invoke!,
               // module: scriptMode ? null : _currentBytecodeModule.id,
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs,
+              positionalArgs: _currentBytecodeModule.positionalArgs,
+              namedArgs: _currentBytecodeModule.namedArgs,
+              typeArgs: _currentBytecodeModule.typeArgs,
             );
             return r;
           } else if (_scriptMode) {
@@ -1743,7 +1739,7 @@ class HTInterpreter {
           } else {
             // final key = execute();
             final key = _localValue;
-            if (object is HTEntity) {
+            if (object is HTObject) {
               _localValue = object.subGet(key, from: currentNamespace.fullName);
             } else {
               if (object is List) {
@@ -1812,10 +1808,10 @@ class HTInterpreter {
             final key = _localValue;
             final value = _getRegVal(HTRegIdx.assignRight);
             _localValue = value;
-            if (object is HTEntity) {
+            if (object is HTObject) {
               object.subSet(key, value);
             } else {
-              if (object is HTEntity) {
+              if (object is HTObject) {
                 object.subSet(key, value, from: currentNamespace.fullName);
               } else {
                 if (object is List) {
@@ -2478,7 +2474,7 @@ class HTInterpreter {
         }
         initValue = (collection as Iterable).elementAt(i);
       } else {
-        if (collection is HTEntity) {
+        if (collection is HTObject) {
           initValue = collection.memberGet(id);
         } else {
           initValue = collection[id];

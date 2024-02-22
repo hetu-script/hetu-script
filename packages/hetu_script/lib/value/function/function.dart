@@ -14,7 +14,7 @@ import '../../value/namespace/namespace.dart';
 import '../../declaration/function/function_declaration.dart';
 // import '../../declaration/generic/generic_type_parameter.dart';
 import '../../type/function.dart';
-import '../entity.dart';
+import '../object.dart';
 // import 'parameter.dart';
 import '../variable/variable.dart';
 import '../../common/function_category.dart';
@@ -41,7 +41,7 @@ class RedirectingConstructor {
 
 /// Bytecode implementation of [TypedFunctionDeclaration].
 class HTFunction extends HTFunctionDeclaration
-    with HTEntity, InterpreterRef, GotoInfo {
+    with HTObject, InterpreterRef, GotoInfo {
   HTClass? klass;
 
   // @override
@@ -258,13 +258,13 @@ class HTFunction extends HTFunctionDeclaration
   @override
   dynamic memberGet(String id, {String? from}) {
     if (id == interpreter.lexicon.idBind) {
-      return (HTEntity entity,
+      return (HTObject entity,
               {List<dynamic> positionalArgs = const [],
               Map<String, dynamic> namedArgs = const {},
               List<HTType> typeArgs = const []}) =>
           bind(positionalArgs.first);
     } else if (id == interpreter.lexicon.idApply) {
-      return (HTEntity entity,
+      return (HTObject entity,
               {List<dynamic> positionalArgs = const [],
               Map<String, dynamic> namedArgs = const {},
               List<HTType> typeArgs = const []}) =>
@@ -682,10 +682,12 @@ class HTFunction extends HTFunctionDeclaration
               assert(externalFunc != null);
               final func = externalFunc!;
               if (func is HTExternalFunction) {
-                result = func(interpreter.currentNamespace,
-                    positionalArgs: finalPosArgs,
-                    namedArgs: finalNamedArgs,
-                    typeArgs: typeArgs);
+                result = func(
+                  // namespace: interpreter.currentNamespace,
+                  positionalArgs: finalPosArgs,
+                  namedArgs: finalNamedArgs,
+                  // typeArgs: typeArgs,
+                );
               } else {
                 result = Function.apply(
                     func,
@@ -706,15 +708,20 @@ class HTFunction extends HTFunctionDeclaration
             final func = externalFunc!;
             if (func is HTExternalFunction) {
               if (isStatic || category == FunctionCategory.constructor) {
-                result = func(interpreter.currentNamespace,
-                    positionalArgs: finalPosArgs,
-                    namedArgs: finalNamedArgs,
-                    typeArgs: typeArgs);
+                result = func(
+                  // namespace: interpreter.currentNamespace,
+                  positionalArgs: finalPosArgs,
+                  namedArgs: finalNamedArgs,
+                  // typeArgs: typeArgs,
+                );
               } else {
-                result = func(instance!,
-                    positionalArgs: finalPosArgs,
-                    namedArgs: finalNamedArgs,
-                    typeArgs: typeArgs);
+                result = func(
+                  // instance: instance!,
+                  // namespace: interpreter.currentNamespace,
+                  positionalArgs: finalPosArgs,
+                  namedArgs: finalNamedArgs,
+                  // typeArgs: typeArgs,
+                );
               }
             } else {
               result = Function.apply(
@@ -734,15 +741,20 @@ class HTFunction extends HTFunctionDeclaration
           final func = externalFunc!;
           if (func is HTExternalFunction) {
             if (isStatic || category == FunctionCategory.constructor) {
-              result = func(interpreter.currentNamespace,
-                  positionalArgs: finalPosArgs,
-                  namedArgs: finalNamedArgs,
-                  typeArgs: typeArgs);
+              result = func(
+                // namespace: interpreter.currentNamespace,
+                positionalArgs: finalPosArgs,
+                namedArgs: finalNamedArgs,
+                // typeArgs: typeArgs,
+              );
             } else {
-              result = func(instance!,
-                  positionalArgs: finalPosArgs,
-                  namedArgs: finalNamedArgs,
-                  typeArgs: typeArgs);
+              result = func(
+                // instance: instance!,
+                // namespace: interpreter.currentNamespace,
+                positionalArgs: finalPosArgs,
+                namedArgs: finalNamedArgs,
+                // typeArgs: typeArgs,
+              );
             }
           } else {
             result = Function.apply(
@@ -760,10 +772,12 @@ class HTFunction extends HTFunctionDeclaration
           assert(externalFunc != null);
           final func = externalFunc!;
           if (func is HTExternalFunction) {
-            result = func(interpreter.currentNamespace,
-                positionalArgs: finalPosArgs,
-                namedArgs: finalNamedArgs,
-                typeArgs: typeArgs);
+            result = func(
+              // namespace: interpreter.currentNamespace,
+              positionalArgs: finalPosArgs,
+              namedArgs: finalNamedArgs,
+              // typeArgs: typeArgs,
+            );
           } else {
             result = Function.apply(
                 func,

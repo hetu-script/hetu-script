@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:fast_noise/fast_noise.dart';
 
 import '../external/external_class.dart';
-import '../value/entity.dart';
-import '../type/type.dart';
+// import '../value/object.dart';
+// import '../type/type.dart';
 import '../error/error.dart';
 import 'instance_binding.dart';
 import '../utils/gaussian_noise.dart';
@@ -20,10 +20,7 @@ class HTNumberClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'num.parse':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             num.tryParse(positionalArgs.first);
       default:
         throw HTError.undefined(id);
@@ -38,17 +35,11 @@ class HTIntClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'int.fromEnvironment':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            int.fromEnvironment(positionalArgs[0],
-                defaultValue: namedArgs['defaultValue']);
+        return ({positionalArgs, namedArgs}) => int.fromEnvironment(
+            positionalArgs[0],
+            defaultValue: namedArgs['defaultValue']);
       case 'int.parse':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             int.tryParse(positionalArgs[0], radix: namedArgs['radix']);
       default:
         throw HTError.undefined(id);
@@ -56,8 +47,8 @@ class HTIntClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as int).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as int).htFetch(id);
 }
 
 class HTBigIntClassBinding extends HTExternalClass {
@@ -67,34 +58,16 @@ class HTBigIntClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'BigInt.zero':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            BigInt.zero;
+        return ({positionalArgs, namedArgs}) => BigInt.zero;
       case 'BigInt.one':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            BigInt.one;
+        return ({positionalArgs, namedArgs}) => BigInt.one;
       case 'BigInt.two':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            BigInt.two;
+        return ({positionalArgs, namedArgs}) => BigInt.two;
       case 'BigInt.parse':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             BigInt.tryParse(positionalArgs.first, radix: namedArgs['radix']);
       case 'BigInt.from':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             BigInt.from(positionalArgs.first);
       default:
         throw HTError.undefined(id);
@@ -102,8 +75,8 @@ class HTBigIntClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as int).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as int).htFetch(id);
 }
 
 class HTFloatClassBinding extends HTExternalClass {
@@ -123,10 +96,7 @@ class HTFloatClassBinding extends HTExternalClass {
       case 'float.maxFinite':
         return double.maxFinite;
       case 'float.parse':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             double.tryParse(positionalArgs[0]);
       default:
         throw HTError.undefined(id);
@@ -134,8 +104,8 @@ class HTFloatClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as double).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as double).htFetch(id);
 }
 
 class HTBooleanClassBinding extends HTExternalClass {
@@ -145,10 +115,7 @@ class HTBooleanClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'bool.parse':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
         };
       default:
@@ -164,10 +131,7 @@ class HTStringClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'str.parse':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           return positionalArgs.first.toString();
         };
       default:
@@ -176,24 +140,24 @@ class HTStringClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as String).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as String).htFetch(id);
 }
 
 class HTIteratorClassBinding extends HTExternalClass {
   HTIteratorClassBinding() : super('Iterator');
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as Iterator).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as Iterator).htFetch(id);
 }
 
 class HTIterableClassBinding extends HTExternalClass {
   HTIterableClassBinding() : super('Iterable');
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as Iterable).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as Iterable).htFetch(id);
 }
 
 class HTListClassBinding extends HTExternalClass {
@@ -203,19 +167,15 @@ class HTListClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'List':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            List.from(positionalArgs);
+        return ({positionalArgs, namedArgs}) => List.from(positionalArgs);
       default:
         throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as List).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as List).htFetch(id);
 }
 
 class HTSetClassBinding extends HTExternalClass {
@@ -225,19 +185,15 @@ class HTSetClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'Set':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            Set.from(positionalArgs);
+        return ({positionalArgs, namedArgs}) => Set.from(positionalArgs);
       default:
         throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as Set).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as Set).htFetch(id);
 }
 
 class HTMapClassBinding extends HTExternalClass {
@@ -247,19 +203,15 @@ class HTMapClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'Map':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            {};
+        return ({positionalArgs, namedArgs}) => {};
       default:
         throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as Map).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as Map).htFetch(id);
 }
 
 class HTRandomClassBinding extends HTExternalClass {
@@ -269,10 +221,7 @@ class HTRandomClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'Random':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             math.Random(positionalArgs.first);
       default:
         throw HTError.undefined(id);
@@ -280,8 +229,8 @@ class HTRandomClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as math.Random).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as math.Random).htFetch(id);
 }
 
 class HTMathClassBinding extends HTExternalClass {
@@ -295,28 +244,16 @@ class HTMathClassBinding extends HTExternalClass {
       case 'Math.pi':
         return math.pi;
       case 'Math.degrees':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             degrees(positionalArgs.first.toDouble());
       case 'Math.radians':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             radians(positionalArgs.first.toDouble());
       case 'Math.radiusToSigma':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             radiusToSigma(positionalArgs.first.toDouble());
       case 'Math.gaussianNoise':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           final mean = positionalArgs[0].toDouble();
           final standardDeviation = positionalArgs[1].toDouble();
           final math.Random? randomGenerator = namedArgs['randomGenerator'];
@@ -334,10 +271,7 @@ class HTMathClassBinding extends HTExternalClass {
           return r;
         };
       case 'Math.noise2d':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           final int size = positionalArgs[0].toInt();
           final seed = namedArgs['seed'] ?? math.Random().nextInt(1 << 32);
           final frequency = namedArgs['frequency'];
@@ -363,10 +297,7 @@ class HTMathClassBinding extends HTExternalClass {
           );
         };
       case 'Math.min':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           if (positionalArgs[0] == null) {
             return positionalArgs[1];
           }
@@ -376,10 +307,7 @@ class HTMathClassBinding extends HTExternalClass {
           return math.min(positionalArgs[0] as num, positionalArgs[1] as num);
         };
       case 'Math.max':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           if (positionalArgs[0] == null) {
             return positionalArgs[1];
           }
@@ -389,110 +317,58 @@ class HTMathClassBinding extends HTExternalClass {
           return math.max(positionalArgs[0] as num, positionalArgs[1] as num);
         };
       case 'Math.sqrt':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             math.sqrt(positionalArgs.first as num);
       case 'Math.pow':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             math.pow(positionalArgs[0] as num, positionalArgs[1] as num);
       case 'Math.sin':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             math.sin(positionalArgs.first as num);
       case 'Math.cos':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             math.cos(positionalArgs.first as num);
       case 'Math.tan':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             math.tan(positionalArgs.first as num);
       case 'Math.exp':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             math.exp(positionalArgs.first as num);
       case 'Math.log':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             math.log(positionalArgs.first as num);
       case 'Math.parseInt':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             int.tryParse(positionalArgs.first as String,
                 radix: namedArgs['radix']) ??
             0;
       case 'Math.parseDouble':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             double.tryParse(positionalArgs.first as String) ?? 0.0;
       case 'Math.sum':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             (positionalArgs.first as List<num>)
                 .reduce((value, element) => value + element);
       case 'Math.checkBit':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             ((positionalArgs[0] as int) & (1 << (positionalArgs[1] as int))) !=
             0;
       case 'Math.bitLS':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             (positionalArgs[0] as int) << (positionalArgs[1] as int);
       case 'Math.bitRS':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             (positionalArgs[0] as int) >> (positionalArgs[1] as int);
       case 'Math.bitAnd':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             (positionalArgs[0] as int) & (positionalArgs[1] as int);
       case 'Math.bitOr':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             (positionalArgs[0] as int) | (positionalArgs[1] as int);
       case 'Math.bitNot':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            ~(positionalArgs[0] as int);
+        return ({positionalArgs, namedArgs}) => ~(positionalArgs[0] as int);
       case 'Math.bitXor':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             (positionalArgs[0] as int) ^ (positionalArgs[1] as int);
 
       default:
@@ -508,26 +384,17 @@ class HTHashClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'Hash.uid4':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           return uid4(positionalArgs.first);
         };
       case 'Hash.crcString':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           String data = positionalArgs[0];
           int crc = positionalArgs[1] ?? 0;
           return crcString(data, crc);
         };
       case 'Hash.crcInt':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           String data = positionalArgs[0];
           int crc = positionalArgs[1] ?? 0;
           return crcInt(data, crc);
@@ -559,18 +426,12 @@ class HTFutureClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'Future':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           final HTFunction func = positionalArgs.first;
           return Future(() => func.call());
         };
       case 'Future.wait':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           final futures = List<Future<dynamic>>.from(positionalArgs.first);
           // final HTFunction? func = namedArgs['cleanUp'];
           return Future.wait(futures);
@@ -579,10 +440,7 @@ class HTFutureClassBinding extends HTExternalClass {
           // });
         };
       case 'Future.value':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           return Future.value(positionalArgs.first);
         };
       default:
@@ -591,6 +449,6 @@ class HTFutureClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as Future).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) =>
+      (instance as Future).htFetch(id);
 }

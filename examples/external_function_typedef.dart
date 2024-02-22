@@ -11,10 +11,7 @@ void main() {
   final hetu = Hetu();
 
   hetu.init(externalFunctions: {
-    'hetuAdd': (HTEntity entity,
-        {List<dynamic> positionalArgs = const [],
-        Map<String, dynamic> namedArgs = const {},
-        List<HTType> typeArgs = const []}) {
+    'hetuAdd': ({positionalArgs, namedArgs}) {
       return hetuAdd(positionalArgs.first);
     },
   }, externalFunctionTypedef: {

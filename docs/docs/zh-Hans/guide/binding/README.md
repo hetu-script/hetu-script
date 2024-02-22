@@ -87,8 +87,9 @@ await hetu.init(externalFunctions: {
 ```dart
 /// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
-    HTEntity entity,
-    {List<dynamic> positionalArgs,
+    {HTObject? instance,
+    required HTNamespace namespace,
+    List<dynamic> positionalArgs,
     Map<String, dynamic> namedArgs,
     List<HTType> typeArgs});
 ```
@@ -103,10 +104,7 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   final hetu = Hetu();
   await hetu.init(externalFunctions: {
-    'hello': (HTEntity entity,
-        {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTTypeId> typeArgs = const []}) => {'greeting': 'Hello from Dart!'},
+    'hello': ({positionalArgs, namedArgs}) => {'greeting': 'Hello from Dart!'},
   });
   final hetuValue = hetu.eval(r'''
       external function hello
@@ -138,7 +136,7 @@ class Someone {
 对于脚本类中的外部成员函数，在 Dart 侧的定义和普通函数一样：
 
 ```dart
-dynamic calculate(object, {positionalArgs, namedArgs, typeArgs}) {
+dynamic calculate({positionalArgs, namedArgs}) {
   // do somthing about the object
 };
 ```
@@ -212,10 +210,7 @@ extension PersonBinding on Person {
       case 'race':
         return race;
       case 'greeting':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             greeting(positionalArgs.first);
       case 'child':
         return child;
@@ -245,23 +240,14 @@ class PersonClassBinding extends HTExternalClass {
   dynamic memberGet(String id) {
     switch (id) {
       case 'Person':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             Person(positionalArgs[0], positionalArgs[1]);
       case 'Person.withName':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             Person.withName(positionalArgs[0],
                 (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
       case 'Person.meaning':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             Person.meaning(positionalArgs[0]);
       case 'Person.level':
         return Person.level;
@@ -283,14 +269,14 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) {
-    var i = object as Person;
+  dynamic instanceMemberGet(dynamic instance, String id) {
+    var i = instance as Person;
     return i.htFetch(id);
   }
 
   @override
-  void instanceMemberSet(dynamic object, String id, dynamic value) {
-    var i = object as Person;
+  void instanceMemberSet(dynamic instance, String id, dynamic value) {
+    var i = instance as Person;
     i.htAssign(id, value);
   }
 }

@@ -1,4 +1,4 @@
-import '../value/entity.dart';
+import '../value/object.dart';
 import '../type/type.dart';
 import '../type/nominal.dart';
 import '../type/external.dart';
@@ -12,7 +12,7 @@ import '../interpreter/interpreter.dart';
 import '../declaration/class/class_declaration.dart';
 
 /// Class for external object.
-class HTExternalInstance<T> with HTEntity, InterpreterRef {
+class HTExternalInstance<T> with HTObject, InterpreterRef {
   @override
   late final HTType valueType;
 

@@ -1,11 +1,11 @@
 import '../../declaration/declaration.dart';
 import '../../external/external_class.dart';
 import '../../interpreter/interpreter.dart';
-import '../entity.dart';
+import '../object.dart';
 // import '../../value/namespace/namespace.dart';
 // import '../../source/source.dart';
 
-class HTExternalEnum extends HTDeclaration with HTEntity, InterpreterRef {
+class HTExternalEnum extends HTDeclaration with HTObject, InterpreterRef {
   HTExternalClass? externalClass;
 
   bool get isNested => classId != null;

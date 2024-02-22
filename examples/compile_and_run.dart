@@ -14,11 +14,7 @@ class TestClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'Test.greeting':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            Test.greeting();
+        return ({positionalArgs, namedArgs}) => Test.greeting();
     }
   }
 }

@@ -11,7 +11,7 @@ library hetu_script;
 export 'version.dart';
 export 'locale/locale.dart';
 export 'type/type.dart';
-export 'value/entity.dart';
+export 'value/object.dart';
 export 'hetu/hetu.dart';
 export 'bytecode/compiler.dart';
 export 'interpreter/interpreter.dart';

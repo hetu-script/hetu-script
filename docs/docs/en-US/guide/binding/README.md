@@ -81,8 +81,9 @@ Or you can define a external functions in dart for use in Hetu with following ty
 ```dart
 /// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
-    HTEntity entity,
-    {List<dynamic> positionalArgs,
+    {HTObject? instance,
+    required HTNamespace namespace,
+    List<dynamic> positionalArgs,
     Map<String, dynamic> namedArgs,
     List<HTType> typeArgs});
 ```
@@ -95,10 +96,7 @@ import 'package:hetu_script/hetu_script.dart';
 void main() async {
   final hetu = Hetu();
   await hetu.init(externalFunctions: {
-    'hello': (HTEntity entity,
-        {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTTypeId> typeArgs = const []}) => {'greeting': 'Hello from Dart!'},
+    'hello': ({positionalArgs, namedArgs}) => {'greeting': 'Hello from Dart!'},
   });
   final hetuValue = hetu.eval(r'''
       external function hello
@@ -134,7 +132,7 @@ class Someone {
 We have to define a external method in Dart code:
 
 ```dart
-dynamic calculate(object, {positionalArgs, namedArgs, typeArgs}) {
+dynamic calculate({positionalArgs, namedArgs}) {
   // do somthing about the object
 };
 ```
@@ -210,10 +208,7 @@ extension PersonBinding on Person {
       case 'race':
         return race;
       case 'greeting':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             greeting(positionalArgs.first);
       case 'child':
         return child;
@@ -243,23 +238,14 @@ class PersonClassBinding extends HTExternalClass {
   dynamic memberGet(String id) {
     switch (id) {
       case 'Person':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             Person(positionalArgs[0], positionalArgs[1]);
       case 'Person.withName':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             Person.withName(positionalArgs[0],
                 (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
       case 'Person.meaning':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             Person.meaning(positionalArgs[0]);
       case 'Person.level':
         return Person.level;

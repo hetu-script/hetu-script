@@ -1,37 +1,29 @@
 import 'dart:convert';
 
-import 'package:hetu_script/hetu_script.dart';
-
 import '../external/external_class.dart';
 import '../utils/jsonify.dart';
 import '../value/struct/struct.dart';
+import '../hetu/hetu.dart';
+import '../interpreter/interpreter.dart';
+import '../error/error.dart';
 
 class HTHetuClassBinding extends HTExternalClass {
   HTHetuClassBinding() : super('Hetu');
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) {
-    final hetu = object as Hetu;
+  dynamic instanceMemberGet(dynamic instance, String id) {
+    final hetu = instance as Hetu;
     switch (id) {
       case 'stringify':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             hetu.lexicon.stringify(positionalArgs.first);
       case 'createStructfromJson':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           final jsonData = positionalArgs.first as Map<dynamic, dynamic>;
           return hetu.interpreter.createStructfromJson(jsonData);
         };
       case 'jsonify':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           final object = positionalArgs.first;
           if (object is HTStruct) {
             return jsonifyStruct(object);
@@ -44,10 +36,7 @@ class HTHetuClassBinding extends HTExternalClass {
           }
         };
       case 'eval':
-        return (HTEntity entity,
-            {List<dynamic> positionalArgs = const [],
-            Map<String, dynamic> namedArgs = const {},
-            List<HTType> typeArgs = const []}) {
+        return ({positionalArgs, namedArgs}) {
           final code = positionalArgs.first as String;
           final HTContext savedContext = hetu.interpreter.getContext();
           final result = hetu.eval(code);
@@ -55,17 +44,10 @@ class HTHetuClassBinding extends HTExternalClass {
           return result;
         };
       case 'require':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
+        return ({positionalArgs, namedArgs}) =>
             hetu.require(positionalArgs.first);
       case 'help':
-        return (HTEntity entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            hetu.help(positionalArgs.first);
+        return ({positionalArgs, namedArgs}) => hetu.help(positionalArgs.first);
       default:
         throw HTError.undefined(id);
     }

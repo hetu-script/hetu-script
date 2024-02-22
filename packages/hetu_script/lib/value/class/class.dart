@@ -7,13 +7,13 @@ import '../../value/namespace/namespace.dart';
 import '../function/function.dart';
 import '../../value/instance/instance.dart';
 import '../../declaration/class/class_declaration.dart';
-import '../entity.dart';
+import '../object.dart';
 import 'class_namespace.dart';
 import '../../type/nominal.dart';
 import '../../common/internal_identifier.dart';
 
 /// The Dart implementation of the class declaration in Hetu.
-class HTClass extends HTClassDeclaration with HTEntity, InterpreterRef {
+class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
   var _instanceIndex = 0;
   int get instanceIndex => _instanceIndex++;
 

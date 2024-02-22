@@ -1,6 +1,6 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void ext(entity, {positionalArgs, namedArgs, typeArgs}) {
+void ext({positionalArgs, namedArgs}) {
   throw 'an error occured';
 }
 

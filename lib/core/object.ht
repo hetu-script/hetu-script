@@ -1,3 +1,0 @@
-abstract class Object {
-  external function toString() -> str
-}

@@ -9,7 +9,7 @@ import '../function/function.dart';
 import '../class/class.dart';
 import 'cast.dart';
 import '../../value/namespace/namespace.dart';
-import '../entity.dart';
+import '../object.dart';
 import 'instance_namespace.dart';
 import '../../interpreter/interpreter.dart';
 import '../../common/internal_identifier.dart';
@@ -18,7 +18,7 @@ import '../../common/function_category.dart';
 /// The Dart implementation of the instance in Hetu.
 /// [HTInstance] carries all decl from its super classes.
 /// [HTInstance] inherits all its super classes' [HTTypeID]s.
-class HTInstance with HTEntity, InterpreterRef {
+class HTInstance with HTObject, InterpreterRef {
   final int index;
 
   @override
@@ -145,7 +145,7 @@ class HTInstance with HTEntity, InterpreterRef {
 
   /// Get the value of a member from this [HTInstace] via memberGet operator '.'
   /// for symbol searching, use the same name method on [HTInstanceNamespace] instead.
-  /// [HTInstance] overrided [HTEntity]'s [memberGet],
+  /// [HTInstance] overrided [HTObject]'s [memberGet],
   /// with a new named parameter [cast].
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
@@ -220,7 +220,7 @@ class HTInstance with HTEntity, InterpreterRef {
 
   /// Set the value of a member from this [HTInstace] via memberGet operator '.'
   /// for symbol searching, use the same name method on [HTInstanceNamespace] instead.
-  /// [HTInstance] overrided [HTEntity]'s [memberSet],
+  /// [HTInstance] overrided [HTObject]'s [memberSet],
   /// with a new named parameter [cast].
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].

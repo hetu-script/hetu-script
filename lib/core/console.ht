@@ -1,8 +1,6 @@
 external class Console {
-	// write a line without return
-	static function write(line: str)
+	static function assert(line: str)
 	
-	// write a line ends with return
 	static function writeln(line: str)
 	
 	static function getln(info: str) -> str

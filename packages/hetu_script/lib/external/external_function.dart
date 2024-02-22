@@ -1,15 +1,15 @@
-import '../type/type.dart';
+// import '../type/type.dart';
 import '../value/function/function.dart';
-import '../value/entity.dart';
+import '../value/object.dart';
+// import '../value/namespace/namespace.dart';
 
 /// Typedef of external function for binding.
 /// Can be used on normal external function or external method of a script class,
-/// The first argument could be a instance like [HTInstance] or [HTStruct],
-/// or a [HTNamespace] of the function's closure when called.
-typedef HTExternalFunction = dynamic Function(HTEntity entity,
-    {List<dynamic> positionalArgs,
-    Map<String, dynamic> namedArgs,
-    List<HTType> typeArgs});
+typedef HTExternalFunction = dynamic Function({
+  HTObject? instance,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
+});
 
 /// Accept a hetu function object, then return a dart function
 /// for use in Dart code. This is for usage where you want to

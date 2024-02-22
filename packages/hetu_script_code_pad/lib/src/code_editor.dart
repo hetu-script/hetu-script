@@ -72,7 +72,7 @@ class _CodeEditorState extends State<CodeEditor> {
     hetu = Hetu();
     hetu.initFlutter();
 
-    hetu.interpreter.bindExternalFunction('_print', (HTEntity entity,
+    hetu.interpreter.bindExternalFunction('_print', (HTObject entity,
         {List<dynamic> positionalArgs = const [],
         Map<String, dynamic> namedArgs = const {},
         List<HTType> typeArgs = const []}) {

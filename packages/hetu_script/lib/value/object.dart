@@ -3,12 +3,12 @@ import '../error/error.dart';
 import '../type/type.dart';
 
 /// The encapsulated null object, used when try to interact with a null value.
-class _HTNull with HTEntity {
+class _HTNull with HTObject {
   const _HTNull();
 }
 
 /// A mixin for store and access symbols from a collection.
-mixin HTEntity {
+mixin HTObject {
   /// An constant null object.
   static const nullValue = _HTNull();
 

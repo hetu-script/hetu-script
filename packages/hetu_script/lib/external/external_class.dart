@@ -1,10 +1,10 @@
 import '../error/error.dart';
 // import '../class.dart' show HTInheritable;
 // import '../type/type.dart';
-import '../value/entity.dart';
+import '../value/object.dart';
 
 /// Namespace class of low level external dart functions for Hetu to use.
-abstract class HTExternalClass with HTEntity {
+abstract class HTExternalClass with HTObject {
   // @override
   // final HTExternalClass? superClass;
 
@@ -21,14 +21,14 @@ abstract class HTExternalClass with HTEntity {
   /// ```
   /// object.key
   /// ```
-  dynamic instanceMemberGet(dynamic object, String id) =>
+  dynamic instanceMemberGet(dynamic instance, String id) =>
       throw HTError.undefined(id);
 
   /// Assign a value to a instance member of the Dart class by the [id], in the form of
   /// ```
   /// object.key = value
   /// ```
-  void instanceMemberSet(dynamic object, String id, dynamic value) =>
+  void instanceMemberSet(dynamic instance, String id, dynamic value) =>
       throw HTError.undefined(id);
 
   /// Fetch a instance member of the Dart class by the [id], in the form of

@@ -7,7 +7,7 @@ import '../declaration.dart';
 import '../namespace/declaration_namespace.dart';
 import 'abstract_parameter.dart';
 import '../generic/generic_type_parameter.dart';
-import '../../value/entity.dart';
+import '../../value/object.dart';
 import '../../common/function_category.dart';
 
 class HTFunctionDeclaration extends HTDeclaration
@@ -61,7 +61,7 @@ class HTFunctionDeclaration extends HTDeclaration
 
   HTDeclarationNamespace? namespace;
 
-  HTEntity? instance;
+  HTObject? instance;
 
   bool _isResolved = false;
   @override

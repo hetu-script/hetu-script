@@ -1,6 +1,6 @@
 import '../struct/named_struct.dart';
 import '../variable/variable.dart';
-import '../entity.dart';
+import '../object.dart';
 import '../function/function.dart';
 import '../../value/namespace/namespace.dart';
 // import '../../shared/stringify.dart' as util;
@@ -19,7 +19,7 @@ import '../../common/function_category.dart';
 /// Can be named or anonymous.
 /// Unlike class, you have to use 'this' to
 /// access struct member within its own methods
-class HTStruct with HTEntity {
+class HTStruct with HTObject {
   static var structLiteralIndex = 0;
 
   final HTInterpreter interpreter;

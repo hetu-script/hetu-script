@@ -1,12 +1,13 @@
 import '../../error/error.dart';
 // import '../../source/source.dart';
 import '../../declaration/declaration.dart';
-import '../../value/entity.dart';
+import '../../value/object.dart';
 import '../../value/unresolved_import.dart';
 import '../../lexicon/lexicon.dart';
 
 /// A semantic namespace that holds symbol for resolving.
-class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
+class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
+  /// TODO: remove lexicon, save private symbols into separate maps when defined instead.
   final HTLexicon lexicon;
 
   late String _fullName;
@@ -89,6 +90,8 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTEntity {
   /// Return declaration rather than actual values.
   /// If not found and [isRecursive] is true, will continue search in super namespaces.
   /// If [isRecursive] is true, means this is not a 'memberget operator' search.
+  ///
+  /// TODO: remove isPrivate check;
   @override
   dynamic memberGet(String id,
       {bool isPrivate = false,
