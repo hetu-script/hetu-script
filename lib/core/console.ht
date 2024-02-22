@@ -1,13 +1,11 @@
-external class Console {
-	static function assert(line: str)
+external class console {
+	// static function assert(assertion, )
 	
-	static function writeln(line: str)
+	static function log(line: str)
 	
-	static function getln(info: str) -> str
+	static function readLine(info: str) -> str
 	
 	static function eraseLine()
-	
-	static function setTitle(title: str)
 	
 	static function clear()
 }

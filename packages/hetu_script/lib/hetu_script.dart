@@ -12,7 +12,7 @@ export 'version.dart';
 export 'locale/locale.dart';
 export 'type/type.dart';
 export 'value/object.dart';
-export 'hetu/hetu.dart';
+export 'preinclude/hetu.dart';
 export 'bytecode/compiler.dart';
 export 'interpreter/interpreter.dart';
 export 'lexicon/lexicon.dart';

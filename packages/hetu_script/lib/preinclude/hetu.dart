@@ -14,8 +14,8 @@ import '../type/type.dart';
 import '../source/source.dart';
 import '../bytecode/compiler.dart';
 import '../error/error_severity.dart';
-import '../preincludes/preinclude_functions.dart';
-import '../preincludes/preinclude_module.dart';
+import '../binding/preinclude_functions.dart';
+import '../precompiled_module.dart';
 import '../locale/locale.dart';
 import '../external/external_function.dart';
 import '../external/external_class.dart';
@@ -289,7 +289,8 @@ class Hetu {
 
   /// Add a new parser.
   void addParser(String name, HTParser parser) {
-    _parsers[name] = parser;
+    assert(!_parsers.containsKey(name));
+    _currentParser = _parsers[name] = parser;
   }
 
   /// Change the current parser.

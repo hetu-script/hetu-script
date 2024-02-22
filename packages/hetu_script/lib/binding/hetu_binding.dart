@@ -3,7 +3,7 @@ import 'dart:convert';
 import '../external/external_class.dart';
 import '../utils/jsonify.dart';
 import '../value/struct/struct.dart';
-import '../hetu/hetu.dart';
+import '../preinclude/hetu.dart';
 import '../interpreter/interpreter.dart';
 import '../error/error.dart';
 
