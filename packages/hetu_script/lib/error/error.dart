@@ -186,9 +186,9 @@ class HTError {
 
   MessageSeverity get severity => type.severity;
 
-  String? _message;
+  late String _message;
 
-  String? get message => _message;
+  String get message => _message;
 
   final String? extra;
 
@@ -225,7 +225,7 @@ class HTError {
 
   /// [HTError] can not be created by default constructor.
   HTError(this.code, this.type,
-      {String? message,
+      {required String message,
       this.extra,
       List interpolations = const [],
       this.correction,
@@ -234,12 +234,10 @@ class HTError {
       this.column,
       this.offset,
       this.length}) {
-    if (message != null) {
-      for (var i = 0; i < interpolations.length; ++i) {
-        message = message!.replaceAll('{$i}', interpolations[i].toString());
-      }
-      _message = message;
+    for (var i = 0; i < interpolations.length; ++i) {
+      message = message.replaceAll('{$i}', interpolations[i].toString());
     }
+    _message = message;
   }
 
   HTError.unkownSourceType(String ext,

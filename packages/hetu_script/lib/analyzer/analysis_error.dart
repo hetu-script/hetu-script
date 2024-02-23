@@ -18,10 +18,10 @@ class HTAnalysisError implements HTError {
   @override
   MessageSeverity get severity => type.severity;
 
-  String? _message;
+  late final String _message;
 
   @override
-  String? get message => _message;
+  String get message => _message;
 
   @override
   final String? extra;
@@ -47,7 +47,7 @@ class HTAnalysisError implements HTError {
   final List<HTDiagnosticMessage> contextMessages;
 
   HTAnalysisError(this.code, this.type,
-      {String? message,
+      {required String message,
       this.extra,
       List<String> interpolations = const [],
       this.correction,
@@ -57,12 +57,10 @@ class HTAnalysisError implements HTError {
       this.offset = 0,
       this.length = 0,
       this.contextMessages = const []}) {
-    if (message != null) {
-      for (var i = 0; i < interpolations.length; ++i) {
-        message = message!.replaceAll('{$i}', interpolations[i].toString());
-      }
-      _message = message;
+    for (var i = 0; i < interpolations.length; ++i) {
+      message = message.replaceAll('{$i}', interpolations[i].toString());
     }
+    _message = message;
   }
 
   @override
