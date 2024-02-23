@@ -297,6 +297,16 @@ class Hetu {
           {instance, positionalArgs, namedArgs}) {
         return lexicon.stringify(instance);
       });
+      interpreter.bindExternalMethod('Object::keys', (
+          {instance, positionalArgs, namedArgs}) {
+        final struct = instance as HTStruct;
+        return struct.keys;
+      });
+      interpreter.bindExternalMethod('Object::values', (
+          {instance, positionalArgs, namedArgs}) {
+        final struct = instance as HTStruct;
+        return struct.values;
+      });
       interpreter.bindExternalMethod('Object::contains', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
@@ -306,6 +316,32 @@ class Hetu {
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         return struct.containsKey(positionalArgs.first);
+      });
+      interpreter.bindExternalMethod('Object::isEmpty', (
+          {instance, positionalArgs, namedArgs}) {
+        final struct = instance as HTStruct;
+        return struct.isEmpty;
+      });
+      interpreter.bindExternalMethod('Object::isNotEmpty', (
+          {instance, positionalArgs, namedArgs}) {
+        final struct = instance as HTStruct;
+        return struct.isNotEmpty;
+      });
+      interpreter.bindExternalMethod('Object::length', (
+          {instance, positionalArgs, namedArgs}) {
+        final struct = instance as HTStruct;
+        return struct.length;
+      });
+      interpreter.bindExternalMethod('Object::clone', (
+          {instance, positionalArgs, namedArgs}) {
+        final struct = instance as HTStruct;
+        return struct.clone();
+      });
+      interpreter.bindExternalMethod('Object::assign', (
+          {instance, positionalArgs, namedArgs}) {
+        final struct = instance as HTStruct;
+        final other = positionalArgs.first as HTStruct;
+        struct.assign(other);
       });
 
       // bind non-dynamic external functions

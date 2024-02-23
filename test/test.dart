@@ -38,6 +38,7 @@ Future<void> main() async {
     let obj = Object.createFromJSON(data)
 
     print(obj)
+    print(obj.keys)
     print('obj.hasOwnProperty(\'toJSON\')', obj.hasOwnProperty('toJSON'))
     print('obj.contains(\'toJSON\')', obj.contains('toJSON'))
     print(obj.toJSON())
