@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../error/error_severity.dart';
+import '../logger/message_severity.dart';
 
 /// A diagnostic, as defined by the [Diagnostic Design Guidelines][guidelines]:
 ///
@@ -25,7 +25,7 @@ class HTDiagnostic {
   final HTDiagnosticMessage problemMessage;
 
   /// The severity associated with the diagnostic.
-  final ErrorSeverity severity;
+  final MessageSeverity severity;
 
   HTDiagnostic(this.contextMessages, this.correctionMessage,
       this.problemMessage, this.severity);

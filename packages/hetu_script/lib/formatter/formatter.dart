@@ -28,7 +28,7 @@ class FormatterConfig {
 
 /// Class for printing out formatted string content of a ast root
 class HTFormatter implements AbstractASTVisitor<String> {
-  late final HTLexicon _lexicon;
+  final HTLexicon _lexicon;
   late final HTLexer _lexer;
   late final HTParser _parser;
 

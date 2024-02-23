@@ -1,5 +1,10 @@
+import 'package:hetu_script/common/internal_identifier.dart';
+
 import '../value/struct/struct.dart';
 import '../types.dart';
+import '../value/class/class.dart';
+import '../value/instance/instance.dart';
+import '../value/function/function.dart';
 
 /// Lexicon used by Hetu
 abstract class HTLexicon {
@@ -106,8 +111,26 @@ abstract class HTLexicon {
         preDecrement,
       ];
 
-  String get globalObjectId;
-  String get globalPrototypeId;
+  String get idGlobalObject;
+  String get idGlobalPrototype;
+
+  String get idBoolean;
+  String get idNumber;
+  String get idInteger;
+  String get idFloat;
+  String get idString;
+
+  Set<String> get builtinNominalTypes => {
+        idBoolean,
+        idNumber,
+        idInteger,
+        idFloat,
+        idString,
+      };
+
+  String get kNull;
+  String get kTrue;
+  String get kFalse;
 
   Set<String> get privatePrefixes;
   String get preferredPrivatePrefix;
@@ -132,24 +155,6 @@ abstract class HTLexicon {
         ...kFunctions,
         kNamespace,
       };
-
-  String get kBoolean;
-  String get kNumber;
-  String get kInteger;
-  String get kFloat;
-  String get kString;
-
-  Set<String> get builtinNominalTypes => {
-        kBoolean,
-        kNumber,
-        kInteger,
-        kFloat,
-        kString,
-      };
-
-  String get kNull;
-  String get kTrue;
-  String get kFalse;
 
   String get kMutable =>
       preferVariantOfMutableKeyword ? kMutables.last : kMutables.first;
@@ -181,9 +186,10 @@ abstract class HTLexicon {
       };
 
   String get kTypeDef;
-  String get kTypeOf;
-  String get kDeclTypeof;
   String get kTypeValue;
+  String get kTypeValueOf;
+  String get kDeclTypeof;
+  String get kTypeNameOf;
 
   String get kImport;
   String get kExport;
@@ -264,9 +270,10 @@ abstract class HTLexicon {
         kLate,
         kConst,
         kDelete,
-        kTypeOf,
-        kDeclTypeof,
         kTypeValue,
+        kTypeValueOf,
+        // kDeclTypeof,
+        kTypeNameOf,
         kClass,
         // kExtends,
         kEnum,
@@ -390,7 +397,7 @@ abstract class HTLexicon {
         negative,
         preIncrement,
         preDecrement,
-        kTypeOf,
+        kTypeValueOf,
         kDeclTypeof,
         kAwait,
       };
@@ -821,6 +828,13 @@ abstract class HTLexicon {
         final structString = _stringifyStruct(object);
         output.write(structString);
       }
+    } else if (object is HTClass) {
+      output.write('$kClass ${object.id}');
+    } else if (object is HTInstance) {
+      output
+          .write('${InternalIdentifier.instanceOf} $kClass ${object.classId}');
+    } else if (object is HTFunction) {
+      output.write('$kFunction ${object.internalName}');
     } else if (object is HTType) {
       final typeString = _stringifyType(object, showTypeKeyword: true);
       output.write(typeString);
@@ -864,7 +878,7 @@ abstract class HTLexicon {
       }
       output.writeln();
     }
-    if (struct.prototype != null && !struct.prototype!.isRootPrototype) {
+    if (struct.prototype != null && !struct.prototype!.isPrototypeRoot) {
       final inherits = _stringifyStruct(struct.prototype!,
           from: from ?? struct, withBraces: false);
       output.write(inherits);

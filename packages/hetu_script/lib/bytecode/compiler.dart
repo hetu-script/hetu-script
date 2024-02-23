@@ -48,7 +48,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   CompilerConfig config;
 
-  late final HTLexicon _lexicon;
+  final HTLexicon _lexicon;
 
   late HTGlobalConstantTable _currentConstantTable;
 
@@ -724,9 +724,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final group = GroupExpr(value);
       final bytes = compileAST(group);
       bytesBuilder.add(bytes);
-    } else if (expr.op == _lexicon.kTypeOf) {
+    } else if (expr.op == _lexicon.kTypeValueOf) {
       bytesBuilder.add(value);
-      bytesBuilder.addByte(OpCode.typeOf);
+      bytesBuilder.addByte(OpCode.typeValueOf);
     } else if (expr.op == _lexicon.kDeclTypeof) {
       bytesBuilder.add(value);
       bytesBuilder.addByte(OpCode.decltypeOf);

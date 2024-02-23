@@ -7,36 +7,47 @@ Future<void> main() async {
     locale: HTLocaleSimplifiedChinese(),
     config: HetuConfig(normalizeImportPath: false),
   );
-  hetu.init();
+  hetu.init(externalFunctions: {
+    'getJSON': ({positionalArgs, namedArgs}) {
+      final jsonData = {
+        "name": "Aleph",
+        "type": "novel",
+        "volumes": 7,
+      };
+      return jsonData;
+    }
+  });
 
   sourceContext.addResource(
     'test.ht',
-    HTSource(r'''const kWords = 'the thing behind everything'
+    HTSource(r'''var i = 42
 '''),
   );
 
-  final r = hetu.eval(r'''
-  import 'test.ht'
+  var r = hetu.eval(r'''
+    external fun getJSON()
 
-  const _kNewWords = kWords + '!!!'
+    // console.time('loop test')
+    // for (var i = 0; i < 100000; ++i) {
 
-  print(_kNewWords)
+    // }
+    // console.timeEnd('loop test')
 
-  const obj = {a:'aaa'}
+    let data = getJSON()
 
-  print(obj.keys)
+    let obj = Object.createFromJSON(data)
 
-  // for (const k in obj.keys) {
-  //   print(k)
-  // }
+    print(obj)
+    print('obj.hasOwnProperty(\'toJSON\')', obj.hasOwnProperty('toJSON'))
+    print('obj.contains(\'toJSON\')', obj.contains('toJSON'))
+    print(obj.toJSON())
 ''');
 
-  if (r != null) {
-    if (r is Future) {
-      print('async function');
-      print(await r);
-    } else {
-      print(r);
-    }
+  if (r is Future) {
+    print('wait for async function...');
+    r = await r;
+    print(hetu.lexicon.stringify(r));
+  } else {
+    print(hetu.lexicon.stringify(r));
   }
 }

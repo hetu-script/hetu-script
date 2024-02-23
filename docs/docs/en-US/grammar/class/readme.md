@@ -16,11 +16,11 @@ class Calculator {
   // static private member
   static var _name = 'the calculator'
   // static get function
-  static get name -> str {
+  static get name -> string {
     return _name
   }
   // static set function
-  static set name(new_name: str) {
+  static set name(new_name: string) {
     _name = new_name
   }
   // static function
@@ -29,19 +29,19 @@ class Calculator {
   }
 
   // instance member
-  var x: num
-  var y: num
+  var x: number
+  var y: number
 
   var birthDate
   // constructor with parameters
   // you can use `this` syntax in the parameter to
   // quick initialize the member on instance
   // just like in Dart
-  constructor (this.x: num, this.y: num, age: int) {
+  constructor (this.x: number, this.y: number, age: int) {
     // use this to access instance members shadowed by function parameters
     this.birthDate = Now() + age
   }
-  function meaning -> num {
+  function meaning -> number {
     // when there's no shadowing, `this` keyword can be omitted
     return x * y
   }

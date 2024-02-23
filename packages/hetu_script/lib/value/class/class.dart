@@ -253,19 +253,22 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
   }
 
   /// Call a static function of this [HTClass].
-  dynamic invoke(String funcName,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic invoke(
+    String funcName, {
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    // List<HTType> typeArgs = const [],
+  }) {
     try {
       final func = memberGet(funcName);
 
       if (func is HTFunction) {
         func.resolve();
         return func.call(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          // typeArgs: typeArgs,
+        );
       } else {
         throw HTError.notCallable(funcName,
             filename: interpreter.currentFile,

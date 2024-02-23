@@ -17,7 +17,7 @@ void main() {
             ('all' 
             + 'oha')
           ++j
-          if (i is num) 
+          if (i is number) 
             j
         ''');
       expect(

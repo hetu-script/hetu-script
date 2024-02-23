@@ -1,20 +1,20 @@
 
 class HelloWorld {
-  var _hello: num
-  var _world: num
+  var _hello: number
+  var _world: number
   var _privateNum = 99
 
-  constructor (hello: num, world: num) {
+  constructor (hello: number, world: number) {
     _hello = hello
     _world = world
     // print("hello" + _hello.toString() + "world" + _world.toString())
   }
 
-  function toString -> str {
+  function toString -> string {
     return "hello" + _hello.toString() + "world" + _world.toString()
   }
 
-  get private -> num {
+  get private -> number {
     return _privateNum
   }
 }

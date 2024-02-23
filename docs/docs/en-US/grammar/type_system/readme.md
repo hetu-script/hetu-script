@@ -33,10 +33,10 @@ Type declaration is similar to a variable declaration, except it must has a init
 class Person {}
 
 type PType = Person
-type FuncTypedef = (str) -> num
+type FuncTypedef = (string) -> number
 type StructTypedef = {
-  name: str,
-  age: num,
+  name: string,
+  age: number,
 }
 ```
 
@@ -68,8 +68,8 @@ It's syntax like the struct literal, however, you have to write types rather tha
 
 ```typescript
 type StructTypedef = {
-  name: str;
-  age: num;
+  name: string;
+  age: number;
 };
 ```
 
@@ -82,7 +82,7 @@ Unlike normal function declarations, You cannot omit any part in the function ty
 It should have a pair of brackets, a single arrow and a return type.
 
 ```typescript
-type FuncTypedef = (str) -> num
+type FuncTypedef = (string) -> number
 ```
 
 ## Use is to check a type in run-time
@@ -91,9 +91,9 @@ Use **is** to do a run-time type check. The expression after **is** will be pars
 
 ```typescript
 function doSomething(value) {
-  if (value is str) {
+  if (value is string) {
     print('A String!')
-  } else if (value is num) {
+  } else if (value is number) {
     print('A Number!')
   } else {
     print('Unknown type!')
@@ -108,14 +108,14 @@ Use **typeof** keyword to dynamically get the runtime type of a value.
 ```typescript
 function main {
   // decalre a function type
-  type FuncTypedef = function(str) -> num
+  type FuncTypedef = function(string) -> number
   // assign a function to a value of a certain function type
-  var numparse: FuncTypedef = function(value: str) -> num { return num.parse(value) }
+  var numparse: FuncTypedef = function(value: string) -> number { return number.parse(value) }
   // get a value's runtime type and return it from a function
   var getType = function { return typeof numparse }
   var FuncTypedef2 = getType()
   // use this new type
-  var strlength: FuncTypedef2 = function(value: str) -> num { return value.length }
+  var strlength: FuncTypedef2 = function(value: string) -> number { return value.length }
   // expected output: 11
   print(strlength('hello world'))
 }

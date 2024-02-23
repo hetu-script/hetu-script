@@ -1,8 +1,8 @@
 import 'utility.ht' as util show isEqual
 
 external abstract class Animal {
-  external static var Animal.race: str
-  external constructor(race: str) {
+  external static var Animal.race: string
+  external constructor(race: string) {
     this.race = race
   }
 }
@@ -12,12 +12,12 @@ class Converser {
 }
 
 class Profile {
-  var name: str
+  var name: string
 }
 
 class Person extends Animal {
-  var name: str
-  constructor(name: str) : super(name) {
+  var name: string
+  constructor(name: string) : super(name) {
     this.name = name
   }
   function greeting() {
@@ -26,7 +26,7 @@ class Person extends Animal {
 }
 
 function main() {
-  function nested([arg: str = 'catchya') -> void {
+  function nested([arg: string = 'catchya') -> void {
     const cc = arg
     return cc
   }
@@ -35,8 +35,8 @@ function main() {
   } else {
     return 1 + 1
   }
-  (function(num) {
-    return num * num
+  (function(number) {
+    return number * number
   })()
   for (var i = 0; i < max; i *= 5) {
     expect(value: true)

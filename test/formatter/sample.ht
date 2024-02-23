@@ -6,9 +6,9 @@ import    'utility.ht'
 
 // docs of class
 external abstract class Animal {
-  static var race: str; // trailing comment
+  static var race: string; // trailing comment
 
-  constructor (race: str) {
+  constructor (race: string) {
     this.race = race;
   }
 }
@@ -21,12 +21,12 @@ class Converser {
 }
 
 class Profile {
-  var name: str;
+  var name: string;
 }
 
 class Person extends Animal   {
-  var name: str
-  constructor (name: str):  super(name) {
+  var name: string
+  constructor (name: string):  super(name) {
     this.name = name
   }
   function greeting {
@@ -36,13 +36,13 @@ class Person extends Animal   {
 
 // This is where the script starts executing.
 function main {
-  function nested ([arg: str = 'catchya'])  ->void { const cc = arg return cc;// comment in block  } 
+  function nested ([arg: string = 'catchya'])  ->void { const cc = arg return cc;// comment in block  } 
 
   if (nested() == -1) 
     main();
       else return 1 + 1;;;;;
 
-  (function (num) { return num * num   
+  (function (number) { return number * number   
   }) ();
 
   for (var i = 0; i< max ; i *= 5) {

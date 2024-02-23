@@ -6,7 +6,13 @@ import '../value/object.dart';
 /// Typedef of external function for binding.
 /// Can be used on normal external function or external method of a script class,
 typedef HTExternalFunction = dynamic Function({
-  HTObject? instance,
+  // HTObject? instance,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
+});
+
+typedef HTExternalMethod = dynamic Function({
+  HTObject instance,
   List<dynamic> positionalArgs,
   Map<String, dynamic> namedArgs,
 });

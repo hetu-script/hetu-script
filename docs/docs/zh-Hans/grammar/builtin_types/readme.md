@@ -4,7 +4,7 @@
 
 - null
 - bool
-- num
+- number
 - int
 - double
 - String
@@ -30,7 +30,7 @@ final result = range(10).map((value) => 'row: ${value}')
 
 ## 字符串
 
-河图中的字符串类型名字使用 str，而不是 String。
+河图中的字符串类型名字使用 string，而不是 String。
 
 ### 字符串插值
 

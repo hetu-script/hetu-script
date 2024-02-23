@@ -236,8 +236,7 @@ dynamic eval(String content,
     HTResourceType type = HTResourceType.hetuLiteralCode,
     String? invoke,
     List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const []})
+    Map<String, dynamic> namedArgs = const {}})
 ```
 
 - **content**: Dart 字符串形式的代码文件内容。
@@ -277,7 +276,6 @@ dynamic invoke(
     String? module,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const [],
   })
 ```
 

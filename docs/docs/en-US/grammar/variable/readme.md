@@ -4,7 +4,7 @@ Variable is declared with 'var', 'final', 'late', 'const'. The type annotation a
 
 ```dart
 var person
-var fineStructureConstant: num = 1 / 137
+var fineStructureConstant: number = 1 / 137
 final isTimeTravelSuccessful: bool = true
 final skill: List = ['attack', 'defense']
 ```

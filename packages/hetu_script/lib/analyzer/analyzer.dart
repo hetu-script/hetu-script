@@ -56,7 +56,7 @@ class HTAnalyzer extends RecursiveASTVisitor<void> {
 
   ErrorHandlerConfig? get errorConfig => null;
 
-  late final HTLexicon _lexicon;
+  final HTLexicon _lexicon;
 
   late final AnalysisNamespace globalNamespace;
 

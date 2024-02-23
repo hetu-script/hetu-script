@@ -1,4 +1,4 @@
-var month: num
+var month: number
 var population = 10
 var birthrate = 0.002
 
@@ -10,7 +10,7 @@ var money = 100
 var farmer_num = 5
 var lumber_num = 5
 
-function farmerConsume(worker_num: num) {
+function farmerConsume(worker_num: number) {
   var consumption = worker_num * 1
   print('农民消费了：' + consumption.toStringAsFixed(2) + '份食物')
   food = food - consumption
@@ -19,13 +19,13 @@ function farmerConsume(worker_num: num) {
   energy = energy - consumption
 }
 
-function farmerProduce(worker_num: num) {
+function farmerProduce(worker_num: number) {
   var production = worker_num * 1
   print('农民生产了：' + production.toStringAsFixed(2) + '份食物')
   food = food + production
 }
 
-function lumberConsume(worker_num: num) {
+function lumberConsume(worker_num: number) {
   var consumption = worker_num * 1
   print('伐木工消费了：' + consumption.toStringAsFixed(2) + '份食物')
   food = food - consumption
@@ -34,7 +34,7 @@ function lumberConsume(worker_num: num) {
   energy = energy - consumption
 }
 
-function lumberProduce(worker_num: num) {
+function lumberProduce(worker_num: number) {
   var production = worker_num * 1
   print('伐木工生产了：' + production.toStringAsFixed(2) + '份能源')
   energy = energy + production

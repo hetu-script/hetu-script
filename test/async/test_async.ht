@@ -7,7 +7,7 @@ class Test {
     return fetch();
   }
 
-  static function f2() -> Future<str> {
+  static function f2() -> Future<string> {
     return Future.value('test');
   }
 
@@ -72,7 +72,7 @@ function test2() -> Future<int> async {
   return result;
 }
 
-function test3() -> Future<str> async {
+function test3() -> Future<string> async {
   print('before');
   return fetch().then((result) {
     print('after');
@@ -94,7 +94,7 @@ function test5() -> Future<int> async {
   return result;
 }
 
-function test6() -> Future<str> async {
+function test6() -> Future<string> async {
   print('before');
   final result = await Test.f2();
   print('after');

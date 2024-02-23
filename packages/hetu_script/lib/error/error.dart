@@ -1,6 +1,6 @@
 import '../locale/locale.dart';
 import '../analyzer/analyzer.dart';
-import 'error_severity.dart';
+import '../logger/message_severity.dart';
 
 part 'error_processor.dart';
 
@@ -97,43 +97,43 @@ enum ErrorCode {
 /// The type of an [HTError].
 class ErrorType implements Comparable<ErrorType> {
   /// Task (todo) comments in user code.
-  static const todo = ErrorType('TODO', 0, ErrorSeverity.info);
+  static const todo = ErrorType('TODO', 0, MessageSeverity.info);
 
   /// Extra analysis run over the code to follow best practices, which are not in
   /// the Dart Language Specification.
-  static const hint = ErrorType('HINT', 1, ErrorSeverity.info);
+  static const hint = ErrorType('HINT', 1, MessageSeverity.info);
 
   /// Lint warnings describe style and best practice recommendations that can be
   /// used to formalize a project's style guidelines.
-  static const lint = ErrorType('LINT', 2, ErrorSeverity.info);
+  static const lint = ErrorType('LINT', 2, MessageSeverity.info);
 
   /// Syntactic errors are errors produced as a result of input that does not
   /// conform to the grammar.
   static const syntacticError =
-      ErrorType('SYNTACTIC_ERROR', 3, ErrorSeverity.error);
+      ErrorType('SYNTACTIC_ERROR', 3, MessageSeverity.error);
 
   /// Reported by analyzer.
   static const staticTypeWarning =
-      ErrorType('TYPE_WARNING', 4, ErrorSeverity.warning);
+      ErrorType('TYPE_WARNING', 4, MessageSeverity.warn);
 
   /// Reported by analyzer.
   static const staticWarning =
-      ErrorType('STATIC_WARNING', 5, ErrorSeverity.warning);
+      ErrorType('STATIC_WARNING', 5, MessageSeverity.warn);
 
   /// Compile-time errors are errors that preclude execution. A compile time
   /// error must be reported by a compiler before the erroneous code is
   /// executed.
   static const compileTimeError =
-      ErrorType('COMPILE_TIME_ERROR', 6, ErrorSeverity.error);
+      ErrorType('COMPILE_TIME_ERROR', 6, MessageSeverity.error);
 
   /// Run-time errors are errors that occurred during execution. A run time
   /// error is reported by the interpreter.
   static const runtimeError =
-      ErrorType('RUNTIME_ERROR', 7, ErrorSeverity.error);
+      ErrorType('RUNTIME_ERROR', 7, MessageSeverity.error);
 
   /// External errors are errors reported by the dart side.
   static const externalError =
-      ErrorType('EXTERNAL_ERROR', 8, ErrorSeverity.error);
+      ErrorType('EXTERNAL_ERROR', 8, MessageSeverity.error);
 
   static const values = [
     todo,
@@ -154,7 +154,7 @@ class ErrorType implements Comparable<ErrorType> {
   final int weight;
 
   /// The severity of this type of error.
-  final ErrorSeverity severity;
+  final MessageSeverity severity;
 
   /// Initialize a newly created error type to have the given [name] and
   /// [severity].
@@ -184,7 +184,7 @@ class HTError {
 
   final ErrorType type;
 
-  ErrorSeverity get severity => type.severity;
+  MessageSeverity get severity => type.severity;
 
   String? _message;
 

@@ -62,12 +62,12 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
 
   @override
   HTType visitStringLiteralExpr(ASTLiteralString node) {
-    return HTNominalType(id: 'str');
+    return HTNominalType(id: 'string');
   }
 
   @override
   HTType visitStringInterpolationExpr(ASTStringInterpolation node) {
-    return HTNominalType(id: 'str');
+    return HTNominalType(id: 'string');
   }
 
   @override

@@ -5,7 +5,7 @@ Function is declared with **function**, **get**, **set**, **constructor**. The p
 For a literal function expression, the function name is also optional if there's no type arguments and dart function typedef.
 
 ```typescript
-function doubleIt(n: num) -> num {
+function doubleIt(n: number) -> number {
   return n * 2
 }
 

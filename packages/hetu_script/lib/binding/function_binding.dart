@@ -7,7 +7,6 @@ import 'package:quiver/iterables.dart';
 
 /// Core exernal functions for use globally in Hetu script.
 final Map<String, Function> preincludeFunctions = {
-  '_print': ({positionalArgs, namedArgs}) => print(positionalArgs.first),
   'range': ({positionalArgs, namedArgs}) =>
       range(positionalArgs[0], positionalArgs[1], positionalArgs[2]),
   // 'Prototype.keys': ({positionalArgs, namedArgs}) {

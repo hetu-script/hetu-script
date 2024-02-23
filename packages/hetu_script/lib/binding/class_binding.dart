@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:convert';
 
 import 'package:fast_noise/fast_noise.dart';
 
@@ -12,14 +13,18 @@ import '../utils/math.dart';
 import '../utils/uid.dart';
 import '../utils/crc32b.dart';
 import '../value/function/function.dart';
+import '../preinclude/console.dart';
+import '../utils/jsonify.dart';
+import '../lexicon/lexicon.dart';
+import '../value/struct/struct.dart';
 
 class HTNumberClassBinding extends HTExternalClass {
-  HTNumberClassBinding() : super('num');
+  HTNumberClassBinding() : super('number');
 
   @override
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
-      case 'num.parse':
+      case 'number.parse':
         return ({positionalArgs, namedArgs}) =>
             num.tryParse(positionalArgs.first);
       default:
@@ -28,17 +33,17 @@ class HTNumberClassBinding extends HTExternalClass {
   }
 }
 
-class HTIntClassBinding extends HTExternalClass {
-  HTIntClassBinding() : super('int');
+class HTIntegerClassBinding extends HTExternalClass {
+  HTIntegerClassBinding() : super('integer');
 
   @override
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
-      case 'int.fromEnvironment':
+      case 'integer.fromEnvironment':
         return ({positionalArgs, namedArgs}) => int.fromEnvironment(
             positionalArgs[0],
             defaultValue: namedArgs['defaultValue']);
-      case 'int.parse':
+      case 'integer.parse':
         return ({positionalArgs, namedArgs}) =>
             int.tryParse(positionalArgs[0], radix: namedArgs['radix']);
       default:
@@ -125,12 +130,12 @@ class HTBooleanClassBinding extends HTExternalClass {
 }
 
 class HTStringClassBinding extends HTExternalClass {
-  HTStringClassBinding() : super('str');
+  HTStringClassBinding() : super('string');
 
   @override
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
-      case 'str.parse':
+      case 'string.parse':
         return ({positionalArgs, namedArgs}) {
           return positionalArgs.first.toString();
         };
@@ -377,48 +382,6 @@ class HTMathClassBinding extends HTExternalClass {
   }
 }
 
-class HTHashClassBinding extends HTExternalClass {
-  HTHashClassBinding() : super('Hash');
-
-  @override
-  dynamic memberGet(String id, {String? from}) {
-    switch (id) {
-      case 'Hash.uid4':
-        return ({positionalArgs, namedArgs}) {
-          return uid4(positionalArgs.first);
-        };
-      case 'Hash.crcString':
-        return ({positionalArgs, namedArgs}) {
-          String data = positionalArgs[0];
-          int crc = positionalArgs[1] ?? 0;
-          return crcString(data, crc);
-        };
-      case 'Hash.crcInt':
-        return ({positionalArgs, namedArgs}) {
-          String data = positionalArgs[0];
-          int crc = positionalArgs[1] ?? 0;
-          return crcInt(data, crc);
-        };
-      default:
-        throw HTError.undefined(id);
-    }
-  }
-}
-
-class HTSystemClassBinding extends HTExternalClass {
-  HTSystemClassBinding() : super('OS');
-
-  @override
-  dynamic memberGet(String id, {String? from}) {
-    switch (id) {
-      case 'OS.now':
-        return DateTime.now().millisecondsSinceEpoch;
-      default:
-        throw HTError.undefined(id);
-    }
-  }
-}
-
 class HTFutureClassBinding extends HTExternalClass {
   HTFutureClassBinding() : super('Future');
 
@@ -451,4 +414,99 @@ class HTFutureClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id) =>
       (instance as Future).htFetch(id);
+}
+
+class HTCryptoClassBinding extends HTExternalClass {
+  HTCryptoClassBinding() : super('crypto');
+
+  @override
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
+      case 'crypto.randomUUID':
+        return ({positionalArgs, namedArgs}) {
+          return randomUUID();
+        };
+      case 'crypto.uid4':
+        return ({positionalArgs, namedArgs}) {
+          return randomUID4(positionalArgs.first);
+        };
+      case 'crypto.crcString':
+        return ({positionalArgs, namedArgs}) {
+          String data = positionalArgs[0];
+          int crc = positionalArgs[1] ?? 0;
+          return crcString(data, crc);
+        };
+      case 'crypto.crcInt':
+        return ({positionalArgs, namedArgs}) {
+          String data = positionalArgs[0];
+          int crc = positionalArgs[1] ?? 0;
+          return crcInt(data, crc);
+        };
+      default:
+        throw HTError.undefined(id);
+    }
+  }
+}
+
+class HTConsoleClassBinding extends HTExternalClass {
+  Console console;
+
+  HTConsoleClassBinding({required this.console}) : super('console');
+
+  @override
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
+      case 'console.log':
+        return ({positionalArgs, namedArgs}) => console.log(positionalArgs);
+      case 'console.debug':
+        return ({positionalArgs, namedArgs}) => console.debug(positionalArgs);
+      case 'console.info':
+        return ({positionalArgs, namedArgs}) => console.info(positionalArgs);
+      case 'console.warn':
+        return ({positionalArgs, namedArgs}) => console.warn(positionalArgs);
+      case 'console.error':
+        return ({positionalArgs, namedArgs}) => console.error(positionalArgs);
+      case 'console.time':
+        return ({positionalArgs, namedArgs}) =>
+            console.time(positionalArgs.first);
+      case 'console.timeLog':
+        return ({positionalArgs, namedArgs}) =>
+            console.timeLog(positionalArgs.first);
+      case 'console.timeEnd':
+        return ({positionalArgs, namedArgs}) =>
+            console.timeEnd(positionalArgs.first);
+      default:
+        throw HTError.undefined(id);
+    }
+  }
+}
+
+class HTJSONClassBinding extends HTExternalClass {
+  HTLexicon lexicon;
+
+  HTJSONClassBinding({required this.lexicon}) : super('JSON');
+
+  @override
+  dynamic memberGet(String id, {String? from}) {
+    switch (id) {
+      case 'JSON.stringify':
+        return ({positionalArgs, namedArgs}) =>
+            lexicon.stringify(positionalArgs.first);
+      case 'JSON.parse':
+        return ({positionalArgs, namedArgs}) {
+          final object = positionalArgs.first;
+          if (object is HTStruct) {
+            return jsonifyStruct(object);
+          } else if (object is Iterable) {
+            return jsonifyList(object);
+          } else if (isJsonDataType(object)) {
+            return lexicon.stringify(object);
+          } else {
+            return jsonEncode(object);
+          }
+        };
+      default:
+        throw HTError.undefined(id);
+    }
+  }
 }

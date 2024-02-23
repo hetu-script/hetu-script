@@ -17,7 +17,7 @@ void main() {
   final analysisResult = hetu.analyzer.analyzeCompilation(compilation);
   if (analysisResult.errors.isNotEmpty) {
     for (final error in analysisResult.errors) {
-      if (error.severity >= ErrorSeverity.error) {
+      if (error.severity >= MessageSeverity.error) {
         print('Analyzer error: $error');
       } else {
         print('Analyzer warning: $error');

@@ -139,10 +139,8 @@ class FutureExecution {
 
 /// A bytecode implementation of Hetu Script interpreter
 class HTInterpreter {
-  static HTClass? rootClass;
-  static HTStruct? rootStruct;
-
-  int tik = 0;
+  static HTClass? classRoot;
+  static HTStruct? structRoot;
 
   bool _scriptMode = false, _globallyImport = false;
 
@@ -154,7 +152,7 @@ class HTInterpreter {
 
   InterpreterConfig config;
 
-  late final HTLexicon _lexicon;
+  final HTLexicon _lexicon;
   HTLexicon get lexicon => _lexicon;
 
   HTResourceContext<HTSource> sourceContext;
@@ -192,10 +190,10 @@ class HTInterpreter {
   set _localSymbol(String? value) =>
       _stackFrames.last[HTRegIdx.identifier] = value;
   String? get localSymbol => _stackFrames.last[HTRegIdx.identifier];
-  set _localTypeArgs(List<HTType> value) =>
-      _stackFrames.last[HTRegIdx.typeArgs] = value;
-  List<HTType> get _localTypeArgs =>
-      _stackFrames.last[HTRegIdx.typeArgs] ?? const [];
+  // set _localTypeArgs(List<HTType> value) =>
+  //     _stackFrames.last[HTRegIdx.typeArgs] = value;
+  // List<HTType> get _localTypeArgs =>
+  //     _stackFrames.last[HTRegIdx.typeArgs] ?? const [];
   set _loopCount(int value) => _stackFrames.last[HTRegIdx.loopCount] = value;
   int get _loopCount => _stackFrames.last[HTRegIdx.loopCount] ?? 0;
   set _anchorCount(int value) =>
@@ -328,7 +326,6 @@ class HTInterpreter {
     bool isConstructorCall = false,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const [],
   }) {
     dynamic handleClassConstructor(dynamic callee) {
       late HTClass klass;
@@ -352,7 +349,6 @@ class HTInterpreter {
         return constructor.call(
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
-          typeArgs: typeArgs,
         );
       } else {
         throw HTError.notCallable(klass.id!,
@@ -367,7 +363,7 @@ class HTInterpreter {
         return callee.declaration!.createObject(
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
-          typeArgs: typeArgs,
+          // typeArgs: typeArgs,
         );
       } else {
         throw HTError.notNewable(_lexicon.stringify(callee),
@@ -377,9 +373,10 @@ class HTInterpreter {
       // calle is a script function
       if (callee is HTFunction) {
         return callee.call(
-            positionalArgs: positionalArgs,
-            namedArgs: namedArgs,
-            typeArgs: typeArgs);
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          // typeArgs: typeArgs,
+        );
       }
       // calle is a dart function
       else if (callee is Function) {
@@ -403,7 +400,7 @@ class HTInterpreter {
         return callee.declaration!.createObject(
           positionalArgs: positionalArgs,
           namedArgs: namedArgs,
-          typeArgs: typeArgs,
+          // typeArgs: typeArgs,
         );
       } else {
         throw HTError.notCallable(
@@ -517,7 +514,7 @@ class HTInterpreter {
     bool isConstructor = false,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const [],
+    // List<HTType> typeArgs = const [],
   }) {
     try {
       stackTraceList.clear();
@@ -545,7 +542,7 @@ class HTInterpreter {
         callee,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
-        typeArgs: typeArgs,
+        // typeArgs: typeArgs,
       );
       if (_currentBytecodeModule.id != savedModuleName) {
         _currentBytecodeModule = cachedModules[savedModuleName]!;
@@ -560,73 +557,95 @@ class HTInterpreter {
     }
   }
 
-  final externFunctions = <String, Function>{};
-  final externFunctionTypedefs = <String, HTExternalFunctionTypedef>{};
-  final externClasses = <String, HTExternalClass>{};
-  final externTypeReflection = <HTExternalTypeReflection>[];
+  final externalFunctions = <String, Function>{};
+  final externalMethods = <String, Function>{};
+  final externalFunctionTypedefs = <String, HTExternalFunctionTypedef>{};
+  final externalClasses = <String, HTExternalClass>{};
+  final externalTypeReflection = <HTExternalTypeReflection>[];
 
   /// Wether the interpreter has a certain external class binding.
-  bool containsExternalClass(String id) => externClasses.containsKey(id);
+  bool containsExternalClass(String id) => externalClasses.containsKey(id);
 
   /// Register a external class into scrfipt.
   /// For acessing static members and constructors of this class,
   /// there must also be a declaraction in script
   void bindExternalClass(HTExternalClass externalClass,
       {bool override = false}) {
-    if (externClasses.containsKey(externalClass.id) && !override) {
+    if (externalClasses.containsKey(externalClass.id) && !override) {
       throw HTError.defined(externalClass.id, ErrorType.runtimeError);
     }
-    externClasses[externalClass.id] = externalClass;
+    externalClasses[externalClass.id] = externalClass;
   }
 
   /// Fetch a external class instance
   HTExternalClass fetchExternalClass(String id) {
-    if (!externClasses.containsKey(id)) {
+    if (!externalClasses.containsKey(id)) {
       throw HTError.undefinedExternal(id);
     }
-    return externClasses[id]!;
+    return externalClasses[id]!;
   }
 
   /// Bind an external class name to a abstract class name
   /// for interpreter getting dart class name by reflection
   void bindExternalReflection(HTExternalTypeReflection reflection) {
-    externTypeReflection.add(reflection);
+    externalTypeReflection.add(reflection);
   }
 
   /// Register an external function into script
-  /// include external function within non-external class & struct & namespace
   /// there must be a declaraction also in script for using this
   void bindExternalFunction(String id, Function function,
       {bool override = true}) {
-    if (externFunctions.containsKey(id) && !override) {
+    if (externalFunctions.containsKey(id) && !override) {
       throw HTError.defined(id, ErrorType.runtimeError);
     }
-    externFunctions[id] = function;
+    externalFunctions[id] = function;
   }
 
-  /// Fetch an external function
-  Function fetchExternalFunction(String id) {
-    if (!externFunctions.containsKey(id)) {
+  /// Fetch an external function or a method
+  Function fetchExternalFunctionOrMethod(String id) {
+    if (id.contains('::')) {
+      return fetchExternalMethod(id);
+    }
+
+    if (!externalFunctions.containsKey(id)) {
       throw HTError.undefinedExternal(id);
     }
-    return externFunctions[id]!;
+    return externalFunctions[id]!;
+  }
+
+  /// Register an external function within non-external class & struct & namespace
+  /// there must be a declaraction also in script for using this
+  void bindExternalMethod(String id, Function method, {bool override = true}) {
+    assert(id.contains('::'));
+    if (externalMethods.containsKey(id) && !override) {
+      throw HTError.defined(id, ErrorType.runtimeError);
+    }
+    externalMethods[id] = method;
+  }
+
+  /// Fetch an external method
+  Function fetchExternalMethod(String id) {
+    if (!externalMethods.containsKey(id)) {
+      throw HTError.undefinedExternal(id);
+    }
+    return externalMethods[id]!;
   }
 
   /// Register a external function typedef into scrfipt
   void bindExternalFunctionType(String id, HTExternalFunctionTypedef function,
       {bool override = true}) {
-    if (externFunctionTypedefs.containsKey(id) && !override) {
+    if (externalFunctionTypedefs.containsKey(id) && !override) {
       throw HTError.defined(id, ErrorType.runtimeError);
     }
-    externFunctionTypedefs[id] = function;
+    externalFunctionTypedefs[id] = function;
   }
 
   /// Using unwrapper to turn a script function into a external function
   Function unwrapExternalFunctionType(HTFunction func) {
-    if (!externFunctionTypedefs.containsKey(func.externalTypeId)) {
+    if (!externalFunctionTypedefs.containsKey(func.externalTypeId)) {
       throw HTError.undefinedExternal(func.externalTypeId!);
     }
-    final unwrapFunc = externFunctionTypedefs[func.externalTypeId]!;
+    final unwrapFunc = externalFunctionTypedefs[func.externalTypeId]!;
     return unwrapFunc(func);
   }
 
@@ -644,8 +663,8 @@ class HTInterpreter {
     return _lexicon.stringify(object);
   }
 
-  /// Get a object's type at runtime.
-  HTType typeof(dynamic object) {
+  /// Get a object's type value at runtime.
+  HTType typeValueOf(dynamic object) {
     final encap = encapsulate(object);
     HTType type;
     if (encap == HTObject.nullValue) {
@@ -682,13 +701,13 @@ class HTInterpreter {
     }
     late String typeString;
     if (object is bool) {
-      typeString = _lexicon.kBoolean;
+      typeString = _lexicon.idBoolean;
     } else if (object is int) {
-      typeString = _lexicon.kInteger;
+      typeString = _lexicon.idInteger;
     } else if (object is double) {
-      typeString = _lexicon.kFloat;
+      typeString = _lexicon.idFloat;
     } else if (object is String) {
-      typeString = _lexicon.kString;
+      typeString = _lexicon.idString;
     } else if (object is List) {
       typeString = 'List';
       // var valueType = HTType.ANY;
@@ -738,7 +757,7 @@ class HTInterpreter {
       typeString = 'Random';
     } else {
       var reflected = false;
-      for (final reflect in externTypeReflection) {
+      for (final reflect in externalTypeReflection) {
         final result = reflect(object);
         if (result != null) {
           reflected = true;
@@ -764,8 +783,8 @@ class HTInterpreter {
       }
       return list;
     } else if (value is Map) {
-      final HTStruct prototype = rootStruct ??
-          globalNamespace.memberGet(_lexicon.globalPrototypeId,
+      final HTStruct prototype = structRoot ??
+          globalNamespace.memberGet(_lexicon.idGlobalPrototype,
               isRecursive: true);
       final struct =
           HTStruct(this, prototype: prototype, closure: currentNamespace);
@@ -782,9 +801,9 @@ class HTInterpreter {
     }
   }
 
-  HTStruct createStructfromJson(Map<dynamic, dynamic> jsonData) {
-    final HTStruct prototype = rootStruct ??
-        globalNamespace.memberGet(_lexicon.globalPrototypeId,
+  HTStruct createStructfromJSON(Map<dynamic, dynamic> jsonData) {
+    final HTStruct prototype = structRoot ??
+        globalNamespace.memberGet(_lexicon.idGlobalPrototype,
             isRecursive: true);
     final struct =
         HTStruct(this, prototype: prototype, closure: currentNamespace);
@@ -875,23 +894,22 @@ class HTInterpreter {
     String? invoke,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const [],
+    // List<HTType> typeArgs = const [],
   }) {
     try {
       _globallyImport = globallyImport;
 
-      tik = DateTime.now().millisecondsSinceEpoch;
       if (cachedModules.containsKey(module)) {
         _currentBytecodeModule = cachedModules[module]!;
       } else {
         _currentBytecodeModule = HTBytecodeModule(id: module, bytes: bytes);
         cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       }
+      _currentBytecodeModule.timestamp = DateTime.now().millisecondsSinceEpoch;
       _currentBytecodeModule.ip = 0;
       _currentBytecodeModule.invoke = invoke;
       _currentBytecodeModule.positionalArgs = positionalArgs;
       _currentBytecodeModule.namedArgs = namedArgs;
-      _currentBytecodeModule.typeArgs = typeArgs;
 
       final signature = _currentBytecodeModule.readUint32();
       if (signature != HTCompiler.hetuSignature) {
@@ -1077,7 +1095,7 @@ class HTInterpreter {
   void _clearLocals() {
     _localValue = null;
     _localSymbol = null;
-    _localTypeArgs = [];
+    // _localTypeArgs = [];
   }
 
   dynamic _execute(
@@ -1229,9 +1247,8 @@ class HTInterpreter {
           //   }
           // }
           if (config.printPerformanceStatistics) {
-            final tok = DateTime.now().millisecondsSinceEpoch;
             var message =
-                'hetu: ${tok - tik}ms\tto load module\t${_currentBytecodeModule.id}';
+                'hetu: ${DateTime.now().millisecondsSinceEpoch - currentBytecodeModule.timestamp}ms\tto load module\t${_currentBytecodeModule.id}';
             if (_currentBytecodeModule.version != null) {
               message += '@${_currentBytecodeModule.version}';
             }
@@ -1249,7 +1266,6 @@ class HTInterpreter {
               // module: scriptMode ? null : _currentBytecodeModule.id,
               positionalArgs: _currentBytecodeModule.positionalArgs,
               namedArgs: _currentBytecodeModule.namedArgs,
-              typeArgs: _currentBytecodeModule.typeArgs,
             );
             return r;
           } else if (_scriptMode) {
@@ -1681,8 +1697,8 @@ class HTInterpreter {
         case OpCode.logicalNot:
           final truthValue = _truthy(_localValue);
           _localValue = !truthValue;
-        case OpCode.typeOf:
-          _localValue = typeof(_localValue);
+        case OpCode.typeValueOf:
+          _localValue = typeValueOf(_localValue);
         case OpCode.decltypeOf:
           final symbol = localSymbol;
           assert(symbol != null);
@@ -2050,7 +2066,7 @@ class HTInterpreter {
         final struct = HTStruct(this,
             id: id,
             prototype: prototype,
-            isRootPrototype: id == _lexicon.globalPrototypeId,
+            isPrototypeRoot: id == _lexicon.idGlobalPrototype,
             closure: currentNamespace);
         final fieldsCount = _currentBytecodeModule.read();
         for (var i = 0; i < fieldsCount; ++i) {
@@ -2066,7 +2082,7 @@ class HTInterpreter {
           } else {
             final key = _currentBytecodeModule.getConstString();
             final value = execute();
-            struct.memberSet(key, value, recursive: false);
+            struct.memberSet(key, value);
           }
         }
         // _curNamespace = savedCurNamespace;
@@ -2264,14 +2280,14 @@ class HTInterpreter {
       // final arg = execute(moveRegIndex: true);
       namedArgs[name] = arg;
     }
-    final typeArgs = _localTypeArgs;
+    // final typeArgs = _localTypeArgs;
 
     _localValue = _call(
       callee,
       isConstructorCall: hasNewOperator,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
-      typeArgs: typeArgs,
+      // typeArgs: typeArgs,
     );
   }
 
@@ -2692,11 +2708,12 @@ class HTInterpreter {
     if (hasSuperClass) {
       superType = _handleTypeExpr();
     } else {
-      if (!isExternal && (id != _lexicon.globalObjectId)) {
-        final HTClass object = rootClass ??
-            globalNamespace.memberGet(_lexicon.globalObjectId,
-                isRecursive: true);
-        superType = HTNominalType(klass: object);
+      if (!isExternal && (id != _lexicon.idGlobalObject)) {
+        assert(classRoot != null);
+        // final HTClass object = classRoot ??
+        // globalNamespace.memberGet(_lexicon.idGlobalObject,
+        //         isRecursive: true);
+        superType = HTNominalType(klass: classRoot);
       }
     }
     final isEnum = _currentBytecodeModule.readBool();
@@ -2714,6 +2731,10 @@ class HTInterpreter {
     );
     currentNamespace.define(id, klass);
     currentNamespace = klass.namespace;
+
+    if (id == _lexicon.idGlobalObject) {
+      classRoot = klass;
+    }
   }
 
   void _handleExternalEnumDecl() {
@@ -2749,8 +2770,8 @@ class HTInterpreter {
     final hasPrototypeId = _currentBytecodeModule.readBool();
     if (hasPrototypeId) {
       prototypeId = _currentBytecodeModule.getConstString();
-    } else if (id != _lexicon.globalPrototypeId) {
-      prototypeId = _lexicon.globalPrototypeId;
+    } else if (id != _lexicon.idGlobalPrototype) {
+      prototypeId = _lexicon.idGlobalPrototype;
     }
     final mixinIdsLength = _currentBytecodeModule.read();
     List<String> mixinIds = [];

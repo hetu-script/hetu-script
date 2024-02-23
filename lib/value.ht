@@ -1,15 +1,15 @@
 /// Most of the apis here are named based on Dart SDK's Classes:
-/// [num], [int], [double], [bool], [String], [List] and [Map]
+/// [number], [integer], [double], [bool], [String], [List] and [Map]
 
 /// There are some original methods, like List.random, etc...
 
-external abstract class num {
+external abstract class number {
 
-  function toPercentageString([fractionDigits: int = 0]) -> str
+  function toPercentageString([fractionDigits: integer = 0]) -> string
 
-  function compareTo(compareTo: num) -> int
+  function compareTo(compareTo: number) -> integer
 
-  function remainder(other: num) -> num
+  function remainder(other: number) -> number
 
   get isNaN -> bool
 
@@ -20,23 +20,23 @@ external abstract class num {
   get isFinite -> bool
 
   /// Returns the absolute value of this integer.
-  function abs() -> int
+  function abs() -> integer
 
   /// Returns the sign of this integer.
-  get sign -> int
+  get sign -> integer
 
   /// Returns the integer closest to this number.
-  function round() -> int
+  function round() -> integer
 
   /// Returns the greatest integer no greater than this number.
-  function floor() -> int
+  function floor() -> integer
 
   /// Returns the least integer which is not smaller than this number.
-  function ceil() -> int
+  function ceil() -> integer
 
   /// Returns the integer obtained by discarding any fractional
   /// part of this number.
-  function truncate() -> int
+  function truncate() -> integer
 
   /// Returns the integer double value closest to `this`.
   function roundToDouble() -> float
@@ -51,34 +51,34 @@ external abstract class num {
   /// digits from `this`.
   function truncateToDouble() -> float
 
-  function toInt() -> int
+  function toInt() -> integer
 
   function toDouble() -> float
 
-  function toStringAsFixed(fractionDigits: int) -> str
+  function toStringAsFixed(fractionDigits: integer) -> string
 
-  function toStringAsExponential([fractionDigits: int]) -> str
+  function toStringAsExponential([fractionDigits: integer]) -> string
 
-  function toStringAsPrecision(precision: int) -> str
+  function toStringAsPrecision(precision: integer) -> string
   
-  function toString() -> str
+  function toString() -> string
 }
 
-external class int extends num {
+external class integer extends number {
   
   /// Parse [source] as a, possibly signed, integer literal.
-  static function parse(source: str, {radix: int?}) -> int
+  static function parse(source: string, {radix: integer?}) -> integer
 
-  function clamp(lowerLimit: num, upperLimit: num) -> num
+  function clamp(lowerLimit: number, upperLimit: number) -> number
 	
   /// Returns this integer to the power of [exponent] modulo [modulus].
-  function modPow(exponent: int, modulus: int) -> int
+  function modPow(exponent: integer, modulus: integer) -> integer
 
   /// Returns the modular multiplicative inverse of this integer
-  function modInverse(modulus: int) -> int
+  function modInverse(modulus: integer) -> integer
 
   /// Returns the greatest common divisor of this integer and [other].
-  function gcd(other: int) -> int
+  function gcd(other: integer) -> integer
 
   /// Returns true if and only if this integer is even.
   get isEven -> bool
@@ -87,21 +87,21 @@ external class int extends num {
   get isOdd -> bool
 
   /// Returns the minimum number of bits required to store this integer.
-  get bitLength -> int
+  get bitLength -> integer
 	
   /// Returns the least significant [width] bits of this integer as a
   /// non-negative number (i.e. unsigned representation).  The returned value has
   /// zeros in all bit positions higher than [width].
-  function toUnsigned(width: int) -> int
+  function toUnsigned(width: integer) -> integer
 	
   /// Returns the least significant [width] bits of this integer, extending the
   /// highest retained bit to the sign.  This is the same as truncating the value
   /// to fit in [width] bits using an signed 2-s complement representation.  The
   /// returned value has the same bit value in all positions higher than [width].
-  function toSigned(width: int) -> int
+  function toSigned(width: integer) -> integer
 
   /// Converts [this] to a string representation in the given [radix].
-  function toRadixString(radix: int) -> str
+  function toRadixString(radix: integer) -> string
 }
 
 /// An arbitrarily large integer.
@@ -112,10 +112,10 @@ external class BigInt {
 
   /// Parses [source] as a, possibly signed, integer literal and returns its
   /// value.
-  static function parse(source: str, {radix: int}) -> BigInt
+  static function parse(source: string, {radix: integer}) -> BigInt
 
   /// Allocates a big integer from the provided [value] number.
-  static function from(value: num) -> BigInt
+  static function from(value: number) -> BigInt
 
   /// Returns the absolute value of this integer.
   function abs() -> BigInt
@@ -124,13 +124,13 @@ external class BigInt {
   function remainder(other: BigInt)
 
   /// Compares this to `other`.
-  function compareTo(other: BigInt) -> int
+  function compareTo(other: BigInt) -> integer
 
   /// Returns the minimum number of bits required to store this big integer.
-  get bitLength -> int
+  get bitLength -> integer
 
   /// Returns the sign of this big integer.
-  get sign -> int
+  get sign -> integer
 
   /// Whether this big integer is even.
   get isEven -> bool
@@ -142,7 +142,7 @@ external class BigInt {
   get isNegative -> bool
 
   /// Returns `this` to the power of [exponent].
-  function pow(exponent: int) -> BigInt
+  function pow(exponent: integer) -> BigInt
 
   /// Returns this integer to the power of [exponent] modulo [modulus].
   function modPow(exponent: BigInt, modulus: BigInt) -> BigInt
@@ -157,20 +157,20 @@ external class BigInt {
   /// Returns the least significant [width] bits of this big integer as a
   /// non-negative number (i.e. unsigned representation).  The returned value has
   /// zeros in all bit positions higher than [width].
-  function toUnsigned(width: int) -> BigInt
+  function toUnsigned(width: integer) -> BigInt
 
   /// Returns the least significant [width] bits of this integer, extending the
   /// highest retained bit to the sign.  This is the same as truncating the value
   /// to fit in [width] bits using an signed 2-s complement representation.  The
   /// returned value has the same bit value in all positions higher than [width].
-  function toSigned(width: int) -> BigInt
+  function toSigned(width: integer) -> BigInt
 
-  /// Whether this big integer can be represented as an `int` without losing
+  /// Whether this big integer can be represented as an `integer` without losing
   /// precision.
   get isValidInt -> bool
 
-  /// Returns this [BigInt] as an [int].
-  function toInt() -> int
+  /// Returns this [BigInt] as an [integer].
+  function toInt() -> integer
 
   /// Returns this [BigInt] as a [double].
   ///
@@ -180,34 +180,34 @@ external class BigInt {
   function toDouble() -> float
 
   /// Returns a String-representation of this integer.
-  function toString() -> str
+  function toString() -> string
 
   /// Converts [this] to a string representation in the given [radix].
-  function toRadixString(radix: int) -> String
+  function toRadixString(radix: integer) -> String
 }
 
-external class float extends num {
+external class float extends number {
   
-  function toDoubleAsFixed(digits: int) -> float
+  function toDoubleAsFixed(digits: integer) -> float
 
-  function toString() -> str
+  function toString() -> string
 
-  function compareTo(compareTo: num) -> int
+  function compareTo(compareTo: number) -> integer
 
-  function remainder(other: num) -> num
+  function remainder(other: number) -> number
 
   /// Returns the integer closest to this number.
-  function round() -> int
+  function round() -> integer
 
   /// Returns the greatest integer no greater than this number.
-  function floor() -> int
+  function floor() -> integer
 
   /// Returns the least integer which is not smaller than this number.
-  function ceil() -> int
+  function ceil() -> integer
 
   /// Returns the integer obtained by discarding any fractional
   /// part of this number.
-  function truncate() -> int
+  function truncate() -> integer
 
   /// Returns the integer double value closest to `this`.
   function roundToDouble() -> float
@@ -230,13 +230,13 @@ external class float extends num {
 
   get isFinite -> bool
 
-  function clamp(lowerLimit: num, upperLimit: num) -> num
+  function clamp(lowerLimit: number, upperLimit: number) -> number
 
-  function toStringAsFixed(fractionDigits: int) -> str
+  function toStringAsFixed(fractionDigits: integer) -> string
 
-  function toStringAsExponential([fractionDigits: int]) -> str
+  function toStringAsExponential([fractionDigits: integer]) -> string
 
-  function toStringAsPrecision(precision: int) -> str
+  function toStringAsPrecision(precision: integer) -> string
   
   static get nan -> float;
   static get infinity -> float;
@@ -244,7 +244,7 @@ external class float extends num {
   static get minPositive -> float;
   static get maxFinite -> float;
 	
-	static function parse(value: str) -> float
+	static function parse(value: string) -> float
   
   /// Returns the absolute value of this number.
   function abs() -> float
@@ -255,62 +255,62 @@ external class float extends num {
 
 external class bool {
 
-  function toString() -> str
+  function toString() -> string
 
-	static function parse(value: str) -> bool
+	static function parse(value: string) -> bool
 }
 
-external class str {
+external class string {
 
   get characters -> Iterable
 
-  function toString() -> str
+  function toString() -> string
 
-	static function parse(value) -> str
+	static function parse(value) -> string
 
-  function compareTo(index: str) -> int
+  function compareTo(index: string) -> integer
 
-  function codeUnitAt(index: int) -> int
+  function codeUnitAt(index: integer) -> integer
 
-  get length -> int
+  get length -> integer
 
-	function endsWith(other: str) -> bool
+	function endsWith(other: string) -> bool
 
-	function startsWith(pattern: str, [index: num = 0]) -> bool
+	function startsWith(pattern: string, [index: number = 0]) -> bool
 
-	function indexOf(pattern: str, [start: num = 0]) -> num
+	function indexOf(pattern: string, [start: number = 0]) -> number
 
-	function lastIndexOf(pattern, [start: num?]) -> num
+	function lastIndexOf(pattern, [start: number?]) -> number
 
 	get isEmpty -> bool
 
 	get isNotEmpty -> bool
 
-	function substring(startIndex: num, [endIndex: num?]) -> str
+	function substring(startIndex: number, [endIndex: number?]) -> string
 
-	function trim() -> str
+	function trim() -> string
 
-	function trimLeft() -> str
+	function trimLeft() -> string
 
-	function trimRight() -> str
+	function trimRight() -> string
 
-	function padLeft(width: num, [padding: str = ' ']) -> str
+	function padLeft(width: number, [padding: string = ' ']) -> string
 
-	function padRight(width: num, [padding: str = ' ']) -> str
+	function padRight(width: number, [padding: string = ' ']) -> string
 
-	function contains(other: str, [startIndex: num = 0]) -> bool
+	function contains(other: string, [startIndex: number = 0]) -> bool
 
-	function replaceFirst(from: str, to: str, [startIndex: num = 0]) -> str
+	function replaceFirst(from: string, to: string, [startIndex: number = 0]) -> string
 
-	function replaceAll(from: str, replace: str) -> str
+	function replaceAll(from: string, replace: string) -> string
 
-	function replaceRange(start: num, end: num, replacement: str) -> str
+	function replaceRange(start: number, end: number, replacement: string) -> string
 
 	function split(pattern) -> List
 
-	function toLowerCase() -> str
+	function toLowerCase() -> string
 
-	function toUpperCase() -> str
+	function toUpperCase() -> string
 }
 
 external class Iterator {
@@ -350,24 +350,24 @@ external class Iterable {
   /// Checks whether every element of this iterable satisfies [test].
   function every(test: (any) -> bool) -> bool
 
-	function join(separator: str) -> str
+	function join(separator: string) -> string
 
   /// Checks whether any element of this iterable satisfies [test].
   function any(test: (any) -> bool) -> bool
 
   function toList() -> List
 
-	get length -> int
+	get length -> integer
 
 	get isEmpty -> bool
 
 	get isNotEmpty -> bool
 
-  function take(count: int) -> Iterable
+  function take(count: integer) -> Iterable
 
   function takeWhile(test: (any) -> bool) -> Iterable
 
-  function skip(count: int) -> Iterable
+  function skip(count: integer) -> Iterable
 
   function skipWhile(test: (any) -> bool) -> Iterable
 
@@ -386,9 +386,9 @@ external class Iterable {
   /// Returns the single element that satisfies [test].
   function singleWhere(test: (any) -> bool, {orElse: () -> any}) -> any
 
-	function elementAt(index: int) -> any
+	function elementAt(index: integer) -> any
 
-  function toString() -> str
+  function toString() -> string
 }
 
 external class List extends Iterable {
@@ -401,37 +401,37 @@ external class List extends Iterable {
 
   get reversed -> Iterable
 
-	function indexOf(value: any, [start: int = 0]) -> int
+	function indexOf(value: any, [start: integer = 0]) -> integer
 
-	function lastIndexOf(value: any, [start: int?]) -> int
+	function lastIndexOf(value: any, [start: integer?]) -> integer
 
-	function insert(index: int, value)
+	function insert(index: integer, value)
 
-	function insertAll(index: int, iterable)
+	function insertAll(index: integer, iterable)
 
 	function clear()
 
 	function remove(value: any)
 
-	function removeAt(index: int)
+	function removeAt(index: integer)
 
 	function removeLast()
 
-  function sublist(start: int, [end: int?]) -> List
+  function sublist(start: integer, [end: integer?]) -> List
 
   function asMap() -> Map
   
   /// Sorts this list according to the order specified by the [compare] function.
-  function sort([compare: (any, any) -> int])
+  function sort([compare: (any, any) -> integer])
 
   /// Shuffles the elements of this list randomly.
   function shuffle()
   
   /// The first index in the list that satisfies the provided [test].
-  function indexWhere(test: (any) -> bool, [start: int = 0]) -> int
+  function indexWhere(test: (any) -> bool, [start: integer = 0]) -> integer
 
   /// The last index in the list that satisfies the provided [test].
-  function lastIndexWhere(test: (any) -> bool, [start: int?]) -> int
+  function lastIndexWhere(test: (any) -> bool, [start: integer?]) -> integer
 
   /// Removes all objects from this list that satisfy [test].
   function removeWhere(test: (any) -> bool)
@@ -440,19 +440,19 @@ external class List extends Iterable {
   function retainWhere(test: (any) -> bool)
 
   /// Creates an [Iterable] that iterates over a range of elements.
-  function getRange(start: int, end: int) -> List
+  function getRange(start: integer, end: integer) -> List
   
   /// Writes some elements of [iterable] into a range of this list.
-  function setRange(start: int, end: int, list: List, [skipCount: int = 0])
+  function setRange(start: integer, end: integer, list: List, [skipCount: integer = 0])
 
   /// Removes a range of elements from the list.
-  function removeRange(start: int, end: int)
+  function removeRange(start: integer, end: integer)
 
   /// Overwrites a range of elements with [fillValue].
-  function fillRange(start: int, end: int, [fillValue: any])
+  function fillRange(start: integer, end: integer, [fillValue: any])
 
   /// Replaces a range of elements with the elements of [replacements].
-  function replaceRange(start: int, end: int, replacements: List)
+  function replaceRange(start: integer, end: integer, replacements: List)
 
   /// Return a deep copy of this List.
   function clone()
@@ -495,9 +495,9 @@ external class Map {
 
   constructor
 
-  function toString() -> str
+  function toString() -> string
 
-	get length -> num
+	get length -> number
 
 	get isEmpty -> bool
 

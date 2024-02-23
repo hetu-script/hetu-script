@@ -5,7 +5,7 @@
 函数声明的每一个部分都可能省略。如果省略了参数列表，则连参数列表的空括号也可以不用写。
 
 ```typescript
-function doubleIt(n: num) -> num {
+function doubleIt(n: number) -> number {
   return n * 2
 }
 

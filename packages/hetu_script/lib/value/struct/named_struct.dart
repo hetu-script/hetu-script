@@ -6,7 +6,7 @@ import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
 import '../function/function.dart';
-import '../../type/type.dart';
+// import '../../type/type.dart';
 import '../../common/internal_identifier.dart';
 
 /// Unlike class and function, the declaration of a struct is a value
@@ -47,7 +47,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
   HTStruct createObject({
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const [],
+    // List<HTType> typeArgs = const [],
   }) {
     if (!isResolved) {
       throw HTError.unresolvedNamedStruct(id!);
@@ -58,7 +58,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
       return constructor.call(
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
-        typeArgs: typeArgs,
+        // typeArgs: typeArgs,
       );
     } else {
       return _self!.clone();
@@ -80,9 +80,9 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
       if (prototypeId != null) {
         static.prototype = closure!.memberGet(prototypeId!,
             from: closure!.fullName, isRecursive: true);
-      } else if (id != interpreter.lexicon.globalPrototypeId) {
+      } else if (id != interpreter.lexicon.idGlobalPrototype) {
         static.prototype = interpreter.globalNamespace
-            .memberGet(interpreter.lexicon.globalPrototypeId);
+            .memberGet(interpreter.lexicon.idGlobalPrototype);
       }
     }
     _self = interpreter.execute(

@@ -19,15 +19,15 @@ var worker = 'worker'
 var soldier = 'soldier'
 
 class Char {
-  var age: num // 这个人的年龄以天数为单位，实际使用要除以每月30天*每年12个月，才是年龄
-  var job: str
+  var age: number // 这个人的年龄以天数为单位，实际使用要除以每月30天*每年12个月，才是年龄
+  var job: string
   var professions: List
 
-  get ageByYear -> num {
+  get ageByYear -> number {
     return age / (12 * 30).truncate()
   }
 
-  constructor (professions: List, [age: num]) {
+  constructor (professions: List, [age: number]) {
     this.professions = professions
     if (age != null)
       this.age = age
@@ -39,10 +39,10 @@ class Char {
 class Organization {
   var population = []
 
-  // <String, num>每个职业对应的人口数量
+  // <String, number>每个职业对应的人口数量
   var profStats = {}
 
-  // <String, num>每个年龄段对应的人口数量：
+  // <String, number>每个年龄段对应的人口数量：
   var ageStats = {
     child: 0,
     young: 0,

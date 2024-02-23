@@ -1,8 +1,0 @@
-external class OS {
-
-  static get now -> num
-
-  // static function tik()
-
-  // static function tok()
-}

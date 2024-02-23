@@ -29,11 +29,11 @@ abstract class ChangeNotifier {
 class Listenable extends ChangeNotifier {
   var _name = 'Jeff'
   
-  get name -> str {
+  get name -> string {
     return _name
   }
   
-  set name(new_name: str) {
+  set name(new_name: string) {
     //This is a workaround to double set calls
     //if (_name != new_name) {
       _name = new_name

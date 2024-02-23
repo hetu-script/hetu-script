@@ -72,7 +72,7 @@ ${
       final result = hetu.eval(r'''
         var list = [5, 6]
         var ht = [1, 2, ...[3, 4], ...list]
-        stringify(ht)
+        JSON.stringify(ht)
       ''');
       expect(
         result,

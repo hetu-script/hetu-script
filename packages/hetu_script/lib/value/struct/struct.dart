@@ -2,16 +2,18 @@ import '../struct/named_struct.dart';
 import '../variable/variable.dart';
 import '../object.dart';
 import '../function/function.dart';
-import '../../value/namespace/namespace.dart';
+// import '../../value/namespace/namespace.dart';
 // import '../../shared/stringify.dart' as util;
 import '../../utils/jsonify.dart' as util;
 import '../../type/type.dart';
 import '../../type/structural.dart';
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
-import '../../declaration/declaration.dart';
+// import '../../declaration/declaration.dart';
 import '../../common/internal_identifier.dart';
 import '../../common/function_category.dart';
+import '../../value/namespace/namespace.dart';
+import '../../declaration/declaration.dart';
 
 /// A prototype based dynamic object.
 /// You can define and delete members in runtime.
@@ -28,7 +30,7 @@ class HTStruct with HTObject {
 
   HTStruct? prototype;
 
-  final bool isRootPrototype;
+  final bool isPrototypeRoot;
 
   HTNamedStruct? declaration;
 
@@ -53,7 +55,7 @@ class HTStruct with HTObject {
   HTStruct(this.interpreter,
       {String? id,
       this.prototype,
-      this.isRootPrototype = false,
+      this.isPrototypeRoot = false,
       Map<String, dynamic>? fields,
       this.closure})
       : id = id ??
@@ -145,10 +147,8 @@ class HTStruct with HTObject {
 
   /// Whether there is at least one key/value pair in the map.
   bool get isNotEmpty => _fields.isNotEmpty;
-
-  /// [isSelf] means wether this is called by the struct itself, or a recursive one
   @override
-  dynamic memberGet(dynamic id, {String? from, bool isRecursivelyGet = false}) {
+  dynamic memberGet(dynamic id, {String? from, HTStruct? caller}) {
     if (id == null) {
       return null;
     }
@@ -172,29 +172,37 @@ class HTStruct with HTObject {
         throw HTError.privateMember(id);
       }
       value = _fields[id];
+      if (caller?.prototype != this &&
+          (value is HTFunction && value.isStatic)) {
+        value = null;
+      }
     } else if (_fields.containsKey(getter)) {
       if (interpreter.lexicon.isPrivate(id) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(id);
       }
-      value = _fields[getter]!;
+      value = _fields[getter];
+      if (caller?.prototype != this &&
+          (value is HTFunction && value.isStatic)) {
+        value = null;
+      }
     } else if (_fields.containsKey(constructor)) {
       if (interpreter.lexicon.isPrivate(id) &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(id);
       }
-      value = _fields[constructor]!;
+      value = _fields[constructor];
     } else if (prototype != null) {
-      value = prototype!.memberGet(id, from: from, isRecursivelyGet: true);
+      value = prototype!.memberGet(id, from: from, caller: caller ?? this);
     }
 
     if (value is HTDeclaration) {
       value.resolve();
     }
     // assign the original struct as instance, not the prototype object
-    if (!isRecursivelyGet) {
+    if (caller == null) {
       if (value is HTFunction) {
         value.namespace = namespace;
         value.instance = this;
@@ -208,7 +216,7 @@ class HTStruct with HTObject {
 
   @override
   bool memberSet(dynamic id, dynamic value,
-      {String? from, bool defineIfAbsent = true, bool recursive = true}) {
+      {String? from, bool defineIfAbsent = true}) {
     if (id == null) {
       throw HTError.nullSubSetKey();
     }
@@ -238,18 +246,19 @@ class HTStruct with HTObject {
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(id);
       }
-      HTFunction func = _fields[setter]!;
+      HTFunction func = _fields[setter] as HTFunction;
       func.namespace = namespace;
       func.instance = this;
       func.call(positionalArgs: [value]);
       return true;
-    } else if (recursive && prototype != null) {
-      final success =
-          prototype!.memberSet(id, value, from: from, defineIfAbsent: false);
-      if (success) {
-        return true;
-      }
     }
+    // else if (recursive && prototype != null) {
+    //   final success =
+    //       prototype!.memberSet(id, value, from: from, defineIfAbsent: false);
+    //   if (success) {
+    //     return true;
+    //   }
+    // }
     if (defineIfAbsent) {
       _fields[id] = value;
       return true;

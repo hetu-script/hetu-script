@@ -1,8 +1,0 @@
-external class Hash {
-  
-  static function uid4([repeat: int?]) -> str
-
-  static function crcString(data: str, [crc: str = 0]) -> str
-
-  static function crcInt(data: str, [crc: str = 0]) -> int
-}

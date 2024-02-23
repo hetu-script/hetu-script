@@ -1,6 +1,6 @@
 # 河图中提供的 API
 
-河图中的一些基础类型本身是 Dart 类型，同时也默认绑定了大多数 Dart 中的 api。例如下面这些类型和其对象都可以在脚本中直接使用：**num**, **int**, **double**, **bool**, **String**, **List**, **Set**, **Map**。
+河图中的一些基础类型本身是 Dart 类型，同时也默认绑定了大多数 Dart 中的 api。例如下面这些类型和其对象都可以在脚本中直接使用：**number**, **int**, **double**, **bool**, **String**, **List**, **Set**, **Map**。
 
 例如，我们可以在脚本中使用 dart 中的列表上提供的 map 接口：
 
@@ -19,7 +19,7 @@ external function stringify(obj: any)
 
 external function jsonify(obj)
 
-external function range(startOrStop: num, [stop: num, step: num]) -> Iterable
+external function range(startOrStop: number, [stop: number, step: number]) -> Iterable
 ```
 
 ### eval()
@@ -66,11 +66,11 @@ struct Prototype {
   external get values -> List
 
   /// Check if this struct has a key in its own fields.
-  external function containsKey(key: str) -> bool
+  external function containsKey(key: string) -> bool
 
   /// Check if this struct has a key
   /// in its own fields or its prototypes' fields.
-  external function contains(key: str) -> bool
+  external function contains(key: string) -> bool
 
   /// Check if this struct is empty.
 	external get isEmpty -> bool
@@ -88,7 +88,7 @@ struct Prototype {
   /// Create dart Json data from this struct
   function toJson() -> Map => jsonify(this)
 
-  function toString() -> str => stringify(this)
+  function toString() -> string => stringify(this)
 }
 ````
 
@@ -123,9 +123,9 @@ external class Random {
 
   function nextDouble() -> float
 
-  function nextColorHex({hasAlpha: bool = false}) -> str
+  function nextColorHex({hasAlpha: bool = false}) -> string
 
-  function nextBrightColorHex({hasAlpha: bool = false}) -> str
+  function nextBrightColorHex({hasAlpha: bool = false}) -> string
 
   function nextIterable(list: Iterable) -> any
 
@@ -160,25 +160,25 @@ external class Math {
   /// If one of them is null, return the other value.
   static function max(a, b)
 
-  static function sqrt(x: num) -> num
+  static function sqrt(x: number) -> number
 
-  static function pow(x: num, exponent: num) -> num
+  static function pow(x: number, exponent: number) -> number
 
-  static function sin(x: num) -> num
+  static function sin(x: number) -> number
 
-  static function cos(x: num) -> num
+  static function cos(x: number) -> number
 
-  static function tan(x: num) -> num
+  static function tan(x: number) -> number
 
-  static function exp(x: num) -> num
+  static function exp(x: number) -> number
 
-  static function log(x: num) -> num
+  static function log(x: number) -> number
 
-  static function parseInt(source: str, {radix: int?}) -> num
+  static function parseInt(source: string, {radix: int?}) -> number
 
-  static function parseDouble(source: str) -> num
+  static function parseDouble(source: string) -> number
 
-  static function sum(list: List<num>) -> num
+  static function sum(list: List<number>) -> number
 
   static function checkBit(index: int, check: int) -> bool
 
@@ -204,11 +204,11 @@ external class Math {
 ```javascript
 external class Hash {
 
-  static function uid4([repeat: int?]) -> str
+  static function uid4([repeat: int?]) -> string
 
-  static function crcString(data: str, [crc: str = 0]) -> str
+  static function crcString(data: string, [crc: string = 0]) -> string
 
-  static function crcInt(data: str, [crc: str = 0]) -> int
+  static function crcInt(data: string, [crc: string = 0]) -> int
 }
 
 ```

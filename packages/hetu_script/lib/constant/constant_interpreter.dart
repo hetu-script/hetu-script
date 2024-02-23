@@ -8,7 +8,7 @@ import '../error/error.dart';
 /// A interpreter that computes the value of a constant expression before compilation.
 /// If the AstNode provided is non-constant value, do nothing.
 class HTConstantInterpreter extends RecursiveASTVisitor<void> {
-  late final HTLexicon _lexicon;
+  final HTLexicon _lexicon;
 
   HTConstantInterpreter({HTLexicon? lexicon})
       : _lexicon = lexicon ?? HTLexiconHetu();

@@ -15,8 +15,7 @@ base class InternalIdentifier {
   static const anonymousFunction = r'__function';
   static const anonymousBlock = r'__block';
 
-  static const instanceOf = 'instanceOf';
-  static const externalType = 'externalType';
+  static const instanceOf = 'instance of';
 
   static const namespace = 'namespace';
 

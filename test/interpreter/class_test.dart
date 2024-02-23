@@ -14,7 +14,7 @@ void main() {
       final result = hetu.eval(r'''
         class AGuy {
           var name
-          constructor withName (name: str) {
+          constructor withName (name: string) {
             this.name = name
           }
         }
@@ -29,8 +29,8 @@ void main() {
     test('static member', () {
       final result = hetu.eval(r'''
         class StaticField {
-          static var field: str
-          constructor ([field: str = 'a']) {
+          static var field: string
+          constructor ([field: string = 'a']) {
             StaticField.field = field
           }
           static function a {

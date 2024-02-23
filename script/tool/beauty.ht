@@ -1,4 +1,4 @@
-function getBeauty(x: num, cuteness: num, sexy: num) -> num {
+function getBeauty(x: number, cuteness: number, sexy: number) -> number {
   var a = Math.min(cuteness, sexy)
   var b = Math.max(cuteness, sexy)
   if (x < ((a + b) / 2)) {

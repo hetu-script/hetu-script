@@ -32,22 +32,26 @@ const kSeperator = '------------------------------------------------';
 
 final argParser = ArgParser();
 
-final hetu = Hetu(
-    config: HetuConfig(
-      printPerformanceStatistics: false,
-      removeLineInfo: true,
-      // doStaticAnalysis: true,
-      // computeConstantExpression: true,
-      // showDartStackTrace: true,
-      // showHetuStackTrace: true,
-      allowImplicitNullToZeroConversion: true,
-      allowImplicitEmptyValueToFalseConversion: true,
-    ),
-    sourceContext: sourceContext);
 final sourceContext = HTFileSystemResourceContext();
-final analyzer = HTAnalyzer(sourceContext: sourceContext);
-final parser = HTParserHetu();
-final bundler = HTBundler(sourceContext: sourceContext);
+final lexicon = HTLexiconHetu();
+final analyzer = HTAnalyzer(sourceContext: sourceContext, lexicon: lexicon);
+final parser = HTParserHetu(lexicon: lexicon);
+final bundler = HTBundler(sourceContext: sourceContext, parser: parser);
+final hetu = Hetu(
+  config: HetuConfig(
+    printPerformanceStatistics: false,
+    removeLineInfo: true,
+    // doStaticAnalysis: true,
+    // computeConstantExpression: true,
+    // showDartStackTrace: true,
+    // showHetuStackTrace: true,
+    allowImplicitNullToZeroConversion: true,
+    allowImplicitEmptyValueToFalseConversion: true,
+  ),
+  sourceContext: sourceContext,
+  lexicon: lexicon,
+  parser: parser,
+);
 
 bool showDetailsOfError = false;
 
@@ -261,11 +265,11 @@ void format(List<String> args, String outPath) {
 
 void analyze(List<String> args) {
   final source = sourceContext.getResource(args.first);
-  final compilation = bundler.bundle(source: source, parser: parser);
+  final compilation = bundler.bundle(source: source);
   final result = analyzer.analyzeCompilation(compilation);
   if (result.errors.isNotEmpty) {
     for (final error in result.errors) {
-      if (error.severity >= ErrorSeverity.error) {
+      if (error.severity >= MessageSeverity.error) {
         print('Error: $error');
       } else {
         print('Warning: $error');
@@ -289,7 +293,6 @@ void compile(List<String> args,
   print('Compiling [${source.fullName}] ...');
   final module = bundler.bundle(
     source: source,
-    parser: parser,
     version: version,
   );
   if (module.errors.isNotEmpty) {

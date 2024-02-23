@@ -1,11 +1,11 @@
 
-var next_char_name: str
+var next_char_name: string
 
 class char_info {
-  var name: str
-  var strength: num
-  var vitality: num
-  var initiative: num
+  var name: string
+  var strength: number
+  var vitality: number
+  var initiative: number
   var ko = false
 }
 
@@ -25,7 +25,7 @@ function main {
   start(92, 103)
 }
 
-function start(player_dex: num, enemy_dex: num) {
+function start(player_dex: number, enemy_dex: number) {
   print('战斗开始！')
 
   player.initiative = 1000 / Math.sqrt(player_dex) - 20

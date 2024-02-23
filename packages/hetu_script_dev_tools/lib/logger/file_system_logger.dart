@@ -2,15 +2,12 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/logger/logger.dart';
+import 'package:hetu_script/logger/message_severity.dart';
 
 import '../util/uid.dart';
 
-abstract interface class HTLogger {
-  void log(String message, {ErrorSeverity severity = ErrorSeverity.info});
-}
-
-class HTFileSystemLogger implements HTLogger {
+class HTFileSystemLogger extends HTLogger {
   late String _fileName;
 
   String? folder;
@@ -27,7 +24,7 @@ class HTFileSystemLogger implements HTLogger {
   }
 
   @override
-  void log(String message, {ErrorSeverity severity = ErrorSeverity.info}) {
+  void log(dynamic message, {MessageSeverity severity = MessageSeverity.info}) {
     if (folder == null) {
       return;
     }

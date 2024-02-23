@@ -1,16 +1,16 @@
 external class Random {
   
-  constructor ([seed: int])
+  constructor ([seed: integer])
 
   function nextBool -> bool
 
-  function nextInt(max: int) -> int
+  function nextInt(max: integer) -> integer
 
   function nextDouble() -> float
 
-  function nextColorHex({hasAlpha: bool = false}) -> str
+  function nextColorHex({hasAlpha: bool = false}) -> string
 
-  function nextBrightColorHex({hasAlpha: bool = false}) -> str
+  function nextBrightColorHex({hasAlpha: bool = false}) -> string
 
   function nextIterable(list: Iterable) -> any
 
@@ -45,37 +45,37 @@ external class Math {
   /// If one of them is null, return the other value.
   static function max(a, b)
 
-  static function sqrt(x: num) -> num
+  static function sqrt(x: number) -> number
 
-  static function pow(x: num, exponent: num) -> num
+  static function pow(x: number, exponent: number) -> number
 
-  static function sin(x: num) -> num
+  static function sin(x: number) -> number
 
-  static function cos(x: num) -> num
+  static function cos(x: number) -> number
 
-  static function tan(x: num) -> num
+  static function tan(x: number) -> number
 
-  static function exp(x: num) -> num
+  static function exp(x: number) -> number
 
-  static function log(x: num) -> num
+  static function log(x: number) -> number
 
-  static function parseInt(source: str, {radix: int?}) -> num
+  static function parseInt(source: string, {radix: integer?}) -> number
 
-  static function parseDouble(source: str) -> num
+  static function parseDouble(source: string) -> number
 
-  static function sum(list: List<num>) -> num
+  static function sum(list: List<number>) -> number
 
-  static function checkBit(index: int, check: int) -> bool
+  static function checkBit(index: integer, check: integer) -> bool
 
-  static function bitLS(x: int, distance: int) -> bool
+  static function bitLS(x: integer, distance: integer) -> bool
 
-  static function bitRS(x: int, distance: int) -> bool
+  static function bitRS(x: integer, distance: integer) -> bool
 
-  static function bitAnd(x: int, y: int) -> bool
+  static function bitAnd(x: integer, y: integer) -> bool
 
-  static function bitOr(x: int, y: int) -> bool
+  static function bitOr(x: integer, y: integer) -> bool
 
-  static function bitNot(x: int) -> bool
+  static function bitNot(x: integer) -> bool
 
-  static function bitXor(x: int, y: int) -> bool
+  static function bitXor(x: integer, y: integer) -> bool
 }

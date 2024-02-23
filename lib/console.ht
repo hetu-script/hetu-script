@@ -1,0 +1,19 @@
+external abstract class console {
+	// static function assert(assertion, )
+	
+	static function log(... args: any)
+
+	static function debug(... args: any)
+
+	static function info(... args: any)
+
+	static function warn(... args: any)
+
+	static function error(... args: any)
+
+	static function time([label: string])
+
+	static function timeLog([label: string])
+
+	static function timeEnd([label: string])
+}

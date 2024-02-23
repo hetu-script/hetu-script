@@ -32,4 +32,5 @@ export 'resource/overlay/overlay_context.dart';
 export 'resource/overlay/overlay_manager.dart';
 export 'error/error.dart';
 export 'error/error_handler.dart';
-export 'error/error_severity.dart';
+export 'logger/logger.dart';
+export 'logger/message_severity.dart';

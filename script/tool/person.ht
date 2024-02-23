@@ -3,7 +3,7 @@ import 'class_decl.ht'
 const ageMax = 250
 
 class Person {
-  var name: str = 'just a guy'
+  var name: string = 'just a guy'
 }
 
 

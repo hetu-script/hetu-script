@@ -38,7 +38,7 @@ void main() {
       final result = hetu.eval(
           r'''
             function fromJsonTest(data) {
-              final obj = Prototype.fromJson(data)
+              final obj = Object.createFromJSON(data)
               return obj.volumes
             }
           ''',
@@ -55,7 +55,7 @@ void main() {
           name: 'Hetu',
           age: 1
         }
-        ht.containsKey('toJson') // false
+        ht.hasOwnProperty('toJson') // false
       ''');
       expect(
         result,

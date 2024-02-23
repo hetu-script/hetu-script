@@ -31,10 +31,10 @@ function checkType(t: type) {
 class Person {}
 
 type PType = Person
-type FuncTypedef = (str) -> num
+type FuncTypedef = (string) -> number
 type StructTypedef = {
-  name: str,
-  age: num,
+  name: string,
+  age: number,
 }
 ```
 
@@ -66,8 +66,8 @@ class Person {}
 
 ```typescript
 type StructTypedef = {
-  name: str;
-  age: num;
+  name: string;
+  age: number;
 };
 ```
 
@@ -78,7 +78,7 @@ type StructTypedef = {
 它一定要包含一个圆括号括起来的参数列表（但可以为空），以及一个单箭头后面的返回值类型。
 
 ```typescript
-type FuncTypedef = (str) -> num
+type FuncTypedef = (string) -> number
 ```
 
 ## 使用 is 在运行时动态检查类型
@@ -87,9 +87,9 @@ type FuncTypedef = (str) -> num
 
 ```typescript
 function doSomething(value) {
-  if (value is str) {
+  if (value is string) {
     print('A String!')
-  } else if (value is num) {
+  } else if (value is number) {
     print('A Number!')
   } else {
     print('Unknown type!')
@@ -104,14 +104,14 @@ function doSomething(value) {
 ```typescript
 function main {
   // decalre a function typedef
-  type FuncTypedef = function(str) -> num
+  type FuncTypedef = function(string) -> number
   // assign a function to a value of a certain function type
-  var numparse: FuncTypedef = function(value: str) -> num { return num.parse(value) }
+  var numparse: FuncTypedef = function(value: string) -> number { return number.parse(value) }
   // get a value's runtime type and return it from a function
   var getType = function { return typeof numparse }
   var FuncTypedef2 = getType()
   // use this new type
-  var strlength: FuncTypedef2 = function(value: str) -> num { return value.length }
+  var strlength: FuncTypedef2 = function(value: string) -> number { return value.length }
   // expected output: 11
   print(strlength('hello world'))
 }

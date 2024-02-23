@@ -20,7 +20,7 @@ For these kind of values, their bindings are pre-included within the interpreter
 - bool
 - int
 - double (it is called float in the script)
-- String (it is called str in the script)
+- String (it is called string in the script)
 - List\<dynamic\>
 - Set\<dynamic>
 - Map\<dynamic, dynamic\>
@@ -81,11 +81,8 @@ Or you can define a external functions in dart for use in Hetu with following ty
 ```dart
 /// typedef of external function for binding.
 typedef HTExternalFunction = dynamic Function(
-    {HTObject? instance,
-    required HTNamespace namespace,
-    List<dynamic> positionalArgs,
-    Map<String, dynamic> namedArgs,
-    List<HTType> typeArgs});
+    {List<dynamic> positionalArgs,
+    Map<String, dynamic> namedArgs});
 ```
 
 Then define those dart funtion in Hetu with **external** keyword and init Hetu with **externalFunctions** argument. Then you can call those functions in Hetu.
@@ -140,8 +137,8 @@ dynamic calculate({positionalArgs, namedArgs}) {
 We have to bind this external method some where in the Dart code, before we can use it in Hetu:
 
 ```dart
-// the key of this external method have to be in the form of 'className.methodName'
-hetu.bindExternalFunction('Someone.calculate', calculate);
+// the key of this external method have to be in the form of 'className::methodName'
+hetu.bindExternalFunction('Someone::calculate', calculate);
 ```
 
 Then it's okay to call this in Hetu:
@@ -284,15 +281,15 @@ void main() {
   hetu.init(externalClasses: [PersonClassBinding()]);
   hetu.eval('''
       external class Person {
-        var race: str
-        constructor([name: str = 'Jimmy', race: str = 'Caucasian']);
+        var race: string
+        constructor([name: string = 'Jimmy', race: string = 'Caucasian']);
         get child
-        static function meaning(n: num)
+        static function meaning(n: number)
         static get level
-        static set level (value: str)
-        constructor withName(name: str, [race: str = 'Caucasian'])
+        static set level (value: string)
+        constructor withName(name: string, [race: string = 'Caucasian'])
         var name
-        function greeting(tag: str)
+        function greeting(tag: string)
       }
       function main {
         var p1: Person = Person()
@@ -313,6 +310,22 @@ void main() {
       }
       ''', type: HTResourceType.hetuModule, invoke: 'main');
 }
+```
+
+**NOTE** The unique `string key` used on binding static method and constructors on external class is different than to bind a external method on a script class. The former is separated by period and the latter is by double colon.
+
+external class:
+
+```
+      case 'Person.meaning':
+        return ({positionalArgs, namedArgs}) =>
+            Person.meaning(positionalArgs[0]);
+```
+
+external method on a script class:
+
+```
+hetu.bindExternalFunction('Person::meaning', meaning);
 ```
 
 #### External getter
@@ -348,7 +361,7 @@ Sometimes, we want to return a pure Dart function from the script side.For examp
 In Hetu script, we have this function:
 
 ```dart
-function [DartFunction] add(a: num, b: num) -> num {
+function [DartFunction] add(a: number, b: number) -> number {
   return a + b
 }
 

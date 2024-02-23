@@ -7,7 +7,7 @@ void main() {
   final sourceContext = HTFileSystemResourceContext(root: 'lib/');
   final hetu = Hetu(sourceContext: sourceContext);
 
-  final source = sourceContext.getResource('core/main.ht');
+  final source = sourceContext.getResource('main.ht');
   final module = hetu.bundle(source);
   if (module.errors.isNotEmpty) {
     for (final err in module.errors) {
@@ -31,8 +31,7 @@ final hetuCoreModule = [''');
   output.writeln('];');
 
   final content = output.toString();
-  final outFile =
-      File('packages/hetu_script/lib/preincludes/preinclude_module.dart');
+  final outFile = File('packages/hetu_script/lib/precompiled_module.dart');
   if (!outFile.existsSync()) {
     stdout.write('path not exist, creating file ...');
     outFile.createSync(recursive: true);

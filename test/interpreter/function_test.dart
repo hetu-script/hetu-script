@@ -55,7 +55,7 @@ void main() {
     });
     test('named args', () {
       final result = hetu.eval(r'''
-        function namedArgFun({a: num, b: num = 2, c: num}) {
+        function namedArgFun({a: number, b: number = 2, c: number}) {
           return a * b
         }
         namedArgFun(a: 21)

@@ -10,15 +10,15 @@ class Types extends Root {
 
   var _age = 42
 
-  constructor (the_name: str) {
+  constructor (the_name: string) {
     name = the_name;
   }
 
-  get age -> num {
+  get age -> number {
     return _age
   }
 
-  set age(value: num) {
+  set age(value: number) {
     _age = value
   }
 

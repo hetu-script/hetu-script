@@ -5,7 +5,7 @@ import '../../error/error.dart';
 // import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
-import '../../type/type.dart';
+// import '../../type/type.dart';
 import '../../value/instance/instance_namespace.dart';
 import '../../value/class/class.dart';
 import '../../value/instance/instance.dart';
@@ -164,10 +164,28 @@ class HTFunction extends HTFunctionDeclaration
     }
   }
 
+  /// resolve free external function & external struct method.
   void resolveExternal() {
-    // free external function & external struct method are handled here.
-    final funcName = classId != null ? '$classId.$id' : id!;
-    externalFunc = interpreter.fetchExternalFunction(funcName);
+    String funcName;
+    if (classId != null) {
+      if (category == FunctionCategory.constructor) {
+        if (id == null) {
+          funcName = '$classId';
+        } else {
+          funcName = '$classId.$id';
+        }
+      } else {
+        assert(id != null);
+        if (isStatic) {
+          funcName = '$classId.$id';
+        } else {
+          funcName = '$classId::$id';
+        }
+      }
+    } else {
+      funcName = id!;
+    }
+    externalFunc = interpreter.fetchExternalFunctionOrMethod(funcName);
   }
 
   @override
@@ -238,18 +256,21 @@ class HTFunction extends HTFunctionDeclaration
     }
   }
 
-  dynamic apply(HTStruct struct,
-      {List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic apply(
+    HTStruct struct, {
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    // List<HTType> typeArgs = const [],
+  }) {
     final savedNamespace = namespace;
     final savedInstance = instance;
     namespace = struct.namespace;
     instance = struct;
     final result = call(
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        typeArgs: typeArgs);
+      positionalArgs: positionalArgs,
+      namedArgs: namedArgs,
+      // typeArgs: typeArgs,
+    );
     namespace = savedNamespace;
     instance = savedInstance;
     return result;
@@ -258,31 +279,22 @@ class HTFunction extends HTFunctionDeclaration
   @override
   dynamic memberGet(String id, {String? from}) {
     if (id == interpreter.lexicon.idBind) {
-      return (HTObject entity,
-              {List<dynamic> positionalArgs = const [],
-              Map<String, dynamic> namedArgs = const {},
-              List<HTType> typeArgs = const []}) =>
-          bind(positionalArgs.first);
+      return ({positionalArgs, namedArgs}) => bind(positionalArgs.first);
     } else if (id == interpreter.lexicon.idApply) {
-      return (HTObject entity,
-              {List<dynamic> positionalArgs = const [],
-              Map<String, dynamic> namedArgs = const {},
-              List<HTType> typeArgs = const []}) =>
-          apply(positionalArgs.first,
-              positionalArgs: positionalArgs,
-              namedArgs: namedArgs,
-              typeArgs: typeArgs);
+      return ({positionalArgs, namedArgs}) => apply(positionalArgs.first,
+          positionalArgs: positionalArgs, namedArgs: namedArgs);
     } else {
       throw HTError.undefined(id);
     }
   }
 
-  dynamic call(
-      {bool useCallingNamespace = true,
-      bool createInstance = true,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic call({
+    bool useCallingNamespace = true,
+    bool createInstance = true,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    // List<HTType> typeArgs = const [],
+  }) {
     // For external async function, don't need this.
     if (isAsync && !isExternal) {
       return Future(() => _call(
@@ -290,7 +302,7 @@ class HTFunction extends HTFunctionDeclaration
             createInstance: createInstance,
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
-            typeArgs: typeArgs,
+            // typeArgs: typeArgs,
           ));
     } else {
       return _call(
@@ -298,7 +310,7 @@ class HTFunction extends HTFunctionDeclaration
         createInstance: createInstance,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
-        typeArgs: typeArgs,
+        // typeArgs: typeArgs,
       );
     }
   }
@@ -319,12 +331,13 @@ class HTFunction extends HTFunctionDeclaration
   /// ```
   ///
   /// If [createInstance] == true, will create new instance and its namespace.
-  dynamic _call(
-      {bool useCallingNamespace = true,
-      bool createInstance = true,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic _call({
+    bool useCallingNamespace = true,
+    bool createInstance = true,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    // List<HTType> typeArgs = const [],
+  }) {
     try {
       if (isAbstract) {
         throw HTError.abstractFunction(
@@ -363,8 +376,11 @@ class HTFunction extends HTFunctionDeclaration
         if (category == FunctionCategory.constructor && createInstance) {
           // a class method
           if (klass != null) {
-            result =
-                instance = HTInstance(klass!, interpreter, typeArgs: typeArgs);
+            result = instance = HTInstance(
+              klass!,
+              interpreter,
+              // typeArgs: typeArgs,
+            );
             namespace = (result as HTInstance).namespace;
           }
           // a struct method
@@ -568,7 +584,7 @@ class HTFunction extends HTFunctionDeclaration
               useCallingNamespace: false,
               positionalArgs: referCtorPosArgs,
               namedArgs: referCtorNamedArgs,
-              typeArgs: typeArgs,
+              // typeArgs: typeArgs,
             );
           }
         }
@@ -602,7 +618,7 @@ class HTFunction extends HTFunctionDeclaration
           );
         }
       }
-      // external function
+      // an external function
       else {
         late final List<dynamic> finalPosArgs;
         late final Map<String, dynamic> finalNamedArgs;
@@ -706,29 +722,34 @@ class HTFunction extends HTFunctionDeclaration
             }
             assert(externalFunc != null);
             final func = externalFunc!;
-            if (func is HTExternalFunction) {
-              if (isStatic || category == FunctionCategory.constructor) {
+            if (isStatic || category == FunctionCategory.constructor) {
+              if (func is HTExternalFunction) {
                 result = func(
-                  // namespace: interpreter.currentNamespace,
                   positionalArgs: finalPosArgs,
                   namedArgs: finalNamedArgs,
-                  // typeArgs: typeArgs,
                 );
               } else {
-                result = func(
-                  // instance: instance!,
-                  // namespace: interpreter.currentNamespace,
-                  positionalArgs: finalPosArgs,
-                  namedArgs: finalNamedArgs,
-                  // typeArgs: typeArgs,
-                );
+                result = Function.apply(
+                    func,
+                    finalPosArgs,
+                    finalNamedArgs.map<Symbol, dynamic>(
+                        (key, value) => MapEntry(Symbol(key), value)));
               }
             } else {
-              result = Function.apply(
-                  func,
-                  finalPosArgs,
-                  finalNamedArgs.map<Symbol, dynamic>(
-                      (key, value) => MapEntry(Symbol(key), value)));
+              assert(instance != null);
+              if (func is HTExternalMethod) {
+                result = func(
+                  instance: instance!,
+                  positionalArgs: finalPosArgs,
+                  namedArgs: finalNamedArgs,
+                );
+              } else {
+                result = Function.apply(
+                    func,
+                    [instance!, ...finalPosArgs],
+                    finalNamedArgs.map<Symbol, dynamic>(
+                        (key, value) => MapEntry(Symbol(key), value)));
+              }
             }
           }
         }
@@ -739,29 +760,34 @@ class HTFunction extends HTFunctionDeclaration
           }
           assert(externalFunc != null);
           final func = externalFunc!;
-          if (func is HTExternalFunction) {
-            if (isStatic || category == FunctionCategory.constructor) {
+          if (isStatic || category == FunctionCategory.constructor) {
+            if (func is HTExternalFunction) {
               result = func(
-                // namespace: interpreter.currentNamespace,
                 positionalArgs: finalPosArgs,
                 namedArgs: finalNamedArgs,
-                // typeArgs: typeArgs,
               );
             } else {
-              result = func(
-                // instance: instance!,
-                // namespace: interpreter.currentNamespace,
-                positionalArgs: finalPosArgs,
-                namedArgs: finalNamedArgs,
-                // typeArgs: typeArgs,
-              );
+              result = Function.apply(
+                  func,
+                  finalPosArgs,
+                  finalNamedArgs.map<Symbol, dynamic>(
+                      (key, value) => MapEntry(Symbol(key), value)));
             }
           } else {
-            result = Function.apply(
-                func,
-                finalPosArgs,
-                finalNamedArgs.map<Symbol, dynamic>(
-                    (key, value) => MapEntry(Symbol(key), value)));
+            assert(instance != null);
+            if (func is HTExternalMethod) {
+              result = func(
+                instance: instance!,
+                positionalArgs: finalPosArgs,
+                namedArgs: finalNamedArgs,
+              );
+            } else {
+              result = Function.apply(
+                  func,
+                  [instance!, ...finalPosArgs],
+                  finalNamedArgs.map<Symbol, dynamic>(
+                      (key, value) => MapEntry(Symbol(key), value)));
+            }
           }
         }
         // a toplevel external function

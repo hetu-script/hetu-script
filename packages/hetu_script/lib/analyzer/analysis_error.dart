@@ -1,5 +1,5 @@
 import '../error/error.dart';
-import '../error/error_severity.dart';
+import '../logger/message_severity.dart';
 import 'diagnostic.dart';
 import '../locale/locale.dart';
 
@@ -16,7 +16,7 @@ class HTAnalysisError implements HTError {
   final ErrorType type;
 
   @override
-  ErrorSeverity get severity => type.severity;
+  MessageSeverity get severity => type.severity;
 
   String? _message;
 

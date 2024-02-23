@@ -5,17 +5,18 @@
 part of 'error.dart';
 
 /// String identifiers mapped to associated severities.
-const Map<String, ErrorSeverity> severityMap = {
-  'error': ErrorSeverity.error,
-  'info': ErrorSeverity.info,
-  'warning': ErrorSeverity.warning
+const Map<String, MessageSeverity> severityMap = {
+  'error': MessageSeverity.error,
+  'info': MessageSeverity.info,
+  'warning': MessageSeverity.warn
 };
 
 /// Error processor configuration derived from analysis (or embedder) options.
 class ErrorConfig {
   static const List<String> ignoreWords = ['ignore', 'false'];
 
-  static ErrorSeverity? _toSeverity(String? severity) => severityMap[severity];
+  static MessageSeverity? _toSeverity(String? severity) =>
+      severityMap[severity];
 
   /// The processors in this config.
   final List<ErrorProcessor> processors = <ErrorProcessor>[];
@@ -44,7 +45,7 @@ class ErrorConfig {
   }
 }
 
-/// Process errors by filtering or changing associated [ErrorSeverity].
+/// Process errors by filtering or changing associated [MessageSeverity].
 class ErrorProcessor {
   /// The code name of the associated error.
   final String name;
@@ -52,7 +53,7 @@ class ErrorProcessor {
   /// The desired severity of the processed error.
   ///
   /// If `null`, this processor will "filter" the associated error code.
-  final ErrorSeverity? severity;
+  final MessageSeverity? severity;
 
   /// Create an error processor that assigns errors with this [code] the
   /// given [severity].

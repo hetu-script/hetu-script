@@ -300,9 +300,10 @@ class HTInstance with HTObject, InterpreterRef {
       HTFunction func = memberGet(funcName);
       func.resolve();
       return func.call(
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          typeArgs: typeArgs);
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        // typeArgs: typeArgs,
+      );
     } catch (error, stackTrace) {
       if (interpreter.config.processError) {
         interpreter.processError(error, stackTrace);

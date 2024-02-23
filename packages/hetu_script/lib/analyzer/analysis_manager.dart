@@ -42,9 +42,10 @@ class HTAnalysisManager {
     // final normalized = HTResourceContext.getAbsolutePath(key: fullName);
     final analyzer = _pathsToAnalyzer[fullName]!;
     final source = sourceContextManager.getResource(fullName)!;
-    final bundler = HTBundler(sourceContext: analyzer.sourceContext);
     final parser = HTParserHetu();
-    final compilation = bundler.bundle(source: source, parser: parser);
+    final bundler =
+        HTBundler(sourceContext: analyzer.sourceContext, parser: parser);
+    final compilation = bundler.bundle(source: source);
     final result = analyzer.analyzeCompilation(compilation);
     _cachedSourceAnalysisResults.addAll(result.sourceAnalysisResults);
     return result.sourceAnalysisResults.values.last;

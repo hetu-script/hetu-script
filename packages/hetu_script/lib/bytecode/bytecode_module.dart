@@ -27,10 +27,12 @@ class HTBytecodeModule extends HTGlobalConstantTable with BytecodeReader {
   /// This is empty until interpreter insert the evaled values.
   final Map<String, HTJsonSource> jsonSources = {};
 
+  /// time stamp of the start time of the execution of this module
+  int timestamp = 0;
+
   String? invoke;
   List<dynamic> positionalArgs = const [];
   Map<String, dynamic> namedArgs = const {};
-  List<HTType> typeArgs = const [];
 
   /// fetch a contant value defined within any namespace of this module.
   String getConstString() {

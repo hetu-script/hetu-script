@@ -10,23 +10,27 @@ import '../interpreter/interpreter.dart';
 import '../resource/resource.dart' show HTResourceType;
 import '../resource/resource_context.dart';
 import '../resource/overlay/overlay_context.dart';
-import '../type/type.dart';
+// import '../type/type.dart';
 import '../source/source.dart';
 import '../bytecode/compiler.dart';
-import '../error/error_severity.dart';
-import '../binding/preinclude_functions.dart';
+import '../logger/message_severity.dart';
+import '../binding/function_binding.dart';
 import '../precompiled_module.dart';
 import '../locale/locale.dart';
 import '../external/external_function.dart';
 import '../external/external_class.dart';
 import '../binding/class_binding.dart';
-import '../binding/hetu_binding.dart';
 import '../lexer/lexer.dart';
 import '../lexicon/lexicon.dart';
 import '../parser/parser.dart';
 import '../parser/parser_hetu.dart';
 import '../resource/resource.dart';
 import '../bundler/bundler.dart';
+import '../logger/logger.dart';
+import '../logger/console_logger.dart';
+import 'console.dart';
+import '../lexicon/lexicon_hetu.dart';
+import '../value/struct/struct.dart';
 
 /// The config of hetu environment, this implements all config of components used by this environment.
 class HetuConfig
@@ -132,23 +136,33 @@ class HetuConfig
   });
 }
 
-/// A wrapper class for sourceContext, lexicon, parser, bundler, analyzer, compiler and interpreter to make them work together.
+/// A helper class wrapped sourceContext, lexicon, parser, bundler,
+/// analyzer, compiler, interpreter, logger...
+/// and make them work together.
 class Hetu {
   HetuConfig config;
 
   Version? verison;
 
+  late final Console console;
+
   final HTResourceContext<HTSource> sourceContext;
 
-  final Map<String, HTParser> _parsers = {};
+  late final HTParser parser;
 
-  late HTParser _currentParser;
+  HTLexer get lexer => parser.lexer;
 
-  HTParser get parser => _currentParser;
+  HTLexicon get lexicon => parser.lexer.lexicon;
 
-  HTLexer get lexer => _currentParser.lexer;
+  // final Map<String, HTParser> _parsers = {};
 
-  HTLexicon get lexicon => lexer.lexicon;
+  // late HTParser _currentParser;
+
+  // HTParser get parser => _currentParser;
+
+  // HTLexer get lexer => _currentParser.lexer;
+
+  // HTLexicon get lexicon => lexer.lexicon;
 
   late final HTBundler bundler;
 
@@ -164,35 +178,60 @@ class Hetu {
   /// Create a Hetu environment.
   Hetu({
     HetuConfig? config,
+    HTLogger? logger,
     HTResourceContext<HTSource>? sourceContext,
     HTLocale? locale,
     HTLexicon? lexicon,
     HTLexer? lexer,
-    String parserName = 'default',
+    // String parserName = 'default',
     HTParser? parser,
   })  : config = config ?? HetuConfig(),
         sourceContext = sourceContext ?? HTOverlayContext() {
-    if (parser != null) {
-      _currentParser = parser;
-    } else {
-      _currentParser = HTParserHetu(
-        config: this.config,
-      );
-    }
+    lexicon ??= lexer?.lexicon ?? HTLexiconHetu();
+    console = Console(
+      lexicon: lexicon,
+      logger: logger ?? HTConsoleLogger(),
+    );
     if (locale != null) {
       HTLocale.current = locale;
     }
-    if (lexer != null) {
-      _currentParser.lexer = lexer;
+    if (parser != null) {
+      this.parser = parser;
+      if (lexer != null) {
+        this.parser.lexer = lexer;
+      } else {
+        this.parser.lexer.lexicon = lexicon;
+      }
+    } else {
+      if (lexer != null) {
+        this.parser = HTParserHetu(
+          config: this.config,
+          lexer: lexer,
+        );
+      } else {
+        this.parser = HTParserHetu(
+          config: this.config,
+          lexicon: lexicon,
+        );
+      }
     }
-    if (lexicon != null) {
-      _currentParser.lexer.lexicon = lexicon;
-    }
+    // if (parser != null) {
+    //   _currentParser = parser;
+    // } else {
+    //   _currentParser = HTParserHetu(
+    //     config: this.config,
+    //   );
+    // }
+    // if (lexer != null) {
+    //   _currentParser.lexer = lexer;
+    // }
+    // _currentParser.lexer.lexicon = lexicon;
+    // _parsers[parserName] = _currentParser;
     bundler = HTBundler(
       config: this.config,
       sourceContext: this.sourceContext,
+      parser: this.parser,
     );
-    _parsers[parserName] = _currentParser;
     analyzer = HTAnalyzer(
       config: this.config,
       sourceContext: this.sourceContext,
@@ -200,12 +239,12 @@ class Hetu {
     );
     compiler = HTCompiler(
       config: this.config,
-      lexicon: this.lexicon,
+      lexicon: lexicon,
     );
     interpreter = HTInterpreter(
       config: this.config,
       sourceContext: this.sourceContext,
-      lexicon: this.lexicon,
+      lexicon: lexicon,
     );
   }
 
@@ -225,12 +264,8 @@ class Hetu {
     if (_isInitted) return;
 
     if (useDefaultModuleAndBinding) {
-      // bind externals before any eval
-      for (var key in preincludeFunctions.keys) {
-        interpreter.bindExternalFunction(key, preincludeFunctions[key]!);
-      }
       interpreter.bindExternalClass(HTNumberClassBinding());
-      interpreter.bindExternalClass(HTIntClassBinding());
+      interpreter.bindExternalClass(HTIntegerClassBinding());
       interpreter.bindExternalClass(HTBigIntClassBinding());
       interpreter.bindExternalClass(HTFloatClassBinding());
       interpreter.bindExternalClass(HTBooleanClassBinding());
@@ -242,11 +277,42 @@ class Hetu {
       interpreter.bindExternalClass(HTMapClassBinding());
       interpreter.bindExternalClass(HTRandomClassBinding());
       interpreter.bindExternalClass(HTMathClassBinding());
-      interpreter.bindExternalClass(HTHashClassBinding());
-      interpreter.bindExternalClass(HTSystemClassBinding());
       interpreter.bindExternalClass(HTFutureClassBinding());
-      // bindExternalClass(HTConsoleClass());
-      interpreter.bindExternalClass(HTHetuClassBinding());
+      interpreter.bindExternalClass(HTCryptoClassBinding());
+      interpreter.bindExternalClass(HTConsoleClassBinding(console: console));
+      interpreter.bindExternalClass(HTJSONClassBinding(lexicon: lexicon));
+
+      // bind dynamic external functions or static method
+      interpreter.bindExternalFunction('print', ({positionalArgs, namedArgs}) {
+        console.log(positionalArgs);
+      });
+      interpreter.bindExternalFunction('Object.createFromJSON', (
+          {positionalArgs, namedArgs}) {
+        final jsonData = positionalArgs.first as Map<dynamic, dynamic>;
+        return interpreter.createStructfromJSON(jsonData);
+      });
+
+      // bind dynamic external method
+      interpreter.bindExternalMethod('ClassRoot::toString', (
+          {instance, positionalArgs, namedArgs}) {
+        return lexicon.stringify(instance);
+      });
+      interpreter.bindExternalMethod('Object::contains', (
+          {instance, positionalArgs, namedArgs}) {
+        final struct = instance as HTStruct;
+        return struct.contains(positionalArgs.first);
+      });
+      interpreter.bindExternalMethod('Object::hasOwnProperty', (
+          {instance, positionalArgs, namedArgs}) {
+        final struct = instance as HTStruct;
+        return struct.containsKey(positionalArgs.first);
+      });
+
+      // bind non-dynamic external functions
+      for (var key in preincludeFunctions.keys) {
+        interpreter.bindExternalFunction(key, preincludeFunctions[key]!);
+      }
+
       // load precompiled core module.
       final coreModule = Uint8List.fromList(hetuCoreModule);
       interpreter.loadBytecode(
@@ -261,12 +327,12 @@ class Hetu {
         override: true,
       );
 
-      interpreter.invoke('initHetuEnv', positionalArgs: [this]);
+      // interpreter.assign('console', console);
 
-      HTInterpreter.rootClass = interpreter.globalNamespace
-          .memberGet(lexicon.globalObjectId, isRecursive: true);
-      HTInterpreter.rootStruct = interpreter.globalNamespace
-          .memberGet(lexicon.globalPrototypeId, isRecursive: true);
+      HTInterpreter.classRoot = interpreter.globalNamespace
+          .memberGet(lexicon.idGlobalObject, isRecursive: true);
+      HTInterpreter.structRoot = interpreter.globalNamespace
+          .memberGet(lexicon.idGlobalPrototype, isRecursive: true);
     }
 
     for (final key in externalFunctions.keys) {
@@ -287,30 +353,32 @@ class Hetu {
     _isInitted = true;
   }
 
-  /// Add a new parser.
-  void addParser(String name, HTParser parser) {
-    assert(!_parsers.containsKey(name));
-    _currentParser = _parsers[name] = parser;
-  }
+  // /// Add a new parser.
+  // void addParser(String name, HTParser parser) {
+  //   assert(!_parsers.containsKey(name));
+  //   _currentParser = _parsers[name] = parser;
+  // }
 
-  /// Change the current parser.
-  void setParser(String name) {
-    assert(_parsers.containsKey(name));
-    _currentParser = _parsers[name]!;
-  }
+  // /// Change the current parser.
+  // void setParser(String name) {
+  //   assert(_parsers.containsKey(name));
+  //   _currentParser = _parsers[name]!;
+  // }
 
   /// Evaluate a string content.
   /// If [invoke] is provided, will immediately
   /// call the function after evaluation completed.
-  dynamic eval(String content,
-      {String? filename,
-      String? module,
-      bool globallyImport = false,
-      HTResourceType type = HTResourceType.hetuLiteralCode,
-      String? invoke,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic eval(
+    String content, {
+    String? filename,
+    String? module,
+    bool globallyImport = false,
+    HTResourceType type = HTResourceType.hetuLiteralCode,
+    String? invoke,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    // List<HTType> typeArgs = const [],
+  }) {
     if (content.trim().isEmpty) return null;
     final source = HTSource(content, filename: filename, type: type);
     final result = evalSource(
@@ -320,7 +388,7 @@ class Hetu {
       invoke: invoke,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
-      typeArgs: typeArgs,
+      // typeArgs: typeArgs,
     );
     return result;
   }
@@ -330,13 +398,15 @@ class Hetu {
   /// file content will be searched by [sourceContext].
   /// If [invoke] is provided, will immediately
   /// call the function after evaluation completed.
-  dynamic evalFile(String key,
-      {String? module,
-      bool globallyImport = false,
-      String? invoke,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic evalFile(
+    String key, {
+    String? module,
+    bool globallyImport = false,
+    String? invoke,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    // List<HTType> typeArgs = const [],
+  }) {
     final source = sourceContext.getResource(key);
     final result = evalSource(
       source,
@@ -345,7 +415,7 @@ class Hetu {
       invoke: invoke,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
-      typeArgs: typeArgs,
+      // typeArgs: typeArgs,
     );
     return result;
   }
@@ -353,13 +423,15 @@ class Hetu {
   /// Evaluate a [HTSource].
   /// If [invoke] is provided, will immediately
   /// call the function after evaluation completed.
-  dynamic evalSource(HTSource source,
-      {String? module,
-      bool globallyImport = false,
-      String? invoke,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic evalSource(
+    HTSource source, {
+    String? module,
+    bool globallyImport = false,
+    String? invoke,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    // List<HTType> typeArgs = const [],
+  }) {
     if (source.content.trim().isEmpty) {
       return null;
     }
@@ -371,7 +443,7 @@ class Hetu {
       invoke: invoke,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
-      typeArgs: typeArgs,
+      // typeArgs: typeArgs,
     );
     return result;
   }
@@ -382,7 +454,7 @@ class Hetu {
       {Version? version, bool errorHandled = false}) {
     final compilation = bundler.bundle(
       source: source,
-      parser: _currentParser,
+      // parser: _currentParser,
       version: version,
     );
     if (compilation.errors.isNotEmpty) {
@@ -448,7 +520,7 @@ class Hetu {
         final result = analyzer.analyzeCompilation(compilation);
         if (result.errors.isNotEmpty) {
           for (final error in result.errors) {
-            if (error.severity >= ErrorSeverity.error) {
+            if (error.severity >= MessageSeverity.error) {
               if (errorHandled) {
                 throw error;
               } else {
@@ -473,14 +545,15 @@ class Hetu {
   }
 
   /// Load a bytecode module and immediately run a function in it.
-  dynamic loadBytecode(
-      {required Uint8List bytes,
-      required String module,
-      bool globallyImport = false,
-      String? invoke,
-      List<dynamic> positionalArgs = const [],
-      Map<String, dynamic> namedArgs = const {},
-      List<HTType> typeArgs = const []}) {
+  dynamic loadBytecode({
+    required Uint8List bytes,
+    required String module,
+    bool globallyImport = false,
+    String? invoke,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+    // List<HTType> typeArgs = const [],
+  }) {
     final result = interpreter.loadBytecode(
       bytes: bytes,
       module: module,
@@ -488,7 +561,7 @@ class Hetu {
       invoke: invoke,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
-      typeArgs: typeArgs,
+      // typeArgs: typeArgs,
     );
     if (config.doStaticAnalysis &&
         interpreter.currentBytecodeModule.namespaces.isNotEmpty) {
@@ -570,7 +643,7 @@ class Hetu {
     String? module,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const [],
+    // List<HTType> typeArgs = const [],
   }) =>
       interpreter.invoke(
         func,
@@ -578,6 +651,6 @@ class Hetu {
         module: module,
         positionalArgs: positionalArgs,
         namedArgs: namedArgs,
-        typeArgs: typeArgs,
+        // typeArgs: typeArgs,
       );
 }

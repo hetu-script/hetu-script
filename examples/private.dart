@@ -5,7 +5,7 @@ void main() {
   hetu.init();
   hetu.eval(r'''
     class A {
-      var name: str
+      var name: string
       static function create(name) {
         return A._(name)
       }

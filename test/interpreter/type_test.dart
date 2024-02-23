@@ -12,7 +12,7 @@ void main() {
   group('type -', () {
     test('type is operator', () {
       final result = hetu.eval(r'''
-        '' is! str
+        '' is! string
       ''');
       expect(
         result,
@@ -39,36 +39,36 @@ void main() {
     // test('arguments', () {
     //   final result = hetu.eval(r'''
     //     function functionAssign1 {
-    //       function convert(n) -> num {
-    //         return num.parse(n)
+    //       function convert(n) -> number {
+    //         return number.parse(n)
     //       }
-    //       const a: function (num) -> num = convert
+    //       const a: function (number) -> number = convert
     //       return a.valueType.toString()
     //     }
     //   ''', invoke: 'functionAssign1');
     //   expect(
     //     result,
-    //     'function(any) -> num',
+    //     'function(any) -> number',
     //   );
     // });
     // test('return type', () {
     //   final result = hetu.eval(r'''
     //     function functionAssign2 {
-    //       var a: function (num) -> num = function (n: any) -> num { return n }
+    //       var a: function (number) -> number = function (n: any) -> number { return n }
     //       return a.valueType.toString()
     //     }
     //   ''', invoke: 'functionAssign2');
     //   expect(
     //     result,
-    //     'function(any) -> num',
+    //     'function(any) -> number',
     //   );
     // });
     test('function type', () {
       final result = hetu.eval(r'''
-        var numparse: (str) -> num = function (value: str) -> num { return num.parse(value) }
+        var numparse: (string) -> number = function (value: string) -> number { return number.parse(value) }
         var getType = function { typeof numparse }
         var functype2 = getType()
-        var strlength: functype2 = function (value: str) -> num { return value.length }
+        var strlength: functype2 = function (value: string) -> number { return value.length }
         strlength('hello world')
       ''');
       expect(
@@ -79,8 +79,8 @@ void main() {
     test('type alias class', () {
       final result = hetu.eval(r'''
         class A {
-          var name: str
-          constructor (name: str) {
+          var name: string
+          constructor (name: string) {
             this.name = name
           }
         }
@@ -95,8 +95,8 @@ void main() {
     });
     test('type alias function', () {
       final result = hetu.eval(r'''
-        type MyFuncType = (num, num) -> num
-        var func: MyFuncType = function add(a: num, b: num) -> num => a + b
+        type MyFuncType = (number, number) -> number
+        var func: MyFuncType = function add(a: number, b: number) -> number => a + b
         func(6, 7)
       ''');
       expect(
@@ -107,7 +107,7 @@ void main() {
     test('structural type', () {
       final result = hetu.eval(r'''
         type ObjType = {
-          name: str,
+          name: string,
           greeting: () -> any,
         }
         var aObj: {} = {

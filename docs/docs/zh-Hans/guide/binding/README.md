@@ -20,7 +20,7 @@ final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isF
 - bool
 - int
 - double (it is called float in the script)
-- String (it is called str in the script)
+- String (it is called string in the script)
 - List\<dynamic\>
 - Set\<dynamic>
 - Map\<dynamic, dynamic\>
@@ -78,7 +78,7 @@ await hetu.init(externalFunctions: {
 
 ```dart
 await hetu.init(externalFunctions: {
-  'hello': (entity, {positionalArgs, namedArgs, typeArgs}) => {'greeting': 'hello'},
+  'hello': ({positionalArgs, namedArgs}) => {'greeting': 'hello'},
 });
 ```
 
@@ -90,8 +90,7 @@ typedef HTExternalFunction = dynamic Function(
     {HTObject? instance,
     required HTNamespace namespace,
     List<dynamic> positionalArgs,
-    Map<String, dynamic> namedArgs,
-    List<HTType> typeArgs});
+    Map<String, dynamic> namedArgs});
 ```
 
 要使用你刚才定义的外部函数，需要在脚本中使用 **external** 关键字声明这个函数。
@@ -286,15 +285,15 @@ void main() {
   hetu.init(externalClasses: [PersonClassBinding()]);
   hetu.eval('''
       external class Person {
-        var race: str
-        constructor([name: str = 'Jimmy', race: str = 'Caucasian']);
+        var race: string
+        constructor([name: string = 'Jimmy', race: string = 'Caucasian']);
         get child
-        static function meaning(n: num)
+        static function meaning(n: number)
         static get level
-        static set level (value: str)
-        constructor withName(name: str, [race: str = 'Caucasian'])
+        static set level (value: string)
+        constructor withName(name: string, [race: string = 'Caucasian'])
         var name
-        function greeting(tag: str)
+        function greeting(tag: string)
       }
       function main {
         var p1: Person = Person()
@@ -350,7 +349,7 @@ class PersonClassBinding extends HTExternalClass {
 你可以通过绑定一个**外部解包装函数定义**来实现这个目的。在脚本中，在函数名之前的 **[]** 用来定义外部解包装函数定义：
 
 ```dart
-function [DartFunction] add(a: num, b: num) -> num {
+function [DartFunction] add(a: number, b: number) -> number {
   return a + b
 }
 

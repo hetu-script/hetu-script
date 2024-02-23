@@ -25,18 +25,20 @@ class BundlerConfig {
 class HTBundler {
   BundlerConfig config;
 
+  final HTParser parser;
+
   final HTResourceContext<HTSource> sourceContext;
 
   HTBundler({
     BundlerConfig? config,
     required this.sourceContext,
+    required this.parser,
   }) : config = config ?? BundlerConfig();
 
   /// Parse a string content and generate a library,
   /// will import other files.
   ASTCompilation bundle({
     required HTSource source,
-    required HTParser parser,
     Version? version,
   }) {
     final sourceParseResult = parser.parseSource(source);

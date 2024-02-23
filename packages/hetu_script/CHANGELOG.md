@@ -1,6 +1,6 @@
 ## 0.6.0
 
-- Changed some lexicon and identifiers to make the grammar and api similar to Javascript. The old style is still supported.
+- Changed some lexicon and identifiers to make the grammar and api similar to Javascript.
 
 ## 0.5.0
 
@@ -40,8 +40,8 @@
 - You can now directly use operator '[]' & '[]=' on HTStruct object like a Map in Dart code.
 - Changed range(start, end, [step]) to range(end, [start, step]), make it even simpler to use.
 - Add api randomColorHex(), randomBool() on Math class.
-- Add str.characters Iterable api for iterating through Strings.
-- Add toPercentageString() on num.
+- Add string.characters Iterable api for iterating through Strings.
+- Add toPercentageString() on number.
 
 ## 0.3.10
 
@@ -109,7 +109,7 @@
 
 - Named constructor can refer to default constructor: 'constructor name(): this()'.
 - Feature: Single expression 'function: function add(a, b) => a + b'.
-- Feature: Type alias: 'type MyFuncType = function (num, num) -> num'.
+- Feature: Type alias: 'type MyFuncType = function (number, number) -> number'.
 
 ## 0.1.2
 

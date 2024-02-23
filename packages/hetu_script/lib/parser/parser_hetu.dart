@@ -20,6 +20,8 @@ class HTParserHetu extends HTParser {
 
   HTParserHetu({
     super.config,
+    super.lexer,
+    super.lexicon,
   });
 
   bool get _isWithinModuleNamespace {
@@ -2711,8 +2713,8 @@ class HTParserHetu extends HTParser {
       isPrivate: lexer.lexicon.isPrivate(id.id),
       isField: isField,
       isExternal: isExternal,
-      isStatic: // isConst &&
-          classId != null ? true : isStatic,
+      isStatic: // isConst && classId != null ? true :
+          isStatic,
       // isConst: isConst,
       isMutable: //!isConst &&
           isMutable,
@@ -3318,6 +3320,8 @@ class HTParserHetu extends HTParser {
     return enumDecl;
   }
 
+  // TODO: 不能声明struct的外部构造函数
+  // TODO: 不能声明static的成员变量
   StructDecl _parseStructDecl({bool isTopLevel = false}) {
     //, bool lateInitialize = true}) {
     final keyword = match(lexer.lexicon.kStruct);
@@ -3409,7 +3413,7 @@ class HTParserHetu extends HTParser {
         prototypeId = IdentifierExpr.fromToken(idTok, source: currentSource);
       }
     }
-    prototypeId ??= IdentifierExpr(lexer.lexicon.globalPrototypeId);
+    prototypeId ??= IdentifierExpr(lexer.lexicon.idGlobalPrototype);
     final structBlockStartTok = match(lexer.lexicon.structStart);
     final fields = <StructObjField>[];
     // struct are a bit complex so we didn't use [parseExprList] here.

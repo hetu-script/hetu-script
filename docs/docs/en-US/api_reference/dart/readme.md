@@ -249,8 +249,7 @@ dynamic eval(String content,
     HTResourceType type = HTResourceType.hetuLiteralCode,
     String? inovaction,
     List<dynamic> positionalArgs = const [],
-    Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const []})
+    Map<String, dynamic> namedArgs = const {}})
 ```
 
 - **content**: Hetu source as String literal.
@@ -290,7 +289,6 @@ dynamic invoke(
     String? module,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-    List<HTType> typeArgs = const [],
   })
 ```
 

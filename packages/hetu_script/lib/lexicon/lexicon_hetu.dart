@@ -62,10 +62,34 @@ class HTLexiconHetu extends HTLexicon {
       };
 
   @override
-  String get globalObjectId => 'Object';
+  String get idGlobalObject => 'ClassRoot';
 
   @override
-  String get globalPrototypeId => 'Prototype';
+  String get idGlobalPrototype => 'Object';
+
+  @override
+  String get idBoolean => 'bool';
+
+  @override
+  String get idNumber => 'number';
+
+  @override
+  String get idInteger => 'integer';
+
+  @override
+  String get idFloat => 'float';
+
+  @override
+  String get idString => 'string';
+
+  @override
+  String get kNull => 'null';
+
+  @override
+  String get kTrue => 'true';
+
+  @override
+  String get kFalse => 'false';
 
   @override
   Set<String> get privatePrefixes => {
@@ -95,30 +119,6 @@ class HTLexiconHetu extends HTLexicon {
   String get kType => 'type';
 
   @override
-  String get kBoolean => 'bool';
-
-  @override
-  String get kNumber => 'num';
-
-  @override
-  String get kInteger => 'int';
-
-  @override
-  String get kFloat => 'float';
-
-  @override
-  String get kString => 'str';
-
-  @override
-  String get kNull => 'null';
-
-  @override
-  String get kTrue => 'true';
-
-  @override
-  String get kFalse => 'false';
-
-  @override
   Set<String> get kMutables => {'let', 'var'};
 
   @override
@@ -137,13 +137,16 @@ class HTLexiconHetu extends HTLexicon {
   String get kTypeDef => 'type';
 
   @override
-  String get kTypeOf => 'typeof';
+  String get kTypeValue => 'typeval';
+
+  @override
+  String get kTypeValueOf => 'typeof';
 
   @override
   String get kDeclTypeof => 'decltypeof';
 
   @override
-  String get kTypeValue => 'typeval';
+  String get kTypeNameOf => 'typeid';
 
   @override
   String get kImport => 'import';

@@ -101,15 +101,15 @@ void main() {
   hetu.init(externalClasses: [PersonClassBinding()]);
   hetu.eval('''
       external class Person {
-        var race: str
-        constructor([name: str = 'Jimmy', race: str = 'Caucasian']);
+        var race: string
+        constructor([name: string = 'Jimmy', race: string = 'Caucasian']);
         get child
         static function meaning(n: num)
         static get level
-        static set level (value: str)
-        constructor withName(name: str, [race: str = 'Caucasian'])
+        static set level (value: string)
+        constructor withName(name: string, [race: string = 'Caucasian'])
         var name
-        function greeting(tag: str)
+        function greeting(tag: string)
       }
       var p1: Person = Person()
       p1.greeting('jimmy')

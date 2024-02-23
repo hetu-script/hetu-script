@@ -4,7 +4,7 @@ Most of the common primitive types in Hetu is in fact Dart values, you can use m
 
 - null
 - bool
-- num
+- number
 - int
 - double
 - String
@@ -29,7 +29,7 @@ Note:
 
 ## String
 
-The type name for String in Hetu is 'str'.
+The type name for String in Hetu is 'string'.
 
 ### Interpolation
 

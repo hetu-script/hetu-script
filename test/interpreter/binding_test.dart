@@ -136,12 +136,12 @@ void main() {
   hetu.eval(
     r'''
   external class Name {
-    var familyName: str;
-    var firstName: str;
+    var familyName: string;
+    var firstName: string;
   }
   external class Profile {
     var name
-    constructor (familyName: str, firstName: str)
+    constructor (familyName: string, firstName: string)
 
     get isCivilian -> bool
     set isCivilian(value: bool)

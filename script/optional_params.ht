@@ -1,4 +1,4 @@
-function hello(words: str, [times: num = 112]) {
+function hello(words: string, [times: number = 112]) {
   print(words, times)
 }
 

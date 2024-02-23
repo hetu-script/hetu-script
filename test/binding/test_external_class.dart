@@ -34,11 +34,7 @@ class PersonClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from}) {
     switch (id) {
       case 'Person':
-        return (HTObject entity,
-                {List<dynamic> positionalArgs = const [],
-                Map<String, dynamic> namedArgs = const {},
-                List<HTType> typeArgs = const []}) =>
-            Person(positionalArgs[0]);
+        return ({positionalArgs, namedArgs}) => Person(positionalArgs[0]);
       default:
         throw HTError.undefined(id);
     }

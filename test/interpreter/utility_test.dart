@@ -30,8 +30,8 @@ void main() {
     // test('json assign', () {
     //   final result = hetu.eval(r'''
     //     class Name {
-    //       var first: str
-    //       var last: str
+    //       var first: string
+    //       var last: string
     //       function toString {
     //         return '{first: ${first}, last: ${last}}'
     //       }
@@ -45,7 +45,7 @@ void main() {
     //       }
     //     }
     //     class Profile {
-    //       var name: Map<str, Name>
+    //       var name: Map<string, Name>
     //       var stats: List<Stats>
     //       function toString {
     //         return 'name: ${name}\nstats: ${stats}'
