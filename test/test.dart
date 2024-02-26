@@ -8,7 +8,7 @@ Future<void> main() async {
     config: HetuConfig(normalizeImportPath: false),
   );
   hetu.init(externalFunctions: {
-    'getJSON': ({positionalArgs, namedArgs}) {
+    'getJSON': ({positionalArgs, namedArgs}) async {
       final jsonData = {
         "name": "Aleph",
         "type": "novel",
@@ -25,7 +25,7 @@ Future<void> main() async {
   );
 
   var r = hetu.eval(r'''
-    external fun getJSON()
+    external async fun getJSON()
 
     // console.time('loop test')
     // for (var i = 0; i < 100000; ++i) {
@@ -33,7 +33,7 @@ Future<void> main() async {
     // }
     // console.timeEnd('loop test')
 
-    let data = getJSON()
+    let data = await getJSON()
 
     let obj = Object.createFromJSON(data)
 
@@ -42,11 +42,19 @@ Future<void> main() async {
     print('obj.hasOwnProperty(\'toJSON\')', obj.hasOwnProperty('toJSON'))
     print('obj.contains(\'toJSON\')', obj.contains('toJSON'))
     print(obj.toJSON())
+
+    fun test() async {
+      print('async execution')
+    }
+    
+    test()
 ''');
 
   if (r is Future) {
-    print('wait for async function...');
-    r = await r;
+    do {
+      print('wait for async function...');
+      r = await r;
+    } while (r is Future);
     print(hetu.lexicon.stringify(r));
   } else {
     print(hetu.lexicon.stringify(r));

@@ -447,182 +447,88 @@ class HTParserHetu extends HTParser {
           } else {
             stmt = _parseTypeAliasDecl();
           }
-        } else {
-          if (lexer.lexicon.kMutables.contains(curTok.lexeme)) {
+        } else if (lexer.lexicon.kMutables.contains(curTok.lexeme)) {
+          stmt = _parseVarDecl(
+            classId: _currentClassDeclaration?.id,
+            // isOverrided: isOverrided,
+            isExternal: isExternal,
+            isMutable: true,
+            isStatic: isStatic,
+            lateInitialize: true,
+          );
+        } else if (curTok.lexeme == lexer.lexicon.kImmutable) {
+          stmt = _parseVarDecl(
+            classId: _currentClassDeclaration?.id,
+            // isOverrided: isOverrided,
+            isExternal: isExternal,
+            isStatic: isStatic,
+            lateInitialize: true,
+          );
+        } else if (curTok.lexeme == lexer.lexicon.kLate) {
+          stmt = _parseVarDecl(
+            classId: _currentClassDeclaration?.id,
+            // isOverrided: isOverrided,
+            isExternal: isExternal,
+            isStatic: isStatic,
+            lateFinalize: true,
+          );
+        } else if (curTok.lexeme == lexer.lexicon.kConst) {
+          if (isStatic) {
             stmt = _parseVarDecl(
+              // isConst: true,
               classId: _currentClassDeclaration?.id,
-              // isOverrided: isOverrided,
-              isExternal: isExternal,
-              isMutable: true,
-              isStatic: isStatic,
-              lateInitialize: true,
             );
-          } else if (curTok.lexeme == lexer.lexicon.kImmutable) {
-            stmt = _parseVarDecl(
-              classId: _currentClassDeclaration?.id,
-              // isOverrided: isOverrided,
-              isExternal: isExternal,
-              isStatic: isStatic,
-              lateInitialize: true,
-            );
-          } else if (curTok.lexeme == lexer.lexicon.kLate) {
-            stmt = _parseVarDecl(
-              classId: _currentClassDeclaration?.id,
-              // isOverrided: isOverrided,
-              isExternal: isExternal,
-              isStatic: isStatic,
-              lateFinalize: true,
-            );
-          } else if (curTok.lexeme == lexer.lexicon.kConst) {
-            if (isStatic) {
-              stmt = _parseVarDecl(
-                // isConst: true,
-                classId: _currentClassDeclaration?.id,
-              );
-            } else {
-              final err = HTError.external(
-                HTLocale.current.typeAliasDeclaration,
-                filename: currrentFileName,
-                line: curTok.line,
-                column: curTok.column,
-                offset: curTok.offset,
-                length: curTok.length,
-              );
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                source: currentSource,
-                line: errToken.line,
-                column: errToken.column,
-                offset: errToken.offset,
-              );
-            }
-          } else if (curTok.lexeme == lexer.lexicon.kAsync) {
-            if (isExternal) {
-              final err = HTError.external(
-                HTLocale.current.asyncFunction,
-                filename: currrentFileName,
-                line: curTok.line,
-                column: curTok.column,
-                offset: curTok.offset,
-                length: curTok.length,
-              );
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                source: currentSource,
-                line: errToken.line,
-                column: errToken.column,
-                offset: errToken.offset,
-              );
-            } else {
-              stmt = _parseFunction(
-                // category: FunctionCategory.method,
-                classId: _currentClassDeclaration?.id,
-                isAsync: true,
-                // isOverrided: isOverrided,
-                isExternal: isExternal,
-                isStatic: isStatic,
-              );
-            }
-          } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
-            stmt = _parseFunction(
-                // category: FunctionCategory.method,
-                classId: _currentClassDeclaration?.id,
-                // isOverrided: isOverrided,
-                isExternal: isExternal,
-                isStatic: isStatic);
-          } else if (curTok.lexeme == lexer.lexicon.kGet) {
-            stmt = _parseFunction(
-                category: FunctionCategory.getter,
-                classId: _currentClassDeclaration?.id,
-                // isOverrided: isOverrided,
-                isExternal: isExternal,
-                isStatic: isStatic);
-          } else if (curTok.lexeme == lexer.lexicon.kSet) {
-            stmt = _parseFunction(
-                category: FunctionCategory.setter,
-                classId: _currentClassDeclaration?.id,
-                // isOverrided: isOverrided,
-                isExternal: isExternal,
-                isStatic: isStatic);
-          } else if (lexer.lexicon.kConstructors.contains(curTok.lexeme)) {
-            if (isStatic) {
-              final err = HTError.unexpected(lexer.lexicon.kStatic,
-                  HTLocale.current.declarationStatement, curTok.lexeme,
-                  filename: currrentFileName,
-                  line: curTok.line,
-                  column: curTok.column,
-                  offset: curTok.offset,
-                  length: curTok.length);
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                  source: currentSource,
-                  line: errToken.line,
-                  column: errToken.column,
-                  offset: errToken.offset);
-            } else if (isExternal && !_currentClassDeclaration!.isExternal) {
-              final err = HTError.external(HTLocale.current.constructor,
-                  filename: currrentFileName,
-                  line: curTok.line,
-                  column: curTok.column,
-                  offset: curTok.offset,
-                  length: curTok.length);
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                  source: currentSource,
-                  line: errToken.line,
-                  column: errToken.column,
-                  offset: errToken.offset);
-            } else {
-              stmt = _parseFunction(
-                category: FunctionCategory.constructor,
-                classId: _currentClassDeclaration?.id,
-                isExternal: isExternal,
-              );
-            }
-          } else if (curTok.lexeme == lexer.lexicon.kFactory) {
-            if (isStatic) {
-              final err = HTError.unexpected(lexer.lexicon.kStatic,
-                  HTLocale.current.declarationStatement, curTok.lexeme,
-                  filename: currrentFileName,
-                  line: curTok.line,
-                  column: curTok.column,
-                  offset: curTok.offset,
-                  length: curTok.length);
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                  source: currentSource,
-                  line: errToken.line,
-                  column: errToken.column,
-                  offset: errToken.offset);
-            } else if (isExternal && !_currentClassDeclaration!.isExternal) {
-              final err = HTError.external(HTLocale.current.factory,
-                  filename: currrentFileName,
-                  line: curTok.line,
-                  column: curTok.column,
-                  offset: curTok.offset,
-                  length: curTok.length);
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                  source: currentSource,
-                  line: errToken.line,
-                  column: errToken.column,
-                  offset: errToken.offset);
-            } else {
-              stmt = _parseFunction(
-                category: FunctionCategory.factoryConstructor,
-                classId: _currentClassDeclaration?.id,
-                isExternal: isExternal,
-                isStatic: true,
-              );
-            }
           } else {
-            final err = HTError.unexpected(HTLocale.current.classDefinition,
+            final err = HTError.external(
+              HTLocale.current.typeAliasDeclaration,
+              filename: currrentFileName,
+              line: curTok.line,
+              column: curTok.column,
+              offset: curTok.offset,
+              length: curTok.length,
+            );
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+              source: currentSource,
+              line: errToken.line,
+              column: errToken.column,
+              offset: errToken.offset,
+            );
+          }
+        } else if (curTok.lexeme == lexer.lexicon.kAsync) {
+          stmt = _parseFunction(
+            // category: FunctionCategory.method,
+            classId: _currentClassDeclaration?.id,
+            isAsync: true,
+            // isOverrided: isOverrided,
+            isExternal: isExternal,
+            isStatic: isStatic,
+          );
+        } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
+          stmt = _parseFunction(
+              // category: FunctionCategory.method,
+              classId: _currentClassDeclaration?.id,
+              // isOverrided: isOverrided,
+              isExternal: isExternal,
+              isStatic: isStatic);
+        } else if (curTok.lexeme == lexer.lexicon.kGet) {
+          stmt = _parseFunction(
+              category: FunctionCategory.getter,
+              classId: _currentClassDeclaration?.id,
+              // isOverrided: isOverrided,
+              isExternal: isExternal,
+              isStatic: isStatic);
+        } else if (curTok.lexeme == lexer.lexicon.kSet) {
+          stmt = _parseFunction(
+              category: FunctionCategory.setter,
+              classId: _currentClassDeclaration?.id,
+              // isOverrided: isOverrided,
+              isExternal: isExternal,
+              isStatic: isStatic);
+        } else if (lexer.lexicon.kConstructors.contains(curTok.lexeme)) {
+          if (isStatic) {
+            final err = HTError.unexpected(lexer.lexicon.kStatic,
                 HTLocale.current.declarationStatement, curTok.lexeme,
                 filename: currrentFileName,
                 line: curTok.line,
@@ -636,7 +542,80 @@ class HTParserHetu extends HTParser {
                 line: errToken.line,
                 column: errToken.column,
                 offset: errToken.offset);
+          } else if (isExternal && !_currentClassDeclaration!.isExternal) {
+            final err = HTError.external(HTLocale.current.constructor,
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
+          } else {
+            stmt = _parseFunction(
+              category: FunctionCategory.constructor,
+              classId: _currentClassDeclaration?.id,
+              isExternal: isExternal,
+            );
           }
+        } else if (curTok.lexeme == lexer.lexicon.kFactory) {
+          if (isStatic) {
+            final err = HTError.unexpected(lexer.lexicon.kStatic,
+                HTLocale.current.declarationStatement, curTok.lexeme,
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
+          } else if (isExternal && !_currentClassDeclaration!.isExternal) {
+            final err = HTError.external(HTLocale.current.factory,
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
+          } else {
+            stmt = _parseFunction(
+              category: FunctionCategory.factoryConstructor,
+              classId: _currentClassDeclaration?.id,
+              isExternal: isExternal,
+              isStatic: true,
+            );
+          }
+        } else {
+          final err = HTError.unexpected(HTLocale.current.classDefinition,
+              HTLocale.current.declarationStatement, curTok.lexeme,
+              filename: currrentFileName,
+              line: curTok.line,
+              column: curTok.column,
+              offset: curTok.offset,
+              length: curTok.length);
+          errors.add(err);
+          final errToken = advance();
+          stmt = ASTEmptyLine(
+              source: currentSource,
+              line: errToken.line,
+              column: errToken.column,
+              offset: errToken.offset);
         }
       case ParseStyle.structDefinition:
         final isExternal = expect([lexer.lexicon.kExternal], consume: true);
