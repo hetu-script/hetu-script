@@ -497,6 +497,7 @@ class HTParserHetu extends HTParser {
             );
           }
         } else if (curTok.lexeme == lexer.lexicon.kAsync) {
+          advance();
           stmt = _parseFunction(
             // category: FunctionCategory.method,
             classId: _currentClassDeclaration?.id,
