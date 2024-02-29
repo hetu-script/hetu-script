@@ -264,10 +264,13 @@ class Hetu {
     if (_isInitted) return;
 
     if (useDefaultModuleAndBinding) {
-      interpreter.bindExternalClass(HTNumberClassBinding());
-      interpreter.bindExternalClass(HTIntegerClassBinding());
+      final numBinding = HTNumberClassBinding();
+      interpreter.bindExternalClass(numBinding);
+      interpreter
+          .bindExternalClass(HTIntegerClassBinding(superClass: numBinding));
+      interpreter
+          .bindExternalClass(HTFloatClassBinding(superClass: numBinding));
       interpreter.bindExternalClass(HTBigIntClassBinding());
-      interpreter.bindExternalClass(HTFloatClassBinding());
       interpreter.bindExternalClass(HTBooleanClassBinding());
       interpreter.bindExternalClass(HTStringClassBinding());
       interpreter.bindExternalClass(HTIteratorClassBinding());
@@ -290,6 +293,18 @@ class Hetu {
           {positionalArgs, namedArgs}) {
         final jsonData = positionalArgs.first as Map<dynamic, dynamic>;
         return interpreter.createStructfromJSON(jsonData);
+      });
+      interpreter.bindExternalFunction('Object.assign', (
+          {positionalArgs, namedArgs}) {
+        final target = positionalArgs[0] as HTStruct;
+        final source = positionalArgs[1] as HTStruct;
+        target.assign(source);
+      });
+      interpreter.bindExternalFunction('Object.merge', (
+          {positionalArgs, namedArgs}) {
+        final target = positionalArgs[0] as HTStruct;
+        final source = positionalArgs[1] as HTStruct;
+        target.merge(source);
       });
 
       // bind dynamic external method

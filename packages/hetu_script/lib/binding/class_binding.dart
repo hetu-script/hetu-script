@@ -17,6 +17,7 @@ import '../preinclude/console.dart';
 import '../utils/jsonify.dart';
 import '../lexicon/lexicon.dart';
 import '../value/struct/struct.dart';
+import '../locale/locale.dart';
 
 class HTNumberClassBinding extends HTExternalClass {
   HTNumberClassBinding() : super('number');
@@ -31,10 +32,74 @@ class HTNumberClassBinding extends HTExternalClass {
         throw HTError.undefined(id);
     }
   }
+
+  @override
+  dynamic instanceMemberGet(dynamic instance, String id) {
+    final object = instance as num;
+    switch (id) {
+      case 'toPercentageString':
+        return ({positionalArgs, namedArgs}) {
+          final fractionDigits = positionalArgs.first;
+          return (object * 100).toStringAsFixed(fractionDigits).toString() +
+              HTLocale.current.percentageMark;
+        };
+      case 'compareTo':
+        return ({positionalArgs, namedArgs}) =>
+            object.compareTo(positionalArgs[0]);
+      case 'remainder':
+        return ({positionalArgs, namedArgs}) =>
+            object.remainder(positionalArgs[0]);
+      case 'isNaN':
+        return object.isNaN;
+      case 'isNegative':
+        return object.isNegative;
+      case 'isInfinite':
+        return object.isInfinite;
+      case 'isFinite':
+        return object.isFinite;
+      case 'abs':
+        return ({positionalArgs, namedArgs}) => object.abs();
+      case 'sign':
+        return object.sign;
+      case 'round':
+        return ({positionalArgs, namedArgs}) => object.round();
+      case 'floor':
+        return ({positionalArgs, namedArgs}) => object.floor();
+      case 'ceil':
+        return ({positionalArgs, namedArgs}) => object.ceil();
+      case 'truncate':
+        return ({positionalArgs, namedArgs}) => object.truncate();
+      case 'roundToDouble':
+        return ({positionalArgs, namedArgs}) => object.roundToDouble();
+      case 'floorToDouble':
+        return ({positionalArgs, namedArgs}) => object.floorToDouble();
+      case 'ceilToDouble':
+        return ({positionalArgs, namedArgs}) => object.ceilToDouble();
+      case 'truncateToDouble':
+        return ({positionalArgs, namedArgs}) => object.truncateToDouble();
+      case 'toInt':
+        return ({positionalArgs, namedArgs}) => object.toInt();
+      case 'toDouble':
+        return ({positionalArgs, namedArgs}) => object.toDouble();
+      case 'toStringAsFixed':
+        return ({positionalArgs, namedArgs}) =>
+            object.toStringAsFixed(positionalArgs[0]);
+      case 'toStringAsExponential':
+        return ({positionalArgs, namedArgs}) =>
+            object.toStringAsExponential(positionalArgs[0]);
+      case 'toStringAsPrecision':
+        return ({positionalArgs, namedArgs}) =>
+            object.toStringAsPrecision(positionalArgs[0]);
+      case 'toString':
+        return ({positionalArgs, namedArgs}) => object.toString();
+      default:
+        throw HTError.undefined(id);
+    }
+  }
 }
 
 class HTIntegerClassBinding extends HTExternalClass {
-  HTIntegerClassBinding() : super('integer');
+  HTIntegerClassBinding({required super.superClass}) : super('integer');
 
   @override
   dynamic memberGet(String id, {String? from}) {
@@ -52,8 +117,36 @@ class HTIntegerClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
-      (instance as int).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) {
+    final object = instance as int;
+    switch (id) {
+      case 'modPow':
+        return ({positionalArgs, namedArgs}) =>
+            object.modPow(positionalArgs[0], positionalArgs[1]);
+      case 'modInverse':
+        return ({positionalArgs, namedArgs}) =>
+            object.modInverse(positionalArgs[0]);
+      case 'gcd':
+        return ({positionalArgs, namedArgs}) => object.gcd(positionalArgs[0]);
+      case 'isEven':
+        return object.isEven;
+      case 'isOdd':
+        return object.isOdd;
+      case 'bitLength':
+        return object.bitLength;
+      case 'toUnsigned':
+        return ({positionalArgs, namedArgs}) =>
+            object.toUnsigned(positionalArgs[0]);
+      case 'toSigned':
+        return ({positionalArgs, namedArgs}) =>
+            object.toSigned(positionalArgs[0]);
+      case 'toRadixString':
+        return ({positionalArgs, namedArgs}) =>
+            object.toRadixString(positionalArgs[0]);
+      default:
+        return superClass?.instanceMemberGet(instance, id);
+    }
+  }
 }
 
 class HTBigIntClassBinding extends HTExternalClass {
@@ -80,12 +173,56 @@ class HTBigIntClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
-      (instance as int).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) {
+    final object = instance as BigInt;
+    switch (id) {
+      case 'bitLength':
+        return object.bitLength;
+      case 'sign':
+        return object.sign;
+      case 'isEven':
+        return object.isEven;
+      case 'isOdd':
+        return object.isOdd;
+      case 'isNegative':
+        return object.isNegative;
+      case 'pow':
+        return ({positionalArgs, namedArgs}) =>
+            object.pow(positionalArgs.first);
+      case 'modPow':
+        return ({positionalArgs, namedArgs}) =>
+            object.modPow(positionalArgs[0], positionalArgs[1]);
+      case 'modInverse':
+        return ({positionalArgs, namedArgs}) =>
+            object.modInverse(positionalArgs.first);
+      case 'gcd':
+        return ({positionalArgs, namedArgs}) =>
+            object.gcd(positionalArgs.first);
+      case 'toUnsigned':
+        return ({positionalArgs, namedArgs}) =>
+            object.toUnsigned(positionalArgs.first);
+      case 'toSigned':
+        return ({positionalArgs, namedArgs}) =>
+            object.toSigned(positionalArgs.first);
+      case 'isValidInt':
+        return object.isValidInt;
+      case 'toInt':
+        return ({positionalArgs, namedArgs}) => object.toInt();
+      case 'toDouble':
+        return ({positionalArgs, namedArgs}) => object.toDouble();
+      case 'toString':
+        return ({positionalArgs, namedArgs}) => object.toString();
+      case 'toRadixString':
+        return ({positionalArgs, namedArgs}) =>
+            object.toRadixString(positionalArgs.first);
+      default:
+        throw HTError.undefined(id);
+    }
+  }
 }
 
 class HTFloatClassBinding extends HTExternalClass {
-  HTFloatClassBinding() : super('float');
+  HTFloatClassBinding({required super.superClass}) : super('float');
 
   @override
   dynamic memberGet(String id, {String? from}) {
@@ -109,8 +246,16 @@ class HTFloatClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
-      (instance as double).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id) {
+    final object = instance as double;
+    switch (id) {
+      case 'toDoubleAsFixed':
+        return ({positionalArgs, namedArgs}) =>
+            double.parse(object.toStringAsFixed(positionalArgs.first));
+      default:
+        return superClass?.instanceMemberGet(instance, id);
+    }
+  }
 }
 
 class HTBooleanClassBinding extends HTExternalClass {
@@ -426,7 +571,7 @@ class HTCryptoClassBinding extends HTExternalClass {
         return ({positionalArgs, namedArgs}) {
           return randomUUID();
         };
-      case 'crypto.uid4':
+      case 'crypto.randomUID4':
         return ({positionalArgs, namedArgs}) {
           return randomUID4(positionalArgs.first);
         };

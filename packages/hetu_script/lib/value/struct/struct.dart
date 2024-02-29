@@ -294,4 +294,15 @@ class HTStruct with HTObject {
       define(key, copiedValue);
     }
   }
+
+  // deep copy another struct then merge with this one.
+  void merge(HTStruct other) {
+    for (final key in other._fields.keys) {
+      if (key.startsWith(interpreter.lexicon.internalPrefix)) continue;
+      if (_fields.containsKey(key)) continue;
+      final value = other._fields[key];
+      final copiedValue = interpreter.toStructValue(value);
+      define(key, copiedValue);
+    }
+  }
 }

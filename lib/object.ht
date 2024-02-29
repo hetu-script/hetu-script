@@ -3,6 +3,12 @@ import 'json.ht'
 struct Object {
   external static function createFromJSON(data) -> {}
 
+  /// Assign source object's member to target
+  external static function assign(target, source)
+
+  /// Assign source object's member to target if target does not have that member.
+  external static function merge(target, source)
+
   external get keys -> Iterable
 
   external get values -> Iterable
@@ -21,9 +27,6 @@ struct Object {
 
   /// Create a new struct form deepcopying this struct
   external function clone() -> {}
-
-  /// Assign another struct's value to this struct
-  external function assign(other)
 
   function toJSON() -> Map => JSON.parse(this)
 

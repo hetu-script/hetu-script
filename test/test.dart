@@ -27,27 +27,15 @@ Future<void> main() async {
   var r = hetu.eval(r'''
     external async fun getJSON()
 
-    // console.time('loop test')
-    // for (var i = 0; i < 100000; ++i) {
+    let a = {a: 1, b: 2}
+    let b = {c: 3, d: 4}
+    let c = {a: 42, e: 5}
 
-    // }
-    // console.timeEnd('loop test')
+    Object.assign(a, b)
+    print(a)
 
-    let data = await getJSON()
-
-    let obj = Object.createFromJSON(data)
-
-    print(obj)
-    print(obj.keys)
-    print('obj.hasOwnProperty(\'toJSON\')', obj.hasOwnProperty('toJSON'))
-    print('obj.contains(\'toJSON\')', obj.contains('toJSON'))
-    print(obj.toJSON())
-
-    fun test() async {
-      print('async execution')
-    }
-    
-    test()
+    Object.merge(a, c)
+    print(a)
 ''');
 
   if (r is Future) {

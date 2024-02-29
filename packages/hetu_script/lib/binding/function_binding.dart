@@ -41,11 +41,6 @@ final Map<String, Function> preincludeFunctions = {
   //   final obj = instance as HTStruct;
   //   return obj.clone();
   // },
-  // 'Prototype.assign': ({positionalArgs, namedArgs}) {
-  //   final obj = instance as HTStruct;
-  //   final other = positionalArgs.first as HTStruct;
-  //   obj.assign(other);
-  // },
   // 'Object.toString': ({positionalArgs, namedArgs}) {
   //   return (instance as HTInstance).getTypeString();
   // },

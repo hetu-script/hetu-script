@@ -14,7 +14,12 @@ abstract class HTExternalClass with HTObject {
   // @override
   final String id;
 
-  HTExternalClass(this.id); //, {this.superClass, this.superClassType});
+  final HTExternalClass? superClass;
+
+  HTExternalClass(
+    this.id, {
+    this.superClass,
+  });
 
   /// Default [HTExternalClass] constructor.
   /// Fetch a instance member of the Dart class by the [id], in the form of
