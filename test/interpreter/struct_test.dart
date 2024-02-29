@@ -100,5 +100,18 @@ void main() {
       ''');
       expect(result, ['a', 'b']);
     });
+
+    test('assign & merge', () {
+      final result = hetu.eval(r'''
+        
+        let a = {a: 1}
+        let b = {a: 4, b: 4}
+        let c = {a: 42, c: 5}
+
+        Object.assign(a, b)
+        a.a
+      ''');
+      expect(result, 4);
+    });
   });
 }
