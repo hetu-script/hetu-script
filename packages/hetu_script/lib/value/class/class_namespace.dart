@@ -25,7 +25,7 @@ class HTClassNamespace extends HTNamespace {
     bool isPrivate = false,
     String? from,
     bool isRecursive = true,
-    bool throws = true,
+    bool ignoreUndefined = false,
     bool asDeclaration = false,
   }) {
     final getter = '${InternalIdentifier.getter}$id';
@@ -55,11 +55,13 @@ class HTClassNamespace extends HTNamespace {
     }
 
     if (isRecursive && (closure != null)) {
-      return closure!
-          .memberGet(id, from: from, isRecursive: isRecursive, throws: throws);
+      return closure!.memberGet(id,
+          from: from,
+          isRecursive: isRecursive,
+          ignoreUndefined: ignoreUndefined);
     }
 
-    if (throws) {
+    if (!ignoreUndefined) {
       throw HTError.undefined(id);
     }
   }
@@ -70,7 +72,7 @@ class HTClassNamespace extends HTNamespace {
     dynamic value, {
     String? from,
     bool isRecursive = true,
-    bool throws = true,
+    bool ignoreUndefined = false,
   }) {
     final setter = '${InternalIdentifier.setter}$id';
     if (symbols.containsKey(id)) {
@@ -94,10 +96,12 @@ class HTClassNamespace extends HTNamespace {
 
     if (isRecursive && closure != null) {
       return closure!.memberSet(id, value,
-          from: from, isRecursive: isRecursive, throws: throws);
+          from: from,
+          isRecursive: isRecursive,
+          ignoreUndefined: ignoreUndefined);
     }
 
-    if (throws) {
+    if (!ignoreUndefined) {
       throw HTError.undefined(id);
     } else {
       return false;

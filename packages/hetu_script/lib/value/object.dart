@@ -21,7 +21,7 @@ mixin HTObject {
   /// object.id
   /// ```
   /// [id] must be of String type.
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     throw HTError.undefined(id);
   }
 

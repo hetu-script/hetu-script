@@ -104,7 +104,7 @@ class HTInstance with HTObject, InterpreterRef {
 
   @override
   String toString() {
-    final func = memberGet('toString', throws: false);
+    final func = memberGet('toString', ignoreUndefined: true);
     if (func is HTFunction) {
       return func.call();
     } else if (func is Function) {
@@ -151,7 +151,7 @@ class HTInstance with HTObject, InterpreterRef {
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
   dynamic memberGet(String id,
-      {String? from, String? cast, bool throws = true}) {
+      {String? from, String? cast, bool ignoreUndefined = true}) {
     final getter = '${InternalIdentifier.getter}$id';
 
     if (cast == null) {
@@ -213,7 +213,7 @@ class HTInstance with HTObject, InterpreterRef {
       }
     }
 
-    if (throws) {
+    if (!ignoreUndefined) {
       throw HTError.undefined(id);
     }
   }

@@ -43,7 +43,7 @@ class HTInstanceNamespace extends HTNamespace {
     bool isPrivate = false,
     String? from,
     bool isRecursive = true,
-    bool throws = true,
+    bool ignoreUndefined = false,
     bool asDeclaration = false,
   }) {
     final getter = '${InternalIdentifier.getter}$id';
@@ -80,7 +80,7 @@ class HTInstanceNamespace extends HTNamespace {
       return closure!.memberGet(id, from: from, isRecursive: isRecursive);
     }
 
-    if (throws) {
+    if (!ignoreUndefined) {
       throw HTError.undefined(id);
     }
   }
@@ -95,7 +95,7 @@ class HTInstanceNamespace extends HTNamespace {
     dynamic value, {
     String? from,
     bool isRecursive = true,
-    bool throws = true,
+    bool ignoreUndefined = false,
   }) {
     final setter = '${InternalIdentifier.getter}$id';
 
@@ -121,7 +121,7 @@ class HTInstanceNamespace extends HTNamespace {
       return closure!.memberSet(id, value, from: from);
     }
 
-    if (throws) {
+    if (!ignoreUndefined) {
       throw HTError.undefined(id);
     } else {
       return false;

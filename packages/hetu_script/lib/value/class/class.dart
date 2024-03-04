@@ -139,7 +139,7 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
   /// Get the value of a static member from this [HTClass] via memberGet operator '.'
   /// for symbol searching, use the same name method on [HTClassNamespace] instead.
   @override
-  dynamic memberGet(String id, {String? from, bool throws = true}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = true}) {
     final getter = '${InternalIdentifier.getter}$id';
     final constructor = this.id != id
         ? '${InternalIdentifier.namedConstructorPrefix}$id'
@@ -198,7 +198,7 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
     }
     // }
 
-    if (throws) {
+    if (!ignoreUndefined) {
       throw HTError.undefined(id,
           filename: interpreter.currentFile,
           line: interpreter.currentLine,

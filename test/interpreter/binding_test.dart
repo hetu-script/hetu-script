@@ -27,46 +27,21 @@ class Person {
   static Profile profile = Profile('Riddle', 'Tom');
 }
 
-extension NameBinding on Name {
-  dynamic htFetch(String id) {
-    switch (id) {
-      case 'familyName':
-        return familyName;
-      case 'firstName':
-        return firstName;
-      default:
-        throw HTError.undefined(id);
-    }
-  }
-}
-
 class NameClassBinding extends HTExternalClass {
   NameClassBinding() : super('Name');
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as Name).htFetch(id);
-}
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Name;
 
-extension ProfileBinding on Profile {
-  dynamic htFetch(String id) {
     switch (id) {
-      case 'name':
-        return name;
-      case 'isCivilian':
-        return isCivilian;
+      case 'familyName':
+        return object.familyName;
+      case 'firstName':
+        return object.firstName;
       default:
-        throw HTError.undefined(id);
-    }
-  }
-
-  void htAssign(String id, dynamic value) {
-    switch (id) {
-      case 'isCivilian':
-        isCivilian = value;
-        break;
-      default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 }
@@ -75,7 +50,7 @@ class ProfileClassBinding extends HTExternalClass {
   ProfileClassBinding() : super('Profile');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Profile':
         return (HTObject entity,
@@ -84,39 +59,59 @@ class ProfileClassBinding extends HTExternalClass {
                 List<HTType> typeArgs = const []}) =>
             Profile(positionalArgs[0], positionalArgs[1]);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) =>
-      (object as Profile).htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Profile;
+    switch (id) {
+      case 'name':
+        return object.name;
+      case 'isCivilian':
+        return object.isCivilian;
+      default:
+        if (!ignoreUndefined) throw HTError.undefined(id);
+    }
+  }
 
   @override
-  dynamic instanceMemberSet(dynamic object, String id, dynamic value) =>
-      (object as Profile).htAssign(id, value);
+  dynamic instanceMemberSet(dynamic instance, String id, dynamic value,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Profile;
+    switch (id) {
+      case 'isCivilian':
+        object.isCivilian = value;
+        break;
+      default:
+        if (!ignoreUndefined) throw HTError.undefined(id);
+    }
+  }
 }
 
 class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Person.profile':
         return Person.profile;
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic memberSet(String id, dynamic value, {String? from}) {
+  dynamic memberSet(String id, dynamic value,
+      {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Person.profile':
         return Person.profile = value;
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 }

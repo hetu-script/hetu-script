@@ -12,7 +12,7 @@ class CountryEnumBinding extends HTExternalClass {
   CountryEnumBinding() : super('Country');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'values':
         return Country.values;
@@ -25,12 +25,13 @@ class CountryEnumBinding extends HTExternalClass {
       case 'ukraine':
         return Country.ukraine;
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) {
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
     switch (id) {
       case 'index':
         var i = instance as Country;
@@ -39,7 +40,7 @@ class CountryEnumBinding extends HTExternalClass {
         var i = instance as Country;
         return ({positionalArgs, namedArgs}) => i.toString();
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 }

@@ -93,11 +93,13 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
   ///
   /// TODO: remove isPrivate check;
   @override
-  dynamic memberGet(String id,
-      {bool isPrivate = false,
-      String? from,
-      bool isRecursive = false,
-      bool throws = true}) {
+  dynamic memberGet(
+    String id, {
+    bool isPrivate = false,
+    String? from,
+    bool isRecursive = false,
+    bool ignoreUndefined = false,
+  }) {
     if (symbols.containsKey(id)) {
       final decl = symbols[id];
       if (isPrivate && from != null && !from.startsWith(fullName)) {
@@ -111,7 +113,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
       return closure!.memberGet(id, from: from, isRecursive: true);
     }
 
-    if (throws) {
+    if (!ignoreUndefined) {
       throw HTError.undefined(id);
     }
   }

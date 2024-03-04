@@ -413,10 +413,10 @@ class HTInterpreter {
   }
 
   /// Get a namespace in certain module with a certain name.
-  HTNamespace getNamespace({String? module}) {
+  HTNamespace getModuleNamespace({String? id}) {
     HTNamespace nsp = globalNamespace;
-    if (module != null) {
-      final bytecodeModule = cachedModules[module]!;
+    if (id != null) {
+      final bytecodeModule = cachedModules[id]!;
       assert(bytecodeModule.namespaces.isNotEmpty);
       nsp = bytecodeModule.namespaces.values.last;
     }
@@ -434,7 +434,7 @@ class HTInterpreter {
     bool throws = true,
     String? module,
   }) {
-    final nsp = getNamespace(module: module);
+    final nsp = getModuleNamespace(id: module);
     if (value is HTDeclaration) {
       return nsp.define(id, value, override: override, throws: throws);
     } else {
@@ -456,7 +456,7 @@ class HTInterpreter {
       if (id is HTDeclaration) {
         return id.documentation;
       } else if (id is String) {
-        HTNamespace nsp = getNamespace(module: module);
+        HTNamespace nsp = getModuleNamespace(id: module);
         return nsp.help(id);
       } else {
         throw 'The argument of the `help` api [$id] is neither a defined symbol nor a string.';
@@ -472,9 +472,9 @@ class HTInterpreter {
   }
 
   /// Get a top level variable defined in a certain namespace.
-  dynamic fetch(String id, {String? module}) {
+  dynamic fetch(String id, {String? namespace, String? module}) {
     try {
-      HTNamespace nsp = getNamespace(module: module);
+      HTNamespace nsp = getModuleNamespace(id: module);
       final result = nsp.memberGet(id, isRecursive: false);
       return result;
     } catch (error, stackTrace) {
@@ -487,10 +487,10 @@ class HTInterpreter {
   }
 
   /// Assign value to a top level variable defined in a certain namespace in the interpreter.
-  void assign(String id, dynamic value, {String? module}) {
+  void assign(String id, dynamic value, {String? namespace, String? module}) {
     try {
       final savedModuleName = _currentBytecodeModule.id;
-      HTNamespace nsp = getNamespace(module: module);
+      HTNamespace nsp = getModuleNamespace(id: module);
       nsp.memberSet(id, value, isRecursive: false);
       if (_currentBytecodeModule.id != savedModuleName) {
         _currentBytecodeModule = cachedModules[savedModuleName]!;
@@ -509,6 +509,7 @@ class HTInterpreter {
   /// name as a contruct call, you will get a [HTInstance] or [HTStruct] as return value.
   dynamic invoke(
     String func, {
+    bool ignoreUndefined = false,
     String? namespace,
     String? module,
     bool isConstructor = false,
@@ -534,20 +535,27 @@ class HTInterpreter {
       dynamic callee;
       if (namespace != null) {
         HTObject fromNsp = nsp.memberGet(namespace, isRecursive: true);
-        callee = fromNsp.memberGet(func);
+        callee = fromNsp.memberGet(func, ignoreUndefined: ignoreUndefined);
       } else {
-        callee = nsp.memberGet(func, isRecursive: true);
+        callee = nsp.memberGet(func,
+            isRecursive: true, ignoreUndefined: ignoreUndefined);
       }
-      final result = _call(
-        callee,
-        positionalArgs: positionalArgs,
-        namedArgs: namedArgs,
-        // typeArgs: typeArgs,
-      );
-      if (_currentBytecodeModule.id != savedModuleName) {
-        _currentBytecodeModule = cachedModules[savedModuleName]!;
+      if (callee == null) {
+        if (!ignoreUndefined) {
+          throw HTError.nullObject(func, InternalIdentifier.call);
+        }
+      } else {
+        final result = _call(
+          callee,
+          positionalArgs: positionalArgs,
+          namedArgs: namedArgs,
+          // typeArgs: typeArgs,
+        );
+        if (_currentBytecodeModule.id != savedModuleName) {
+          _currentBytecodeModule = cachedModules[savedModuleName]!;
+        }
+        return result;
       }
-      return result;
     } catch (error, stackTrace) {
       if (config.processError) {
         processError(error, stackTrace);
@@ -905,11 +913,11 @@ class HTInterpreter {
         _currentBytecodeModule = HTBytecodeModule(id: module, bytes: bytes);
         cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
       }
-      _currentBytecodeModule.timestamp = DateTime.now().millisecondsSinceEpoch;
-      _currentBytecodeModule.ip = 0;
-      _currentBytecodeModule.invoke = invoke;
-      _currentBytecodeModule.positionalArgs = positionalArgs;
-      _currentBytecodeModule.namedArgs = namedArgs;
+      _currentBytecodeModule.init(
+        invoke: invoke,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+      );
 
       final signature = _currentBytecodeModule.readUint32();
       if (signature != HTCompiler.hetuSignature) {
@@ -1534,7 +1542,7 @@ class HTInterpreter {
           assert(localSymbol != null);
           final id = localSymbol!;
           final result = currentNamespace.memberSet(id, value,
-              isRecursive: true, throws: false);
+              isRecursive: true, ignoreUndefined: true);
           if (!result) {
             if (config.allowImplicitVariableDeclaration) {
               final decl = HTVariable(

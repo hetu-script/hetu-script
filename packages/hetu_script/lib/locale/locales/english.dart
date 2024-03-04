@@ -334,6 +334,12 @@ class HTLocaleEnglish implements HTLocale {
   @override
   String get errorGetterParam =>
       'Unexpected parameter list for getter function.';
+  @override
+  String get errorStructMemberId =>
+      'Struct member id should be symbol or string, however met id with token type: [{0}].';
+  @override
+  String get errorIfBlock =>
+      'If statement then and else should be both expression or both block';
 
   // compile time errors
   @override
@@ -430,9 +436,6 @@ class HTLocaleEnglish implements HTLocale {
   String get errorCastee => 'Illegal cast target [{0}].';
   @override
   String get errorNotSuper => '[{0}] is not a super class of [{1}].';
-  @override
-  String get errorStructMemberId =>
-      'Struct member id should be symbol or string, however met id with token type: [{0}].';
   @override
   String get errorUnresolvedNamedStruct =>
       'Cannot create struct object from unresolved prototype [{0}].';

@@ -23,18 +23,19 @@ class HTNumberClassBinding extends HTExternalClass {
   HTNumberClassBinding() : super('number');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'number.parse':
         return ({positionalArgs, namedArgs}) =>
             num.tryParse(positionalArgs.first);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) {
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
     final object = instance as num;
     switch (id) {
       case 'toPercentageString':
@@ -102,7 +103,7 @@ class HTIntegerClassBinding extends HTExternalClass {
   HTIntegerClassBinding({required super.superClass}) : super('integer');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'integer.fromEnvironment':
         return ({positionalArgs, namedArgs}) => int.fromEnvironment(
@@ -112,12 +113,13 @@ class HTIntegerClassBinding extends HTExternalClass {
         return ({positionalArgs, namedArgs}) =>
             int.tryParse(positionalArgs[0], radix: namedArgs['radix']);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) {
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
     final object = instance as int;
     switch (id) {
       case 'modPow':
@@ -153,7 +155,7 @@ class HTBigIntClassBinding extends HTExternalClass {
   HTBigIntClassBinding() : super('BigInt');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'BigInt.zero':
         return ({positionalArgs, namedArgs}) => BigInt.zero;
@@ -168,12 +170,13 @@ class HTBigIntClassBinding extends HTExternalClass {
         return ({positionalArgs, namedArgs}) =>
             BigInt.from(positionalArgs.first);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) {
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
     final object = instance as BigInt;
     switch (id) {
       case 'bitLength':
@@ -216,7 +219,7 @@ class HTBigIntClassBinding extends HTExternalClass {
         return ({positionalArgs, namedArgs}) =>
             object.toRadixString(positionalArgs.first);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 }
@@ -225,7 +228,7 @@ class HTFloatClassBinding extends HTExternalClass {
   HTFloatClassBinding({required super.superClass}) : super('float');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'float.nan':
         return double.nan;
@@ -241,12 +244,13 @@ class HTFloatClassBinding extends HTExternalClass {
         return ({positionalArgs, namedArgs}) =>
             double.tryParse(positionalArgs[0]);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) {
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
     final object = instance as double;
     switch (id) {
       case 'toDoubleAsFixed':
@@ -262,14 +266,14 @@ class HTBooleanClassBinding extends HTExternalClass {
   HTBooleanClassBinding() : super('bool');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'bool.parse':
         return ({positionalArgs, namedArgs}) {
           return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
         };
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 }
@@ -278,19 +282,20 @@ class HTStringClassBinding extends HTExternalClass {
   HTStringClassBinding() : super('string');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'string.parse':
         return ({positionalArgs, namedArgs}) {
           return positionalArgs.first.toString();
         };
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
+  dynamic instanceMemberGet(dynamic instance, String id,
+          {bool ignoreUndefined = false}) =>
       (instance as String).htFetch(id);
 }
 
@@ -298,7 +303,8 @@ class HTIteratorClassBinding extends HTExternalClass {
   HTIteratorClassBinding() : super('Iterator');
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
+  dynamic instanceMemberGet(dynamic instance, String id,
+          {bool ignoreUndefined = false}) =>
       (instance as Iterator).htFetch(id);
 }
 
@@ -306,7 +312,8 @@ class HTIterableClassBinding extends HTExternalClass {
   HTIterableClassBinding() : super('Iterable');
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
+  dynamic instanceMemberGet(dynamic instance, String id,
+          {bool ignoreUndefined = false}) =>
       (instance as Iterable).htFetch(id);
 }
 
@@ -314,17 +321,18 @@ class HTListClassBinding extends HTExternalClass {
   HTListClassBinding() : super('List');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'List':
         return ({positionalArgs, namedArgs}) => List.from(positionalArgs);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
+  dynamic instanceMemberGet(dynamic instance, String id,
+          {bool ignoreUndefined = false}) =>
       (instance as List).htFetch(id);
 }
 
@@ -332,17 +340,18 @@ class HTSetClassBinding extends HTExternalClass {
   HTSetClassBinding() : super('Set');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Set':
         return ({positionalArgs, namedArgs}) => Set.from(positionalArgs);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
+  dynamic instanceMemberGet(dynamic instance, String id,
+          {bool ignoreUndefined = false}) =>
       (instance as Set).htFetch(id);
 }
 
@@ -350,17 +359,18 @@ class HTMapClassBinding extends HTExternalClass {
   HTMapClassBinding() : super('Map');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Map':
         return ({positionalArgs, namedArgs}) => {};
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
+  dynamic instanceMemberGet(dynamic instance, String id,
+          {bool ignoreUndefined = false}) =>
       (instance as Map).htFetch(id);
 }
 
@@ -368,18 +378,19 @@ class HTRandomClassBinding extends HTExternalClass {
   HTRandomClassBinding() : super('Random');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Random':
         return ({positionalArgs, namedArgs}) =>
             math.Random(positionalArgs.first);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
+  dynamic instanceMemberGet(dynamic instance, String id,
+          {bool ignoreUndefined = false}) =>
       (instance as math.Random).htFetch(id);
 }
 
@@ -387,7 +398,7 @@ class HTMathClassBinding extends HTExternalClass {
   HTMathClassBinding() : super('Math');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Math.e':
         return math.e;
@@ -522,7 +533,7 @@ class HTMathClassBinding extends HTExternalClass {
             (positionalArgs[0] as int) ^ (positionalArgs[1] as int);
 
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 }
@@ -531,7 +542,7 @@ class HTFutureClassBinding extends HTExternalClass {
   HTFutureClassBinding() : super('Future');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Future':
         return ({positionalArgs, namedArgs}) {
@@ -551,13 +562,20 @@ class HTFutureClassBinding extends HTExternalClass {
         return ({positionalArgs, namedArgs}) {
           return Future.value(positionalArgs.first);
         };
+      case 'Future.delayed':
+        return ({positionalArgs, namedArgs}) {
+          return Future.delayed(
+              Duration(milliseconds: (positionalArgs[0] * 1000).truncate()),
+              () => positionalArgs[1]?.call());
+        };
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) =>
+  dynamic instanceMemberGet(dynamic instance, String id,
+          {bool ignoreUndefined = false}) =>
       (instance as Future).htFetch(id);
 }
 
@@ -565,7 +583,7 @@ class HTCryptoClassBinding extends HTExternalClass {
   HTCryptoClassBinding() : super('crypto');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'crypto.randomUUID':
         return ({positionalArgs, namedArgs}) {
@@ -588,7 +606,7 @@ class HTCryptoClassBinding extends HTExternalClass {
           return crcInt(data, crc);
         };
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 }
@@ -599,7 +617,7 @@ class HTConsoleClassBinding extends HTExternalClass {
   HTConsoleClassBinding({required this.console}) : super('console');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'console.log':
         return ({positionalArgs, namedArgs}) => console.log(positionalArgs);
@@ -621,7 +639,7 @@ class HTConsoleClassBinding extends HTExternalClass {
         return ({positionalArgs, namedArgs}) =>
             console.timeEnd(positionalArgs.first);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 }
@@ -632,7 +650,7 @@ class HTJSONClassBinding extends HTExternalClass {
   HTJSONClassBinding({required this.lexicon}) : super('JSON');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'JSON.stringify':
         return ({positionalArgs, namedArgs}) =>
@@ -651,7 +669,7 @@ class HTJSONClassBinding extends HTExternalClass {
           }
         };
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 }

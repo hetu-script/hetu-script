@@ -37,7 +37,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
     }
 
     final def = interpreter.currentNamespace
-        .memberGet(id, isRecursive: true, throws: false);
+        .memberGet(id, isRecursive: true, ignoreUndefined: false);
     if (def is HTClassDeclaration) {
       klass = def;
     }
@@ -52,17 +52,18 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   }
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     if (externalClass != null) {
       final member = externalClass!.instanceMemberGet(externalObject, id);
       if (member is Function && klass != null) {
         HTClass? currentKlass = klass! as HTClass;
         HTFunction? decl;
         while (decl == null && currentKlass != null) {
-          decl = currentKlass.memberGet(id, throws: false);
+          decl = currentKlass.memberGet(id, ignoreUndefined: true);
           currentKlass = currentKlass.superClass;
         }
-        assert(decl != null);
+        assert(decl != null,
+            'Could not find hetu declaration on external id: $typeString.$id');
         // Assign the value as if we are doing decl.resolve() here.
         decl!.externalFunc = member;
         return decl;
@@ -70,7 +71,9 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
         return member;
       }
     }
-    throw HTError.undefined(id);
+    if (!ignoreUndefined) {
+      throw HTError.undefined(id);
+    }
   }
 
   @override

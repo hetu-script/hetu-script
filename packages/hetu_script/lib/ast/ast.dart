@@ -1082,11 +1082,7 @@ class IfExpr extends ASTNode {
               thenBranch.isAwait ||
               (elseBranch?.isAwait ?? false),
           isBlock: thenBranch.isBlock,
-        ) {
-    if (elseBranch != null) {
-      assert(thenBranch.isBlock == elseBranch!.isBlock);
-    }
-  }
+        );
 }
 
 class ForExpr extends ASTNode {

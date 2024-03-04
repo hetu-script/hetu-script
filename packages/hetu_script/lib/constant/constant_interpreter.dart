@@ -43,7 +43,7 @@ class HTConstantInterpreter extends RecursiveASTVisitor<void> {
   void visitIdentifierExpr(IdentifierExpr node) {
     if (node.isLocal) {
       final ASTNode? ast =
-          node.analysisNamespace!.memberGet(node.id, throws: false);
+          node.analysisNamespace!.memberGet(node.id, ignoreUndefined: true);
       if (ast != null) {
         ast.accept(this);
         if (ast.isConstValue) {

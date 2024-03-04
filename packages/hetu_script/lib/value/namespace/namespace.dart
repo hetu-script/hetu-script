@@ -33,7 +33,8 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       final decl = importedSymbols[id]!;
       return decl.documentation;
     } else if (closure != null) {
-      final decl = closure!.memberGet(id, isRecursive: true, throws: false);
+      final decl =
+          closure!.memberGet(id, isRecursive: true, ignoreUndefined: false);
       if (decl != null) {
         return (decl as HTDeclaration).documentation;
       }
@@ -47,7 +48,7 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
     bool isPrivate = false,
     String? from,
     bool isRecursive = false,
-    bool throws = true,
+    bool ignoreUndefined = false,
     bool asDeclaration = false,
   }) {
     if (symbols.containsKey(id)) {
@@ -71,11 +72,11 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
         id,
         from: from,
         isRecursive: isRecursive,
-        throws: throws,
+        ignoreUndefined: ignoreUndefined,
         asDeclaration: asDeclaration,
       );
     }
-    if (throws) {
+    if (!ignoreUndefined) {
       throw HTError.undefined(id);
     }
   }
@@ -90,7 +91,7 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
     dynamic value, {
     String? from,
     bool isRecursive = false,
-    bool throws = true,
+    bool ignoreUndefined = false,
   }) {
     if (symbols.containsKey(id)) {
       final decl = symbols[id]!;
@@ -109,9 +110,10 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       decl.value = value;
       return true;
     } else if (isRecursive && (closure != null)) {
-      return closure!.memberSet(id, value, from: from, isRecursive: true);
+      return closure!.memberSet(id, value,
+          from: from, isRecursive: true, ignoreUndefined: ignoreUndefined);
     } else {
-      if (throws) {
+      if (!ignoreUndefined) {
         throw HTError.undefined(id);
       }
     }

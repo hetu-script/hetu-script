@@ -175,6 +175,8 @@ abstract class HTLocale {
   String get errorConstMustInit;
   String get errorAwaitExpression;
   String get errorGetterParam;
+  String get errorStructMemberId;
+  String get errorIfBlock;
 
   // compile time errors
   String get errorDefined;
@@ -219,7 +221,6 @@ abstract class HTLocale {
   String get errorTypeCast;
   String get errorCastee;
   String get errorNotSuper;
-  String get errorStructMemberId;
   String get errorUnresolvedNamedStruct;
   String get errorBinding;
   String get errorNotStruct;

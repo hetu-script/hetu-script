@@ -327,6 +327,10 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   String get errorAwaitExpression => '意料之外的 `await` 表达式。';
   @override
   String get errorGetterParam => '意料之外的 `getter` 函数上的参数声明';
+  @override
+  String get errorStructMemberId => '对象的 key 只能是字符串或者标识符，但实际的类型是 [{0}]。';
+  @override
+  String get errorIfBlock => 'If 语句的两个分支必须同为表达式或者同为块。';
 
   // compile time errors
   @override
@@ -412,8 +416,6 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   String get errorCastee => '非法的 cast 对象：[{0}]。';
   @override
   String get errorNotSuper => '[{0}] 不是 [{1}] 的超类。';
-  @override
-  String get errorStructMemberId => '对象的 key 只能是字符串或者标识符，但实际的类型是 [{0}]。';
   @override
   String get errorUnresolvedNamedStruct => '对象原型 [{0}] 尚未被解析。';
   @override

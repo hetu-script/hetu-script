@@ -26,14 +26,17 @@ abstract class HTExternalClass with HTObject {
   /// ```
   /// object.key
   /// ```
-  dynamic instanceMemberGet(dynamic instance, String id) =>
-      throw HTError.undefined(id);
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
+    if (!ignoreUndefined) throw HTError.undefined(id);
+  }
 
   /// Assign a value to a instance member of the Dart class by the [id], in the form of
   /// ```
   /// object.key = value
   /// ```
-  void instanceMemberSet(dynamic instance, String id, dynamic value) =>
+  void instanceMemberSet(dynamic instance, String id, dynamic value,
+          {bool ignoreUndefined = false}) =>
       throw HTError.undefined(id);
 
   /// Fetch a instance member of the Dart class by the [id], in the form of

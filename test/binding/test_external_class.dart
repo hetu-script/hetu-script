@@ -7,14 +7,7 @@ class Person {
 }
 
 extension PersonBinding on Person {
-  dynamic htFetch(String id) {
-    switch (id) {
-      case 'name':
-        return name;
-      default:
-        throw HTError.undefined(id);
-    }
-  }
+  dynamic htFetch(String id) {}
 
   void htAssign(String id, dynamic value) {
     switch (id) {
@@ -31,31 +24,34 @@ class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Person':
         return ({positionalArgs, namedArgs}) => Person(positionalArgs[0]);
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  void memberSet(String id, dynamic value, {String? from}) {
+  void memberSet(String id, dynamic value,
+      {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       default:
-        throw HTError.undefined(id);
+        if (!ignoreUndefined) throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) {
+  dynamic instanceMemberGet(dynamic object, String id,
+      {bool ignoreUndefined = false}) {
     var i = object as Person;
     return i.htFetch(id);
   }
 
   @override
-  void instanceMemberSet(dynamic object, String id, dynamic value) {
+  void instanceMemberSet(dynamic object, String id, dynamic value,
+      {bool ignoreUndefined = false}) {
     var i = object as Person;
     i.htAssign(id, value);
   }

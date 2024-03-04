@@ -4,6 +4,8 @@ external class Future {
 
   static function value(possibleFuture) -> Future
 
+  static function delayed(duration: float, [computation: function]) -> Future
+
   constructor (func: function)
 
   function then(func: (value) -> any) -> Future

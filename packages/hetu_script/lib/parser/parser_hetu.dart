@@ -2168,6 +2168,18 @@ class HTParserHetu extends HTParser {
         elseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
       }
     }
+
+    if (elseBranch != null) {
+      if (thenBranch.isBlock != elseBranch.isBlock) {
+        final err = HTError.ifBlock(
+            filename: currrentFileName,
+            line: curTok.line,
+            column: curTok.column,
+            offset: curTok.offset,
+            length: curTok.length);
+        errors.add(err);
+      }
+    }
     return IfExpr(condition, thenBranch,
         elseBranch: elseBranch,
         source: currentSource,

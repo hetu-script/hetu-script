@@ -20,39 +20,11 @@ class Person {
   }
 }
 
-extension PersonBinding on Person {
-  dynamic htFetch(String id) {
-    switch (id) {
-      case 'name':
-        return name;
-      case 'race':
-        return race;
-      case 'greeting':
-        return ({positionalArgs, namedArgs}) => greeting(positionalArgs.first);
-      case 'child':
-        return child;
-      default:
-        throw HTError.undefined(id);
-    }
-  }
-
-  void htAssign(String id, dynamic value) {
-    switch (id) {
-      case 'name':
-        name = value;
-      case 'race':
-        race = value;
-      default:
-        throw HTError.undefined(id);
-    }
-  }
-}
-
 class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Person':
         return ({positionalArgs, namedArgs}) =>
@@ -84,15 +56,36 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) {
-    var i = instance as Person;
-    return i.htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Person;
+    switch (id) {
+      case 'name':
+        return object.name;
+      case 'race':
+        return object.race;
+      case 'greeting':
+        return ({positionalArgs, namedArgs}) =>
+            object.greeting(positionalArgs.first);
+      case 'child':
+        return object.child;
+      default:
+        if (!ignoreUndefined) throw HTError.undefined(id);
+    }
   }
 
   @override
-  void instanceMemberSet(dynamic instance, String id, dynamic value) {
-    var i = instance as Person;
-    i.htAssign(id, value);
+  void instanceMemberSet(dynamic instance, String id, dynamic value,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Person;
+    switch (id) {
+      case 'name':
+        object.name = value;
+      case 'race':
+        object.race = value;
+      default:
+        if (!ignoreUndefined) throw HTError.undefined(id);
+    }
   }
 }
 

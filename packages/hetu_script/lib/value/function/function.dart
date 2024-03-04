@@ -277,13 +277,15 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  dynamic memberGet(String id, {String? from}) {
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     if (id == interpreter.lexicon.idBind) {
       return ({positionalArgs, namedArgs}) => bind(positionalArgs.first);
     } else if (id == interpreter.lexicon.idApply) {
       return ({positionalArgs, namedArgs}) => apply(positionalArgs.first,
           positionalArgs: positionalArgs, namedArgs: namedArgs);
-    } else {
+    }
+
+    if (!ignoreUndefined) {
       throw HTError.undefined(id);
     }
   }

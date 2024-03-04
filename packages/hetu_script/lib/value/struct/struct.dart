@@ -148,7 +148,8 @@ class HTStruct with HTObject {
   /// Whether there is at least one key/value pair in the map.
   bool get isNotEmpty => _fields.isNotEmpty;
   @override
-  dynamic memberGet(dynamic id, {String? from, HTStruct? caller}) {
+  dynamic memberGet(dynamic id,
+      {String? from, HTStruct? caller, bool ignoreUndefined = true}) {
     if (id == null) {
       return null;
     }

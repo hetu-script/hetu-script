@@ -27,22 +27,15 @@ Future<void> main() async {
   var r = hetu.eval(r'''
     external async fun getJSON()
 
-    let a = {a: 1, b: 2}
-    let b = {c: 3, d: 4}
-    let c = {a: 42, e: 5}
-
-    Object.assign(a, b)
-    print(a)
-
-    Object.merge(a, c)
-    print(a)
+    Future.delayed(3, () {
+      print('delayed execution!')
+    })
+    
 ''');
 
   if (r is Future) {
-    do {
-      print('wait for async function...');
-      r = await r;
-    } while (r is Future);
+    print('wait for async function...');
+    r = await r;
     print(hetu.lexicon.stringify(r));
   } else {
     print(hetu.lexicon.stringify(r));

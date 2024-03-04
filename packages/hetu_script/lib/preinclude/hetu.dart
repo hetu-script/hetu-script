@@ -679,8 +679,8 @@ class Hetu {
         module: module,
       );
 
-  /// Get a top level variable defined in a certain namespace in the interpreter.
-  dynamic fetch(String id, {String? module}) =>
+  /// Get a variable defined in a certain namespace in the interpreter.
+  dynamic fetch(String id, {String? namespace, String? module}) =>
       interpreter.fetch(id, module: module);
 
   /// Assign value to a top level variable defined in a certain namespace in the interpreter.
@@ -690,6 +690,7 @@ class Hetu {
   /// Invoke a top level function defined in a certain namespace in the interpreter.
   dynamic invoke(
     String func, {
+    bool ignoreUndefined = false,
     String? namespace,
     String? module,
     List<dynamic> positionalArgs = const [],
@@ -698,6 +699,7 @@ class Hetu {
   }) =>
       interpreter.invoke(
         func,
+        ignoreUndefined: ignoreUndefined,
         namespace: namespace,
         module: module,
         positionalArgs: positionalArgs,

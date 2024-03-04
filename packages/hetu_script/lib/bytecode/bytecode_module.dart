@@ -46,4 +46,16 @@ class HTBytecodeModule extends HTGlobalConstantTable with BytecodeReader {
   }) {
     this.bytes = bytes;
   }
+
+  void init({
+    String? invoke,
+    List<dynamic> positionalArgs = const [],
+    Map<String, dynamic> namedArgs = const {},
+  }) {
+    timestamp = DateTime.now().millisecondsSinceEpoch;
+    ip = 0;
+    this.invoke = invoke;
+    this.positionalArgs = positionalArgs;
+    this.namedArgs = namedArgs;
+  }
 }
