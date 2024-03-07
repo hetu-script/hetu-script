@@ -5,7 +5,10 @@ Future<void> main() async {
   final hetu = Hetu(
     sourceContext: sourceContext,
     locale: HTLocaleSimplifiedChinese(),
-    config: HetuConfig(normalizeImportPath: false),
+    config: HetuConfig(
+      normalizeImportPath: false,
+      allowImplicitNullToZeroConversion: true,
+    ),
   );
   hetu.init(externalFunctions: {
     'getJSON': ({positionalArgs, namedArgs}) async {
@@ -19,18 +22,31 @@ Future<void> main() async {
   });
 
   sourceContext.addResource(
-    'test.ht',
-    HTSource(r'''var i = 42
+    'source1.ht',
+    HTSource(r'''
+  var i = 42
+'''),
+  );
+
+  sourceContext.addResource(
+    'source2.ht',
+    HTSource(r'''
+    export 'source1.ht'
+'''),
+  );
+
+  sourceContext.addResource(
+    'source3.ht',
+    HTSource(r'''
+    export {i} from 'source2.ht'
 '''),
   );
 
   var r = hetu.eval(r'''
-    external async fun getJSON()
+    import 'source3.ht'
 
-    Future.delayed(3, () {
-      print('delayed execution!')
-    })
-    
+    var a
+    a[1]
 ''');
 
   if (r is Future) {

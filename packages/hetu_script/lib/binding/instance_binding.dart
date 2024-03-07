@@ -97,7 +97,7 @@ extension IteratorBinding on Iterator {
 extension IterableBinding on Iterable {
   dynamic htFetch(String id) {
     switch (id) {
-      case 'toJson':
+      case 'toJSON':
         return ({positionalArgs, namedArgs}) => jsonifyList(this);
       case 'iterator':
         return iterator;

@@ -150,7 +150,7 @@ Type getConstantType(HTConstantType type) {
 class HTRegIdx {
   static const value = 0;
   static const identifier = 1;
-  // static const typeArgs = 2;
+  static const objectId = 2;
   static const loopCount = 3;
   static const anchorCount = 4;
   static const assignRight = 7;

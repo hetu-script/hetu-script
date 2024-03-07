@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../value/struct/struct.dart';
 
 bool isJsonDataType(dynamic object) {

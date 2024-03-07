@@ -30,7 +30,7 @@ You can directly access and set the sub value of a List and Map directly by '[]'
 
 ## Json
 
-The HTStruct object in Dart code can be used like a map to get and set members by **[]** operator in Dart. And it has builtin method: toJson() and fromJson() on its root prototype in script. So you can pass complex data set in this form between script and Dart.
+The HTStruct object in Dart code can be used like a map to get and set members by **[]** operator in Dart. And it has builtin method: toJSON() and fromJSON() on its root prototype in script. So you can pass complex data set in this form between script and Dart.
 
 In script:
 

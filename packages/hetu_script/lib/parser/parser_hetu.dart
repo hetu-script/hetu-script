@@ -2477,10 +2477,10 @@ class HTParserHetu extends HTParser {
         },
       );
       match(lexer.lexicon.blockEnd);
-      // String? fromPath;
+      TokenStringLiteral? fromPathTok;
       if (curTok.lexeme == lexer.lexicon.kFrom) {
         advance();
-        final fromPathTok = matchString();
+        fromPathTok = matchString();
         final ext = path.extension(fromPathTok.literal);
         if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
           final err = HTError.importListOnNonHetuSource(
@@ -2493,7 +2493,7 @@ class HTParserHetu extends HTParser {
         }
       }
       stmt = ImportExportDecl(
-          // fromPath: fromPath,
+          fromPath: fromPathTok?.literal,
           showList: showList,
           isExport: true,
           source: currentSource,
@@ -2501,9 +2501,9 @@ class HTParserHetu extends HTParser {
           column: keyword.column,
           offset: keyword.offset,
           length: curTok.offset - keyword.offset);
-      // if (fromPath != null) {
-      //   currentModuleImports.add(stmt);
-      // }
+      if (fromPathTok != null) {
+        currentModuleImports.add(stmt);
+      }
     } else if (expect([lexer.lexicon.everythingMark], consume: true)) {
       stmt = ImportExportDecl(
           isExport: true,

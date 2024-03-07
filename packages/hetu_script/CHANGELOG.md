@@ -115,7 +115,7 @@
 
 - Added Analyzer and Formatter utility classes (WIP).
 - Added Type expression and related assignment operations.
-- Feature: Added default implementation of 'toJson' on instances.
+- Feature: Added default implementation of 'toJSON' on instances.
 
 ## 0.1.1
 

@@ -1024,6 +1024,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(HTRegIdx.postfixKey);
     bytesBuilder.addByte(OpCode.memberGet);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
+    Uint8List? objectId;
+    if (expr.object is IdentifierExpr) {
+      objectId = _utf8String((expr.object as IdentifierExpr).id);
+    }
+    if (objectId != null) {
+      bytesBuilder.addByte(1);
+      bytesBuilder.add(objectId);
+    } else {
+      bytesBuilder.addByte(0);
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -1057,6 +1067,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(OpCode.retractStackFrame);
     bytesBuilder.addByte(OpCode.subGet);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
+    Uint8List? objectId;
+    if (expr.object is IdentifierExpr) {
+      objectId = _utf8String((expr.object as IdentifierExpr).id);
+    }
+    if (objectId != null) {
+      bytesBuilder.addByte(1);
+      bytesBuilder.add(objectId);
+    } else {
+      bytesBuilder.addByte(0);
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -1090,6 +1110,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final argBytes = _parseCallArguments(expr.positionalArgs, expr.namedArgs);
     bytesBuilder.add(_uint16(argBytes.length));
     bytesBuilder.add(argBytes);
+    Uint8List? objectId;
+    if (expr.callee is IdentifierExpr) {
+      objectId = _utf8String((expr.callee as IdentifierExpr).id);
+    }
+    if (objectId != null) {
+      bytesBuilder.addByte(1);
+      bytesBuilder.add(objectId);
+    } else {
+      bytesBuilder.addByte(0);
+    }
     return bytesBuilder.toBytes();
   }
 

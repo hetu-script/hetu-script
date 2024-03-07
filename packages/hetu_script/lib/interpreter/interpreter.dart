@@ -323,6 +323,7 @@ class HTInterpreter {
   /// handler for various kinds of invocations.
   dynamic _call(
     dynamic callee, {
+    String? calleeId,
     bool isConstructorCall = false,
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
@@ -356,58 +357,66 @@ class HTInterpreter {
       }
     }
 
-    if (isConstructorCall) {
-      if ((callee is HTClass) || (callee is HTType)) {
-        return handleClassConstructor(callee);
-      } else if (callee is HTStruct && callee.declaration != null) {
-        return callee.declaration!.createObject(
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          // typeArgs: typeArgs,
-        );
-      } else {
-        throw HTError.notNewable(_lexicon.stringify(callee),
-            filename: _currentFile, line: _currentLine, column: _currentColumn);
-      }
+    if (callee == null) {
+      throw HTError.nullObject(
+          calleeId ?? stringify(callee), InternalIdentifier.call,
+          filename: _currentFile, line: _currentLine, column: _currentColumn);
     } else {
-      // calle is a script function
-      if (callee is HTFunction) {
-        return callee.call(
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          // typeArgs: typeArgs,
-        );
-      }
-      // calle is a dart function
-      else if (callee is Function) {
-        if (callee is HTExternalFunction) {
-          return callee(
-            // namespace: currentNamespace,
+      if (isConstructorCall) {
+        if ((callee is HTClass) || (callee is HTType)) {
+          return handleClassConstructor(callee);
+        } else if (callee is HTStruct && callee.declaration != null) {
+          return callee.declaration!.createObject(
             positionalArgs: positionalArgs,
             namedArgs: namedArgs,
             // typeArgs: typeArgs,
           );
         } else {
-          return Function.apply(
-              callee,
-              positionalArgs,
-              namedArgs.map<Symbol, dynamic>(
-                  (key, value) => MapEntry(Symbol(key), value)));
+          throw HTError.notNewable(_lexicon.stringify(callee),
+              filename: _currentFile,
+              line: _currentLine,
+              column: _currentColumn);
         }
-      } else if ((callee is HTClass) || (callee is HTType)) {
-        return handleClassConstructor(callee);
-      } else if (callee is HTStruct && callee.declaration != null) {
-        return callee.declaration!.createObject(
-          positionalArgs: positionalArgs,
-          namedArgs: namedArgs,
-          // typeArgs: typeArgs,
-        );
       } else {
-        throw HTError.notCallable(
-            _lexicon.stringify(callee, asStringLiteral: true),
-            filename: _currentFile,
-            line: _currentLine,
-            column: _currentColumn);
+        // calle is a script function
+        if (callee is HTFunction) {
+          return callee.call(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            // typeArgs: typeArgs,
+          );
+        }
+        // calle is a dart function
+        else if (callee is Function) {
+          if (callee is HTExternalFunction) {
+            return callee(
+              // namespace: currentNamespace,
+              positionalArgs: positionalArgs,
+              namedArgs: namedArgs,
+              // typeArgs: typeArgs,
+            );
+          } else {
+            return Function.apply(
+                callee,
+                positionalArgs,
+                namedArgs.map<Symbol, dynamic>(
+                    (key, value) => MapEntry(Symbol(key), value)));
+          }
+        } else if ((callee is HTClass) || (callee is HTType)) {
+          return handleClassConstructor(callee);
+        } else if (callee is HTStruct && callee.declaration != null) {
+          return callee.declaration!.createObject(
+            positionalArgs: positionalArgs,
+            namedArgs: namedArgs,
+            // typeArgs: typeArgs,
+          );
+        } else {
+          throw HTError.notCallable(
+              _lexicon.stringify(callee, asStringLiteral: true),
+              filename: _currentFile,
+              line: _currentLine,
+              column: _currentColumn);
+        }
       }
     }
   }
@@ -1720,6 +1729,11 @@ class HTInterpreter {
         case OpCode.memberGet:
           final object = _getRegVal(HTRegIdx.postfixObject);
           final isNullable = _currentBytecodeModule.readBool();
+          final hasObjectId = _currentBytecodeModule.readBool();
+          String? objectId;
+          if (hasObjectId) {
+            objectId = _currentBytecodeModule.readUtf8String();
+          }
           // final keyBytesLength = _currentBytecodeModule.readUint16();
           if (object == null) {
             if (isNullable) {
@@ -1727,7 +1741,8 @@ class HTInterpreter {
               _localValue = null;
             } else {
               throw HTError.nullObject(
-                  localSymbol ?? _lexicon.kNull, InternalIdentifier.getter,
+                  objectId ?? localSymbol ?? _lexicon.kNull,
+                  InternalIdentifier.getter,
                   filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
@@ -1748,14 +1763,19 @@ class HTInterpreter {
         case OpCode.subGet:
           final object = _getRegVal(HTRegIdx.postfixObject);
           final isNullable = _currentBytecodeModule.readBool();
-          // final keyBytesLength = _currentBytecodeModule.readUint16();
+          final hasObjectId = _currentBytecodeModule.readBool();
+          String? objectId;
+          if (hasObjectId) {
+            objectId = _currentBytecodeModule.readUtf8String();
+          }
           if (object == null) {
             if (isNullable) {
               // _currentBytecodeModule.skip(keyBytesLength);
               _localValue = null;
             } else {
               throw HTError.nullObject(
-                  localSymbol ?? _lexicon.kNull, InternalIdentifier.subGetter,
+                  objectId ?? localSymbol ?? _lexicon.kNull,
+                  InternalIdentifier.subGetter,
                   filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
@@ -1949,7 +1969,15 @@ class HTInterpreter {
     else {
       if (fromPath != null) {
         final ext = path.extension(fromPath);
-        if (ext != HTResource.hetuModule && ext != HTResource.hetuScript) {
+        if (ext == HTResource.hetuModule || ext == HTResource.hetuScript) {
+          final decl = UnresolvedImport(fromPath,
+              alias: alias, showList: showList, isExported: isExported);
+          if (_currentFileResourceType == HTResourceType.hetuModule) {
+            currentNamespace.declareImport(decl);
+          } else {
+            _handleNamespaceImport(currentNamespace, decl);
+          }
+        } else {
           // TODO: import binary bytes
           assert(_currentBytecodeModule.jsonSources.containsKey(fromPath));
           if (_currentBytecodeModule.jsonSources.containsKey(fromPath)) {
@@ -1968,14 +1996,6 @@ class HTInterpreter {
             if (isExported) {
               currentNamespace.declareExport(alias);
             }
-          }
-        } else {
-          final decl = UnresolvedImport(fromPath,
-              alias: alias, showList: showList, isExported: isExported);
-          if (_currentFileResourceType == HTResourceType.hetuModule) {
-            currentNamespace.declareImport(decl);
-          } else {
-            _handleNamespaceImport(currentNamespace, decl);
           }
         }
       } else {
@@ -2289,9 +2309,15 @@ class HTInterpreter {
       namedArgs[name] = arg;
     }
     // final typeArgs = _localTypeArgs;
+    final hasObjectId = _currentBytecodeModule.readBool();
+    String? objectId;
+    if (hasObjectId) {
+      objectId = _currentBytecodeModule.readUtf8String();
+    }
 
     _localValue = _call(
       callee,
+      calleeId: objectId,
       isConstructorCall: hasNewOperator,
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,

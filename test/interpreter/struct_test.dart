@@ -55,7 +55,7 @@ void main() {
           name: 'Hetu',
           age: 1
         }
-        ht.hasOwnProperty('toJson') // false
+        ht.hasOwnProperty('toJSON') // false
       ''');
       expect(
         result,

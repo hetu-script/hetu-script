@@ -350,7 +350,7 @@ class HTFunction extends HTFunctionDeclaration
         );
       }
 
-      interpreter.stackTraceList.insert(0,
+      interpreter.stackTraceList.add(
           '$internalName (${interpreter.currentFile}:${interpreter.currentLine}:${interpreter.currentColumn})');
 
       dynamic result;

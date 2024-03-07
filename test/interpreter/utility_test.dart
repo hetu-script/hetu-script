@@ -19,7 +19,7 @@ void main() {
     //     }
     //     function JsonTest {
     //       var p = SomePerson.fromJson({'age': 8, 'name': 'Lawrence', 'klass': 'magician'})
-    //       return p.toJson().toString()
+    //       return p.toJSON().toString()
     //     }
     //   ''', invoke: 'JsonTest');
     //   expect(

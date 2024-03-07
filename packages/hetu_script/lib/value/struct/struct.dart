@@ -74,7 +74,7 @@ class HTStruct with HTObject {
     );
   }
 
-  Map<String, dynamic> toJson() => util.jsonifyStruct(this);
+  Map<String, dynamic> toJSON() => util.jsonifyStruct(this);
 
   // @override
   // String toString() {
@@ -108,6 +108,22 @@ class HTStruct with HTObject {
     }
   }
 
+  void remove(String? id) {
+    _fields.remove(id);
+  }
+
+  void delete(String? id) {
+    _fields.remove(id);
+  }
+
+  void clear() {
+    _fields.clear();
+  }
+
+  void removeWhere(bool Function(String key, dynamic value) test) {
+    _fields.removeWhere(test);
+  }
+
   void import(HTStruct other, {bool clone = false}) {
     for (final key in other._fields.keys) {
       if (!_fields.keys.contains(key)) {
@@ -119,12 +135,6 @@ class HTStruct with HTObject {
   void define(String id, dynamic value,
       {bool override = false, bool throws = true}) {
     _fields[id] = value;
-  }
-
-  void delete(String id) {
-    if (_fields.containsKey(id)) {
-      _fields.remove(id);
-    }
   }
 
   operator [](dynamic key) {

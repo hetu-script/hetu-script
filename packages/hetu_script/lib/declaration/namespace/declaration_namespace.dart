@@ -129,9 +129,8 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
   void defineImport(String key, T decl, String from) {
     if (!importedSymbols.containsKey(key)) {
       importedSymbols[key] = decl;
-      importedSymbolsPath[key] = from;
     } else {
-      if (importedSymbolsPath[key] != from) {
+      if (importedSymbols[key] != decl) {
         throw HTError.defined(key, ErrorType.runtimeError);
       }
     }
@@ -142,15 +141,14 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
       bool export = false,
       Set<String> showList = const {},
       bool idOnly = false}) {
-    for (final key in other.symbols.keys) {
-      var decl = other.symbols[key]!;
+    bool process(String key, dynamic decl) {
       if (!other.willExportAll) {
-        if (!other.exports.contains(decl.id)) {
-          continue;
+        if (!other.exports.contains(decl?.id)) {
+          return false;
         }
       }
       if (lexicon.isPrivate(key)) {
-        continue;
+        return false;
       }
       if (decl is HTDeclaration) {
         if (clone) {
@@ -165,27 +163,17 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
       if (export) {
         declareExport(key);
       }
+      return true;
+    }
+
+    for (final key in other.symbols.keys) {
+      var decl = other.symbols[key]!;
+      if (!process(key, decl)) continue;
     }
     for (final key in other.importedSymbols.keys) {
       var decl = other.importedSymbols[key]!;
-      if (!other.exports.contains(decl.id)) {
-        continue;
-      }
-      if (lexicon.isPrivate(key)) {
-        continue;
-      }
-      if (decl is HTDeclaration) {
-        if (clone) {
-          decl = decl.clone();
-        }
-      }
-      if (idOnly) {
-        defineImport(key, null as T, other.fullName);
-      } else {
-        defineImport(key, decl, other.fullName);
-      }
-      if (export) {
-        declareExport(key);
+      if (other.exports.contains(decl?.id)) {
+        if (!process(key, decl)) continue;
       }
     }
   }

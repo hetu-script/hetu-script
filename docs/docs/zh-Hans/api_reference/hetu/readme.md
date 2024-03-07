@@ -86,7 +86,7 @@ struct Prototype {
   external function clone() -> {}
 
   /// Create dart Json data from this struct
-  function toJson() -> Map => jsonify(this)
+  function toJSON() -> Map => jsonify(this)
 
   function toString() -> string => stringify(this)
 }

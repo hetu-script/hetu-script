@@ -114,7 +114,7 @@ class HTInstance with HTObject, InterpreterRef {
     }
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJSON() {
     final jsonObject = <String, dynamic>{};
 
     HTInstanceNamespace? curNamespace = namespace;

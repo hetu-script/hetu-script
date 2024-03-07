@@ -28,9 +28,9 @@ final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isF
 
 你可以直接在脚本中使用 **[]** 语法来访问和修改 Dart 中的 **List, Map** 对象。也可以直接使用 **()** 来调用 Dart 中的函数。
 
-## Json
+## JSON
 
-脚本中的对象字面量，在 Dart 中体现为 **HTStruct** 对象。这个对象在 Dart 中可以像 Map 那样直接使用 **[]** 来修改其成员。在脚本中则具有 **toJson()** 和 **fromJson()** 接口。因此可以使用这个对象来在 Dart 和脚本之间传递数值。
+脚本中的对象字面量，在 Dart 中体现为 **HTStruct** 对象。这个对象在 Dart 中可以像 Map 那样直接使用 **[]** 来修改其成员。在脚本中则具有 **toJSON()** 和 **fromJSON()** 接口。因此可以使用这个对象来在 Dart 和脚本之间传递数值。
 
 例如我们在脚本中有如下定义：
 
