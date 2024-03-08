@@ -1728,29 +1728,26 @@ class HTInterpreter {
           }
         case OpCode.memberGet:
           final object = _getRegVal(HTRegIdx.postfixObject);
+          final key = _getRegVal(HTRegIdx.postfixKey);
+          _localSymbol = key;
           final isNullable = _currentBytecodeModule.readBool();
           final hasObjectId = _currentBytecodeModule.readBool();
           String? objectId;
           if (hasObjectId) {
             objectId = _currentBytecodeModule.readUtf8String();
           }
-          // final keyBytesLength = _currentBytecodeModule.readUint16();
           if (object == null) {
             if (isNullable) {
               // _currentBytecodeModule.skip(keyBytesLength);
               _localValue = null;
             } else {
               throw HTError.nullObject(
-                  objectId ?? localSymbol ?? _lexicon.kNull,
-                  InternalIdentifier.getter,
+                  objectId ?? localSymbol ?? _lexicon.kNull, key,
                   filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
             }
           } else {
-            // final key = execute();
-            final key = _getRegVal(HTRegIdx.postfixKey);
-            _localSymbol = key;
             final encap = encapsulate(object);
             if (encap is HTNamespace) {
               _localValue = encap.memberGet(key,
@@ -1760,6 +1757,7 @@ class HTInterpreter {
                   encap.memberGet(key, from: currentNamespace.fullName);
             }
           }
+
         case OpCode.subGet:
           final object = _getRegVal(HTRegIdx.postfixObject);
           final isNullable = _currentBytecodeModule.readBool();
@@ -1768,6 +1766,7 @@ class HTInterpreter {
           if (hasObjectId) {
             objectId = _currentBytecodeModule.readUtf8String();
           }
+          final key = _localValue;
           if (object == null) {
             if (isNullable) {
               // _currentBytecodeModule.skip(keyBytesLength);
@@ -1781,8 +1780,6 @@ class HTInterpreter {
                   column: _currentColumn);
             }
           } else {
-            // final key = execute();
-            final key = _localValue;
             if (object is HTObject) {
               _localValue = object.subGet(key, from: currentNamespace.fullName);
             } else {
@@ -1895,27 +1892,27 @@ class HTInterpreter {
     HTContext? context,
     List<dynamic>? stackFrame,
   }) async {
-    final value = await futureExecution.future.then((v) async {
-      final f = execute(
-        createStackFrame: false,
-        retractStackFrame: false,
-        context: context ?? futureExecution.context,
-        stackFrame: stackFrame,
-        localValue: v,
-      );
-      if (f is FutureExecution) {
-        final r = await waitFutureExucution(
+    final v = await futureExecution.future;
+    var f = execute(
+      createStackFrame: false,
+      retractStackFrame: false,
+      context: context ?? futureExecution.context,
+      stackFrame: stackFrame,
+      localValue: v,
+    );
+    if (f is FutureExecution) {
+      while (f is FutureExecution) {
+        f = await waitFutureExucution(
           f,
           context: f.context,
           stackFrame: getCurrentStackFrame(),
         );
-        return r;
-      } else {
-        _retractStackFrame();
-        return f;
       }
-    });
-    return value;
+      return f;
+    } else {
+      _retractStackFrame();
+      return f;
+    }
   }
 
   void _handleImportExport() {

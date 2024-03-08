@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:convert';
+import 'dart:collection';
 
 import 'package:fast_noise/fast_noise.dart';
 
@@ -370,8 +371,49 @@ class HTMapClassBinding extends HTExternalClass {
 
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
-          {bool ignoreUndefined = false}) =>
-      (instance as Map).htFetch(id);
+      {bool ignoreUndefined = false}) {
+    final object = instance as Map;
+    switch (id) {
+      case 'toString':
+        return ({positionalArgs, namedArgs}) => object.toString();
+      case 'length':
+        return object.length;
+      case 'isEmpty':
+        return object.isEmpty;
+      case 'isNotEmpty':
+        return object.isNotEmpty;
+      case 'keys':
+        return object.keys;
+      case 'values':
+        return object.values;
+      case 'containsKey':
+        return ({positionalArgs, namedArgs}) =>
+            object.containsKey(positionalArgs.first);
+      case 'containsValue':
+        return ({positionalArgs, namedArgs}) =>
+            object.containsValue(positionalArgs.first);
+      case 'addAll':
+        return ({positionalArgs, namedArgs}) =>
+            object.addAll(positionalArgs.first);
+      case 'clear':
+        return ({positionalArgs, namedArgs}) => object.clear();
+      case 'remove':
+        return ({positionalArgs, namedArgs}) =>
+            object.remove(positionalArgs.first);
+      default:
+        return object[id];
+    }
+  }
+
+  @override
+  dynamic instanceMemberSet(dynamic instance, String id, dynamic value,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Map;
+    switch (id) {
+      default:
+        object[id] = value;
+    }
+  }
 }
 
 class HTRandomClassBinding extends HTExternalClass {
@@ -390,8 +432,69 @@ class HTRandomClassBinding extends HTExternalClass {
 
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
-          {bool ignoreUndefined = false}) =>
-      (instance as math.Random).htFetch(id);
+      {bool ignoreUndefined = false}) {
+    final object = instance as math.Random;
+    switch (id) {
+      case 'nextDouble':
+        return ({positionalArgs, namedArgs}) => object.nextDouble();
+      case 'nextInt':
+        return ({positionalArgs, namedArgs}) =>
+            object.nextInt(positionalArgs[0].toInt());
+      case 'nextBool':
+        return ({positionalArgs, namedArgs}) => object.nextBool();
+      case 'nextColorHex':
+        return ({positionalArgs, namedArgs}) {
+          var prefix = '#';
+          if (namedArgs['hasAlpha']) {
+            prefix += 'ff';
+          }
+          return prefix +
+              (object.nextDouble() * 16777215)
+                  .truncate()
+                  .toRadixString(16)
+                  .padLeft(6, '0');
+        };
+      case 'nextBrightColorHex':
+        return ({positionalArgs, namedArgs}) {
+          var prefix = '#';
+          if (namedArgs['hasAlpha']) {
+            prefix += 'ff';
+          }
+          return prefix +
+              (object.nextDouble() * 5592405 + 11184810)
+                  .truncate()
+                  .toRadixString(16)
+                  .padLeft(6, '0');
+        };
+      case 'nextIterable':
+        return ({positionalArgs, namedArgs}) {
+          final iterable = positionalArgs.first as Iterable;
+          if (iterable.isNotEmpty) {
+            return iterable.elementAt(object.nextInt(iterable.length));
+          } else {
+            return null;
+          }
+        };
+      case 'shuffle':
+        return ({positionalArgs, namedArgs}) sync* {
+          final Iterable list = positionalArgs.first;
+          if (list.isNotEmpty) {
+            // ignore: prefer_collection_literals
+            final Set indexes = LinkedHashSet();
+            int index;
+            do {
+              do {
+                index = object.nextInt(list.length);
+              } while (indexes.contains(index));
+              indexes.add(index);
+              yield list.elementAt(index);
+            } while (indexes.length < list.length);
+          }
+        };
+      default:
+        throw HTError.undefined(id);
+    }
+  }
 }
 
 class HTMathClassBinding extends HTExternalClass {
@@ -575,8 +678,18 @@ class HTFutureClassBinding extends HTExternalClass {
 
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
-          {bool ignoreUndefined = false}) =>
-      (instance as Future).htFetch(id);
+      {bool ignoreUndefined = false}) {
+    final object = instance as Future;
+    switch (id) {
+      case 'then':
+        return ({positionalArgs, namedArgs}) {
+          HTFunction func = positionalArgs.first;
+          return object.then((value) => func.call(positionalArgs: [value]));
+        };
+      default:
+        throw HTError.undefined(id);
+    }
+  }
 }
 
 class HTCryptoClassBinding extends HTExternalClass {

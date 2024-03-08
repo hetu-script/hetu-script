@@ -21,32 +21,14 @@ Future<void> main() async {
     }
   });
 
-  sourceContext.addResource(
-    'source1.ht',
-    HTSource(r'''
-  var i = 42
-'''),
-  );
-
-  sourceContext.addResource(
-    'source2.ht',
-    HTSource(r'''
-    export 'source1.ht'
-'''),
-  );
-
-  sourceContext.addResource(
-    'source3.ht',
-    HTSource(r'''
-    export {i} from 'source2.ht'
-'''),
-  );
-
   var r = hetu.eval(r'''
-    import 'source3.ht'
+    external function getJSON()
 
-    var a
-    a[1]
+    let a = Map()
+    a.first = 12
+    a.second = 23
+
+    print(Object.createFromJSON(a))
 ''');
 
   if (r is Future) {
