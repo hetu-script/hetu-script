@@ -200,7 +200,8 @@ abstract class HTLocale {
   String get errorUndefinedMember;
   String get errorUninitialized;
   String get errorCondition;
-  String get errorNullObject;
+  String get errorCallNullObject;
+  String get errorVisitMemberOfNullObject;
   String get errorNullSubSetKey;
   String get errorSubGetKey;
   String get errorOutOfRange;

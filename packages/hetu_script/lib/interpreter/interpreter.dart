@@ -358,8 +358,7 @@ class HTInterpreter {
     }
 
     if (callee == null) {
-      throw HTError.nullObject(
-          calleeId ?? stringify(callee), InternalIdentifier.call,
+      throw HTError.callNullObject(calleeId ?? stringify(callee),
           filename: _currentFile, line: _currentLine, column: _currentColumn);
     } else {
       if (isConstructorCall) {
@@ -551,7 +550,7 @@ class HTInterpreter {
       }
       if (callee == null) {
         if (!ignoreUndefined) {
-          throw HTError.nullObject(func, InternalIdentifier.call);
+          throw HTError.callNullObject(func);
         }
       } else {
         final result = _call(
@@ -1741,8 +1740,8 @@ class HTInterpreter {
               // _currentBytecodeModule.skip(keyBytesLength);
               _localValue = null;
             } else {
-              throw HTError.nullObject(
-                  objectId ?? localSymbol ?? _lexicon.kNull, key,
+              throw HTError.visitMemberOfNullObject(
+                  objectId ?? _lexicon.kNull, key,
                   filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
@@ -1772,9 +1771,8 @@ class HTInterpreter {
               // _currentBytecodeModule.skip(keyBytesLength);
               _localValue = null;
             } else {
-              throw HTError.nullObject(
-                  objectId ?? localSymbol ?? _lexicon.kNull,
-                  InternalIdentifier.subGetter,
+              throw HTError.visitMemberOfNullObject(
+                  objectId ?? _lexicon.kNull, _lexicon.stringify(key),
                   filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
@@ -1805,22 +1803,27 @@ class HTInterpreter {
           }
         case OpCode.memberSet:
           final object = _getRegVal(HTRegIdx.postfixObject);
+          final key = _getRegVal(HTRegIdx.postfixKey);
+          final value = _getRegVal(HTRegIdx.assignRight);
           final isNullable = _currentBytecodeModule.readBool();
+          final hasObjectId = _currentBytecodeModule.readBool();
+          String? objectId;
+          if (hasObjectId) {
+            objectId = _currentBytecodeModule.readUtf8String();
+          }
           // final valueBytesLength = _currentBytecodeModule.readUint16();
           if (object == null) {
             if (isNullable) {
               // _currentBytecodeModule.skip(valueBytesLength);
               _localValue = null;
             } else {
-              throw HTError.nullObject(
-                  localSymbol ?? _lexicon.kNull, InternalIdentifier.setter,
+              throw HTError.visitMemberOfNullObject(
+                  objectId ?? _lexicon.kNull, _lexicon.stringify(key),
                   filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
             }
           } else {
-            final key = _getRegVal(HTRegIdx.postfixKey);
-            final value = _getRegVal(HTRegIdx.assignRight);
             _localValue = value;
             final encap = encapsulate(object);
             if (encap is HTNamespace) {
@@ -1832,22 +1835,26 @@ class HTInterpreter {
           }
         case OpCode.subSet:
           final object = _getRegVal(HTRegIdx.postfixObject);
+          final value = _getRegVal(HTRegIdx.assignRight);
+          final key = _localValue;
           final isNullable = _currentBytecodeModule.readBool();
-          // final keyAndValueBytesLength = _currentBytecodeModule.readUint16();
+          final hasObjectId = _currentBytecodeModule.readBool();
+          String? objectId;
+          if (hasObjectId) {
+            objectId = _currentBytecodeModule.readUtf8String();
+          }
           if (object == null) {
             if (isNullable) {
               // _currentBytecodeModule.skip(keyAndValueBytesLength);
               _localValue = null;
             } else {
-              throw HTError.nullObject(
-                  localSymbol ?? _lexicon.kNull, InternalIdentifier.subSetter,
+              throw HTError.visitMemberOfNullObject(
+                  objectId ?? _lexicon.kNull, _lexicon.stringify(key),
                   filename: _currentFile,
                   line: _currentLine,
                   column: _currentColumn);
             }
           } else {
-            final key = _localValue;
-            final value = _getRegVal(HTRegIdx.assignRight);
             _localValue = value;
             if (object is HTObject) {
               object.subSet(key, value);
@@ -2280,8 +2287,7 @@ class HTInterpreter {
         _localValue = null;
         return;
       } else {
-        throw HTError.nullObject(
-            localSymbol ?? _lexicon.kNull, InternalIdentifier.call,
+        throw HTError.callNullObject(localSymbol ?? _lexicon.kNull,
             filename: _currentFile, line: _currentLine, column: _currentColumn);
       }
     }

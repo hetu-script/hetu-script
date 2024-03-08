@@ -388,7 +388,10 @@ class HTLocaleEnglish implements HTLocale {
   String get errorCondition =>
       'Condition expression must evaluate to type [bool]';
   @override
-  String get errorNullObject => 'Calling method [{1}] on null object [{0}].';
+  String get errorCallNullObject => 'Trying to call null object [{0}].';
+  @override
+  String get errorVisitMemberOfNullObject =>
+      'Calling method [{1}] on null object [{0}].';
   @override
   String get errorNullSubSetKey => 'Sub set key is null.';
   @override

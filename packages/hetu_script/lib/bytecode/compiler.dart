@@ -945,9 +945,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.addByte(HTRegIdx.postfixKey);
         bytesBuilder.addByte(OpCode.memberSet);
         bytesBuilder.addByte(memberExpr.isNullable ? 1 : 0);
-        // final value = compileAST(expr.right, endOfExec: true);
-        // bytesBuilder.add(_uint16(value.length));
-        // bytesBuilder.add(value);
+        Uint8List? objectId;
+        if (memberExpr.object is IdentifierExpr) {
+          objectId = _utf8String((memberExpr.object as IdentifierExpr).id);
+        }
+        if (objectId != null) {
+          bytesBuilder.addByte(1);
+          bytesBuilder.add(objectId);
+        } else {
+          bytesBuilder.addByte(0);
+        }
       } else if (expr.left is SubExpr) {
         final value = compileAST(expr.right);
         bytesBuilder.add(value);
@@ -964,11 +971,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.addByte(OpCode.retractStackFrame);
         bytesBuilder.addByte(OpCode.subSet);
         bytesBuilder.addByte(subExpr.isNullable ? 1 : 0);
-        // sub get key is after opcode
-        // it has to be exec with 'move reg index'
-        // bytesBuilder.add(_uint16(key.length + value.length));
-        // bytesBuilder.add(key);
-        // bytesBuilder.add(value);
+        Uint8List? objectId;
+        if (subExpr.object is IdentifierExpr) {
+          objectId = _utf8String((subExpr.object as IdentifierExpr).id);
+        }
+        if (objectId != null) {
+          bytesBuilder.addByte(1);
+          bytesBuilder.add(objectId);
+        } else {
+          bytesBuilder.addByte(0);
+        }
       } else {
         final right = compileAST(expr.right);
         bytesBuilder.add(right);

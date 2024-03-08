@@ -375,7 +375,9 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   String get errorCondition => '条件表达式必须是 [bool] 类型。';
   @override
-  String get errorNullObject => '试图在 null 对象 [{0}] 上调用成员函数 [{1}]。';
+  String get errorCallNullObject => '试图对 null 对象 [{0}]进行函数调用。';
+  @override
+  String get errorVisitMemberOfNullObject => '试图在 null 对象 [{0}] 上访问成员 [{1}]。';
   @override
   String get errorNullSubSetKey => '下标操作的 key 是 null 对象。';
   @override

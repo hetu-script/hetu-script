@@ -65,7 +65,8 @@ enum ErrorCode {
   undefinedMember,
   uninitialized,
   condition,
-  nullObject,
+  nullObjectCall,
+  nullObjectGet,
   nullSubSetKey,
   subGetKey,
   outOfRange,
@@ -1316,8 +1317,8 @@ class HTError {
             offset: offset,
             length: length);
 
-  /// Error: Calling method on null object.
-  HTError.nullObject(String symbol, String method,
+  /// Error: Visit null object.
+  HTError.callNullObject(String symbol,
       {String? extra,
       String? correction,
       String? filename,
@@ -1325,8 +1326,28 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.nullObject, ErrorType.runtimeError,
-            message: HTLocale.current.errorNullObject,
+      : this(ErrorCode.nullObjectCall, ErrorType.runtimeError,
+            message: HTLocale.current.errorCallNullObject,
+            interpolations: [symbol],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Calling method on null object.
+  HTError.visitMemberOfNullObject(String symbol, String method,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(ErrorCode.nullObjectGet, ErrorType.runtimeError,
+            message: HTLocale.current.errorVisitMemberOfNullObject,
             interpolations: [symbol, method],
             extra: extra,
             correction: correction,
