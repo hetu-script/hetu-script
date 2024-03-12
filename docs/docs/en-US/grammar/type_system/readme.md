@@ -11,12 +11,12 @@ To use a type value in a normal expression, you have to lead it with a `type` ke
 ```typescript
 function checkType(t: type) {
   switch (t) {
-    typeval {} => {
+    typeval {} : {
       print('a structural type')
     }
     // the function won't match here
     // you have to use the exact type value here for match
-    typeval ()->any => {
+    typeval ()->any : {
       print('a function type')
     }
   }

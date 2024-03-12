@@ -417,6 +417,8 @@ external class List extends Iterable {
 
 	function removeLast()
 
+	function removeFirst()
+
   function sublist(start: integer, [end: integer?]) -> List
 
   function asMap() -> Map

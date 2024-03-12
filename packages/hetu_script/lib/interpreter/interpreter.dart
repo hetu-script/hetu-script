@@ -2166,25 +2166,26 @@ class HTInterpreter {
           _currentBytecodeModule.skip(length);
         }
         final func = HTFunction(
-            internalName: internalName,
-            _currentFile,
-            _currentBytecodeModule.id,
-            this,
-            closure: currentNamespace,
-            category: FunctionCategory.literal,
-            externalTypeId: externalTypedef,
-            hasParamDecls: hasParamDecls,
-            paramDecls: paramDecls,
-            declType: declType,
-            isPrivate: true,
-            isAsync: isAsync,
-            isVariadic: isVariadic,
-            minArity: minArity,
-            maxArity: maxArity,
-            ip: definitionIp,
-            line: line,
-            column: column,
-            namespace: currentNamespace);
+          internalName: internalName,
+          _currentFile,
+          _currentBytecodeModule.id,
+          this,
+          closure: currentNamespace,
+          category: FunctionCategory.literal,
+          externalTypeId: externalTypedef,
+          hasParamDecls: hasParamDecls,
+          paramDecls: paramDecls,
+          declType: declType,
+          isPrivate: true,
+          isAsync: isAsync,
+          isVariadic: isVariadic,
+          minArity: minArity,
+          maxArity: maxArity,
+          ip: definitionIp,
+          line: line,
+          column: column,
+          namespace: currentNamespace,
+        );
         if (!hasExternalTypedef) {
           _localValue = func;
         } else {

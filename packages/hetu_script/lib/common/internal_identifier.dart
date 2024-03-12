@@ -35,6 +35,8 @@ base class InternalIdentifier {
   static const emptyLine = 'emptyLine';
   static const empty = 'empty';
 
+  static const lineBreak = 'lineBreak';
+
   static const source = 'source';
   static const compilation = 'compilation';
   static const literalNull = 'literalNull';

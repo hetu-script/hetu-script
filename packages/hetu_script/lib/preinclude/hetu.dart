@@ -265,6 +265,7 @@ class Hetu {
 
     if (useDefaultModuleAndBinding) {
       final numBinding = HTNumberClassBinding();
+      final iterableBinding = HTIterableClassBinding();
       interpreter.bindExternalClass(numBinding);
       interpreter
           .bindExternalClass(HTIntegerClassBinding(superClass: numBinding));
@@ -274,9 +275,11 @@ class Hetu {
       interpreter.bindExternalClass(HTBooleanClassBinding());
       interpreter.bindExternalClass(HTStringClassBinding());
       interpreter.bindExternalClass(HTIteratorClassBinding());
-      interpreter.bindExternalClass(HTIterableClassBinding());
-      interpreter.bindExternalClass(HTListClassBinding());
-      interpreter.bindExternalClass(HTSetClassBinding());
+      interpreter.bindExternalClass(iterableBinding);
+      interpreter
+          .bindExternalClass(HTListClassBinding(superClass: iterableBinding));
+      interpreter
+          .bindExternalClass(HTSetClassBinding(superClass: iterableBinding));
       interpreter.bindExternalClass(HTMapClassBinding());
       interpreter.bindExternalClass(HTRandomClassBinding());
       interpreter.bindExternalClass(HTMathClassBinding());
@@ -684,8 +687,8 @@ class Hetu {
       interpreter.fetch(id, module: module);
 
   /// Assign value to a top level variable defined in a certain namespace in the interpreter.
-  void assign(String id, dynamic value, {String? module}) =>
-      interpreter.assign(id, value, module: module);
+  void assign(String id, dynamic value, {String? namespace, String? module}) =>
+      interpreter.assign(id, value, namespace: namespace, module: module);
 
   /// Invoke a top level function defined in a certain namespace in the interpreter.
   dynamic invoke(

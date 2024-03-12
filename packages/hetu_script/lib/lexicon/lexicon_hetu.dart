@@ -323,7 +323,7 @@ class HTLexiconHetu extends HTLexicon {
   String get returnTypeIndicator => '->';
 
   @override
-  String get switchBranchIndicator => '=>';
+  String get switchBranchIndicator => ':';
 
   @override
   String get nullableMemberGet => '?.';

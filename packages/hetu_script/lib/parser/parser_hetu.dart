@@ -1645,7 +1645,6 @@ class HTParserHetu extends HTParser {
       } else if (curTok is TokenIdentifier) {
         final id = advance() as TokenIdentifier;
         final isLocal = curTok.lexeme != lexer.lexicon.assign;
-        // TODO: type arguments
         _isLegalLeftValue = true;
         expr = IdentifierExpr.fromToken(id,
             isMarked: id.isMarked, isLocal: isLocal, source: currentSource);
@@ -1712,7 +1711,6 @@ class HTParserHetu extends HTParser {
     if (curTok.lexeme == lexer.lexicon.groupExprStart) {
       final savedPrecedings = savePrecedings();
       final startTok = advance();
-      // TODO: generic parameters
       var isOptional = false;
       var isNamed = false;
       final parameters = <ParamTypeExpr>[];
@@ -2311,11 +2309,16 @@ class HTParserHetu extends HTParser {
       if (curTok.lexeme == lexer.lexicon.blockEnd && options.isNotEmpty) {
         break;
       }
-      if (curTok.lexeme == lexer.lexicon.kElse) {
+      if (curTok.lexeme == lexer.lexicon.kElse ||
+          curTok.lexeme == lexer.lexicon.kDefault ||
+          curTok.lexeme == lexer.lexicon.defaultMark) {
         advance();
         match(lexer.lexicon.switchBranchIndicator);
         elseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
       } else {
+        if (curTok.lexeme == lexer.lexicon.kCase) {
+          advance();
+        }
         ASTNode caseExpr;
         // TODO: this part is dubious, might have edge cases that not covered
         if (peek(1).lexeme == lexer.lexicon.comma) {
@@ -2327,6 +2330,8 @@ class HTParserHetu extends HTParser {
           caseExpr = parseExpr();
         }
         match(lexer.lexicon.switchBranchIndicator);
+        // TODO: 如果使用了case，那么这里可以允许不带括号的多行语句，
+        // 且允许这些语句以break结束。但不允许break出现在最后一行之外的其他位置。
         var caseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
         options[caseExpr] = caseBranch;
       }

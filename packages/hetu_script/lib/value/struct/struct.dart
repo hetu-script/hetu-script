@@ -284,7 +284,7 @@ class HTStruct with HTObject {
   void subSet(dynamic id, dynamic value, {String? from}) =>
       memberSet(id, value, from: from);
 
-  // return a deep copy of this struct.
+  /// return a deep copy of this struct.
   HTStruct clone() {
     final cloned =
         HTStruct(interpreter, prototype: prototype, closure: closure);
@@ -296,7 +296,7 @@ class HTStruct with HTObject {
     return cloned;
   }
 
-  // deep copy another struct then assign to this one.
+  /// deep copy another struct then assign to this one.
   void assign(HTStruct other) {
     for (final key in other._fields.keys) {
       if (key.startsWith(interpreter.lexicon.internalPrefix)) continue;
@@ -306,7 +306,7 @@ class HTStruct with HTObject {
     }
   }
 
-  // deep copy another struct then merge with this one.
+  /// deep copy another struct then merge with this one.
   void merge(HTStruct other) {
     for (final key in other._fields.keys) {
       if (key.startsWith(interpreter.lexicon.internalPrefix)) continue;

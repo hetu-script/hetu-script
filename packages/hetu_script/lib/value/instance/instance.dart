@@ -98,7 +98,6 @@ class HTInstance with HTObject, InterpreterRef {
   }
 
   String getTypeString() {
-    // TODO: type args
     return '${InternalIdentifier.instanceOf} $classId';
   }
 

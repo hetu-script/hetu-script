@@ -54,15 +54,15 @@ function main {
   }
 
   switch (true) {
-    1 =>    '1'
-    2 => {
+    1 :    '1'
+    2 : {
       return [
         1,
         2,
         3
       ]
     }
-    else => print(  { "name": "Kevin",
+    else : print(  { "name": "Kevin",
     
     
     "age": 16}, 7> 2 ? true : cal(42))

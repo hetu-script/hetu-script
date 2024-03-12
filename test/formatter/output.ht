@@ -49,13 +49,13 @@ function main() {
     } while (value is! bool)
   }
   switch (true) {
-    1 => {
+    1 : {
       '1'
     }
-    2 => {
+    2 : {
       return [1, 2, 3]
     }
-    else => {
+    else : {
       print({
         'name': 'Kevin', 
         'age': 16

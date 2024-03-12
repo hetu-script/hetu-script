@@ -269,10 +269,16 @@ class HTFunction extends HTFunctionDeclaration
     final result = call(
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
-      // typeArgs: typeArgs,
     );
-    namespace = savedNamespace;
-    instance = savedInstance;
+    if (result is Future) {
+      result.then((value) {
+        namespace = savedNamespace;
+        instance = savedInstance;
+      });
+    } else {
+      namespace = savedNamespace;
+      instance = savedInstance;
+    }
     return result;
   }
 

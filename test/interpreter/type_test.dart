@@ -127,10 +127,10 @@ void main() {
       final result = hetu.eval(r'''
         function checkType(t: type) {
           switch (t) {
-            typeval {} => 'a structural type'
+            typeval {} : 'a structural type'
             // the function won't match here
             // you have to use the exact type value here for match
-            typeval ()->any => 'a function type'
+            typeval ()->any : 'a function type'
           }
         }
         checkType(typeof () {})

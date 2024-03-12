@@ -149,7 +149,7 @@ external class Math {
 
   // Noise generation function provided by [fast_noise](https://pub.dev/packages/fast_noise) package.
   // Noise types: perlin, perlinFractal, cubic, cubicFractal
-  static function noise2d(size, {seed, noiseType = 'cubic', frequency = 0.01})
+  static function noise2d(width, height, {seed, noiseType = 'cubic', frequency = 0.01})
 
   static function min(a, b)
 

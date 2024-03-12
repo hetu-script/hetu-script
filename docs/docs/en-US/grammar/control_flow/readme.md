@@ -8,9 +8,9 @@ function main {
   for (;;) {
     ++i
     switch (i % 2) {
-      0 => print('even:', i)
-      1 => print('odd:', i)
-      else => print('never going to happen.')
+      0 : print('even:', i)
+      1 : print('odd:', i)
+      else : print('never going to happen.')
     }
     if (i > 5) {
       break
@@ -100,16 +100,16 @@ If you want to check if an iterable/object contains the value, use in/of express
 ```javascript
 for (final i in range(0, 10)) {
   switch (i) {
-    0 => {
+    0 : {
       print('number: 0')
     }
-    2, 3, 5, 7 => {
+    2, 3, 5, 7 : {
       print('prime: ${i}')
     }
-    in [4, 9] => {
+    in [4, 9] : {
       print('square: ${i}')
     }
-    else => {
+    else : {
       print('other: ${i}')
     }
   }

@@ -21,14 +21,23 @@ Future<void> main() async {
     }
   });
 
+  sourceContext.addResource('source1.ht', HTSource('''
+  
+  '''));
+
   var r = hetu.eval(r'''
-    external function getJSON()
 
-    let a = Map()
-    a.first = 12
-    a.second = 23
+    let a = {
+      name: 'jimmy'
+    }
 
-    print(Object.createFromJSON(a))
+    let b = {
+      func : () async {
+        print(this.name)
+      }
+    }
+
+    b.func.apply(a)
 ''');
 
   if (r is Future) {
