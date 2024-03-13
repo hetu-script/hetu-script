@@ -335,7 +335,7 @@ class HTLexiconHetu extends HTLexicon {
   String get nullableSubGet => '?[';
 
   @override
-  String get nullableFunctionArgumentCall => '?(';
+  String get nullableFunctionCall => '?(';
 
   @override
   String get subGetStart => '[';

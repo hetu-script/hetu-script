@@ -423,7 +423,8 @@ class HTIterableClassBinding extends HTExternalClass {
           });
         };
       case 'contains':
-        return ({positionalArgs, namedArgs}) => contains(positionalArgs.first);
+        return ({positionalArgs, namedArgs}) =>
+            object.contains(positionalArgs.first);
       case 'reduce':
         return ({positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;

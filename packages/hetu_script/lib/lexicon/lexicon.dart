@@ -343,7 +343,7 @@ abstract class HTLexicon {
 
   String get subGetEnd;
 
-  String get nullableFunctionArgumentCall;
+  String get nullableFunctionCall;
 
   String get functionParameterStart;
 
@@ -369,7 +369,7 @@ abstract class HTLexicon {
         memberGet,
         nullableSubGet,
         subGetStart,
-        nullableFunctionArgumentCall,
+        nullableFunctionCall,
         functionParameterStart,
         postIncrement,
         postDecrement,
@@ -635,7 +635,7 @@ abstract class HTLexicon {
         nullableMemberGet,
         memberGet,
         nullableSubGet,
-        nullableFunctionArgumentCall,
+        nullableFunctionCall,
         subGetStart,
         subGetEnd,
         functionParameterStart,

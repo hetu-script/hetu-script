@@ -1119,9 +1119,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(OpCode.call);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
     bytesBuilder.addByte(expr.hasNewOperator ? 1 : 0);
-    final argBytes = _parseCallArguments(expr.positionalArgs, expr.namedArgs);
-    bytesBuilder.add(_uint16(argBytes.length));
-    bytesBuilder.add(argBytes);
     Uint8List? objectId;
     if (expr.callee is IdentifierExpr) {
       objectId = _utf8String((expr.callee as IdentifierExpr).id);
@@ -1132,6 +1129,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else {
       bytesBuilder.addByte(0);
     }
+    final argBytes = _parseCallArguments(expr.positionalArgs, expr.namedArgs);
+    bytesBuilder.add(_uint16(argBytes.length));
+    bytesBuilder.add(argBytes);
     return bytesBuilder.toBytes();
   }
 

@@ -2280,6 +2280,11 @@ class HTInterpreter {
   void _handleCallExpr() {
     final isNullable = _currentBytecodeModule.readBool();
     final hasNewOperator = _currentBytecodeModule.readBool();
+    final hasObjectId = _currentBytecodeModule.readBool();
+    String? objectId;
+    if (hasObjectId) {
+      objectId = _currentBytecodeModule.readUtf8String();
+    }
     final callee = _getRegVal(HTRegIdx.postfixObject);
     final argsBytesLength = _currentBytecodeModule.readUint16();
     if (callee == null) {
@@ -2288,7 +2293,7 @@ class HTInterpreter {
         _localValue = null;
         return;
       } else {
-        throw HTError.callNullObject(localSymbol ?? _lexicon.kNull,
+        throw HTError.callNullObject(objectId ?? _lexicon.kNull,
             filename: _currentFile, line: _currentLine, column: _currentColumn);
       }
     }
@@ -2311,12 +2316,6 @@ class HTInterpreter {
       final arg = execute();
       // final arg = execute(moveRegIndex: true);
       namedArgs[name] = arg;
-    }
-    // final typeArgs = _localTypeArgs;
-    final hasObjectId = _currentBytecodeModule.readBool();
-    String? objectId;
-    if (hasObjectId) {
-      objectId = _currentBytecodeModule.readUtf8String();
     }
 
     _localValue = _call(

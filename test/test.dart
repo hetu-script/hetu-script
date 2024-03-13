@@ -27,17 +27,9 @@ Future<void> main() async {
 
   var r = hetu.eval(r'''
 
-    let a = {
-      name: 'jimmy'
-    }
+    let a
 
-    let b = {
-      func : () async {
-        print(this.name)
-      }
-    }
-
-    b.func.apply(a)
+    a?()
 ''');
 
   if (r is Future) {

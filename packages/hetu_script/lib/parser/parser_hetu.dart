@@ -1319,7 +1319,7 @@ class HTParserHetu extends HTParser {
             column: expr.column,
             offset: expr.offset,
             length: curTok.offset - expr.offset);
-      } else if (op.lexeme == lexer.lexicon.nullableFunctionArgumentCall) {
+      } else if (op.lexeme == lexer.lexicon.nullableFunctionCall) {
         _isLegalLeftValue = false;
         var positionalArgs = <ASTNode>[];
         var namedArgs = <String, ASTNode>{};
@@ -1631,6 +1631,7 @@ class HTParserHetu extends HTParser {
         _isLegalLeftValue = false;
         expr = _parseStructObj(hasKeyword: true);
       } else if (curTok.lexeme == lexer.lexicon.kAsync) {
+        advance();
         _isLegalLeftValue = false;
         expr =
             _parseFunction(category: FunctionCategory.literal, isAsync: true);

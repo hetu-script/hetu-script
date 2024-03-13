@@ -330,7 +330,7 @@ class Hetu {
         final struct = instance as HTStruct;
         return struct.contains(positionalArgs.first);
       });
-      interpreter.bindExternalMethod('Object::hasOwnProperty', (
+      interpreter.bindExternalMethod('Object::containsKey', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         return struct.containsKey(positionalArgs.first);

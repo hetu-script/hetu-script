@@ -21,6 +21,9 @@ import '../../declaration/declaration.dart';
 /// Can be named or anonymous.
 /// Unlike class, you have to use 'this' to
 /// access struct member within its own methods
+/// a HTStruct in Dart side works just like a normal Map
+/// you can access and modify its member via '[]' operator
+/// and it has several same apis like Map, e.g. contains, remove, etc.
 class HTStruct with HTObject {
   static var structLiteralIndex = 0;
 
