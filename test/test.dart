@@ -26,10 +26,14 @@ Future<void> main() async {
   '''));
 
   var r = hetu.eval(r'''
+        final obj = {
+          name: 'jimmy'
+        }
+        final greeting = () {
+          return this.name
+        }
+        greeting.apply(obj)
 
-    let a
-
-    a?()
 ''');
 
   if (r is Future) {

@@ -271,15 +271,16 @@ class HTFunction extends HTFunctionDeclaration
       namedArgs: namedArgs,
     );
     if (result is Future) {
-      result.then((value) {
+      return result.then((value) {
         namespace = savedNamespace;
         instance = savedInstance;
+        return value;
       });
     } else {
       namespace = savedNamespace;
       instance = savedInstance;
+      return result;
     }
-    return result;
   }
 
   @override
@@ -287,8 +288,14 @@ class HTFunction extends HTFunctionDeclaration
     if (id == interpreter.lexicon.idBind) {
       return ({positionalArgs, namedArgs}) => bind(positionalArgs.first);
     } else if (id == interpreter.lexicon.idApply) {
-      return ({positionalArgs, namedArgs}) => apply(positionalArgs.first,
-          positionalArgs: positionalArgs, namedArgs: namedArgs);
+      return ({positionalArgs, namedArgs}) {
+        assert(positionalArgs.length > 0);
+        return apply(
+          positionalArgs.first,
+          positionalArgs: positionalArgs.sublist(1),
+          namedArgs: namedArgs,
+        );
+      };
     }
 
     if (!ignoreUndefined) {

@@ -18,7 +18,6 @@ struct Object {
 
   /// Check if this struct has the key in its own fields
   external function containsKey(key: string) -> bool
-  function hasOwnProperty(key: string) => containsKey(key)
 
 	external get isEmpty -> bool
 
@@ -28,6 +27,8 @@ struct Object {
 
   /// Create a new struct form deepcopying this struct
   external function clone() -> {}
+
+  function hasOwnProperty(key: string) => this.containsKey(key)
 
   function toJSON() -> Map => JSON.parse(this)
 
