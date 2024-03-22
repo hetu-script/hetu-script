@@ -548,6 +548,12 @@ class HTListClassBinding extends HTExternalClass {
       {bool ignoreUndefined = false}) {
     final object = instance as List;
     switch (id) {
+      case 'addIfAbsent':
+        return ({positionalArgs, namedArgs}) {
+          if (!object.contains(positionalArgs.first)) {
+            object.add(positionalArgs.first);
+          }
+        };
       case 'add':
         return ({positionalArgs, namedArgs}) =>
             object.add(positionalArgs.first);

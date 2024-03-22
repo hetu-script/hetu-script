@@ -394,6 +394,8 @@ external class Iterable {
 external class List extends Iterable {
 
   constructor (... args: any)
+
+  function addIfAbsent(value: any)
   
 	function add(value: any)
 

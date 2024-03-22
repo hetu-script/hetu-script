@@ -24,7 +24,7 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   String get keyword => '关键字';
   @override
-  String get identifier => '识别符';
+  String get identifier => '标识符';
   @override
   String get punctuation => '标点符号';
 
