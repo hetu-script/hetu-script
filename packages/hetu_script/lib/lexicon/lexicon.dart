@@ -438,7 +438,7 @@ abstract class HTLexicon {
 
   String get unsignedRightShift;
 
-  Set<String> get shifts => {
+  Set<String> get bitwiseShifts => {
         leftShift,
         rightShift,
         unsignedRightShift,

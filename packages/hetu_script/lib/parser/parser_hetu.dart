@@ -1097,11 +1097,11 @@ class HTParserHetu extends HTParser {
   /// Logical compare: <, >, <=, >=, as, is, is!, in, in!
   /// precedence 8, associativity none
   ASTNode _parseRelationalExpr() {
-    var left = _parseAdditiveExpr();
+    var left = _parseBitwiseOrExpr();
     if (lexer.lexicon.logicalRelationals.contains(curTok.lexeme)) {
       _isLegalLeftValue = false;
       final op = advance();
-      final right = _parseAdditiveExpr();
+      final right = _parseBitwiseOrExpr();
       left = BinaryExpr(left, op.lexeme, right,
           source: currentSource,
           line: left.line,
@@ -1119,7 +1119,7 @@ class HTParserHetu extends HTParser {
       } else {
         opLexeme = op.lexeme;
       }
-      final right = _parseAdditiveExpr();
+      final right = _parseBitwiseOrExpr();
       left = BinaryExpr(left, opLexeme, right,
           source: currentSource,
           line: left.line,
@@ -1144,6 +1144,86 @@ class HTParserHetu extends HTParser {
           column: left.column,
           offset: left.offset,
           length: curTok.offset - left.offset);
+    }
+    return left;
+  }
+
+  /// Bitwise or: |
+  /// precedence 9, associativity left
+  ASTNode _parseBitwiseOrExpr() {
+    var left = _parseBitwiseXorExpr();
+    if (curTok.lexeme == lexer.lexicon.bitwiseOr) {
+      _isLegalLeftValue = false;
+      while (curTok.lexeme == lexer.lexicon.bitwiseOr) {
+        final op = advance();
+        final right = _parseBitwiseXorExpr();
+        left = BinaryExpr(left, op.lexeme, right,
+            source: currentSource,
+            line: left.line,
+            column: left.column,
+            offset: left.offset,
+            length: curTok.offset - left.offset);
+      }
+    }
+    return left;
+  }
+
+  /// Bitwise xor: ^
+  /// precedence 10, associativity left
+  ASTNode _parseBitwiseXorExpr() {
+    var left = _parseBitwiseAndExpr();
+    if (curTok.lexeme == lexer.lexicon.bitwiseXor) {
+      _isLegalLeftValue = false;
+      while (curTok.lexeme == lexer.lexicon.bitwiseXor) {
+        final op = advance();
+        final right = _parseBitwiseAndExpr();
+        left = BinaryExpr(left, op.lexeme, right,
+            source: currentSource,
+            line: left.line,
+            column: left.column,
+            offset: left.offset,
+            length: curTok.offset - left.offset);
+      }
+    }
+    return left;
+  }
+
+  /// Bitwise and: &
+  /// precedence 11, associativity left
+  ASTNode _parseBitwiseAndExpr() {
+    var left = _parseShiftExpr();
+    if (curTok.lexeme == lexer.lexicon.bitwiseAnd) {
+      _isLegalLeftValue = false;
+      while (curTok.lexeme == lexer.lexicon.bitwiseAnd) {
+        final op = advance();
+        final right = _parseShiftExpr();
+        left = BinaryExpr(left, op.lexeme, right,
+            source: currentSource,
+            line: left.line,
+            column: left.column,
+            offset: left.offset,
+            length: curTok.offset - left.offset);
+      }
+    }
+    return left;
+  }
+
+  /// Bitwise shift: <<, >>, >>>
+  /// precedence 12, associativity left
+  ASTNode _parseShiftExpr() {
+    var left = _parseAdditiveExpr();
+    if (lexer.lexicon.bitwiseShifts.contains(curTok.lexeme)) {
+      _isLegalLeftValue = false;
+      while (lexer.lexicon.bitwiseShifts.contains(curTok.lexeme)) {
+        final op = advance();
+        final right = _parseAdditiveExpr();
+        left = BinaryExpr(left, op.lexeme, right,
+            source: currentSource,
+            line: left.line,
+            column: left.column,
+            offset: left.offset,
+            length: curTok.offset - left.offset);
+      }
     }
     return left;
   }

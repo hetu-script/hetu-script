@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'shared.dart';
+import 'op_code.dart';
 
 /// An utility class to read bytes and return the actual value.
 mixin BytecodeReader {

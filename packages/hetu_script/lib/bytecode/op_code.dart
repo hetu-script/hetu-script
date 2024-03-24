@@ -19,6 +19,7 @@ abstract class OpCode {
   static const whileStmt = 15;
   static const doStmt = 16;
   static const switchStmt = 17;
+
   static const codeBlock = 18;
   static const library = 19;
   static const file = 20;
@@ -30,6 +31,7 @@ abstract class OpCode {
   static const endOfModule = 26;
   static const createStackFrame = 27;
   static const retractStackFrame = 28;
+
   static const constIntTable = 30;
   static const constFloatTable = 31;
   static const constStringTable = 32;
@@ -41,47 +43,64 @@ abstract class OpCode {
   static const funcDecl = 38;
   static const externalEnumDecl = 39;
   static const structDecl = 40;
-
   static const namespaceDecl = 41;
   static const namespaceDeclEnd = 42;
   static const classDecl = 43;
   static const classDeclEnd = 44;
 
   static const delete = 49;
+
   static const assign = 50;
   static const memberSet = 51;
   static const subSet = 52;
-  static const logicalOr = 53;
-  static const logicalAnd = 54;
-  static const equal = 55;
-  static const notEqual = 56;
-  static const lesser = 57;
-  static const greater = 58;
-  static const lesserOrEqual = 59;
+
+  static const ifNull = 54;
+  static const truthyValue = 55;
+  static const logicalOr = 56;
+  static const logicalAnd = 57;
+  static const equal = 58;
+  static const notEqual = 59;
+
   static const greaterOrEqual = 60;
-  static const add = 61;
-  static const subtract = 62;
-  static const multiply = 63;
-  static const devide = 64;
-  static const truncatingDevide = 65;
-  static const modulo = 66;
-  static const ifNull = 67;
-  static const negative = 68;
-  static const logicalNot = 69;
-  static const isIn = 70;
-  static const isNotIn = 71;
+  static const greater = 61;
+  static const lesserOrEqual = 62;
+  static const lesser = 63;
 
-  static const memberGet = 75;
-  static const subGet = 76;
-  static const call = 77;
+  static const typeAs = 64;
+  static const typeIs = 65;
+  static const typeIsNot = 66;
 
-  static const typeIs = 81;
-  static const typeIsNot = 82;
-  static const typeAs = 83;
-  static const typeValueOf = 84;
-  static const decltypeOf = 85;
+  static const isIn = 67;
+  static const isNotIn = 68;
 
-  static const awaitedValue = 90;
+  static const bitwiseOr = 70;
+  static const bitwiseXor = 71;
+  static const bitwiseAnd = 72;
+
+  static const leftShift = 73;
+  static const rightShift = 74;
+  static const unsignedRightShift = 75;
+
+  static const add = 80;
+  static const subtract = 81;
+
+  static const multiply = 82;
+  static const devide = 83;
+  static const modulo = 84;
+  static const truncatingDevide = 85;
+
+  static const negative = 86;
+  static const logicalNot = 87;
+  static const bitwiseNot = 88;
+
+  static const awaitedValue = 95;
+
+  static const call = 100;
+  static const subGet = 102;
+  static const memberGet = 104;
+
+  static const typeValueOf = 110;
+  static const decltypeOf = 111;
 
   static const lineInfo = 205;
 }
@@ -146,21 +165,33 @@ Type getConstantType(HTConstantType type) {
   }
 }
 
-/// Register values exists as groups, and the index determines a certain value within this group.
+/// Register values exists as groups,
+/// the index determines a certain value within this group.
 class HTRegIdx {
   static const value = 0;
   static const identifier = 1;
   static const objectId = 2;
   static const loopCount = 3;
   static const anchorCount = 4;
+
   static const assignRight = 7;
-  static const orLeft = 8;
-  static const andLeft = 9;
-  static const equalLeft = 10;
-  static const relationLeft = 11;
-  static const addLeft = 12;
-  static const multiplyLeft = 13;
-  static const postfixObject = 14;
-  static const postfixKey = 15;
-  static const length = 16;
+  static const ifNullLeft = 8;
+  static const orLeft = 9;
+  static const andLeft = 10;
+  static const equalLeft = 11;
+  static const relationLeft = 12;
+
+  static const bitwiseOrLeft = 13;
+  static const bitwiseXorLeft = 14;
+  static const bitwiseAndLeft = 15;
+
+  static const bitwiseShiftLeft = 16;
+
+  static const additiveLeft = 17;
+  static const multiplicativeLeft = 18;
+
+  static const postfixObject = 19;
+  static const postfixKey = 20;
+
+  static const length = 24;
 }

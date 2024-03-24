@@ -282,7 +282,6 @@ class Hetu {
           .bindExternalClass(HTSetClassBinding(superClass: iterableBinding));
       interpreter.bindExternalClass(HTMapClassBinding());
       interpreter.bindExternalClass(HTRandomClassBinding());
-      interpreter.bindExternalClass(HTMathClassBinding());
       interpreter.bindExternalClass(HTFutureClassBinding());
       interpreter.bindExternalClass(HTCryptoClassBinding());
       interpreter.bindExternalClass(HTConsoleClassBinding(console: console));

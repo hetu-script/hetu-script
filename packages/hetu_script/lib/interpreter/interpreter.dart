@@ -33,7 +33,7 @@ import '../resource/resource.dart';
 import '../resource/resource_context.dart';
 import '../error/error.dart';
 import '../error/error_handler.dart';
-import '../bytecode/shared.dart';
+import '../bytecode/op_code.dart';
 import '../bytecode/bytecode_module.dart';
 import '../bytecode/compiler.dart';
 import '../version.dart';
@@ -1569,15 +1569,14 @@ class HTInterpreter {
           }
           _localValue = value;
         case OpCode.ifNull:
-          final left = _getRegVal(HTRegIdx.orLeft);
+          final left = _getRegVal(HTRegIdx.ifNullLeft);
           final rightValueLength = _currentBytecodeModule.readUint16();
           if (left != null) {
             _currentBytecodeModule.skip(rightValueLength);
             _localValue = left;
-          } else {
-            final right = execute();
-            _localValue = right;
           }
+        case OpCode.truthyValue:
+          _localValue = _truthy(_localValue);
         case OpCode.logicalOr:
           final left = _getRegVal(HTRegIdx.orLeft);
           final leftTruthValue = _truthy(left);
@@ -1585,9 +1584,6 @@ class HTInterpreter {
           if (leftTruthValue) {
             _currentBytecodeModule.skip(rightValueLength);
             _localValue = leftTruthValue;
-          } else {
-            final right = execute();
-            _localValue = _truthy(right);
           }
         case OpCode.logicalAnd:
           final left = _getRegVal(HTRegIdx.andLeft);
@@ -1596,10 +1592,6 @@ class HTInterpreter {
           if (!leftTruthValue) {
             _currentBytecodeModule.skip(rightValueLength);
             _localValue = false;
-          } else {
-            final right = execute();
-            final rightTruthValue = _truthy(right);
-            _localValue = leftTruthValue && rightTruthValue;
           }
         case OpCode.equal:
           var left = _getRegVal(HTRegIdx.equalLeft);
@@ -1657,8 +1649,26 @@ class HTInterpreter {
           _handleTypeCheck();
         case OpCode.typeIsNot:
           _handleTypeCheck(isNot: true);
+        case OpCode.bitwiseOr:
+          var left = _getRegVal(HTRegIdx.bitwiseOrLeft);
+          _localValue = left | _localValue;
+        case OpCode.bitwiseXor:
+          var left = _getRegVal(HTRegIdx.bitwiseXorLeft);
+          _localValue = left ^ _localValue;
+        case OpCode.bitwiseAnd:
+          var left = _getRegVal(HTRegIdx.bitwiseAndLeft);
+          _localValue = left & _localValue;
+        case OpCode.leftShift:
+          var left = _getRegVal(HTRegIdx.bitwiseShiftLeft);
+          _localValue = left << _localValue;
+        case OpCode.rightShift:
+          var left = _getRegVal(HTRegIdx.bitwiseShiftLeft);
+          _localValue = left >> _localValue;
+        case OpCode.unsignedRightShift:
+          var left = _getRegVal(HTRegIdx.bitwiseShiftLeft);
+          _localValue = left >>> _localValue;
         case OpCode.add:
-          var left = _getRegVal(HTRegIdx.addLeft);
+          var left = _getRegVal(HTRegIdx.additiveLeft);
           if (_isZero(left)) {
             left = 0;
           }
@@ -1668,7 +1678,7 @@ class HTInterpreter {
           }
           _localValue = left + right;
         case OpCode.subtract:
-          var left = _getRegVal(HTRegIdx.addLeft);
+          var left = _getRegVal(HTRegIdx.additiveLeft);
           if (_isZero(left)) {
             left = 0;
           }
@@ -1678,7 +1688,7 @@ class HTInterpreter {
           }
           _localValue = left - right;
         case OpCode.multiply:
-          var left = _getRegVal(HTRegIdx.multiplyLeft);
+          var left = _getRegVal(HTRegIdx.multiplicativeLeft);
           if (_isZero(left)) {
             left = 0;
           }
@@ -1688,21 +1698,21 @@ class HTInterpreter {
           }
           _localValue = left * right;
         case OpCode.devide:
-          var left = _getRegVal(HTRegIdx.multiplyLeft);
+          var left = _getRegVal(HTRegIdx.multiplicativeLeft);
           if (_isZero(left)) {
             left = 0;
           }
           final right = _localValue;
           _localValue = left / right;
         case OpCode.truncatingDevide:
-          var left = _getRegVal(HTRegIdx.multiplyLeft);
+          var left = _getRegVal(HTRegIdx.multiplicativeLeft);
           if (_isZero(left)) {
             left = 0;
           }
           final right = _localValue;
           _localValue = left ~/ right;
         case OpCode.modulo:
-          var left = _getRegVal(HTRegIdx.multiplyLeft);
+          var left = _getRegVal(HTRegIdx.multiplicativeLeft);
           if (_isZero(left)) {
             left = 0;
           }
@@ -1713,6 +1723,8 @@ class HTInterpreter {
         case OpCode.logicalNot:
           final truthValue = _truthy(_localValue);
           _localValue = !truthValue;
+        case OpCode.bitwiseNot:
+          _localValue = ~_localValue;
         case OpCode.typeValueOf:
           _localValue = typeValueOf(_localValue);
         case OpCode.decltypeOf:

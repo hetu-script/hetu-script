@@ -26,10 +26,7 @@ Future<void> main() async {
   '''));
 
   var r = hetu.eval(r'''
-    let arr = [5,6,7]
-    arr.addIfAbsent(5)
-    arr.addIfAbsent(55)
-    arr
+    ~5
 ''');
 
   if (r is Future) {
