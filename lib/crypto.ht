@@ -1,7 +1,9 @@
 external abstract class crypto {
   static function randomUUID() -> string
   
-  static function randomUID4([repeat: integer?]) -> string
+  static function randomUID([length = 4]) -> string
+
+  static function randomNID([length = 8]) -> string
 
   static function crcString(data: string, [crc: string = 0]) -> string
 

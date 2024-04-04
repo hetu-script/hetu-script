@@ -95,6 +95,11 @@ abstract class Math {
   /// Noise types: perlin, perlinFractal, cubic, cubicFractal
   external static function noise2d(width, height, {seed, noiseType = 'cubic', frequency = 0.01})
 
+  /// Calculate the angle in dgree from start to end, return the result in degrees.
+  external static function angle(startx, starty, endx, endy)
+
+  /// Calculate the angle in dgree from start to end, return the result in radians.
+  external static function aangle(startx, starty, endx, endy)
 }
 
 external function parseInt(source: string, [radix: integer?]) -> number

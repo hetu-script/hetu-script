@@ -750,7 +750,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(OpCode.register);
       bytesBuilder.addByte(HTRegIdx.ifNullLeft);
       bytesBuilder.addByte(OpCode.ifNull);
-      bytesBuilder.add(_uint16(right.length + 1)); // length of right value
+      bytesBuilder.add(_uint16(right.length)); // length of right value
       bytesBuilder.add(right);
     } else if (expr.op == _lexicon.logicalOr) {
       bytesBuilder.add(left);

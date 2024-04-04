@@ -947,9 +947,9 @@ class HTCryptoClassBinding extends HTExternalClass {
         return ({positionalArgs, namedArgs}) {
           return randomUUID();
         };
-      case 'crypto.randomUID4':
+      case 'crypto.randomUID':
         return ({positionalArgs, namedArgs}) {
-          return randomUID4(positionalArgs.first);
+          return randomUID(positionalArgs.first);
         };
       case 'crypto.crcString':
         return ({positionalArgs, namedArgs}) {

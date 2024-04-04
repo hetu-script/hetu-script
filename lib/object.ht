@@ -1,7 +1,7 @@
 import 'json.ht'
 
 struct Object {
-  external static function createFromJSON(data) -> {}
+  external static function fromJSON(data) -> {}
 
   /// Assign source object's member to target
   external static function assign(target, source)

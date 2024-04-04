@@ -26,7 +26,16 @@ Future<void> main() async {
   '''));
 
   var r = hetu.eval(r'''
-    ~5
+    struct Test {
+      constructor ({name, age}) {
+        this.name = name
+        this.age = age
+      }
+    }
+
+    let a
+    let obj = Test(name: a ?? 'jimmy', age: 4)
+    obj
 ''');
 
   if (r is Future) {

@@ -19,6 +19,44 @@ final Map<String, Function> preincludeFunctions = {
       int.tryParse(positionalArgs[0], radix: positionalArgs[1]),
   'parseFloat': ({positionalArgs, namedArgs}) =>
       double.tryParse(positionalArgs.first),
+  'Math.min': ({positionalArgs, namedArgs}) {
+    if (positionalArgs[0] == null) {
+      return positionalArgs[1];
+    }
+    if (positionalArgs[1] == null) {
+      return positionalArgs[0];
+    }
+    return math.min(positionalArgs[0] as num, positionalArgs[1] as num);
+  },
+  'Math.max': ({positionalArgs, namedArgs}) {
+    if (positionalArgs[0] == null) {
+      return positionalArgs[1];
+    }
+    if (positionalArgs[1] == null) {
+      return positionalArgs[0];
+    }
+    return math.max(positionalArgs[0] as num, positionalArgs[1] as num);
+  },
+  'Math.pow': ({positionalArgs, namedArgs}) =>
+      math.pow(positionalArgs[0] as num, positionalArgs[1] as num),
+  'Math.sin': ({positionalArgs, namedArgs}) =>
+      math.sin(positionalArgs.first as num),
+  'Math.cos': ({positionalArgs, namedArgs}) =>
+      math.cos(positionalArgs.first as num),
+  'Math.tan': ({positionalArgs, namedArgs}) =>
+      math.tan(positionalArgs.first as num),
+  'Math.asin': ({positionalArgs, namedArgs}) =>
+      math.asin(positionalArgs.first as num),
+  'Math.acos': ({positionalArgs, namedArgs}) =>
+      math.acos(positionalArgs.first as num),
+  'Math.atan': ({positionalArgs, namedArgs}) =>
+      math.atan(positionalArgs.first as num),
+  'Math.sqrt': ({positionalArgs, namedArgs}) =>
+      math.sqrt(positionalArgs.first as num),
+  'Math.exp': ({positionalArgs, namedArgs}) =>
+      math.exp(positionalArgs.first as num),
+  'Math.log': ({positionalArgs, namedArgs}) =>
+      math.log(positionalArgs.first as num),
   'Math.degrees': ({positionalArgs, namedArgs}) =>
       degrees(positionalArgs.first.toDouble()),
   'Math.radians': ({positionalArgs, namedArgs}) =>
@@ -68,36 +106,8 @@ final Map<String, Function> preincludeFunctions = {
       noiseType: noiseType,
     );
   },
-  'Math.min': ({positionalArgs, namedArgs}) {
-    if (positionalArgs[0] == null) {
-      return positionalArgs[1];
-    }
-    if (positionalArgs[1] == null) {
-      return positionalArgs[0];
-    }
-    return math.min(positionalArgs[0] as num, positionalArgs[1] as num);
-  },
-  'Math.max': ({positionalArgs, namedArgs}) {
-    if (positionalArgs[0] == null) {
-      return positionalArgs[1];
-    }
-    if (positionalArgs[1] == null) {
-      return positionalArgs[0];
-    }
-    return math.max(positionalArgs[0] as num, positionalArgs[1] as num);
-  },
-  'Math.sqrt': ({positionalArgs, namedArgs}) =>
-      math.sqrt(positionalArgs.first as num),
-  'Math.pow': ({positionalArgs, namedArgs}) =>
-      math.pow(positionalArgs[0] as num, positionalArgs[1] as num),
-  'Math.sin': ({positionalArgs, namedArgs}) =>
-      math.sin(positionalArgs.first as num),
-  'Math.cos': ({positionalArgs, namedArgs}) =>
-      math.cos(positionalArgs.first as num),
-  'Math.tan': ({positionalArgs, namedArgs}) =>
-      math.tan(positionalArgs.first as num),
-  'Math.exp': ({positionalArgs, namedArgs}) =>
-      math.exp(positionalArgs.first as num),
-  'Math.log': ({positionalArgs, namedArgs}) =>
-      math.log(positionalArgs.first as num),
+  'Math.angle': ({positionalArgs, namedArgs}) => angle(positionalArgs[0],
+      positionalArgs[1], positionalArgs[2], positionalArgs[3]),
+  'Math.aangle': ({positionalArgs, namedArgs}) => aangle(positionalArgs[0],
+      positionalArgs[1], positionalArgs[2], positionalArgs[3]),
 };

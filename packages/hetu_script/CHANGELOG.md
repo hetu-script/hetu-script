@@ -1,6 +1,7 @@
 ## 0.6.0
 
-- Changed some lexicon and identifiers to make the grammar and api similar to Javascript.
+- Add bitwise operators and bitwise shifts operators.
+- Redo crypto/console/Math/JSON related api to make them more similar to Javascript.
 
 ## 0.5.0
 

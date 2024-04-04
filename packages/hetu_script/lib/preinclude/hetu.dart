@@ -291,7 +291,7 @@ class Hetu {
       interpreter.bindExternalFunction('print', ({positionalArgs, namedArgs}) {
         console.log(positionalArgs);
       });
-      interpreter.bindExternalFunction('Object.createFromJSON', (
+      interpreter.bindExternalFunction('Object.fromJSON', (
           {positionalArgs, namedArgs}) {
         final jsonData = positionalArgs.first as Map<dynamic, dynamic>;
         return interpreter.createStructfromJSON(jsonData);
