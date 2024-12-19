@@ -448,6 +448,9 @@ class HTLocaleEnglish implements HTLocale {
   @override
   String get errorNotStruct =>
       'Value is not a struct literal, which is needed.';
+  @override
+  String get errorNotSpreadableObj =>
+      'Value is not a struct or a map for spread operation.';
 
   // Analysis errors
   @override

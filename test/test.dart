@@ -26,16 +26,17 @@ Future<void> main() async {
   '''));
 
   var r = hetu.eval(r'''
-    struct Test {
-      constructor ({name, age}) {
-        this.name = name
-        this.age = age
-      }
-    }
+    external fun getJSON
 
-    let a
-    let obj = Test(name: a ?? 'jimmy', age: 4)
-    obj
+    let data = await getJSON()
+
+    print(data.name)
+    print(typeof data)
+
+    let obj = {...data}
+
+    print(obj)
+    print(typeof obj)
 ''');
 
   if (r is Future) {

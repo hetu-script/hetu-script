@@ -424,6 +424,8 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   String get errorBinding => 'bind 操作只能用于函数字面量和对象字面量。';
   @override
   String get errorNotStruct => '赋值类型错误：并非结构体。';
+  @override
+  String get errorNotSpreadableObj => '展开操作的对象并非 Map 或者 struct 类型';
 
   // Analysis errors
   @override

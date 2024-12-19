@@ -90,6 +90,7 @@ enum ErrorCode {
   unresolvedNamedStruct,
   binding,
   notStruct,
+  notSpreadableObj,
 
   // Analysis errors
   constValue,
@@ -1819,6 +1820,17 @@ class HTError {
       {String? filename, int? line, int? column, int? offset, int? length})
       : this(ErrorCode.notStruct, ErrorType.runtimeError,
             message: HTLocale.current.errorNotStruct,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Bind a non literal function is not allowed.
+  HTError.notSpreadableObj(
+      {String? filename, int? line, int? column, int? offset, int? length})
+      : this(ErrorCode.notSpreadableObj, ErrorType.runtimeError,
+            message: HTLocale.current.errorNotSpreadableObj,
             filename: filename,
             line: line,
             column: column,

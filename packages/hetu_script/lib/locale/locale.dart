@@ -225,6 +225,7 @@ abstract class HTLocale {
   String get errorUnresolvedNamedStruct;
   String get errorBinding;
   String get errorNotStruct;
+  String get errorNotSpreadableObj;
 
   // Analysis errors
   String get errorConstValue;

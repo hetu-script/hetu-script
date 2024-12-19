@@ -2116,12 +2116,21 @@ class HTInterpreter {
         for (var i = 0; i < fieldsCount; ++i) {
           final isSpread = _currentBytecodeModule.readBool();
           if (isSpread) {
-            final HTStruct spreadingStruct = execute();
-            for (final key in spreadingStruct.keys) {
-              // skip internal apis
-              if (key.startsWith(_lexicon.internalPrefix)) continue;
-              final copiedValue = toStructValue(spreadingStruct[key]);
-              struct.define(key, copiedValue);
+            final dynamic spreadingObj = execute();
+            if (spreadingObj is Map || spreadingObj is HTStruct) {
+              for (final key in spreadingObj.keys) {
+                // skip internal apis
+                if (key.startsWith(_lexicon.internalPrefix)) continue;
+                final copiedValue = toStructValue(spreadingObj[key]);
+                struct.define(key, copiedValue);
+              }
+            } else {
+              final hetuError = HTError.notSpreadableObj(
+                filename: currentFile,
+                line: currentLine,
+                column: currentColumn,
+              );
+              throw hetuError;
             }
           } else {
             final key = _currentBytecodeModule.getConstString();

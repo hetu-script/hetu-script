@@ -64,12 +64,23 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
   /// define a declaration in this namespace,
   /// the defined id could be different from declaration's id
   bool define(String id, T decl, {bool override = false, bool throws = true}) {
-    if (!symbols.containsKey(id) || override) {
+    if (!symbols.containsKey(id)) {
       symbols[id] = decl;
       return true;
     } else {
-      if (throws) {
-        throw HTError.defined(id, ErrorType.staticWarning);
+      if (!override) {
+        if (throws) {
+          throw HTError.defined(id, ErrorType.staticWarning);
+        }
+      } else {
+        final existedValue = symbols[id];
+        if (existedValue is HTDeclarationNamespace &&
+            decl is HTDeclarationNamespace) {
+          // TODO: merge namespace?
+        } else {
+          symbols[id] = decl;
+          return true;
+        }
       }
     }
 

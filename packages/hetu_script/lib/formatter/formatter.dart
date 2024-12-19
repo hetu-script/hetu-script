@@ -869,8 +869,8 @@ class HTFormatter implements AbstractASTVisitor<String> {
         output.write(_lexicon.kGet);
       case FunctionCategory.setter:
         output.write(_lexicon.kSet);
-      default:
-        break;
+      // default:
+      //   break;
     }
     if (stmt.externalTypeId != null) {
       output.write(
