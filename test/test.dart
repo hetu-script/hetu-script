@@ -26,17 +26,13 @@ Future<void> main() async {
   '''));
 
   var r = hetu.eval(r'''
-    external fun getJSON
+    // external fun getJSON
+    // let data = await getJSON()
+    // let data2 = JSON.deepcopy(data)
+    // data2.id = 'aabbcc'
+    // print(data)
 
-    let data = await getJSON()
-
-    print(data.name)
-    print(typeof data)
-
-    let obj = {...data}
-
-    print(obj)
-    print(typeof obj)
+    print(crypto.randomNID(4, true))
 ''');
 
   if (r is Future) {

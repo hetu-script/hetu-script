@@ -1,12 +1,10 @@
-/// Hetu Script
-/// A lightweight scripting language for embedding in Flutter apps.
-///
-/// Copyright (C) 2022 Shao, Ran
-/// chengfubeiming@live.com
-/// Licensed under the MIT License.
-/// http://www.opensource.org/licenses/mit-license.php
-
-library hetu_script;
+// Hetu Script
+// A lightweight scripting language for embedding in Flutter apps.
+//
+// Copyright (C) 2022 Shao, Ran
+// chengfubeiming@live.com
+// Licensed under the MIT License.
+// http://www.opensource.org/licenses/mit-license.php
 
 export 'version.dart';
 export 'locale/locale.dart';

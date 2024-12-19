@@ -1,13 +1,7 @@
 import '../value/struct/struct.dart';
 
 dynamic deepCopy(dynamic value) {
-  if (value is Set) {
-    final Set set = {};
-    for (final item in value) {
-      set.add(deepCopy(item));
-    }
-    return set;
-  } else if (value is Iterable) {
+  if (value is Iterable) {
     final List list = [];
     for (final item in value) {
       list.add(deepCopy(item));

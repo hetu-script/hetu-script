@@ -8,7 +8,7 @@ void main() async {
       title: 'Hetu Script Code Pad',
       theme: ThemeData.light().copyWith(
           scrollbarTheme: const ScrollbarThemeData().copyWith(
-        thumbColor: MaterialStateProperty.all(Colors.grey),
+        thumbColor: WidgetStateProperty.all(Colors.grey),
       )),
       home: const Scaffold(
         body: CodeEditor(),

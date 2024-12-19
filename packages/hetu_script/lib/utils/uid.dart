@@ -12,7 +12,7 @@ String randomUUID() {
 }
 
 /// Get a random id consists by number and letters.
-String randomUID([int? length]) {
+String randomUID([int? length, bool withTime = false]) {
   length ??= 4;
   assert(length >= 1);
   if (length < 15) {
@@ -21,7 +21,7 @@ String randomUID([int? length]) {
         .truncate()
         .toRadixString(16)
         .substring(1);
-    return id;
+    return '${withTime ? timeID2() : ""}$id';
   } else {
     final output = StringBuffer();
     final c = (length / 12).floor();
@@ -29,12 +29,12 @@ String randomUID([int? length]) {
       output.write(randomUID(12));
     }
     output.write(randomUID(length - c * 12));
-    return output.toString();
+    return '${withTime ? timeID2() : ""}${output.toString()}';
   }
 }
 
 /// Get a random id consists by number.
-String randomNID([int? length]) {
+String randomNID([int? length, bool withTime = false]) {
   length ??= 8;
   assert(length >= 1);
   final r = Random(DateTime.now().millisecondsSinceEpoch);
@@ -46,5 +46,19 @@ String randomNID([int? length]) {
       output.write(r.nextInt(10));
     }
   }
-  return output.toString();
+  return '${withTime ? timeID2() : ""}${output.toString()}';
+}
+
+/// Get the date string from DateTime.now().
+/// '2024-03-07 11:24:22'
+String timeID() {
+  final now = DateTime.now();
+  return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+}
+
+/// Get the date string from DateTime.now().
+/// '20240307112422'
+String timeID2() {
+  final now = DateTime.now();
+  return '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}';
 }

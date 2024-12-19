@@ -12,9 +12,9 @@ import '../utils/uid.dart';
 import '../utils/crc32b.dart';
 import '../value/function/function.dart';
 import '../preinclude/console.dart';
-import '../utils/jsonify.dart';
+import '../utils/json.dart';
 import '../lexicon/lexicon.dart';
-import '../value/struct/struct.dart';
+// import '../value/struct/struct.dart';
 import '../locale/locale.dart';
 import '../utils/collection.dart';
 
@@ -949,7 +949,11 @@ class HTCryptoClassBinding extends HTExternalClass {
         };
       case 'crypto.randomUID':
         return ({positionalArgs, namedArgs}) {
-          return randomUID(positionalArgs.first);
+          return randomUID(positionalArgs[0], positionalArgs[1]);
+        };
+      case 'crypto.randomNID':
+        return ({positionalArgs, namedArgs}) {
+          return randomNID(positionalArgs[0], positionalArgs[1]);
         };
       case 'crypto.crcString':
         return ({positionalArgs, namedArgs}) {
@@ -1014,18 +1018,10 @@ class HTJSONClassBinding extends HTExternalClass {
         return ({positionalArgs, namedArgs}) =>
             lexicon.stringify(positionalArgs.first);
       case 'JSON.parse':
-        return ({positionalArgs, namedArgs}) {
-          final object = positionalArgs.first;
-          if (object is HTStruct) {
-            return jsonifyStruct(object);
-          } else if (object is Iterable) {
-            return jsonifyList(object);
-          } else if (isJsonDataType(object)) {
-            return lexicon.stringify(object);
-          } else {
-            return jsonEncode(object);
-          }
-        };
+        return ({positionalArgs, namedArgs}) =>
+            jsonDecode(positionalArgs.first);
+      case 'JSON.deepcopy':
+        return ({positionalArgs, namedArgs}) => deepCopy(positionalArgs.first);
       default:
         if (!ignoreUndefined) throw HTError.undefined(id);
     }

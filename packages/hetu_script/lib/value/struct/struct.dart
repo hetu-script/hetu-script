@@ -4,7 +4,7 @@ import '../object.dart';
 import '../function/function.dart';
 // import '../../value/namespace/namespace.dart';
 // import '../../shared/stringify.dart' as util;
-import '../../utils/jsonify.dart' as util;
+import '../../utils/json.dart' as util;
 import '../../type/type.dart';
 import '../../type/structural.dart';
 import '../../error/error.dart';

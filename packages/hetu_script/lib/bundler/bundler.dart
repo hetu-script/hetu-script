@@ -71,7 +71,9 @@ class HTBundler {
             decl.fullFromPath = importFullName = decl.fromPath!;
           }
           if (sources.keys.contains(importFullName) ||
-              cachedParsingTargets.contains(importFullName)) continue;
+              cachedParsingTargets.contains(importFullName)) {
+            continue;
+          }
           final source2 = sourceContext.getResource(importFullName);
           importedSource = parser.parseSource(source2);
           // final parser2 = HTParser(sourceContext: sourceContext);

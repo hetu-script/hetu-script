@@ -7,7 +7,7 @@ class BorderedIconButton extends StatelessWidget {
     required this.icon,
     this.tooltip,
     this.onPressed,
-  }) ;
+  });
 
   final double iconSize;
 
@@ -25,7 +25,7 @@ class BorderedIconButton extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withAlpha(128),
             spreadRadius: 3,
             blurRadius: 6,
             offset: const Offset(0, 2), // changes position of shadow

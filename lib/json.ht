@@ -2,4 +2,6 @@ external abstract class JSON {
   static function parse(object)
 
   static function stringify(object)
+
+  static function deepcopy(object)
 }
