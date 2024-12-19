@@ -50,3 +50,19 @@ Map<String, dynamic> jsonifyStruct(HTStruct struct, {HTStruct? from}) {
   }
   return output;
 }
+
+dynamic jsonify(dynamic value) {
+  if (value is Iterable) {
+    return jsonifyList(value);
+  } else if (value is Map) {
+    final Map<String, dynamic> map = {};
+    for (final key in value.keys) {
+      map[key.toString()] = jsonify(value[key]);
+    }
+    return map;
+  } else if (value is HTStruct) {
+    return jsonifyStruct(value);
+  } else {
+    return null;
+  }
+}

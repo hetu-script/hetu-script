@@ -30,7 +30,7 @@ struct Object {
 
   function hasOwnProperty(key: string) => this.containsKey(key)
 
-  function toJSON() -> Map => JSON.parse(this)
+  function toJSON() -> Map => JSON.jsonify(this)
 
   function toString() -> string => JSON.stringify(this)
 }

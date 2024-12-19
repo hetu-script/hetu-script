@@ -326,7 +326,7 @@ external class Iterable {
   /// Returns a new `Iterator` that allows iterating the Iterable's elements.
   get iterator -> Iterator
 
-  function toJSON() -> Map
+  function toJSON()
 
   /// The current elements of this iterable modified by [toElement].
   function map(toElement: (any) -> any) -> Iterable

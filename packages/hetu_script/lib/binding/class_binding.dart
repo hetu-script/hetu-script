@@ -1014,12 +1014,14 @@ class HTJSONClassBinding extends HTExternalClass {
   @override
   dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
-      case 'JSON.stringify':
-        return ({positionalArgs, namedArgs}) =>
-            lexicon.stringify(positionalArgs.first);
       case 'JSON.parse':
         return ({positionalArgs, namedArgs}) =>
             jsonDecode(positionalArgs.first);
+      case 'JSON.jsonify':
+        return ({positionalArgs, namedArgs}) => jsonify(positionalArgs.first);
+      case 'JSON.stringify':
+        return ({positionalArgs, namedArgs}) =>
+            lexicon.stringify(positionalArgs.first);
       case 'JSON.deepcopy':
         return ({positionalArgs, namedArgs}) => deepCopy(positionalArgs.first);
       default:
