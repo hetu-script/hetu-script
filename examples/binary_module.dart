@@ -12,7 +12,7 @@ void main() {
       // printPerformanceStatistics: true,
       removeAssertion: true,
       removeDocumentation: true,
-      removeLineInfo: true,
+      removeLineInfo: false,
     ),
   );
   hetu.init();

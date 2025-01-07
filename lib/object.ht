@@ -33,4 +33,16 @@ struct Object {
   function toJSON() -> Map => JSON.jsonify(this)
 
   function toString() -> string => JSON.stringify(this)
+
+  function create(data) {
+    if (data == null) {
+      return {}
+    } else if (data is Map) {
+      return Object.fromJSON(data)
+    } else if (data is {}) {
+      return data.clone()
+    } else {
+      throw 'Invalid data type for `Object.create`.'
+    }
+  }
 }

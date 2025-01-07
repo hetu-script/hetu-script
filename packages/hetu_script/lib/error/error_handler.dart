@@ -8,11 +8,14 @@ class ErrorHandlerConfig {
   /// Wether fill in errors with detailed information, e.g. line & column info.
   bool processError;
 
+  bool debugMode;
+
   ErrorHandlerConfig({
     this.showDartStackTrace = false,
     this.showHetuStackTrace = false,
     this.stackTraceDisplayCountLimit = 5,
     this.processError = true,
+    this.debugMode = false,
   });
 }
 

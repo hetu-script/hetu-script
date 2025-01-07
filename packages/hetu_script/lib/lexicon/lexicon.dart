@@ -808,18 +808,24 @@ abstract class HTLexicon {
       output.write(_curIndent());
       output.write(listEnd);
     } else if (object is Map) {
-      output.write(structStart);
+      output.writeln(structStart);
+      ++_curIndentCount;
       final keys = object.keys.toList();
       for (var i = 0; i < keys.length; ++i) {
+        output.write(_curIndent());
         final key = keys[i];
         final value = object[key];
         final keyString = stringify(key);
         final valueString = stringify(value);
-        output.write('$keyString: $valueString');
         if (i < keys.length - 1) {
-          output.write('$comma ');
+          output.write('$keyString: $valueString');
+          output.writeln('$comma ');
+        } else {
+          output.writeln('$keyString: $valueString');
         }
       }
+      --_curIndentCount;
+      output.write(_curIndent());
       output.write(structEnd);
     } else if (object is HTStruct) {
       if (object.isEmpty) {

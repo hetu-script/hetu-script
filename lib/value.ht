@@ -464,7 +464,7 @@ external class List extends Iterable {
 
 external class Set extends Iterable {
 
-  constructor (... args: any)
+  constructor ([value: Iterable])
 
   function add(value: any) -> bool
 

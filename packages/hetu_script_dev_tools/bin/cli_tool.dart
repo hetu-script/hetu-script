@@ -39,8 +39,7 @@ final parser = HTParserHetu(lexicon: lexicon);
 final bundler = HTBundler(sourceContext: sourceContext, parser: parser);
 final hetu = Hetu(
   config: HetuConfig(
-    printPerformanceStatistics: false,
-    removeLineInfo: true,
+    // printPerformanceStatistics: false,
     // doStaticAnalysis: true,
     // computeConstantExpression: true,
     // showDartStackTrace: true,
@@ -56,6 +55,8 @@ final hetu = Hetu(
 bool showDetailsOfError = false;
 
 void main(List<String> arguments) {
+  hetu.init();
+
   try {
     final version = kHetuVersion.toString();
     replInfo = replInfo.replaceAll('{0}', version);
@@ -120,7 +121,6 @@ Interpret a Hetu script file and print its result to terminal.
 }
 
 void enterReplMode({dynamic prompt}) async {
-  hetu.init();
   print(replInfo);
   if (prompt != null) {
     print(hetu.lexicon.stringify(prompt));
@@ -188,7 +188,6 @@ ArgResults parseArg(List<String> args) {
 }
 
 void run(List<String> args, {bool enterRepl = false}) {
-  hetu.init();
   if (args.isEmpty) {
     throw 'Error: Path argument is required for \'run\' command.';
   }
@@ -301,7 +300,7 @@ void compile(List<String> args,
     }
     throw 'Syntactic error(s) occurred while parsing.';
   } else {
-    final compileConfig = CompilerConfig(removeLineInfo: true);
+    final compileConfig = CompilerConfig(removeLineInfo: false);
     final compiler = HTCompiler(config: compileConfig);
     final bytes = compiler.compile(module);
 

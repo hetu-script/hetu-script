@@ -26,14 +26,10 @@ Future<void> main() async {
   '''));
 
   var r = hetu.eval(r'''
-    external fun getJSON
-    let data = await getJSON()
-    let data2 = Object.fromJSON(data)
-
-    print(data2)
-
-    print(data2.toJSON())
-
+    for (var i in range(10)) {
+      let n = Random().distantInt(100, exponent: 0.5)
+      print(n)
+    }
 ''');
 
   if (r is Future) {

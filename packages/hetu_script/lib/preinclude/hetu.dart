@@ -84,6 +84,10 @@ class HetuConfig
   @override
   bool processError;
 
+  /// defaults to `false`
+  @override
+  bool debugMode;
+
   /// defaults to `true`
   @override
   bool allowVariableShadowing;
@@ -126,6 +130,7 @@ class HetuConfig
     this.showHetuStackTrace = false,
     this.stackTraceDisplayCountLimit = 5,
     this.processError = true,
+    this.debugMode = false,
     this.allowVariableShadowing = true,
     this.allowImplicitVariableDeclaration = false,
     this.allowImplicitNullToZeroConversion = false,

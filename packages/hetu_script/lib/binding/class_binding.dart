@@ -678,7 +678,8 @@ class HTSetClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Set':
-        return ({positionalArgs, namedArgs}) => Set.from(positionalArgs);
+        return ({positionalArgs, namedArgs}) =>
+            Set.from(positionalArgs.first ?? []);
       default:
         if (!ignoreUndefined) throw HTError.undefined(id);
     }
@@ -826,6 +827,20 @@ class HTRandomClassBinding extends HTExternalClass {
     switch (id) {
       case 'nextDouble':
         return ({positionalArgs, namedArgs}) => object.nextDouble();
+      case 'nearInt':
+        return ({positionalArgs, namedArgs}) {
+          return (positionalArgs.first *
+                  math.pow(object.nextDouble(), namedArgs['exponent'] ?? 0.5))
+              .toInt();
+        };
+      case 'distantInt':
+        return ({positionalArgs, namedArgs}) {
+          return (positionalArgs.first *
+                  (1 -
+                      math.pow(
+                          object.nextDouble(), namedArgs['exponent'] ?? 0.5)))
+              .toInt();
+        };
       case 'nextInt':
         return ({positionalArgs, namedArgs}) =>
             object.nextInt(positionalArgs[0].toInt());
@@ -949,11 +964,17 @@ class HTCryptoClassBinding extends HTExternalClass {
         };
       case 'crypto.randomUID':
         return ({positionalArgs, namedArgs}) {
-          return randomUID(positionalArgs[0], positionalArgs[1]);
+          return randomUID(
+            length: namedArgs['length'],
+            withTime: namedArgs['withTime'],
+          );
         };
       case 'crypto.randomNID':
         return ({positionalArgs, namedArgs}) {
-          return randomNID(positionalArgs[0], positionalArgs[1]);
+          return randomNID(
+            length: namedArgs['length'],
+            withTime: namedArgs['withTime'],
+          );
         };
       case 'crypto.crcString':
         return ({positionalArgs, namedArgs}) {

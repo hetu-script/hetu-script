@@ -4,6 +4,10 @@ external class Random {
 
   function nextBool -> bool
 
+  function nearInt(max: integer, {exponent: float = 0.5}) -> integer
+
+  function distantInt(max: integer, {exponent: float = 0.5}) -> integer
+
   function nextInt(max: integer) -> integer
 
   function nextDouble() -> float
@@ -100,6 +104,10 @@ abstract class Math {
 
   /// Calculate the angle in dgree from start to end, return the result in radians.
   external static function aangle(startx, starty, endx, endy)
+
+  function gradualValue(input, target, { rate = 0.1 }) {
+    return target * (1 - Math.exp(-rate * input));
+  }
 }
 
 external function parseInt(source: string, [radix: integer?]) -> number

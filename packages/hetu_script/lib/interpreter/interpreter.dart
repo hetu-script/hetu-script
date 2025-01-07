@@ -42,6 +42,8 @@ import '../locale/locale.dart';
 import '../common/internal_identifier.dart';
 import '../common/function_category.dart';
 
+const kConsoleColorYellow = '\x1B[33m';
+
 /// Mixin for classes that want to hold a ref of a bytecode interpreter
 mixin InterpreterRef {
   late final HTInterpreter interpreter;
@@ -60,6 +62,9 @@ class InterpreterConfig implements ErrorHandlerConfig {
 
   @override
   bool processError;
+
+  @override
+  bool debugMode;
 
   bool allowVariableShadowing;
 
@@ -80,6 +85,7 @@ class InterpreterConfig implements ErrorHandlerConfig {
     this.showHetuStackTrace = false,
     this.stackTraceDisplayCountLimit = 5,
     this.processError = true,
+    this.debugMode = false,
     this.allowVariableShadowing = true,
     this.allowImplicitVariableDeclaration = false,
     this.allowImplicitNullToZeroConversion = false,
@@ -310,7 +316,7 @@ class HTInterpreter {
       throw wrappedError;
     } else {
       final hetuError = HTError.extern(
-        _lexicon.stringify(error),
+        error.toString(),
         extra: stackTraceString,
         filename: currentFile,
         line: currentLine,
@@ -358,7 +364,7 @@ class HTInterpreter {
     }
 
     if (callee == null) {
-      throw HTError.callNullObject(calleeId ?? stringify(callee),
+      throw HTError.callNullObject(calleeId ?? localSymbol ?? _lexicon.kNull,
           filename: _currentFile, line: _currentLine, column: _currentColumn);
     } else {
       if (isConstructorCall) {
@@ -549,8 +555,12 @@ class HTInterpreter {
             isRecursive: true, ignoreUndefined: ignoreUndefined);
       }
       if (callee == null) {
-        if (!ignoreUndefined) {
+        if (ignoreUndefined == false) {
           throw HTError.callNullObject(func);
+        } else if (ignoreUndefined == true) {
+          if (config.debugMode) {
+            print('${kConsoleColorYellow}hetu: $func is not defined.');
+          }
         }
       } else {
         final result = _call(
@@ -2314,7 +2324,7 @@ class HTInterpreter {
         _localValue = null;
         return;
       } else {
-        throw HTError.callNullObject(objectId ?? _lexicon.kNull,
+        throw HTError.callNullObject(objectId ?? localSymbol ?? _lexicon.kNull,
             filename: _currentFile, line: _currentLine, column: _currentColumn);
       }
     }

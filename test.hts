@@ -1,0 +1,47 @@
+const kAttributesSumBase = 50
+const _kMajorAttributeFactor = 0.55
+
+final random = Math.random()
+
+function generateCharacterAttributes({
+    attributesSum = kAttributesSumBase,
+    minValue = 0,
+    majorAttributes: List = [],
+  }) {
+  assert(attributesSum > 0)
+  assert(minValue >= 0)
+
+  const attributes = {}
+
+  let maxV = attributesSum ?? kAttributesSumBase
+  let residue = (attributesSum * _kMajorAttributeFactor).toInt()
+  if (majorAttributes) {
+    maxV = attributesSum - residue
+  }
+  
+  let rest = maxV
+  let attrList = random.shuffle(kCharacterAttributeNames).toList()
+  for (var i = 0; i < attrList.length - 1; ++i) {
+    const value = Random().nextInt(rest)
+    attributes[attrList[i]] = value + minValue
+    rest -= value
+  }
+  attributes[attrList.last] = rest
+
+  if (majorAttributes) {
+    let majorAttrList = random.shuffle(majorAttributes).toList()
+    for (var i = 0; i < majorAttrList.length - 1; ++i) {
+      const value = Random().nextInt(residue)
+      attributes[majorAttrList[i]] += value
+      residue -= value
+    }
+    attributes[majorAttrList.last] += residue
+  }
+  
+  return attributes
+}
+
+for (var i in range(5)) {
+  let attr = generateCharacterAttributes()
+  print(attr)
+}

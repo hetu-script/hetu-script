@@ -12,8 +12,7 @@ String randomUUID() {
 }
 
 /// Get a random id consists by number and letters.
-String randomUID([int? length, bool withTime = false]) {
-  length ??= 4;
+String randomUID({int length = 4, bool withTime = false}) {
   assert(length >= 1);
   if (length < 15) {
     final id = ((Random().nextDouble() + 1) *
@@ -26,25 +25,20 @@ String randomUID([int? length, bool withTime = false]) {
     final output = StringBuffer();
     final c = (length / 12).floor();
     for (var i = 0; i < c; ++i) {
-      output.write(randomUID(12));
+      output.write(randomUID(length: 12));
     }
-    output.write(randomUID(length - c * 12));
+    output.write(randomUID(length: length - c * 12));
     return '${withTime ? timeID2() : ""}${output.toString()}';
   }
 }
 
 /// Get a random id consists by number.
-String randomNID([int? length, bool withTime = false]) {
-  length ??= 8;
+String randomNID({int length = 8, bool withTime = false}) {
   assert(length >= 1);
-  final r = Random(DateTime.now().millisecondsSinceEpoch);
+  final r = Random();
   final output = StringBuffer();
   for (var i = 0; i < length; ++i) {
-    if (i == 0) {
-      output.write(r.nextInt(9) + 1);
-    } else {
-      output.write(r.nextInt(10));
-    }
+    output.write(r.nextInt(10));
   }
   return '${withTime ? timeID2() : ""}${output.toString()}';
 }
