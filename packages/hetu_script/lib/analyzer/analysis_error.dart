@@ -7,13 +7,13 @@ import '../locale/locale.dart';
 /// The format of the printed error content is different from [HTError].
 class HTAnalysisError implements HTError {
   @override
-  final ErrorCode code;
+  final HTErrorCode code;
 
   @override
   String get name => code.toString().split('.').last;
 
   @override
-  final ErrorType type;
+  final HTErrorType type;
 
   @override
   MessageSeverity get severity => type.severity;
@@ -94,7 +94,7 @@ class HTAnalysisError implements HTError {
       required int column,
       required int offset,
       required int length})
-      : this(ErrorCode.constValue, ErrorType.staticWarning,
+      : this(HTErrorCode.constValue, HTErrorType.staticWarning,
             message: HTLocale.current.errorConstValue,
             extra: extra,
             interpolations: [id],
@@ -113,7 +113,7 @@ class HTAnalysisError implements HTError {
     required int column,
     required int offset,
     required int length,
-  }) : this(ErrorCode.importSelf, ErrorType.staticWarning,
+  }) : this(HTErrorCode.importSelf, HTErrorType.staticWarning,
             message: HTLocale.current.errorImportSelf,
             extra: extra,
             correction: correction,
@@ -135,7 +135,7 @@ class HTAnalysisError implements HTError {
     required int column,
     required int offset,
     required int length,
-  }) : this(ErrorCode.assignType, ErrorType.staticTypeWarning,
+  }) : this(HTErrorCode.assignType, HTErrorType.staticTypeWarning,
             message: HTLocale.current.errorAssignType,
             interpolations: [id, valueType, declValue],
             extra: extra,

@@ -54,8 +54,8 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   @override
   dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     if (externalClass != null) {
-      final member = externalClass!.instanceMemberGet(externalObject, id);
-      if (member is Function && klass != null) {
+      dynamic member = externalClass!.instanceMemberGet(externalObject, id);
+      if (member is Function) {
         HTClass? currentKlass = klass! as HTClass;
         HTFunction? decl;
         while (decl == null && currentKlass != null) {

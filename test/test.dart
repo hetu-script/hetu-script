@@ -1,4 +1,35 @@
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/binding.dart';
+
+class Person {
+  void greeting({String? name}) {
+    print('hi, $name!');
+  }
+}
+
+class PersonBinding extends HTExternalClass {
+  PersonBinding() : super('Person');
+
+  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+    switch (id) {
+      case 'Person':
+        return ({positionalArgs, namedArgs}) => Person();
+    }
+  }
+
+  @override
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Person;
+    switch (id) {
+      case 'greeting':
+        return ({positionalArgs, namedArgs}) {
+          final name = namedArgs['name'];
+          return object.greeting(name: name);
+        };
+    }
+  }
+}
 
 Future<void> main() async {
   final sourceContext = HTOverlayContext();
@@ -10,26 +41,22 @@ Future<void> main() async {
       allowImplicitNullToZeroConversion: true,
     ),
   );
-  hetu.init(externalFunctions: {
-    'getJSON': ({positionalArgs, namedArgs}) async {
-      final jsonData = {
-        "name": "Aleph",
-        "type": "novel",
-        "volumes": 7,
-      };
-      return jsonData;
-    }
-  });
+  hetu.init(externalClasses: [PersonBinding()]);
 
   sourceContext.addResource('source1.ht', HTSource('''
   
   '''));
 
   var r = hetu.eval(r'''
-    for (var i in range(10)) {
-      let n = Random().distantInt(100, exponent: 0.5)
-      print(n)
-    }
+    // external class Person {
+    //   construct
+    //   function greeting({name: string = 'Steve'})
+    // }
+
+    // final p = Person()
+    // p.greeting()
+
+    [1,2,3].random
 ''');
 
   if (r is Future) {

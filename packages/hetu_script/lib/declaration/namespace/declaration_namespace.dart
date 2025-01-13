@@ -70,7 +70,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
     } else {
       if (!override) {
         if (throws) {
-          throw HTError.defined(id, ErrorType.staticWarning);
+          throw HTError.defined(id, HTErrorType.staticWarning);
         }
       } else {
         final existedValue = symbols[id];
@@ -142,7 +142,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
       importedSymbols[key] = decl;
     } else {
       if (importedSymbols[key] != decl) {
-        throw HTError.defined(key, ErrorType.runtimeError);
+        throw HTError.defined(key, HTErrorType.runtimeError);
       }
     }
   }

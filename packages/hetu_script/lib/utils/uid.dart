@@ -20,7 +20,7 @@ String randomUID({int length = 4, bool withTime = false}) {
         .truncate()
         .toRadixString(16)
         .substring(1);
-    return '${withTime ? timeID2() : ""}$id';
+    return '${withTime ? datetime() : ""}$id';
   } else {
     final output = StringBuffer();
     final c = (length / 12).floor();
@@ -28,7 +28,7 @@ String randomUID({int length = 4, bool withTime = false}) {
       output.write(randomUID(length: 12));
     }
     output.write(randomUID(length: length - c * 12));
-    return '${withTime ? timeID2() : ""}${output.toString()}';
+    return '${withTime ? datetime() : ""}${output.toString()}';
   }
 }
 
@@ -40,19 +40,16 @@ String randomNID({int length = 8, bool withTime = false}) {
   for (var i = 0; i < length; ++i) {
     output.write(r.nextInt(10));
   }
-  return '${withTime ? timeID2() : ""}${output.toString()}';
-}
-
-/// Get the date string from DateTime.now().
-/// '2024-03-07 11:24:22'
-String timeID() {
-  final now = DateTime.now();
-  return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+  return '${withTime ? datetime() : ""}${output.toString()}';
 }
 
 /// Get the date string from DateTime.now().
 /// '20240307112422'
-String timeID2() {
+String datetime() {
   final now = DateTime.now();
   return '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}';
+}
+
+String timestamp() {
+  return DateTime.now().millisecondsSinceEpoch.toString();
 }

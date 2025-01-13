@@ -88,7 +88,7 @@ class HTBundler {
           }
         } catch (error) {
           if (error is HTError) {
-            if (error.code != ErrorCode.resourceDoesNotExist) {
+            if (error.code != HTErrorCode.resourceDoesNotExist) {
               sourceParseErrors.add(error);
             } else {
               final convertedError = HTError.sourceProviderError(

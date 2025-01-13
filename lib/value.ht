@@ -327,6 +327,8 @@ external class Iterable {
   get iterator -> Iterator
 
   function toJSON()
+  
+  get random
 
   /// The current elements of this iterable modified by [toElement].
   function map(toElement: (any) -> any) -> Iterable

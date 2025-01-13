@@ -396,6 +396,13 @@ class HTIterableClassBinding extends HTExternalClass {
         return ({positionalArgs, namedArgs}) => object.toString();
       case 'toJSON':
         return ({positionalArgs, namedArgs}) => jsonifyList(object);
+      case 'random':
+        final random = math.Random();
+        if (object.isNotEmpty) {
+          return object.elementAt(random.nextInt(object.length));
+        } else {
+          return null;
+        }
       case 'iterator':
         return object.iterator;
       case 'map':

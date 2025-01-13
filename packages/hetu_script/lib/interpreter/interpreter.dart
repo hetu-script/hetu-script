@@ -598,7 +598,7 @@ class HTInterpreter {
   void bindExternalClass(HTExternalClass externalClass,
       {bool override = false}) {
     if (externalClasses.containsKey(externalClass.id) && !override) {
-      throw HTError.defined(externalClass.id, ErrorType.runtimeError);
+      throw HTError.defined(externalClass.id, HTErrorType.runtimeError);
     }
     externalClasses[externalClass.id] = externalClass;
   }
@@ -622,7 +622,7 @@ class HTInterpreter {
   void bindExternalFunction(String id, Function function,
       {bool override = true}) {
     if (externalFunctions.containsKey(id) && !override) {
-      throw HTError.defined(id, ErrorType.runtimeError);
+      throw HTError.defined(id, HTErrorType.runtimeError);
     }
     externalFunctions[id] = function;
   }
@@ -644,7 +644,7 @@ class HTInterpreter {
   void bindExternalMethod(String id, Function method, {bool override = true}) {
     assert(id.contains('::'));
     if (externalMethods.containsKey(id) && !override) {
-      throw HTError.defined(id, ErrorType.runtimeError);
+      throw HTError.defined(id, HTErrorType.runtimeError);
     }
     externalMethods[id] = method;
   }
@@ -661,7 +661,7 @@ class HTInterpreter {
   void bindExternalFunctionType(String id, HTExternalFunctionTypedef function,
       {bool override = true}) {
     if (externalFunctionTypedefs.containsKey(id) && !override) {
-      throw HTError.defined(id, ErrorType.runtimeError);
+      throw HTError.defined(id, HTErrorType.runtimeError);
     }
     externalFunctionTypedefs[id] = function;
   }

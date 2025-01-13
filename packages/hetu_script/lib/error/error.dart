@@ -4,7 +4,7 @@ import '../logger/message_severity.dart';
 
 part 'error_processor.dart';
 
-enum ErrorCode {
+enum HTErrorCode {
   // Syntactic errors
   unkownSourceType,
   importListOnNonHetuSource,
@@ -98,45 +98,45 @@ enum ErrorCode {
 }
 
 /// The type of an [HTError].
-class ErrorType implements Comparable<ErrorType> {
+class HTErrorType implements Comparable<HTErrorType> {
   /// Task (todo) comments in user code.
-  static const todo = ErrorType('TODO', 0, MessageSeverity.info);
+  static const todo = HTErrorType('TODO', 0, MessageSeverity.info);
 
   /// Extra analysis run over the code to follow best practices, which are not in
   /// the Dart Language Specification.
-  static const hint = ErrorType('HINT', 1, MessageSeverity.info);
+  static const hint = HTErrorType('HINT', 1, MessageSeverity.info);
 
   /// Lint warnings describe style and best practice recommendations that can be
   /// used to formalize a project's style guidelines.
-  static const lint = ErrorType('LINT', 2, MessageSeverity.info);
+  static const lint = HTErrorType('LINT', 2, MessageSeverity.info);
 
   /// Syntactic errors are errors produced as a result of input that does not
   /// conform to the grammar.
   static const syntacticError =
-      ErrorType('SYNTACTIC_ERROR', 3, MessageSeverity.error);
+      HTErrorType('SYNTACTIC_ERROR', 3, MessageSeverity.error);
 
   /// Reported by analyzer.
   static const staticTypeWarning =
-      ErrorType('TYPE_WARNING', 4, MessageSeverity.warn);
+      HTErrorType('TYPE_WARNING', 4, MessageSeverity.warn);
 
   /// Reported by analyzer.
   static const staticWarning =
-      ErrorType('STATIC_WARNING', 5, MessageSeverity.warn);
+      HTErrorType('STATIC_WARNING', 5, MessageSeverity.warn);
 
   /// Compile-time errors are errors that preclude execution. A compile time
   /// error must be reported by a compiler before the erroneous code is
   /// executed.
   static const compileTimeError =
-      ErrorType('COMPILE_TIME_ERROR', 6, MessageSeverity.error);
+      HTErrorType('COMPILE_TIME_ERROR', 6, MessageSeverity.error);
 
   /// Run-time errors are errors that occurred during execution. A run time
   /// error is reported by the interpreter.
   static const runtimeError =
-      ErrorType('RUNTIME_ERROR', 7, MessageSeverity.error);
+      HTErrorType('RUNTIME_ERROR', 7, MessageSeverity.error);
 
   /// External errors are errors reported by the dart side.
   static const externalError =
-      ErrorType('EXTERNAL_ERROR', 8, MessageSeverity.error);
+      HTErrorType('EXTERNAL_ERROR', 8, MessageSeverity.error);
 
   static const values = [
     todo,
@@ -161,7 +161,7 @@ class ErrorType implements Comparable<ErrorType> {
 
   /// Initialize a newly created error type to have the given [name] and
   /// [severity].
-  const ErrorType(this.name, this.weight, this.severity);
+  const HTErrorType(this.name, this.weight, this.severity);
 
   String get displayName => name.toLowerCase().replaceAll('_', ' ');
 
@@ -174,18 +174,18 @@ class ErrorType implements Comparable<ErrorType> {
   int get hashCode => weight;
 
   @override
-  int compareTo(ErrorType other) => weight - other.weight;
+  int compareTo(HTErrorType other) => weight - other.weight;
 
   @override
   String toString() => name;
 }
 
 class HTError {
-  final ErrorCode code;
+  final HTErrorCode code;
 
   String get name => code.toString().split('.').last;
 
-  final ErrorType type;
+  final HTErrorType type;
 
   MessageSeverity get severity => type.severity;
 
@@ -251,7 +251,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.unkownSourceType, ErrorType.syntacticError,
+      : this(HTErrorCode.unkownSourceType, HTErrorType.syntacticError,
             message: HTLocale.current.errorUnkownSourceType,
             interpolations: [ext],
             extra: extra,
@@ -270,7 +270,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.importListOnNonHetuSource, ErrorType.syntacticError,
+      : this(HTErrorCode.importListOnNonHetuSource, HTErrorType.syntacticError,
             message: HTLocale.current.errorUnkownSourceType,
             extra: extra,
             correction: correction,
@@ -288,7 +288,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.exportNonHetuSource, ErrorType.syntacticError,
+      : this(HTErrorCode.exportNonHetuSource, HTErrorType.syntacticError,
             message: HTLocale.current.errorExportNonHetuSource,
             extra: extra,
             correction: correction,
@@ -307,7 +307,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.unexpected, ErrorType.syntacticError,
+      : this(HTErrorCode.unexpected, HTErrorType.syntacticError,
             message: HTLocale.current.errorUnexpectedToken,
             interpolations: [expected, met],
             extra: extra,
@@ -327,7 +327,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.unexpected, ErrorType.syntacticError,
+      : this(HTErrorCode.unexpected, HTErrorType.syntacticError,
             message: HTLocale.current.errorUnexpected,
             interpolations: [whileParsing, expected, met],
             extra: extra,
@@ -347,7 +347,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.delete, ErrorType.syntacticError,
+      : this(HTErrorCode.delete, HTErrorType.syntacticError,
             message: HTLocale.current.errorDelete,
             extra: extra,
             correction: correction,
@@ -366,7 +366,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.external, ErrorType.syntacticError,
+      : this(HTErrorCode.external, HTErrorType.syntacticError,
             message: HTLocale.current.errorExternal,
             interpolations: [semanticName],
             extra: extra,
@@ -405,7 +405,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.nestedClass, ErrorType.syntacticError,
+      : this(HTErrorCode.nestedClass, HTErrorType.syntacticError,
             message: HTLocale.current.errorNestedClass,
             extra: extra,
             correction: correction,
@@ -424,7 +424,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.constInClass, ErrorType.syntacticError,
+      : this(HTErrorCode.constInClass, HTErrorType.syntacticError,
             message: HTLocale.current.errorConstInClass,
             extra: extra,
             correction: correction,
@@ -443,7 +443,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.misplacedThis, ErrorType.syntacticError,
+      : this(HTErrorCode.misplacedThis, HTErrorType.syntacticError,
             message: HTLocale.current.errorMisplacedThis,
             extra: extra,
             correction: correction,
@@ -462,7 +462,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.misplacedSuper, ErrorType.syntacticError,
+      : this(HTErrorCode.misplacedSuper, HTErrorType.syntacticError,
             message: HTLocale.current.errorMisplacedSuper,
             extra: extra,
             correction: correction,
@@ -481,7 +481,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.misplacedReturn, ErrorType.syntacticError,
+      : this(HTErrorCode.misplacedReturn, HTErrorType.syntacticError,
             message: HTLocale.current.errorMisplacedReturn,
             extra: extra,
             correction: correction,
@@ -500,7 +500,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.misplacedContinue, ErrorType.syntacticError,
+      : this(HTErrorCode.misplacedContinue, HTErrorType.syntacticError,
             message: HTLocale.current.errorMisplacedContinue,
             extra: extra,
             correction: correction,
@@ -519,7 +519,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.misplacedBreak, ErrorType.syntacticError,
+      : this(HTErrorCode.misplacedBreak, HTErrorType.syntacticError,
             message: HTLocale.current.errorMisplacedBreak,
             extra: extra,
             correction: correction,
@@ -538,7 +538,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.setterArity, ErrorType.syntacticError,
+      : this(HTErrorCode.setterArity, HTErrorType.syntacticError,
             message: HTLocale.current.errorSetterArity,
             extra: extra,
             correction: correction,
@@ -557,7 +557,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.unexpectedEmptyList, ErrorType.syntacticError,
+      : this(HTErrorCode.unexpectedEmptyList, HTErrorType.syntacticError,
             message: HTLocale.current.errorUnexpectedEmptyList,
             interpolations: [listName],
             extra: extra,
@@ -577,7 +577,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.extendsSelf, ErrorType.syntacticError,
+      : this(HTErrorCode.extendsSelf, HTErrorType.syntacticError,
             message: HTLocale.current.errorExtendsSelf,
             extra: extra,
             correction: correction,
@@ -615,7 +615,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.missingFuncBody, ErrorType.syntacticError,
+      : this(HTErrorCode.missingFuncBody, HTErrorType.syntacticError,
             message: HTLocale.current.errorMissingFuncBody,
             interpolations: [id],
             extra: extra,
@@ -634,7 +634,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.externalCtorWithReferCtor, ErrorType.syntacticError,
+      : this(HTErrorCode.externalCtorWithReferCtor, HTErrorType.syntacticError,
             message: HTLocale.current.errorExternalCtorWithReferCtor,
             extra: extra,
             correction: correction,
@@ -653,7 +653,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.resourceDoesNotExist, ErrorType.externalError,
+      : this(HTErrorCode.resourceDoesNotExist, HTErrorType.externalError,
             message: HTLocale.current.errorResourceDoesNotExist,
             interpolations: [id],
             extra: extra,
@@ -673,7 +673,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.sourceProviderError, ErrorType.externalError,
+      : this(HTErrorCode.sourceProviderError, HTErrorType.externalError,
             message: HTLocale.current.errorSourceProviderError,
             interpolations: [id, from],
             extra: extra,
@@ -693,7 +693,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notAbsoluteError, ErrorType.externalError,
+      : this(HTErrorCode.notAbsoluteError, HTErrorType.externalError,
             message: HTLocale.current.errorNotAbsoluteError,
             interpolations: [id],
             extra: extra,
@@ -713,7 +713,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.nullableAssign, ErrorType.syntacticError,
+      : this(HTErrorCode.nullableAssign, HTErrorType.syntacticError,
             message: HTLocale.current.errorNullableAssign,
             extra: extra,
             correction: correction,
@@ -732,7 +732,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.invalidDeclTypeOfValue, ErrorType.syntacticError,
+      : this(HTErrorCode.invalidDeclTypeOfValue, HTErrorType.syntacticError,
             message: HTLocale.current.errorInvalidDeclTypeOfValue,
             extra: extra,
             correction: correction,
@@ -752,8 +752,8 @@ class HTError {
     int? offset,
     int? length,
   }) : this(
-          ErrorCode.awaitWithoutAsync,
-          ErrorType.syntacticError,
+          HTErrorCode.awaitWithoutAsync,
+          HTErrorType.syntacticError,
           message: HTLocale.current.errorAwaitWithoutAsync,
           extra: extra,
           correction: correction,
@@ -773,7 +773,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.invalidLeftValue, ErrorType.syntacticError,
+      : this(HTErrorCode.invalidLeftValue, HTErrorType.syntacticError,
             message: HTLocale.current.errorInvalidLeftValue,
             extra: extra,
             correction: correction,
@@ -792,7 +792,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.privateMember, ErrorType.syntacticError,
+      : this(HTErrorCode.privateMember, HTErrorType.syntacticError,
             message: HTLocale.current.errorPrivateMember,
             interpolations: [id],
             extra: extra,
@@ -812,7 +812,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.constMustInit, ErrorType.syntacticError,
+      : this(HTErrorCode.constMustInit, HTErrorType.syntacticError,
             message: HTLocale.current.errorConstMustInit,
             interpolations: [id],
             extra: extra,
@@ -832,7 +832,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.awaitExpression, ErrorType.syntacticError,
+      : this(HTErrorCode.awaitExpression, HTErrorType.syntacticError,
             message: HTLocale.current.errorAwaitExpression,
             extra: extra,
             correction: correction,
@@ -851,7 +851,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.getterParam, ErrorType.syntacticError,
+      : this(HTErrorCode.getterParam, HTErrorType.syntacticError,
             message: HTLocale.current.errorGetterParam,
             extra: extra,
             correction: correction,
@@ -864,7 +864,7 @@ class HTError {
   /// Error: Struct member id should be symbol or string.
   HTError.structMemberId(String met,
       {String? filename, int? line, int? column, int? offset, int? length})
-      : this(ErrorCode.structMemberId, ErrorType.syntacticError,
+      : this(HTErrorCode.structMemberId, HTErrorType.syntacticError,
             message: HTLocale.current.errorStructMemberId,
             interpolations: [met],
             filename: filename,
@@ -876,7 +876,7 @@ class HTError {
   /// Error: if statement's then and else should be both expression or both block
   HTError.ifBlock(
       {String? filename, int? line, int? column, int? offset, int? length})
-      : this(ErrorCode.ifBlock, ErrorType.syntacticError,
+      : this(HTErrorCode.ifBlock, HTErrorType.syntacticError,
             message: HTLocale.current.errorIfBlock,
             filename: filename,
             line: line,
@@ -885,7 +885,7 @@ class HTError {
             length: length);
 
   /// Error: A same name declaration is already existed.
-  HTError.defined(String id, ErrorType type,
+  HTError.defined(String id, HTErrorType type,
       {String? extra,
       String? correction,
       String? filename,
@@ -893,7 +893,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.defined, type,
+      : this(HTErrorCode.defined, type,
             message: HTLocale.current.errorDefined,
             interpolations: [id],
             extra: extra,
@@ -913,7 +913,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.defined, ErrorType.runtimeError,
+      : this(HTErrorCode.defined, HTErrorType.runtimeError,
             message: HTLocale.current.errorDefinedImportSymbol,
             interpolations: [id, from, exist],
             extra: extra,
@@ -933,7 +933,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.outsideThis, ErrorType.compileTimeError,
+      : this(HTErrorCode.outsideThis, HTErrorType.compileTimeError,
             message: HTLocale.current.errorOutsideThis,
             extra: extra,
             correction: correction,
@@ -952,7 +952,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notMember, ErrorType.compileTimeError,
+      : this(HTErrorCode.notMember, HTErrorType.compileTimeError,
             message: HTLocale.current.errorNotMember,
             interpolations: [id, className],
             extra: extra,
@@ -972,7 +972,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notClass, ErrorType.compileTimeError,
+      : this(HTErrorCode.notClass, HTErrorType.compileTimeError,
             message: HTLocale.current.errorNotClass,
             interpolations: [id],
             extra: extra,
@@ -992,7 +992,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.abstracted, ErrorType.compileTimeError,
+      : this(HTErrorCode.abstracted, HTErrorType.compileTimeError,
             message: HTLocale.current.errorAbstracted,
             interpolations: [id],
             extra: extra,
@@ -1012,7 +1012,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.abstractFunction, ErrorType.compileTimeError,
+      : this(HTErrorCode.abstractFunction, HTErrorType.compileTimeError,
             message: HTLocale.current.errorAbstractFunction,
             interpolations: [id],
             extra: extra,
@@ -1032,7 +1032,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.unsupported, ErrorType.syntacticError,
+      : this(HTErrorCode.unsupported, HTErrorType.syntacticError,
             message: HTLocale.current.errorUnsupported,
             interpolations: [name, version],
             extra: extra,
@@ -1051,7 +1051,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.scriptThrows, ErrorType.runtimeError,
+      : this(HTErrorCode.scriptThrows, HTErrorType.runtimeError,
             message: message.toString(),
             extra: extra,
             correction: correction,
@@ -1069,7 +1069,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.assertionFailed, ErrorType.runtimeError,
+      : this(HTErrorCode.assertionFailed, HTErrorType.runtimeError,
             message: HTLocale.current.errorAssertionFailed,
             interpolations: [message],
             extra: extra,
@@ -1089,7 +1089,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.extern, ErrorType.runtimeError,
+      : this(HTErrorCode.extern, HTErrorType.runtimeError,
             message: message,
             extra: extra,
             correction: correction,
@@ -1108,7 +1108,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.unknownOpCode, ErrorType.runtimeError,
+      : this(HTErrorCode.unknownOpCode, HTErrorType.runtimeError,
             message: HTLocale.current.errorUnknownOpCode,
             interpolations: [opcode],
             extra: extra,
@@ -1128,7 +1128,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notInitialized, ErrorType.runtimeError,
+      : this(HTErrorCode.notInitialized, HTErrorType.runtimeError,
             message: HTLocale.current.errorNotInitialized,
             interpolations: [id],
             extra: extra,
@@ -1148,7 +1148,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.undefined, ErrorType.runtimeError,
+      : this(HTErrorCode.undefined, HTErrorType.runtimeError,
             message: HTLocale.current.errorUndefined,
             interpolations: [id],
             extra: extra,
@@ -1168,7 +1168,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.undefinedExternal, ErrorType.runtimeError,
+      : this(HTErrorCode.undefinedExternal, HTErrorType.runtimeError,
             message: HTLocale.current.errorUndefinedExternal,
             interpolations: [id],
             extra: extra,
@@ -1188,7 +1188,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.unknownTypeName, ErrorType.runtimeError,
+      : this(HTErrorCode.unknownTypeName, HTErrorType.runtimeError,
             message: HTLocale.current.errorUnknownTypeName,
             interpolations: [id],
             extra: extra,
@@ -1208,7 +1208,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.undefinedOperator, ErrorType.runtimeError,
+      : this(HTErrorCode.undefinedOperator, HTErrorType.runtimeError,
             message: HTLocale.current.errorUndefinedOperator,
             interpolations: [id, op],
             extra: extra,
@@ -1228,7 +1228,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notNewable, ErrorType.runtimeError,
+      : this(HTErrorCode.notNewable, HTErrorType.runtimeError,
             message: HTLocale.current.errorNotNewable,
             interpolations: [id],
             extra: extra,
@@ -1248,7 +1248,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notCallable, ErrorType.runtimeError,
+      : this(HTErrorCode.notCallable, HTErrorType.runtimeError,
             message: HTLocale.current.errorNotCallable,
             interpolations: [id],
             extra: extra,
@@ -1268,7 +1268,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.undefinedMember, ErrorType.runtimeError,
+      : this(HTErrorCode.undefinedMember, HTErrorType.runtimeError,
             message: HTLocale.current.errorUndefinedMember,
             interpolations: [id],
             extra: extra,
@@ -1288,7 +1288,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.uninitialized, ErrorType.runtimeError,
+      : this(HTErrorCode.uninitialized, HTErrorType.runtimeError,
             message: HTLocale.current.errorUninitialized,
             interpolations: [id],
             extra: extra,
@@ -1308,7 +1308,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.condition, ErrorType.staticWarning,
+      : this(HTErrorCode.condition, HTErrorType.staticWarning,
             message: HTLocale.current.errorCondition,
             extra: extra,
             correction: correction,
@@ -1327,7 +1327,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.nullObjectCall, ErrorType.runtimeError,
+      : this(HTErrorCode.nullObjectCall, HTErrorType.runtimeError,
             message: HTLocale.current.errorCallNullObject,
             interpolations: [symbol],
             extra: extra,
@@ -1347,7 +1347,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.nullObjectGet, ErrorType.runtimeError,
+      : this(HTErrorCode.nullObjectGet, HTErrorType.runtimeError,
             message: HTLocale.current.errorVisitMemberOfNullObject,
             interpolations: [symbol, method],
             extra: extra,
@@ -1366,7 +1366,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.nullSubSetKey, ErrorType.runtimeError,
+      : this(HTErrorCode.nullSubSetKey, HTErrorType.runtimeError,
             message: HTLocale.current.errorNullSubSetKey,
             extra: extra,
             correction: correction,
@@ -1385,7 +1385,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.subGetKey, ErrorType.runtimeError,
+      : this(HTErrorCode.subGetKey, HTErrorType.runtimeError,
             message: HTLocale.current.errorSubGetKey,
             interpolations: [key],
             extra: extra,
@@ -1405,7 +1405,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.outOfRange, ErrorType.runtimeError,
+      : this(HTErrorCode.outOfRange, HTErrorType.runtimeError,
             message: HTLocale.current.errorOutOfRange,
             interpolations: [index, range],
             extra: extra,
@@ -1425,7 +1425,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.assignType, ErrorType.staticTypeWarning,
+      : this(HTErrorCode.assignType, HTErrorType.staticTypeWarning,
             message: HTLocale.current.errorAssignType,
             interpolations: [id, valueType, declValue],
             extra: extra,
@@ -1445,7 +1445,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.immutable, ErrorType.runtimeError,
+      : this(HTErrorCode.immutable, HTErrorType.runtimeError,
             message: HTLocale.current.errorImmutable,
             interpolations: [id],
             extra: extra,
@@ -1465,7 +1465,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notType, ErrorType.runtimeError,
+      : this(HTErrorCode.notType, HTErrorType.runtimeError,
             message: HTLocale.current.errorNotType,
             interpolations: [id],
             extra: extra,
@@ -1485,7 +1485,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.argType, ErrorType.runtimeError,
+      : this(HTErrorCode.argType, HTErrorType.runtimeError,
             message: HTLocale.current.errorArgType,
             interpolations: [id, assignType, declValue],
             extra: extra,
@@ -1505,7 +1505,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.argInit, ErrorType.syntacticError,
+      : this(HTErrorCode.argInit, HTErrorType.syntacticError,
             message: HTLocale.current.errorArgInit,
             extra: extra,
             correction: correction,
@@ -1525,7 +1525,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.returnType, ErrorType.staticTypeWarning,
+      : this(HTErrorCode.returnType, HTErrorType.staticTypeWarning,
             message: HTLocale.current.errorReturnType,
             interpolations: [returnedType, funcName, declReturnType],
             extra: extra,
@@ -1545,7 +1545,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.stringInterpolation, ErrorType.syntacticError,
+      : this(HTErrorCode.stringInterpolation, HTErrorType.syntacticError,
             message: HTLocale.current.errorStringInterpolation,
             extra: extra,
             correction: correction,
@@ -1564,7 +1564,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.arity, ErrorType.staticWarning,
+      : this(HTErrorCode.arity, HTErrorType.staticWarning,
             message: HTLocale.current.errorArity,
             interpolations: [argsCount, id, paramsCount],
             extra: extra,
@@ -1584,7 +1584,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.externalVar, ErrorType.syntacticError,
+      : this(HTErrorCode.externalVar, HTErrorType.syntacticError,
             message: HTLocale.current.errorExternalVar,
             extra: extra,
             correction: correction,
@@ -1603,7 +1603,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.bytesSig, ErrorType.runtimeError,
+      : this(HTErrorCode.bytesSig, HTErrorType.runtimeError,
             message: HTLocale.current.errorBytesSig,
             extra: extra,
             correction: correction,
@@ -1622,7 +1622,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.circleInit, ErrorType.runtimeError,
+      : this(HTErrorCode.circleInit, HTErrorType.runtimeError,
             message: HTLocale.current.errorCircleInit,
             interpolations: [id],
             extra: extra,
@@ -1642,7 +1642,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.namedArg, ErrorType.staticTypeWarning,
+      : this(HTErrorCode.namedArg, HTErrorType.staticTypeWarning,
             message: HTLocale.current.errorNamedArg,
             interpolations: [id],
             extra: extra,
@@ -1662,7 +1662,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.iterable, ErrorType.staticTypeWarning,
+      : this(HTErrorCode.iterable, HTErrorType.staticTypeWarning,
             message: HTLocale.current.errorIterable,
             interpolations: [id],
             extra: extra,
@@ -1682,7 +1682,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.unkownValueType, ErrorType.runtimeError,
+      : this(HTErrorCode.unkownValueType, HTErrorType.runtimeError,
             message: HTLocale.current.errorUnkownValueType,
             interpolations: [valType],
             extra: extra,
@@ -1702,7 +1702,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.typeCast, ErrorType.staticTypeWarning,
+      : this(HTErrorCode.typeCast, HTErrorType.staticTypeWarning,
             message: HTLocale.current.errorTypeCast,
             interpolations: [from, to],
             extra: extra,
@@ -1722,7 +1722,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.castee, ErrorType.runtimeError,
+      : this(HTErrorCode.castee, HTErrorType.runtimeError,
             message: HTLocale.current.errorCastee,
             interpolations: [id],
             extra: extra,
@@ -1742,7 +1742,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.notSuper, ErrorType.staticTypeWarning,
+      : this(HTErrorCode.notSuper, HTErrorType.staticTypeWarning,
             message: HTLocale.current.errorNotSuper,
             interpolations: [classId, id],
             extra: extra,
@@ -1762,7 +1762,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.bytecode, ErrorType.runtimeError,
+      : this(HTErrorCode.bytecode, HTErrorType.runtimeError,
             message: HTLocale.current.errorBytecode,
             extra: extra,
             correction: correction,
@@ -1781,7 +1781,7 @@ class HTError {
       int? column,
       int? offset,
       int? length})
-      : this(ErrorCode.version, ErrorType.runtimeError,
+      : this(HTErrorCode.version, HTErrorType.runtimeError,
             message: HTLocale.current.errorVersion,
             interpolations: [codeVer, itpVer],
             extra: extra,
@@ -1795,7 +1795,7 @@ class HTError {
   /// Error: Unevalable source type.
   HTError.unresolvedNamedStruct(String id,
       {String? filename, int? line, int? column, int? offset, int? length})
-      : this(ErrorCode.unresolvedNamedStruct, ErrorType.runtimeError,
+      : this(HTErrorCode.unresolvedNamedStruct, HTErrorType.runtimeError,
             message: HTLocale.current.errorUnresolvedNamedStruct,
             interpolations: [id],
             filename: filename,
@@ -1807,7 +1807,7 @@ class HTError {
   /// Error: Bind a non literal function is not allowed.
   HTError.binding(
       {String? filename, int? line, int? column, int? offset, int? length})
-      : this(ErrorCode.binding, ErrorType.runtimeError,
+      : this(HTErrorCode.binding, HTErrorType.runtimeError,
             message: HTLocale.current.errorBinding,
             filename: filename,
             line: line,
@@ -1818,7 +1818,7 @@ class HTError {
   /// Error: Bind a non literal function is not allowed.
   HTError.notStruct(
       {String? filename, int? line, int? column, int? offset, int? length})
-      : this(ErrorCode.notStruct, ErrorType.runtimeError,
+      : this(HTErrorCode.notStruct, HTErrorType.runtimeError,
             message: HTLocale.current.errorNotStruct,
             filename: filename,
             line: line,
@@ -1829,7 +1829,7 @@ class HTError {
   /// Error: Bind a non literal function is not allowed.
   HTError.notSpreadableObj(
       {String? filename, int? line, int? column, int? offset, int? length})
-      : this(ErrorCode.notSpreadableObj, ErrorType.runtimeError,
+      : this(HTErrorCode.notSpreadableObj, HTErrorType.runtimeError,
             message: HTLocale.current.errorNotSpreadableObj,
             filename: filename,
             line: line,
