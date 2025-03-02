@@ -853,6 +853,18 @@ class HTRandomClassBinding extends HTExternalClass {
             object.nextInt(positionalArgs[0].toInt());
       case 'nextBool':
         return ({positionalArgs, namedArgs}) => object.nextBool();
+      case 'nextBoolBiased':
+        return ({positionalArgs, namedArgs}) {
+          final num input = positionalArgs[0];
+          final num target = positionalArgs[1];
+          if (input >= target) {
+            return true;
+          } else {
+            final difference = (input - target).abs();
+            final probability = 1 - (difference / target);
+            return object.nextDouble() <= probability;
+          }
+        };
       case 'nextColorHex':
         return ({positionalArgs, namedArgs}) {
           var prefix = '#';

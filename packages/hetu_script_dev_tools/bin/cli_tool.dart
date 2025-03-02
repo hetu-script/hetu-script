@@ -1,61 +1,50 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:args/args.dart';
+// import 'package:args/command_runner.dart';
 import 'package:pub_semver/pub_semver.dart';
-
 import 'package:hetu_script/hetu_script.dart';
-import 'package:hetu_script/analyzer.dart';
-import 'package:hetu_script_dev_tools/hetu_script_dev_tools.dart';
+import 'package:args/args.dart';
 
-var cliHelp = r'''
-Hetu Script Command-line Tool
-Version: {0}
-Usage:
-hetu [command] [option]
-For [command] usage, you can type '--help' after it, example:
-hetu run -h
-commands:
-  run [path] [option]
-  analyze [path] [option]
-  format [path] [output_path] [option]
-  compile [path] [output_path] [option]
-''';
-
-var replInfo = r'''
-Hetu Script Read-Evaluate-Print-Loop Tool
-Version: {0}
-Enter expression to evaluate.
-Enter '\' for multiline, enter '.exit' to quit.''';
-
-const kSeperator = '------------------------------------------------';
+import 'common.dart';
+// import 'command.dart';
 
 final argParser = ArgParser();
+late final ArgParser runCmd, formatCmd, analyzeCmd, compileCmd;
 
-final sourceContext = HTFileSystemResourceContext();
-final lexicon = HTLexiconHetu();
-final analyzer = HTAnalyzer(sourceContext: sourceContext, lexicon: lexicon);
-final parser = HTParserHetu(lexicon: lexicon);
-final bundler = HTBundler(sourceContext: sourceContext, parser: parser);
-final hetu = Hetu(
-  config: HetuConfig(
-    // printPerformanceStatistics: false,
-    // doStaticAnalysis: true,
-    // computeConstantExpression: true,
-    // showDartStackTrace: true,
-    // showHetuStackTrace: true,
-    allowImplicitNullToZeroConversion: true,
-    allowImplicitEmptyValueToFalseConversion: true,
-  ),
-  sourceContext: sourceContext,
-  lexicon: lexicon,
-  parser: parser,
-);
-
-bool showDetailsOfError = false;
+void initargParser() {
+  argParser.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show command help.');
+  argParser.addFlag('version',
+      abbr: 'v',
+      negatable: false,
+      help: 'Show version of current using hetu_script package.');
+  runCmd = argParser.addCommand('run');
+  runCmd.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show run command help.');
+  runCmd.addFlag('repl',
+      abbr: 'r', negatable: false, help: 'Enter REPL mode after evaluation.');
+  runCmd.addFlag('perfs',
+      abbr: 'p', negatable: false, help: 'Print performance statistics.');
+  formatCmd = argParser.addCommand('format');
+  formatCmd.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show format command help.');
+  formatCmd.addOption('out', abbr: 'o', help: 'Save format result to file.');
+  analyzeCmd = argParser.addCommand('analyze');
+  analyzeCmd.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show analyze command help.');
+  compileCmd = argParser.addCommand('compile');
+  compileCmd.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show compile command help.');
+  compileCmd.addOption('out', abbr: 'o', help: 'Save compile result to file.');
+  compileCmd.addOption('array', abbr: 'a', help: 'Compile to dart array.');
+  compileCmd.addOption('version',
+      abbr: 'v', help: 'Set the version string for this module.');
+}
 
 void main(List<String> arguments) {
   hetu.init();
+  initargParser();
 
   try {
     final version = kHetuVersion.toString();
@@ -65,7 +54,7 @@ void main(List<String> arguments) {
     if (arguments.isEmpty) {
       enterReplMode();
     } else {
-      final results = parseArg(arguments);
+      final results = argParser.parse(arguments);
       if (results['help']) {
         print(cliHelp);
         print(argParser.usage);
@@ -79,29 +68,30 @@ void main(List<String> arguments) {
               print(r'''hetu run [path] [option]
 Interpret a Hetu script file and print its result to terminal.
 ''');
+              print(runCmd.usage);
             } else {
-              run(cmd.rest, enterRepl: cmd['repl']);
+              run(cmd.rest, enterRepl: cmd['repl'], printPerfs: cmd['perfs']);
             }
-            break;
+          case 'format':
+            if (cmd['help']) {
+              print('hetu format [path] [option]\nFormat a Hetu script file.');
+              print(formatCmd.usage);
+            } else {
+              format(cmd.rest, cmd['out']);
+            }
           case 'analyze':
             if (cmd['help']) {
               print(
                   'hetu analyze [path] [option]\nAnalyze a Hetu script file.');
+              print(analyzeCmd.usage);
             } else {
               analyze(cmd.rest);
             }
-            break;
-          case 'format':
-            if (cmd['help']) {
-              print('hetu format [path] [option]\nFormat a Hetu script file.');
-            } else {
-              format(cmd.rest, cmd['out']);
-            }
-            break;
           case 'compile':
             if (cmd['help']) {
               print(
                   'hetu compile [path] [output_path] [option]\nCompile a Hetu script file.');
+              print(compileCmd.usage);
             } else {
               compile(
                 cmd.rest,
@@ -109,7 +99,6 @@ Interpret a Hetu script file and print its result to terminal.
                 versionString: cmd['version'],
               );
             }
-            break;
         }
       } else {
         throw 'Error: Unrecognizable commands: $arguments.';
@@ -158,38 +147,12 @@ void enterReplMode({dynamic prompt}) async {
   }
 }
 
-ArgResults parseArg(List<String> args) {
-  argParser.addFlag('help',
-      abbr: 'h', negatable: false, help: 'Show command help.');
-  argParser.addFlag('version',
-      abbr: 'v',
-      negatable: false,
-      help: 'Show version of current using hetu_script package.');
-  final runCmd = argParser.addCommand('run');
-  runCmd.addFlag('help',
-      abbr: 'h', negatable: false, help: 'Show run command help.');
-  runCmd.addFlag('repl',
-      abbr: 'r', negatable: false, help: 'Enter REPL mode after evaluation.');
-  final fmtCmd = argParser.addCommand('format');
-  fmtCmd.addFlag('help',
-      abbr: 'h', negatable: false, help: 'Show format command help.');
-  fmtCmd.addOption('out', abbr: 'o', help: 'Save format result to file.');
-  final analyzeCmd = argParser.addCommand('analyze');
-  analyzeCmd.addFlag('help',
-      abbr: 'h', negatable: false, help: 'Show analyze command help.');
-  final compileCmd = argParser.addCommand('compile');
-  compileCmd.addFlag('help',
-      abbr: 'h', negatable: false, help: 'Show compile command help.');
-  compileCmd.addOption('out', abbr: 'o', help: 'Save compile result to file.');
-  compileCmd.addOption('array', abbr: 'a', help: 'Compile to dart array.');
-  compileCmd.addOption('version',
-      abbr: 'v', help: 'Set the version string for this module.');
-  return argParser.parse(args);
-}
-
-void run(List<String> args, {bool enterRepl = false}) {
+void run(List<String> args, {bool enterRepl = false, bool printPerfs = false}) {
   if (args.isEmpty) {
     throw 'Error: Path argument is required for \'run\' command.';
+  }
+  if (printPerfs) {
+    hetu.config.printPerformanceStatistics = true;
   }
   dynamic result;
   final ext = path.extension(args.first);
@@ -241,9 +204,7 @@ void run(List<String> args, {bool enterRepl = false}) {
 
 void format(List<String> args, String outPath) {
   // final parser = HTAstParser();
-  final formatter = HTFormatter();
-  final context = HTFileSystemResourceContext();
-  final source = context.getResource(args.first);
+  final source = fileSystemResourceContext.getResource(args.first);
   stdout.write('Formating: [${source.fullName}] ... ');
   // final config = ParserConfig(sourceType: sourceType);
   // final compilation = parser.parseToCompilation(source); //, config);

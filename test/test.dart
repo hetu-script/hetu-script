@@ -39,6 +39,7 @@ Future<void> main() async {
     config: HetuConfig(
       normalizeImportPath: false,
       allowImplicitNullToZeroConversion: true,
+      printPerformanceStatistics: true,
     ),
   );
   hetu.init(externalClasses: [PersonBinding()]);

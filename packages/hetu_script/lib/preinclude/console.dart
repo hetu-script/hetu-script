@@ -39,9 +39,9 @@ class Console {
     id ??= _defaultTimerId;
     if (_tiks.containsKey(id)) {
       warn('Timer \'$id\' already exists.');
-    } else {
-      _tiks[id] = DateTime.now().millisecondsSinceEpoch;
     }
+
+    _tiks[id] = DateTime.now().millisecondsSinceEpoch;
   }
 
   void timeLog(String? id, {bool endTimer = false}) {
@@ -52,7 +52,7 @@ class Console {
         _tiks.remove(id);
       }
     } else {
-      warn('Timer \'$id\' does not exist.');
+      error('Timer \'$id\' does not exist.');
     }
   }
 

@@ -4,6 +4,12 @@ external class Random {
 
   function nextBool -> bool
 
+  /// generate a random bool value based on the input and target value.
+  /// if the input value is greater than target, always return true
+  /// if the input value is less than target, the more the input is near target,
+  /// the more likely to return true.
+  function nextBoolBiased(input: float, target: float) -> bool
+
   function nearInt(max: integer, {exponent: float = 0.5}) -> integer
 
   function distantInt(max: integer, {exponent: float = 0.5}) -> integer

@@ -300,23 +300,25 @@ class HTStruct with HTObject {
   }
 
   /// deep copy another struct then assign to this one.
+  /// existed value with same id in this struct will be overrided
   void assign(HTStruct other) {
     for (final key in other._fields.keys) {
       if (key.startsWith(interpreter.lexicon.internalPrefix)) continue;
       final value = other._fields[key];
       final copiedValue = interpreter.toStructValue(value);
-      define(key, copiedValue);
+      define(key, copiedValue, override: true, throws: false);
     }
   }
 
   /// deep copy another struct then merge with this one.
+  /// only copy the fields that this struct doesn't have.
   void merge(HTStruct other) {
     for (final key in other._fields.keys) {
       if (key.startsWith(interpreter.lexicon.internalPrefix)) continue;
       if (_fields.containsKey(key)) continue;
       final value = other._fields[key];
       final copiedValue = interpreter.toStructValue(value);
-      define(key, copiedValue);
+      define(key, copiedValue, override: true, throws: false);
     }
   }
 }
