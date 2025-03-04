@@ -17,7 +17,7 @@ import '../lexicon/lexicon.dart';
 // import '../value/struct/struct.dart';
 import '../locale/locale.dart';
 import '../utils/collection.dart';
-import '../utils/math.dart';
+// import '../utils/math.dart';
 
 class HTNumberClassBinding extends HTExternalClass {
   HTNumberClassBinding() : super('number');
@@ -36,63 +36,63 @@ class HTNumberClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as num;
     switch (id) {
       case 'toPercentageString':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           final fractionDigits = positionalArgs.first;
           return (object * 100).toStringAsFixed(fractionDigits).toString() +
               HTLocale.current.percentageMark;
         };
       case 'compareTo':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.compareTo(positionalArgs[0]);
       case 'remainder':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.remainder(positionalArgs[0]);
       case 'isNaN':
-        return object.isNaN;
+        return instance.isNaN;
       case 'isNegative':
-        return object.isNegative;
+        return instance.isNegative;
       case 'isInfinite':
-        return object.isInfinite;
+        return instance.isInfinite;
       case 'isFinite':
-        return object.isFinite;
+        return instance.isFinite;
       case 'abs':
-        return ({positionalArgs, namedArgs}) => object.abs();
+        return ({object, positionalArgs, namedArgs}) => object.abs();
       case 'sign':
-        return object.sign;
+        return instance.sign;
       case 'round':
-        return ({positionalArgs, namedArgs}) => object.round();
+        return ({object, positionalArgs, namedArgs}) => object.round();
       case 'floor':
-        return ({positionalArgs, namedArgs}) => object.floor();
+        return ({object, positionalArgs, namedArgs}) => object.floor();
       case 'ceil':
-        return ({positionalArgs, namedArgs}) => object.ceil();
+        return ({object, positionalArgs, namedArgs}) => object.ceil();
       case 'truncate':
-        return ({positionalArgs, namedArgs}) => object.truncate();
+        return ({object, positionalArgs, namedArgs}) => object.truncate();
       case 'roundToDouble':
-        return ({positionalArgs, namedArgs}) => object.roundToDouble();
+        return ({object, positionalArgs, namedArgs}) => object.roundToDouble();
       case 'floorToDouble':
-        return ({positionalArgs, namedArgs}) => object.floorToDouble();
+        return ({object, positionalArgs, namedArgs}) => object.floorToDouble();
       case 'ceilToDouble':
-        return ({positionalArgs, namedArgs}) => object.ceilToDouble();
+        return ({object, positionalArgs, namedArgs}) => object.ceilToDouble();
       case 'truncateToDouble':
-        return ({positionalArgs, namedArgs}) => object.truncateToDouble();
+        return ({object, positionalArgs, namedArgs}) =>
+            object.truncateToDouble();
       case 'toInt':
-        return ({positionalArgs, namedArgs}) => object.toInt();
+        return ({object, positionalArgs, namedArgs}) => object.toInt();
       case 'toDouble':
-        return ({positionalArgs, namedArgs}) => object.toDouble();
+        return ({object, positionalArgs, namedArgs}) => object.toDouble();
       case 'toStringAsFixed':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.toStringAsFixed(positionalArgs[0]);
       case 'toStringAsExponential':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.toStringAsExponential(positionalArgs[0]);
       case 'toStringAsPrecision':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.toStringAsPrecision(positionalArgs[0]);
       case 'toString':
-        return ({positionalArgs, namedArgs}) => object.toString();
+        return ({object, positionalArgs, namedArgs}) => object.toString();
       default:
         throw HTError.undefined(id);
     }
@@ -120,30 +120,30 @@ class HTIntegerClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as int;
     switch (id) {
       case 'modPow':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.modPow(positionalArgs[0], positionalArgs[1]);
       case 'modInverse':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.modInverse(positionalArgs[0]);
       case 'gcd':
-        return ({positionalArgs, namedArgs}) => object.gcd(positionalArgs[0]);
+        return ({object, positionalArgs, namedArgs}) =>
+            object.gcd(positionalArgs[0]);
       case 'isEven':
-        return object.isEven;
+        return instance.isEven;
       case 'isOdd':
-        return object.isOdd;
+        return instance.isOdd;
       case 'bitLength':
-        return object.bitLength;
+        return instance.bitLength;
       case 'toUnsigned':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.toUnsigned(positionalArgs[0]);
       case 'toSigned':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.toSigned(positionalArgs[0]);
       case 'toRadixString':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.toRadixString(positionalArgs[0]);
       default:
         return superClass?.instanceMemberGet(instance, id);
@@ -158,11 +158,11 @@ class HTBigIntClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'BigInt.zero':
-        return ({positionalArgs, namedArgs}) => BigInt.zero;
+        return BigInt.zero;
       case 'BigInt.one':
-        return ({positionalArgs, namedArgs}) => BigInt.one;
+        return BigInt.one;
       case 'BigInt.two':
-        return ({positionalArgs, namedArgs}) => BigInt.two;
+        return BigInt.two;
       case 'BigInt.parse':
         return ({positionalArgs, namedArgs}) =>
             BigInt.tryParse(positionalArgs.first, radix: namedArgs['radix']);
@@ -177,46 +177,45 @@ class HTBigIntClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as BigInt;
     switch (id) {
       case 'bitLength':
-        return object.bitLength;
+        return instance.bitLength;
       case 'sign':
-        return object.sign;
+        return instance.sign;
       case 'isEven':
-        return object.isEven;
+        return instance.isEven;
       case 'isOdd':
-        return object.isOdd;
+        return instance.isOdd;
       case 'isNegative':
-        return object.isNegative;
+        return instance.isNegative;
       case 'pow':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.pow(positionalArgs.first);
       case 'modPow':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.modPow(positionalArgs[0], positionalArgs[1]);
       case 'modInverse':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.modInverse(positionalArgs.first);
       case 'gcd':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.gcd(positionalArgs.first);
       case 'toUnsigned':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.toUnsigned(positionalArgs.first);
       case 'toSigned':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.toSigned(positionalArgs.first);
       case 'isValidInt':
-        return object.isValidInt;
+        return instance.isValidInt;
       case 'toInt':
-        return ({positionalArgs, namedArgs}) => object.toInt();
+        return ({object, positionalArgs, namedArgs}) => object.toInt();
       case 'toDouble':
-        return ({positionalArgs, namedArgs}) => object.toDouble();
+        return ({object, positionalArgs, namedArgs}) => object.toDouble();
       case 'toString':
-        return ({positionalArgs, namedArgs}) => object.toString();
+        return ({object, positionalArgs, namedArgs}) => object.toString();
       case 'toRadixString':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.toRadixString(positionalArgs.first);
       default:
         if (!ignoreUndefined) throw HTError.undefined(id);
@@ -251,10 +250,9 @@ class HTFloatClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as double;
     switch (id) {
       case 'toDoubleAsFixed':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             double.parse(object.toStringAsFixed(positionalArgs.first));
       default:
         return superClass?.instanceMemberGet(instance, id);
@@ -285,9 +283,7 @@ class HTStringClassBinding extends HTExternalClass {
   dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
     switch (id) {
       case 'string.parse':
-        return ({positionalArgs, namedArgs}) {
-          return positionalArgs.first.toString();
-        };
+        return ({positionalArgs, namedArgs}) => positionalArgs.first.toString();
       default:
         if (!ignoreUndefined) throw HTError.undefined(id);
     }
@@ -296,69 +292,69 @@ class HTStringClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as String;
     switch (id) {
       case 'characters':
-        return Characters(object);
+        return ({object, positionalArgs, namedArgs}) => Characters(object);
       case 'toString':
-        return ({positionalArgs, namedArgs}) => object.toString();
+        return ({object, positionalArgs, namedArgs}) => object.toString();
       case 'compareTo':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.compareTo(positionalArgs[0]);
       case 'codeUnitAt':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.codeUnitAt(positionalArgs[0]);
       case 'length':
-        return object.length;
+        return instance.length;
       case 'endsWith':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.endsWith(positionalArgs[0]);
       case 'startsWith':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.startsWith(positionalArgs[0], positionalArgs[1]);
       case 'indexOf':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.indexOf(positionalArgs[0], positionalArgs[1]);
       case 'lastIndexOf':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.lastIndexOf(positionalArgs[0], positionalArgs[1]);
       case 'isEmpty':
-        return object.isEmpty;
+        return instance.isEmpty;
       case 'isNotEmpty':
-        return object.isNotEmpty;
+        return instance.isNotEmpty;
       case 'substring':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.substring(positionalArgs[0], positionalArgs[1]);
       case 'trim':
-        return ({positionalArgs, namedArgs}) => object.trim();
+        return ({object, positionalArgs, namedArgs}) => object.trim();
       case 'trimLeft':
-        return ({positionalArgs, namedArgs}) => object.trimLeft();
+        return ({object, positionalArgs, namedArgs}) => object.trimLeft();
       case 'trimRight':
-        return ({positionalArgs, namedArgs}) => object.trimRight();
+        return ({object, positionalArgs, namedArgs}) => object.trimRight();
       case 'padLeft':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.padLeft(positionalArgs[0], positionalArgs[1]);
       case 'padRight':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.padRight(positionalArgs[0], positionalArgs[1]);
       case 'contains':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.contains(positionalArgs[0], positionalArgs[1]);
       case 'replaceFirst':
-        return ({positionalArgs, namedArgs}) => object.replaceFirst(
+        return ({object, positionalArgs, namedArgs}) => object.replaceFirst(
             positionalArgs[0], positionalArgs[1], positionalArgs[2]);
       case 'replaceAll':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.replaceAll(positionalArgs[0], positionalArgs[1]);
       case 'replaceRange':
-        return ({positionalArgs, namedArgs}) => object.replaceRange(
+        return ({object, positionalArgs, namedArgs}) => object.replaceRange(
             positionalArgs[0], positionalArgs[1], positionalArgs[2]);
       case 'split':
-        return ({positionalArgs, namedArgs}) => object.split(positionalArgs[0]);
+        return ({object, positionalArgs, namedArgs}) =>
+            object.split(positionalArgs[0]);
       case 'toLowerCase':
-        return ({positionalArgs, namedArgs}) => object.toLowerCase();
+        return ({object, positionalArgs, namedArgs}) => object.toLowerCase();
       case 'toUpperCase':
-        return ({positionalArgs, namedArgs}) => object.toUpperCase();
+        return ({object, positionalArgs, namedArgs}) => object.toUpperCase();
       default:
         throw HTError.undefined(id);
     }
@@ -371,14 +367,11 @@ class HTIteratorClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as Iterator;
     switch (id) {
       case 'moveNext':
-        return ({positionalArgs, namedArgs}) {
-          return object.moveNext();
-        };
+        return ({object, positionalArgs, namedArgs}) => object.moveNext();
       case 'current':
-        return object.current;
+        return ({object, positionalArgs, namedArgs}) => object.current;
       default:
         throw HTError.undefined(id);
     }
@@ -391,54 +384,55 @@ class HTIterableClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as Iterable;
     switch (id) {
       case 'toString':
-        return ({positionalArgs, namedArgs}) => object.toString();
+        return ({object, positionalArgs, namedArgs}) => object.toString();
       case 'toJSON':
-        return ({positionalArgs, namedArgs}) => jsonifyList(object);
+        return ({object, positionalArgs, namedArgs}) => jsonifyList(object);
       case 'random':
-        final random = math.Random();
-        if (object.isNotEmpty) {
-          return object.elementAt(random.nextInt(object.length));
-        } else {
-          return null;
-        }
+        ({object, positionalArgs, namedArgs}) {
+          final random = math.Random();
+          if (object.isNotEmpty) {
+            return object.elementAt(random.nextInt(object.length));
+          } else {
+            return null;
+          }
+        };
       case 'iterator':
-        return object.iterator;
+        return instance.iterator;
       case 'map':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.map((element) {
             return func.call(positionalArgs: [element]);
           });
         };
       case 'where':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.where((element) {
             return func.call(positionalArgs: [element]);
           });
         };
       case 'expand':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.expand((element) {
             return func.call(positionalArgs: [element]) as Iterable;
           });
         };
       case 'contains':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.contains(positionalArgs.first);
       case 'reduce':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.reduce((value, element) {
             return func.call(positionalArgs: [value, element]);
           });
         };
       case 'fold':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           final initialValue = positionalArgs[0];
           HTFunction func = positionalArgs[1];
           return object.fold(initialValue, (value, element) {
@@ -446,58 +440,58 @@ class HTIterableClassBinding extends HTExternalClass {
           });
         };
       case 'every':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.every((element) {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'join':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.join(positionalArgs.first);
       case 'any':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.any((element) {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'toList':
-        return ({positionalArgs, namedArgs}) => object.toList();
+        return ({object, positionalArgs, namedArgs}) => object.toList();
       case 'length':
-        return object.length;
+        return instance.length;
       case 'isEmpty':
-        return object.isEmpty;
+        return instance.isEmpty;
       case 'isNotEmpty':
-        return object.isNotEmpty;
+        return instance.isNotEmpty;
       case 'take':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.take(positionalArgs.first);
       case 'takeWhile':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.takeWhile((element) {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'skip':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.skip(positionalArgs.first);
       case 'skipWhile':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.skipWhile((element) {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'first':
-        return object.isNotEmpty ? object.first : null;
+        instance.isNotEmpty ? instance.first : null;
       case 'last':
-        return object.isNotEmpty ? object.last : null;
+        return instance.isNotEmpty ? instance.last : null;
       case 'single':
-        return object.single;
+        return instance.single;
       case 'firstWhere':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           HTFunction? orElse = namedArgs['orElse'];
           return object.firstWhere((element) {
@@ -507,7 +501,7 @@ class HTIterableClassBinding extends HTExternalClass {
           });
         };
       case 'lastWhere':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           HTFunction? orElse = namedArgs['orElse'];
           return object.lastWhere((element) {
@@ -517,7 +511,7 @@ class HTIterableClassBinding extends HTExternalClass {
           });
         };
       case 'singleWhere':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           HTFunction? orElse = namedArgs['orElse'];
           return object.singleWhere((element) {
@@ -527,7 +521,7 @@ class HTIterableClassBinding extends HTExternalClass {
           });
         };
       case 'elementAt':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.elementAt(positionalArgs.first);
       default:
         throw HTError.undefined(id);
@@ -551,53 +545,53 @@ class HTListClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as List;
     switch (id) {
       case 'addIfAbsent':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           if (!object.contains(positionalArgs.first)) {
             object.add(positionalArgs.first);
           }
         };
       case 'add':
-        return ({positionalArgs, namedArgs}) =>
-            object.add(positionalArgs.first);
+        return ({object, positionalArgs, namedArgs}) {
+          object.add(positionalArgs.first);
+        };
       case 'addAll':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.addAll(positionalArgs.first);
       case 'reversed':
-        return object.reversed;
+        return instance.reversed;
       case 'indexOf':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.indexOf(positionalArgs[0], positionalArgs[1]);
       case 'lastIndexOf':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.lastIndexOf(positionalArgs[0], positionalArgs[1]);
       case 'insert':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.insert(positionalArgs[0], positionalArgs[1]);
       case 'insertAll':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.insertAll(positionalArgs[0], positionalArgs[1]);
       case 'clear':
-        return ({positionalArgs, namedArgs}) => object.clear();
+        return ({object, positionalArgs, namedArgs}) => object.clear();
       case 'remove':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.remove(positionalArgs.first);
       case 'removeAt':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.removeAt(positionalArgs.first);
       case 'removeLast':
-        return ({positionalArgs, namedArgs}) => object.removeLast();
+        return ({object, positionalArgs, namedArgs}) => object.removeLast();
       case 'removeFirst':
-        return ({positionalArgs, namedArgs}) => object.removeAt(0);
+        return ({object, positionalArgs, namedArgs}) => object.removeAt(0);
       case 'sublist':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.sublist(positionalArgs[0], positionalArgs[1]);
       case 'asMap':
-        return ({positionalArgs, namedArgs}) => object.asMap();
+        return ({object, positionalArgs, namedArgs}) => object.asMap();
       case 'sort':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction? func = positionalArgs.first;
           int Function(dynamic, dynamic)? sortFunc;
           if (func != null) {
@@ -608,9 +602,9 @@ class HTListClassBinding extends HTExternalClass {
           object.sort(sortFunc);
         };
       case 'shuffle':
-        return ({positionalArgs, namedArgs}) => object.shuffle();
+        return ({object, positionalArgs, namedArgs}) => object.shuffle();
       case 'indexWhere':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           int start = positionalArgs[1];
           return object.indexWhere((element) {
@@ -618,7 +612,7 @@ class HTListClassBinding extends HTExternalClass {
           }, start);
         };
       case 'lastIndexWhere':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           int? start = positionalArgs[1];
           return object.lastIndexWhere((element) {
@@ -626,39 +620,39 @@ class HTListClassBinding extends HTExternalClass {
           }, start);
         };
       case 'removeWhere':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           object.removeWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'retainWhere':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           object.retainWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'getRange':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.getRange(positionalArgs[0], positionalArgs[1]);
       case 'setRange':
-        return ({positionalArgs, namedArgs}) => object.setRange(
+        return ({object, positionalArgs, namedArgs}) => object.setRange(
             positionalArgs[0],
             positionalArgs[1],
             positionalArgs[2],
             positionalArgs[3]);
       case 'removeRange':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.removeRange(positionalArgs[0], positionalArgs[1]);
       case 'fillRange':
-        return ({positionalArgs, namedArgs}) => object.fillRange(
+        return ({object, positionalArgs, namedArgs}) => object.fillRange(
             positionalArgs[0], positionalArgs[1], positionalArgs[2]);
       case 'replaceRange':
-        return ({positionalArgs, namedArgs}) => object.replaceRange(
+        return ({object, positionalArgs, namedArgs}) => object.replaceRange(
             positionalArgs[0], positionalArgs[1], positionalArgs[2]);
       case 'clone':
-        return ({positionalArgs, namedArgs}) => deepCopy(this);
+        return ({object, positionalArgs, namedArgs}) => deepCopy(object);
       default:
         return superClass!.instanceMemberGet(instance, id);
     }
@@ -667,12 +661,11 @@ class HTListClassBinding extends HTExternalClass {
   @override
   void instanceMemberSet(dynamic instance, String id, dynamic value,
       {bool ignoreUndefined = false}) {
-    final object = instance as List;
     switch (id) {
       case 'first':
-        object.first = value;
+        ({object, positionalArgs, namedArgs}) => object.first = value;
       case 'last':
-        object.last = value;
+        ({object, positionalArgs, namedArgs}) => object.last = value;
       default:
         throw HTError.undefined(id);
     }
@@ -696,58 +689,57 @@ class HTSetClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as Set;
     switch (id) {
       case 'toString':
-        return ({positionalArgs, namedArgs}) => object.toString();
+        return ({object, positionalArgs, namedArgs}) => object.toString();
       case 'add':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.add(positionalArgs.first);
       case 'addAll':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.addAll(positionalArgs.first);
       case 'remove':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.remove(positionalArgs.first);
       case 'lookup':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.lookup(positionalArgs[0]);
       case 'removeAll':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.removeAll(positionalArgs.first);
       case 'retainAll':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.retainAll(positionalArgs.first);
       case 'removeWhere':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           object.removeWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'retainWhere':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           object.retainWhere((element) {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'containsAll':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.containsAll(positionalArgs.first);
       case 'intersection':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.intersection(positionalArgs.first);
       case 'union':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.union(positionalArgs.first);
       case 'difference':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.difference(positionalArgs.first);
       case 'clear':
-        return ({positionalArgs, namedArgs}) => object.clear();
+        return ({object, positionalArgs, namedArgs}) => object.clear();
       case 'toSet':
-        return ({positionalArgs, namedArgs}) => object.toSet();
+        return ({object, positionalArgs, namedArgs}) => object.toSet();
       default:
         return superClass!.instanceMemberGet(instance, id);
     }
@@ -770,46 +762,44 @@ class HTMapClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as Map;
     switch (id) {
       case 'toString':
-        return ({positionalArgs, namedArgs}) => object.toString();
+        return ({object, positionalArgs, namedArgs}) => object.toString();
       case 'length':
-        return object.length;
+        return instance.length;
       case 'isEmpty':
-        return object.isEmpty;
+        return instance.isEmpty;
       case 'isNotEmpty':
-        return object.isNotEmpty;
+        return instance.isNotEmpty;
       case 'keys':
-        return object.keys;
+        return instance.keys;
       case 'values':
-        return object.values;
+        return instance.values;
       case 'containsKey':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.containsKey(positionalArgs.first);
       case 'containsValue':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.containsValue(positionalArgs.first);
       case 'addAll':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.addAll(positionalArgs.first);
       case 'clear':
-        return ({positionalArgs, namedArgs}) => object.clear();
+        return ({object, positionalArgs, namedArgs}) => object.clear();
       case 'remove':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.remove(positionalArgs.first);
       default:
-        return object[id];
+        return instance[id];
     }
   }
 
   @override
   dynamic instanceMemberSet(dynamic instance, String id, dynamic value,
       {bool ignoreUndefined = false}) {
-    final object = instance as Map;
     switch (id) {
       default:
-        object[id] = value;
+        ({object, positionalArgs, namedArgs}) => instance[id] = value;
     }
   }
 }
@@ -831,42 +821,42 @@ class HTRandomClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as math.Random;
     switch (id) {
       case 'nextBool':
-        return ({positionalArgs, namedArgs}) => object.nextBool();
+        return ({object, positionalArgs, namedArgs}) => object.nextBool();
       case 'nextBoolBiased':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           final double input = (positionalArgs[0] as num).toDouble();
           final double target = (positionalArgs[1] as num).toDouble();
           return object.nextBoolBiased(input, target);
         };
       case 'nextDouble':
-        return ({positionalArgs, namedArgs}) => object.nextDouble();
+        return ({object, positionalArgs, namedArgs}) => object.nextDouble();
       case 'nearInt':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           return object.nearInt(positionalArgs.first,
               exponent: namedArgs['exponent']);
         };
       case 'distantInt':
-        return ({positionalArgs, namedArgs}) => object
+        return ({object, positionalArgs, namedArgs}) => object
             .distantInt(positionalArgs.first, exponent: namedArgs['exponent']);
       case 'nextInt':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.nextInt(positionalArgs[0].toInt());
       case 'nextColorHex':
-        return ({positionalArgs, namedArgs}) => object.nextColorHex(
+        return ({object, positionalArgs, namedArgs}) => object.nextColorHex(
               hasAlpha: namedArgs['hasAlpha'],
             );
       case 'nextBrightColorHex':
-        return ({positionalArgs, namedArgs}) => object.nextBrightColorHex(
+        return ({object, positionalArgs, namedArgs}) =>
+            object.nextBrightColorHex(
               hasAlpha: namedArgs['hasAlpha'],
             );
       case 'nextIterable':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.nextIterable(positionalArgs.first);
       case 'shuffle':
-        return ({positionalArgs, namedArgs}) sync* {
+        return ({object, positionalArgs, namedArgs}) sync* {
           final Iterable iterable = positionalArgs.first;
           if (iterable.isNotEmpty) {
             // ignore: prefer_collection_literals
@@ -908,11 +898,11 @@ class HTFutureClassBinding extends HTExternalClass {
           // });
         };
       case 'Future.value':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           return Future.value(positionalArgs.first);
         };
       case 'Future.delayed':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           return Future.delayed(
               Duration(milliseconds: (positionalArgs[0] * 1000).truncate()),
               () => positionalArgs[1]?.call());
@@ -925,10 +915,9 @@ class HTFutureClassBinding extends HTExternalClass {
   @override
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
-    final object = instance as Future;
     switch (id) {
       case 'then':
-        return ({positionalArgs, namedArgs}) {
+        return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.then((value) => func.call(positionalArgs: [value]));
         };

@@ -263,6 +263,7 @@ class Hetu {
   void init({
     bool useDefaultModuleAndBinding = true,
     Map<String, Function> externalFunctions = const {},
+    Map<String, HTExternalMethod> externalMethods = const {},
     Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
     List<HTExternalClass> externalClasses = const [],
     List<HTExternalTypeReflection> externalTypeReflections = const [],
@@ -316,53 +317,53 @@ class Hetu {
       });
 
       // bind dynamic external method
-      interpreter.bindExternalFunction('ClassRoot::toString', (
-          {instance, positionalArgs, namedArgs}) {
-        return lexicon.stringify(instance);
+      interpreter.bindExternalMethod('ClassRoot::toString', (
+          {object, positionalArgs, namedArgs}) {
+        return lexicon.stringify(object);
       });
-      interpreter.bindExternalFunction('Object::keys', (
-          {instance, positionalArgs, namedArgs}) {
-        final struct = instance as HTStruct;
+      interpreter.bindExternalMethod('Object::keys', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
         return struct.keys;
       });
-      interpreter.bindExternalFunction('Object::values', (
-          {instance, positionalArgs, namedArgs}) {
-        final struct = instance as HTStruct;
+      interpreter.bindExternalMethod('Object::values', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
         return struct.values;
       });
-      interpreter.bindExternalFunction('Object::contains', (
-          {instance, positionalArgs, namedArgs}) {
-        final struct = instance as HTStruct;
+      interpreter.bindExternalMethod('Object::contains', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
         return struct.contains(positionalArgs.first);
       });
-      interpreter.bindExternalFunction('Object::containsKey', (
-          {instance, positionalArgs, namedArgs}) {
-        final struct = instance as HTStruct;
+      interpreter.bindExternalMethod('Object::containsKey', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
         return struct.containsKey(positionalArgs.first);
       });
-      interpreter.bindExternalFunction('Object::isEmpty', (
-          {instance, positionalArgs, namedArgs}) {
-        final struct = instance as HTStruct;
+      interpreter.bindExternalMethod('Object::isEmpty', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
         return struct.isEmpty;
       });
-      interpreter.bindExternalFunction('Object::isNotEmpty', (
-          {instance, positionalArgs, namedArgs}) {
-        final struct = instance as HTStruct;
+      interpreter.bindExternalMethod('Object::isNotEmpty', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
         return struct.isNotEmpty;
       });
-      interpreter.bindExternalFunction('Object::length', (
-          {instance, positionalArgs, namedArgs}) {
-        final struct = instance as HTStruct;
+      interpreter.bindExternalMethod('Object::length', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
         return struct.length;
       });
-      interpreter.bindExternalFunction('Object::clone', (
-          {instance, positionalArgs, namedArgs}) {
-        final struct = instance as HTStruct;
+      interpreter.bindExternalMethod('Object::clone', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
         return struct.clone();
       });
-      interpreter.bindExternalFunction('Object::assign', (
-          {instance, positionalArgs, namedArgs}) {
-        final struct = instance as HTStruct;
+      interpreter.bindExternalMethod('Object::assign', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
         final other = positionalArgs.first as HTStruct;
         struct.assign(other);
       });
@@ -402,6 +403,9 @@ class Hetu {
 
     for (final key in externalFunctions.keys) {
       interpreter.bindExternalFunction(key, externalFunctions[key]!);
+    }
+    for (final key in externalMethods.keys) {
+      interpreter.bindExternalMethod(key, externalMethods[key]!);
     }
     for (final key in externalFunctionTypedef.keys) {
       interpreter.bindExternalFunctionType(key, externalFunctionTypedef[key]!);

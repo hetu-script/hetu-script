@@ -64,8 +64,10 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
         }
         assert(decl != null,
             'Could not find hetu declaration on external id: $typeString.$id');
+        decl = decl!.clone();
         // Assign the value as if we are doing decl.resolve() here.
-        decl!.externalFunc = member;
+        decl.externalFunc = member;
+        decl.instance = externalObject;
         return decl;
       } else {
         return member;

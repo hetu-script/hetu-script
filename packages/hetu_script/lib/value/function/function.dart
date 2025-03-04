@@ -54,6 +54,9 @@ class HTFunction extends HTFunctionDeclaration
   @override
   HTFunctionType get valueType => declType;
 
+  HTNamespace? namespace;
+  dynamic instance;
+
   /// Create a standard [HTFunction].
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
@@ -86,7 +89,6 @@ class HTFunction extends HTFunctionDeclaration
     super.isVariadic,
     super.minArity,
     super.maxArity,
-    super.namespace,
     this.externalFunc,
     int? ip,
     int? line,
@@ -188,7 +190,13 @@ class HTFunction extends HTFunctionDeclaration
     } else {
       funcName = id!;
     }
-    externalFunc = interpreter.fetchExternalFunction(funcName);
+    if (classId != null && funcName.contains('::')) {
+      // a external method within a normal class
+      externalFunc = interpreter.fetchExternalMethod(funcName);
+    } else {
+      // other external function
+      externalFunc = interpreter.fetchExternalFunction(funcName);
+    }
   }
 
   @override
@@ -245,15 +253,14 @@ class HTFunction extends HTFunctionDeclaration
       ip: ip,
       line: line,
       column: column,
-      namespace: namespace != null ? namespace as HTNamespace : null,
+      // namespace: namespace != null ? namespace as HTNamespace : null,
       redirectingConstructor: redirectingConstructor,
       klass: klass);
 
   HTFunction bind(HTStruct struct) {
     if (category == FunctionCategory.literal) {
-      return clone()
-        ..namespace = struct.namespace
-        ..instance = struct;
+      return clone()..namespace = struct.namespace;
+      // ..instance = struct;
     } else {
       throw HTError.binding();
     }
@@ -266,9 +273,9 @@ class HTFunction extends HTFunctionDeclaration
     // List<HTType> typeArgs = const [],
   }) {
     final savedNamespace = namespace;
-    final savedInstance = instance;
+    // final savedInstance = instance;
     namespace = struct.namespace;
-    instance = struct;
+    // instance = struct;
     final result = call(
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
@@ -276,12 +283,12 @@ class HTFunction extends HTFunctionDeclaration
     if (result is Future) {
       return result.then((value) {
         namespace = savedNamespace;
-        instance = savedInstance;
+        // instance = savedInstance;
         return value;
       });
     } else {
       namespace = savedNamespace;
-      instance = savedInstance;
+      // instance = savedInstance;
       return result;
     }
   }
@@ -413,9 +420,7 @@ class HTFunction extends HTFunctionDeclaration
         final HTNamespace callClosure = HTNamespace(
             lexicon: interpreter.lexicon,
             id: internalName,
-            closure: useCallingNamespace
-                ? namespace as HTNamespace?
-                : closure as HTNamespace?);
+            closure: useCallingNamespace ? namespace : closure as HTNamespace?);
 
         // define this and super keyword
         if (instance != null) {
@@ -608,7 +613,9 @@ class HTFunction extends HTFunctionDeclaration
         }
 
         if (ip == null) {
-          interpreter.stackTraceList.removeLast();
+          if (interpreter.stackTraceList.isNotEmpty) {
+            interpreter.stackTraceList.removeLast();
+          }
           return result;
         }
 
@@ -713,22 +720,36 @@ class HTFunction extends HTFunctionDeclaration
           // a external class method
           if (klass!.isExternal) {
             if (category != FunctionCategory.getter) {
+              assert(instance != null);
               assert(externalFunc != null);
               final func = externalFunc!;
-              if (func is HTExternalFunction) {
+              if (func is HTExternalMethod) {
                 result = func(
-                  // namespace: interpreter.currentNamespace,
+                  object: instance!,
                   positionalArgs: finalPosArgs,
                   namedArgs: finalNamedArgs,
-                  // typeArgs: typeArgs,
                 );
               } else {
                 result = Function.apply(
                     func,
-                    finalPosArgs,
+                    [instance!, ...finalPosArgs],
                     finalNamedArgs.map<Symbol, dynamic>(
                         (key, value) => MapEntry(Symbol(key), value)));
               }
+              // if (func is HTExternalMethod) {
+              //   result = func(
+              //     // namespace: interpreter.currentNamespace,
+              //     positionalArgs: finalPosArgs,
+              //     namedArgs: finalNamedArgs,
+              //     // typeArgs: typeArgs,
+              //   );
+              // } else {
+              //   result = Function.apply(
+              //       func,
+              //       finalPosArgs,
+              //       finalNamedArgs.map<Symbol, dynamic>(
+              //           (key, value) => MapEntry(Symbol(key), value)));
+              // }
             } else {
               result = klass!.externalClass!.memberGet('$classId.$id');
             }
@@ -757,7 +778,7 @@ class HTFunction extends HTFunctionDeclaration
               assert(instance != null);
               if (func is HTExternalMethod) {
                 result = func(
-                  instance: instance!,
+                  object: instance!,
                   positionalArgs: finalPosArgs,
                   namedArgs: finalNamedArgs,
                 );
@@ -795,7 +816,7 @@ class HTFunction extends HTFunctionDeclaration
             assert(instance != null);
             if (func is HTExternalMethod) {
               result = func(
-                instance: instance!,
+                object: instance!,
                 positionalArgs: finalPosArgs,
                 namedArgs: finalNamedArgs,
               );

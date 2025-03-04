@@ -185,17 +185,18 @@ class HTInstance with HTObject, InterpreterRef {
     } else {
       final space = _namespaces[cast]!;
       if (space.symbols.containsKey(id)) {
-        final decl = space.symbols[id]!;
+        var decl = space.symbols[id]!;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(id);
         }
-        decl.resolve();
         if (decl is HTFunction && decl.category != FunctionCategory.literal) {
+          decl = decl.clone();
           decl.namespace = _namespaces[classId];
           decl.instance = this;
         }
+        decl.resolve();
         return decl.value;
       } else if (space.symbols.containsKey(getter)) {
         final decl = space.symbols[getter]!;

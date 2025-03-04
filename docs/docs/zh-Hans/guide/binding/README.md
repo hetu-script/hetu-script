@@ -135,16 +135,16 @@ class Someone {
 对于脚本类中的外部成员函数，在 Dart 侧的定义和普通函数一样：
 
 ```dart
-dynamic calculate({positionalArgs, namedArgs}) {
+dynamic calculate({object, positionalArgs, namedArgs}) {
   // do somthing about the object
 };
 ```
 
-但在绑定时，约定使用 className::funcName 的形式作为绑定名：
+但在绑定时，约定使用 className::funcName 的形式作为绑定名, 但要改为使用 `bindExternalMethod` api：
 
 ```dart
 // the key of this external method have to be in the form of 'className.methodName'
-hetu.bindExternalFunction('Someone::calculate', calculate);
+hetu.bindExternalMethod('Someone::calculate', calculate);
 ```
 
 然后在脚本中，外部方法就可以和普通脚本函数一样使用了：
@@ -164,7 +164,7 @@ struct Person {
 
 ### 显式命名空间中的外部函数
 
-和类的外部方法相同，约定使用 namespaceName::funcName 的形式作为绑定名：
+和类的外部方法相同，约定使用 namespaceName::funcName 的形式作为绑定名，注意此时要使用 `bindExternalFunction` 而非 `bindExternalMethod`
 
 ```dart
 // the key of this external method have to be in the form of 'className::methodName'

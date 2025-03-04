@@ -129,7 +129,7 @@ class Someone {
 We have to define a external method in Dart code:
 
 ```dart
-dynamic calculate({positionalArgs, namedArgs}) {
+dynamic calculate({object, positionalArgs, namedArgs}) {
   // do somthing about the object
 };
 ```
@@ -138,7 +138,7 @@ We have to bind this external method some where in the Dart code, before we can 
 
 ```dart
 // the key of this external method have to be in the form of 'className::methodName'
-hetu.bindExternalFunction('Someone::calculate', calculate);
+hetu.bindExternalMethod('Someone::calculate', calculate);
 ```
 
 Then it's okay to call this in Hetu:
@@ -160,7 +160,7 @@ Everything else you should do is the same to a external method on a class.
 
 ### External function in explicity namespace
 
-Use same way to bind a external method of a normal class.
+Use same way to bind a external method of a normal class, but use `bindExternalMethod` instead.
 
 ```dart
 // the key of this external method have to be in the form of 'className::methodName'
@@ -327,14 +327,14 @@ external class:
 
 ```
       case 'Person.meaning':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             Person.meaning(positionalArgs[0]);
 ```
 
 external method on a script class:
 
 ```
-hetu.bindExternalFunction('Person::meaning', meaning);
+hetu.bindExternalMethod('Person::meaning', meaning);
 ```
 
 #### External getter

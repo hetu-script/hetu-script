@@ -161,6 +161,25 @@ void main() {
       );
     });
 
+    test('external function within class', () {
+      hetu.interpreter.bindExternalMethod('Test::externalFunc', (
+          {object, positionalArgs, namedArgs}) {
+        return 'external function called';
+      });
+
+      final result = hetu.eval(r'''
+        class Test {
+          external function externalFunc
+        }
+        final t = Test()
+        t.externalFunc()
+      ''');
+      expect(
+        result,
+        'external function called',
+      );
+    });
+
     test('external function within explicit namespace', () {
       hetu.interpreter.bindExternalFunction('Somespace::externalFunc', (
           {positionalArgs, namedArgs}) {

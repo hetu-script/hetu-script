@@ -14,7 +14,7 @@ String randomUUID() {
 /// Get a random id consists by number and letters.
 String randomUID({int length = 4, bool withTime = false}) {
   assert(length >= 1);
-  final dt = withTime ? datetime() + '-' : '';
+  final dt = withTime ? '${datetime()}-' : '';
   if (length < 15) {
     final id = ((Random().nextDouble() + 1) *
             int.parse('0x1'.padRight(length + 3, '0')))
@@ -36,7 +36,7 @@ String randomUID({int length = 4, bool withTime = false}) {
 /// Get a random id consists by number.
 String randomNID({int length = 8, bool withTime = false}) {
   assert(length >= 1);
-  final dt = withTime ? datetime() + '-' : '';
+  final dt = withTime ? '${datetime()}-' : '';
   final r = Random();
   final output = StringBuffer();
   for (var i = 0; i < length; ++i) {

@@ -4,10 +4,10 @@ import '../../type/type.dart';
 import '../../type/function.dart';
 import '../type/abstract_type_declaration.dart';
 import '../declaration.dart';
-import '../namespace/declaration_namespace.dart';
+// import '../namespace/declaration_namespace.dart';
 import 'abstract_parameter.dart';
 import '../generic/generic_type_parameter.dart';
-import '../../value/object.dart';
+// import '../../value/object.dart';
 import '../../common/function_category.dart';
 
 class HTFunctionDeclaration extends HTDeclaration
@@ -62,10 +62,6 @@ class HTFunctionDeclaration extends HTDeclaration
 
   final int maxArity;
 
-  HTDeclarationNamespace? namespace;
-
-  HTObject? instance;
-
   bool _isResolved = false;
   @override
   bool get isResolved => _isResolved;
@@ -95,7 +91,6 @@ class HTFunctionDeclaration extends HTDeclaration
     this.isVariadic = false,
     this.minArity = 0,
     this.maxArity = 0,
-    this.namespace,
   }) : _declType = declType ?? HTFunctionType();
 
   @override

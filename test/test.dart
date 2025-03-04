@@ -1,35 +1,4 @@
 import 'package:hetu_script/hetu_script.dart';
-import 'package:hetu_script/binding.dart';
-
-class Person {
-  void greeting({String? name}) {
-    print('hi, $name!');
-  }
-}
-
-class PersonBinding extends HTExternalClass {
-  PersonBinding() : super('Person');
-
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
-    switch (id) {
-      case 'Person':
-        return ({positionalArgs, namedArgs}) => Person();
-    }
-  }
-
-  @override
-  dynamic instanceMemberGet(dynamic instance, String id,
-      {bool ignoreUndefined = false}) {
-    final object = instance as Person;
-    switch (id) {
-      case 'greeting':
-        return ({positionalArgs, namedArgs}) {
-          final name = namedArgs['name'];
-          return object.greeting(name: name);
-        };
-    }
-  }
-}
 
 Future<void> main() async {
   final sourceContext = HTOverlayContext();
@@ -42,22 +11,20 @@ Future<void> main() async {
       printPerformanceStatistics: true,
     ),
   );
-  hetu.init(externalClasses: [PersonBinding()]);
-
-  sourceContext.addResource('source1.ht', HTSource('''
-  
-  '''));
-
-  hetu.interpreter.bindExternalFunction('Somespace::externalFunc', (
-      {positionalArgs, namedArgs}) {
-    return 'external function called';
-  });
+  hetu.init();
 
   var r = hetu.eval(r'''
-    namespace Somespace {
-      external function externalFunc
+    struct Test{
+      constructor() {
+        this.arr = [6,7]
+        this.arr.add(42)
+        print(this.arr)
+      }
     }
-    Somespace.externalFunc()
+
+    final arr2 = [110]
+    arr2.addAll([Test(), Test()])
+    print(arr2)
 ''');
 
   if (r is Future) {

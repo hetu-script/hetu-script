@@ -617,12 +617,12 @@ class HTInterpreter {
     externalTypeReflection.add(reflection);
   }
 
-  /// Register an external function into script
+  /// Register an external function in script
   /// there must be a declaraction also in script for using this
+  /// the function here can be either a pure dart function or a [HTExternalFunction]
   /// we use a conventions to distinguish different types of functions here:
   /// 1. for toplevel external functions, use id like '$functionId'
   /// 2. for static method or contructor of a class, use id like '$classId.$functionId'
-  /// 3. for external method member of a script class, use id like '$classId::$functionId'
   /// 3. for external functions within a explicity declared namespace, use id like '$namespaceId::$functionId'
   void bindExternalFunction(String id, Function function,
       {bool override = true}) {
@@ -638,6 +638,20 @@ class HTInterpreter {
       throw HTError.undefinedExternal(id);
     }
     return externalFunctions[id]!;
+  }
+
+  /// Register a external method in scrfipt
+  /// there must be a declaraction also in script for using this
+  /// the function here must be a [HTExternalMethod]
+  /// use id like '$classId::$functionId'
+  void bindExternalMethod(String id, Function method, {bool override = true}) {
+    assert(method is HTExternalMethod);
+    assert(id.contains('::'));
+
+    if (externalMethods.containsKey(id) && !override) {
+      throw HTError.defined(id, HTErrorType.runtimeError);
+    }
+    externalMethods[id] = method;
   }
 
   /// Fetch an external method
@@ -903,7 +917,7 @@ class HTInterpreter {
   }
 
   /// Load a pre-compiled bytecode module.
-  /// If [invoke] is true, execute the bytecode immediately.
+  /// If [invoke] is true, run the bytecode immediately.
   dynamic loadBytecode({
     required Uint8List bytes,
     required String module,
@@ -2206,7 +2220,7 @@ class HTInterpreter {
           ip: definitionIp,
           line: line,
           column: column,
-          namespace: currentNamespace,
+          // namespace: currentNamespace,
         );
         if (!hasExternalTypedef) {
           _localValue = func;

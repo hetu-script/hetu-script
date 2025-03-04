@@ -1,18 +1,17 @@
 // import '../type/type.dart';
 import '../value/function/function.dart';
-import '../value/object.dart';
+// import '../value/object.dart';
 // import '../value/namespace/namespace.dart';
 
 /// Typedef of external function for binding.
 /// Can be used on normal external function or external method of a script class,
 typedef HTExternalFunction = dynamic Function({
-  // HTObject? instance,
   List<dynamic> positionalArgs,
   Map<String, dynamic> namedArgs,
 });
 
 typedef HTExternalMethod = dynamic Function({
-  HTObject instance,
+  dynamic object,
   List<dynamic> positionalArgs,
   Map<String, dynamic> namedArgs,
 });

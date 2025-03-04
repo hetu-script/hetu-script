@@ -43,12 +43,12 @@ abstract class HTExternalClass with HTObject {
   /// ```
   /// object[key]
   /// ```
-  dynamic instanceSubGet(dynamic object, dynamic key) => object[key];
+  dynamic instanceSubGet(dynamic instance, dynamic key) => instance[key];
 
   /// Assign a value to a instance member of the Dart class by the [id], in the form of
   /// ```
   /// object[key] = value
   /// ```
-  void instanceSubSet(dynamic object, dynamic key, dynamic value) =>
-      object[key] = value;
+  void instanceSubSet(dynamic instance, dynamic key, dynamic value) =>
+      instance[key] = value;
 }
