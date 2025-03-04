@@ -14,18 +14,11 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-    // struct Test{
-    //   constructor([value = true]){
-    //     this.valid = value;
-    //   }
-    // }
+    final obj = Map()
 
-    // final arr = [Test(), Test()]
+    obj.name = 'steve'
 
-    // final iterable = arr.where((obj) => obj.valid == true)
-
-    final arr2 = [1,2,3]
-    print(arr2.first)
+    print(obj)
 ''');
 
   if (r is Future) {

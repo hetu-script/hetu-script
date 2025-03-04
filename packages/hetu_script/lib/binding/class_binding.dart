@@ -798,7 +798,7 @@ class HTMapClassBinding extends HTExternalClass {
       {bool ignoreUndefined = false}) {
     switch (id) {
       default:
-        ({object, positionalArgs, namedArgs}) => instance[id] = value;
+        instance[id] = value;
     }
   }
 }
