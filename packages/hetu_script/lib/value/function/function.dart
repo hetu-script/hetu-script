@@ -65,6 +65,7 @@ class HTFunction extends HTFunctionDeclaration
     required super.internalName,
     super.id,
     super.classId,
+    super.explicityNamespaceId,
     super.closure,
     super.source,
     super.documentation,
@@ -182,10 +183,12 @@ class HTFunction extends HTFunctionDeclaration
           funcName = '$classId::$id';
         }
       }
+    } else if (explicityNamespaceId != null) {
+      funcName = '$explicityNamespaceId::$id';
     } else {
       funcName = id!;
     }
-    externalFunc = interpreter.fetchExternalFunctionOrMethod(funcName);
+    externalFunc = interpreter.fetchExternalFunction(funcName);
   }
 
   @override

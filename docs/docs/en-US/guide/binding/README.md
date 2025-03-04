@@ -158,6 +158,15 @@ struct Person {
 
 Everything else you should do is the same to a external method on a class.
 
+### External function in explicity namespace
+
+Use same way to bind a external method of a normal class.
+
+```dart
+// the key of this external method have to be in the form of 'className::methodName'
+hetu.bindExternalFunction('MyNamespace::calculate', calculate);
+```
+
 ### External class
 
 You can use a Dart object with full class definition in Hetu.

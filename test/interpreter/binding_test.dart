@@ -160,5 +160,23 @@ void main() {
         false,
       );
     });
+
+    test('external function within explicit namespace', () {
+      hetu.interpreter.bindExternalFunction('Somespace::externalFunc', (
+          {positionalArgs, namedArgs}) {
+        return 'external function called';
+      });
+
+      final result = hetu.eval(r'''
+        namespace Somespace {
+          external function externalFunc
+        }
+        Somespace.externalFunc()
+      ''');
+      expect(
+        result,
+        'external function called',
+      );
+    });
   });
 }

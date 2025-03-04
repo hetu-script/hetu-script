@@ -140,11 +140,11 @@ dynamic calculate({positionalArgs, namedArgs}) {
 };
 ```
 
-但在绑定时，约定使用 className.funcName 的形式作为绑定名：
+但在绑定时，约定使用 className::funcName 的形式作为绑定名：
 
 ```dart
 // the key of this external method have to be in the form of 'className.methodName'
-hetu.bindExternalFunction('Someone.calculate', calculate);
+hetu.bindExternalFunction('Someone::calculate', calculate);
 ```
 
 然后在脚本中，外部方法就可以和普通脚本函数一样使用了：
@@ -162,7 +162,16 @@ struct Person {
 }
 ```
 
-### 外部类绑定的定义和声明
+### 显式命名空间中的外部函数
+
+和类的外部方法相同，约定使用 namespaceName::funcName 的形式作为绑定名：
+
+```dart
+// the key of this external method have to be in the form of 'className::methodName'
+hetu.bindExternalFunction('namespaceName::calculate', calculate);
+```
+
+### 外部类的定义和声明
 
 你可以在脚本中定义一个外部类，然后通过绑定的方式来访问它的静态成员或者实例成员。
 

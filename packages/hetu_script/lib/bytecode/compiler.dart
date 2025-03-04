@@ -1863,6 +1863,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else {
         bytesBuilder.addByte(0); // bool: hasClassId
       }
+      if (stmt.explicityNamespaceId != null) {
+        bytesBuilder.addByte(1); // bool: hasExplicityNamespaceId
+        bytesBuilder.add(_identifier(stmt.explicityNamespaceId!));
+      } else {
+        bytesBuilder.addByte(0); // bool: hasExplicityNamespaceId
+      }
       if (stmt.externalTypeId != null) {
         bytesBuilder.addByte(1); // bool: hasExternalTypedef
         bytesBuilder.add(_identifier(stmt.externalTypeId!));

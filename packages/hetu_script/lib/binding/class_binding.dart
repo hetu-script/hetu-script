@@ -17,6 +17,7 @@ import '../lexicon/lexicon.dart';
 // import '../value/struct/struct.dart';
 import '../locale/locale.dart';
 import '../utils/collection.dart';
+import '../utils/math.dart';
 
 class HTNumberClassBinding extends HTExternalClass {
   HTNumberClassBinding() : super('number');
@@ -832,86 +833,52 @@ class HTRandomClassBinding extends HTExternalClass {
       {bool ignoreUndefined = false}) {
     final object = instance as math.Random;
     switch (id) {
-      case 'nextDouble':
-        return ({positionalArgs, namedArgs}) => object.nextDouble();
-      case 'nearInt':
-        return ({positionalArgs, namedArgs}) {
-          return (positionalArgs.first *
-                  math.pow(object.nextDouble(), namedArgs['exponent'] ?? 0.5))
-              .toInt();
-        };
-      case 'distantInt':
-        return ({positionalArgs, namedArgs}) {
-          return (positionalArgs.first *
-                  (1 -
-                      math.pow(
-                          object.nextDouble(), namedArgs['exponent'] ?? 0.5)))
-              .toInt();
-        };
-      case 'nextInt':
-        return ({positionalArgs, namedArgs}) =>
-            object.nextInt(positionalArgs[0].toInt());
       case 'nextBool':
         return ({positionalArgs, namedArgs}) => object.nextBool();
       case 'nextBoolBiased':
         return ({positionalArgs, namedArgs}) {
-          final num input = positionalArgs[0];
-          final num target = positionalArgs[1];
-          if (input >= target) {
-            return true;
-          } else {
-            final difference = (input - target).abs();
-            final probability = 1 - (difference / target);
-            return object.nextDouble() <= probability;
-          }
+          final double input = (positionalArgs[0] as num).toDouble();
+          final double target = (positionalArgs[1] as num).toDouble();
+          return object.nextBoolBiased(input, target);
         };
+      case 'nextDouble':
+        return ({positionalArgs, namedArgs}) => object.nextDouble();
+      case 'nearInt':
+        return ({positionalArgs, namedArgs}) {
+          return object.nearInt(positionalArgs.first,
+              exponent: namedArgs['exponent']);
+        };
+      case 'distantInt':
+        return ({positionalArgs, namedArgs}) => object
+            .distantInt(positionalArgs.first, exponent: namedArgs['exponent']);
+      case 'nextInt':
+        return ({positionalArgs, namedArgs}) =>
+            object.nextInt(positionalArgs[0].toInt());
       case 'nextColorHex':
-        return ({positionalArgs, namedArgs}) {
-          var prefix = '#';
-          if (namedArgs['hasAlpha']) {
-            prefix += 'ff';
-          }
-          return prefix +
-              (object.nextDouble() * 16777215)
-                  .truncate()
-                  .toRadixString(16)
-                  .padLeft(6, '0');
-        };
+        return ({positionalArgs, namedArgs}) => object.nextColorHex(
+              hasAlpha: namedArgs['hasAlpha'],
+            );
       case 'nextBrightColorHex':
-        return ({positionalArgs, namedArgs}) {
-          var prefix = '#';
-          if (namedArgs['hasAlpha']) {
-            prefix += 'ff';
-          }
-          return prefix +
-              (object.nextDouble() * 5592405 + 11184810)
-                  .truncate()
-                  .toRadixString(16)
-                  .padLeft(6, '0');
-        };
+        return ({positionalArgs, namedArgs}) => object.nextBrightColorHex(
+              hasAlpha: namedArgs['hasAlpha'],
+            );
       case 'nextIterable':
-        return ({positionalArgs, namedArgs}) {
-          final iterable = positionalArgs.first as Iterable;
-          if (iterable.isNotEmpty) {
-            return iterable.elementAt(object.nextInt(iterable.length));
-          } else {
-            return null;
-          }
-        };
+        return ({positionalArgs, namedArgs}) =>
+            object.nextIterable(positionalArgs.first);
       case 'shuffle':
         return ({positionalArgs, namedArgs}) sync* {
-          final Iterable list = positionalArgs.first;
-          if (list.isNotEmpty) {
+          final Iterable iterable = positionalArgs.first;
+          if (iterable.isNotEmpty) {
             // ignore: prefer_collection_literals
             final Set indexes = LinkedHashSet();
             int index;
             do {
               do {
-                index = object.nextInt(list.length);
+                index = object.nextInt(iterable.length);
               } while (indexes.contains(index));
               indexes.add(index);
-              yield list.elementAt(index);
-            } while (indexes.length < list.length);
+              yield iterable.elementAt(index);
+            } while (indexes.length < iterable.length);
           }
         };
       default:

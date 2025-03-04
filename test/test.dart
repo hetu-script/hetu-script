@@ -48,16 +48,16 @@ Future<void> main() async {
   
   '''));
 
+  hetu.interpreter.bindExternalFunction('Somespace::externalFunc', (
+      {positionalArgs, namedArgs}) {
+    return 'external function called';
+  });
+
   var r = hetu.eval(r'''
-    // external class Person {
-    //   construct
-    //   function greeting({name: string = 'Steve'})
-    // }
-
-    // final p = Person()
-    // p.greeting()
-
-    [1,2,3].random
+    namespace Somespace {
+      external function externalFunc
+    }
+    Somespace.externalFunc()
 ''');
 
   if (r is Future) {

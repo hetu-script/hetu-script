@@ -18,6 +18,9 @@ class HTFunctionDeclaration extends HTDeclaration
 
   final String? externalTypeId;
 
+  /// Wether this declaration is within a explicity namespace declaration.
+  final String? explicityNamespaceId;
+
   @override
   final List<HTGenericTypeParameter> genericTypeParameters;
 
@@ -71,6 +74,7 @@ class HTFunctionDeclaration extends HTDeclaration
     required this.internalName,
     super.id,
     super.classId,
+    this.explicityNamespaceId,
     super.closure,
     super.source,
     super.documentation,

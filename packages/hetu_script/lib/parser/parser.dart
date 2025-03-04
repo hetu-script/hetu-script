@@ -12,18 +12,22 @@ import '../resource/resource.dart' show HTResourceType;
 enum ParseStyle {
   /// Module source can only have declarations (variables, functions, classes, enums),
   /// import & export statement.
+  /// module can have external class & function declarations.
   module,
 
   /// A script can have all statements and expressions, kind of like a funciton body plus import & export.
+  /// script can have external class & function declarations.
   script,
 
   /// An expression.
   expression,
 
   /// Like module, but no import & export allowed.
-  namespace,
+  /// explicity namespaces can have external functions, but not external classes.
+  explicitNamespace,
 
   /// Class can only have declarations (variables, functions).
+  /// class can have external members.
   classDefinition,
 
   /// Struct can not have external members

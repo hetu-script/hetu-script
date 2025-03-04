@@ -31,6 +31,7 @@ import '../logger/console_logger.dart';
 import 'console.dart';
 import '../lexicon/lexicon_hetu.dart';
 import '../value/struct/struct.dart';
+import '../value/function/function.dart';
 
 /// The config of hetu environment, this implements all config of components used by this environment.
 class HetuConfig
@@ -315,56 +316,62 @@ class Hetu {
       });
 
       // bind dynamic external method
-      interpreter.bindExternalMethod('ClassRoot::toString', (
+      interpreter.bindExternalFunction('ClassRoot::toString', (
           {instance, positionalArgs, namedArgs}) {
         return lexicon.stringify(instance);
       });
-      interpreter.bindExternalMethod('Object::keys', (
+      interpreter.bindExternalFunction('Object::keys', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         return struct.keys;
       });
-      interpreter.bindExternalMethod('Object::values', (
+      interpreter.bindExternalFunction('Object::values', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         return struct.values;
       });
-      interpreter.bindExternalMethod('Object::contains', (
+      interpreter.bindExternalFunction('Object::contains', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         return struct.contains(positionalArgs.first);
       });
-      interpreter.bindExternalMethod('Object::containsKey', (
+      interpreter.bindExternalFunction('Object::containsKey', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         return struct.containsKey(positionalArgs.first);
       });
-      interpreter.bindExternalMethod('Object::isEmpty', (
+      interpreter.bindExternalFunction('Object::isEmpty', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         return struct.isEmpty;
       });
-      interpreter.bindExternalMethod('Object::isNotEmpty', (
+      interpreter.bindExternalFunction('Object::isNotEmpty', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         return struct.isNotEmpty;
       });
-      interpreter.bindExternalMethod('Object::length', (
+      interpreter.bindExternalFunction('Object::length', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         return struct.length;
       });
-      interpreter.bindExternalMethod('Object::clone', (
+      interpreter.bindExternalFunction('Object::clone', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         return struct.clone();
       });
-      interpreter.bindExternalMethod('Object::assign', (
+      interpreter.bindExternalFunction('Object::assign', (
           {instance, positionalArgs, namedArgs}) {
         final struct = instance as HTStruct;
         final other = positionalArgs.first as HTStruct;
         struct.assign(other);
       });
+
+      // must convert the return type to let dart know its return value type.
+      interpreter.bindExternalFunctionType(
+        'VoidCallback',
+        (HTFunction function) => () => function.call(),
+      );
 
       // bind non-dynamic external functions
       for (var key in preincludeFunctions.keys) {

@@ -36,7 +36,7 @@ class HTParserHetu extends HTParser {
     return false;
   }
 
-  // String? _currentExplicitNamespaceId;
+  String? _currentExplicitNamespaceId;
   HTClassDeclaration? _currentClassDeclaration;
   HTFunctionDeclaration? _currentFunctionDeclaration;
   String? _currentStructId;
@@ -82,7 +82,7 @@ class HTParserHetu extends HTParser {
         } else if (curTok.lexeme == lexer.lexicon.kTypeDef) {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
-          stmt = _parseNamespaceDecl(isTopLevel: true);
+          stmt = _parseExplicitNamespaceDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kAssert) {
           stmt = _parseAssertStmt();
         } else if (curTok.lexeme == lexer.lexicon.kExternal) {
@@ -199,7 +199,7 @@ class HTParserHetu extends HTParser {
         } else if (curTok.lexeme == lexer.lexicon.kTypeDef) {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
-          stmt = _parseNamespaceDecl(isTopLevel: true);
+          stmt = _parseExplicitNamespaceDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kExternal) {
           advance();
           if (curTok.lexeme == lexer.lexicon.kAbstract) {
@@ -307,58 +307,61 @@ class HTParserHetu extends HTParser {
               column: errToken.column,
               offset: errToken.offset);
         }
-      case ParseStyle.namespace:
+      case ParseStyle.explicitNamespace:
         if (curTok.lexeme == lexer.lexicon.kTypeDef) {
           stmt = _parseTypeAliasDecl();
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
-          stmt = _parseNamespaceDecl();
+          stmt = _parseExplicitNamespaceDecl();
         } else if (curTok.lexeme == lexer.lexicon.kExternal) {
           advance();
-          if (curTok.lexeme == lexer.lexicon.kAbstract) {
-            advance();
-            if (curTok.lexeme != lexer.lexicon.kClass) {
-              final err = HTError.unexpected(lexer.lexicon.kAbstract,
-                  HTLocale.current.classDeclaration, curTok.lexeme,
-                  filename: currrentFileName,
-                  line: curTok.line,
-                  column: curTok.column,
-                  offset: curTok.offset,
-                  length: curTok.length);
-              errors.add(err);
-              final errToken = advance();
-              stmt = ASTEmptyLine(
-                  source: currentSource,
-                  line: errToken.line,
-                  column: errToken.column,
-                  offset: errToken.offset);
-            } else {
-              stmt = _parseClassDecl(isAbstract: true, isExternal: true);
-            }
-          } else if (curTok.lexeme == lexer.lexicon.kClass) {
-            stmt = _parseClassDecl(isExternal: true);
-          } else if (curTok.lexeme == lexer.lexicon.kEnum) {
-            stmt = _parseEnumDecl(isExternal: true);
-          } else if (curTok.lexeme == lexer.lexicon.kAsync) {
+          // if (curTok.lexeme == lexer.lexicon.kAbstract) {
+          //   advance();
+          //   if (curTok.lexeme != lexer.lexicon.kClass) {
+          //     final err = HTError.unexpected(lexer.lexicon.kAbstract,
+          //         HTLocale.current.classDeclaration, curTok.lexeme,
+          //         filename: currrentFileName,
+          //         line: curTok.line,
+          //         column: curTok.column,
+          //         offset: curTok.offset,
+          //         length: curTok.length);
+          //     errors.add(err);
+          //     final errToken = advance();
+          //     stmt = ASTEmptyLine(
+          //         source: currentSource,
+          //         line: errToken.line,
+          //         column: errToken.column,
+          //         offset: errToken.offset);
+          //   } else {
+          //     stmt = _parseClassDecl(isAbstract: true, isExternal: true);
+          //   }
+          // } else if (curTok.lexeme == lexer.lexicon.kClass) {
+          //   stmt = _parseClassDecl(isExternal: true);
+          // } else if (curTok.lexeme == lexer.lexicon.kEnum) {
+          //   stmt = _parseEnumDecl(isExternal: true);
+          // } else
+          if (curTok.lexeme == lexer.lexicon.kAsync) {
             advance();
             stmt = _parseFunction(isAsync: true, isExternal: true);
           } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
             stmt = _parseFunction(isExternal: true);
-          } else if (lexer.lexicon.variableDeclarationKeywords
-              .contains(curTok.lexeme)) {
-            final err = HTError.externalVar(
-                filename: currrentFileName,
-                line: curTok.line,
-                column: curTok.column,
-                offset: curTok.offset,
-                length: curTok.length);
-            errors.add(err);
-            final errToken = advance();
-            stmt = ASTEmptyLine(
-                source: currentSource,
-                line: errToken.line,
-                column: errToken.column,
-                offset: errToken.offset);
-          } else {
+          }
+          // else if (lexer.lexicon.variableDeclarationKeywords
+          //     .contains(curTok.lexeme)) {
+          //   final err = HTError.externalVar(
+          //       filename: currrentFileName,
+          //       line: curTok.line,
+          //       column: curTok.column,
+          //       offset: curTok.offset,
+          //       length: curTok.length);
+          //   errors.add(err);
+          //   final errToken = advance();
+          //   stmt = ASTEmptyLine(
+          //       source: currentSource,
+          //       line: errToken.line,
+          //       column: errToken.column,
+          //       offset: errToken.offset);
+          // }
+          else {
             final err = HTError.unexpected(lexer.lexicon.kExternal,
                 HTLocale.current.declarationStatement, curTok.lexeme,
                 filename: currrentFileName,
@@ -757,7 +760,7 @@ class HTParserHetu extends HTParser {
         if (curTok.lexeme == lexer.lexicon.kTypeDef) {
           stmt = _parseTypeAliasDecl();
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
-          stmt = _parseNamespaceDecl();
+          stmt = _parseExplicitNamespaceDecl();
         } else if (curTok.lexeme == lexer.lexicon.kAssert) {
           stmt = _parseAssertStmt();
         } else if (curTok.lexeme == lexer.lexicon.kAbstract) {
@@ -2669,19 +2672,19 @@ class HTParserHetu extends HTParser {
     }
   }
 
-  NamespaceDecl _parseNamespaceDecl({bool isTopLevel = false}) {
+  NamespaceDecl _parseExplicitNamespaceDecl({bool isTopLevel = false}) {
     final keyword = advance();
     final idTok = matchId();
     final id = IdentifierExpr.fromToken(idTok, source: currentSource);
-    // final savedSurrentExplicitNamespaceId = _currentExplicitNamespaceId;
-    // _currentExplicitNamespaceId = idTok.lexeme;
+    final savedCurrentExplicitNamespaceId = _currentExplicitNamespaceId;
+    _currentExplicitNamespaceId = idTok.lexeme;
     final definition = _parseBlockStmt(
       id: id.id,
-      sourceType: ParseStyle.namespace,
+      sourceType: ParseStyle.explicitNamespace,
       isScriptBlock: false,
       blockStartMark: lexer.lexicon.namespaceStart,
     );
-    // _currentExplicitNamespaceId = savedSurrentExplicitNamespaceId;
+    _currentExplicitNamespaceId = savedCurrentExplicitNamespaceId;
     return NamespaceDecl(
       id,
       definition,
@@ -3182,6 +3185,7 @@ class HTParserHetu extends HTParser {
       internalName: internalName,
       id: id?.lexeme,
       classId: classId,
+      explicityNamespaceId: _currentExplicitNamespaceId,
       isPrivate: lexer.lexicon.isPrivate(id?.lexeme),
       isExternal: isExternal,
       isStatic: isStatic,
@@ -3244,6 +3248,7 @@ class HTParserHetu extends HTParser {
           ? IdentifierExpr.fromToken(id, source: currentSource)
           : null,
       classId: classId,
+      explicityNamespaceId: _currentExplicitNamespaceId,
       genericTypeParameters: genericTypeParameters,
       externalTypeId: externalTypeId,
       redirectingConstructorCall: redirectingCtorCallExpr,

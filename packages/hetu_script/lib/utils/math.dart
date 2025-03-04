@@ -46,3 +46,52 @@ double angle(num x1, num y1, num x2, num y2) {
 double aangle(x1, y1, x2, y2) {
   return radians(angle(x1, y1, x2, y2));
 }
+
+extension RandomEx on math.Random {
+  bool nextBoolBiased(double input, double target) {
+    if (input >= target) {
+      return true;
+    } else {
+      final difference = (input - target).abs();
+      final probability = 1 - (difference / target);
+      return nextDouble() <= probability;
+    }
+  }
+
+  int nearInt(int max, {double exponent = 0.5}) {
+    return (max * math.pow(nextDouble(), exponent)).toInt();
+  }
+
+  int distantInt(int max, {double exponent = 0.5}) {
+    return (max * (1 - math.pow(nextDouble(), exponent))).toInt();
+  }
+
+  String nextColorHex({bool hasAlpha = false}) {
+    var prefix = '#';
+    if (hasAlpha) {
+      prefix += 'ff';
+    }
+    return prefix +
+        (nextDouble() * 16777215).truncate().toRadixString(16).padLeft(6, '0');
+  }
+
+  String nextBrightColorHex({bool hasAlpha = false}) {
+    var prefix = '#';
+    if (hasAlpha) {
+      prefix += 'ff';
+    }
+    return prefix +
+        (nextDouble() * 5592405 + 11184810)
+            .truncate()
+            .toRadixString(16)
+            .padLeft(6, '0');
+  }
+
+  dynamic nextIterable(Iterable iterable) {
+    if (iterable.isNotEmpty) {
+      return iterable.elementAt(nextInt(iterable.length));
+    } else {
+      return null;
+    }
+  }
+}

@@ -22,6 +22,7 @@ abstract class HTDeclaration {
 
   HTType? get declType => null;
 
+  /// Wether this declaration is a class member.
   final String? classId;
 
   final HTDeclarationNamespace? closure;

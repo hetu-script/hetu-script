@@ -1886,6 +1886,8 @@ class FuncDecl extends Statement {
 
   final String? classId;
 
+  final String? explicityNamespaceId;
+
   final List<GenericTypeParameterExpr> genericTypeParameters;
 
   final String? externalTypeId;
@@ -1930,6 +1932,7 @@ class FuncDecl extends Statement {
     this.internalName, {
     this.id,
     this.classId,
+    this.explicityNamespaceId,
     this.genericTypeParameters = const [],
     this.externalTypeId,
     this.redirectingConstructorCall,

@@ -619,6 +619,11 @@ class HTInterpreter {
 
   /// Register an external function into script
   /// there must be a declaraction also in script for using this
+  /// we use a conventions to distinguish different types of functions here:
+  /// 1. for toplevel external functions, use id like '$functionId'
+  /// 2. for static method or contructor of a class, use id like '$classId.$functionId'
+  /// 3. for external method member of a script class, use id like '$classId::$functionId'
+  /// 3. for external functions within a explicity declared namespace, use id like '$namespaceId::$functionId'
   void bindExternalFunction(String id, Function function,
       {bool override = true}) {
     if (externalFunctions.containsKey(id) && !override) {
@@ -628,25 +633,11 @@ class HTInterpreter {
   }
 
   /// Fetch an external function or a method
-  Function fetchExternalFunctionOrMethod(String id) {
-    if (id.contains('::')) {
-      return fetchExternalMethod(id);
-    }
-
+  Function fetchExternalFunction(String id) {
     if (!externalFunctions.containsKey(id)) {
       throw HTError.undefinedExternal(id);
     }
     return externalFunctions[id]!;
-  }
-
-  /// Register an external function within non-external class & struct & namespace
-  /// there must be a declaraction also in script for using this
-  void bindExternalMethod(String id, Function method, {bool override = true}) {
-    assert(id.contains('::'));
-    if (externalMethods.containsKey(id) && !override) {
-      throw HTError.defined(id, HTErrorType.runtimeError);
-    }
-    externalMethods[id] = method;
   }
 
   /// Fetch an external method
@@ -2640,6 +2631,11 @@ class HTInterpreter {
     if (hasClassId) {
       classId = _currentBytecodeModule.getConstString();
     }
+    String? explicityNamespaceId;
+    final hasExplicityNamespaceId = _currentBytecodeModule.readBool();
+    if (hasExplicityNamespaceId) {
+      explicityNamespaceId = _currentBytecodeModule.getConstString();
+    }
     String? externalTypeId;
     final hasExternalTypedef = _currentBytecodeModule.readBool();
     if (hasExternalTypedef) {
@@ -2725,6 +2721,7 @@ class HTInterpreter {
       internalName: internalName,
       id: id,
       classId: classId,
+      explicityNamespaceId: explicityNamespaceId,
       closure: currentNamespace,
       documentation: documentation,
       isPrivate: isPrivate,
