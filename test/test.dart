@@ -25,6 +25,7 @@ Future<void> main() async {
     // final iterable = arr.where((obj) => obj.valid == true)
 
     final arr2 = [1,2,3]
+    print(arr2.first)
 ''');
 
   if (r is Future) {

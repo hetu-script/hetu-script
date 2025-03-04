@@ -230,38 +230,43 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  HTFunction clone() => HTFunction(file, module, interpreter,
-      internalName: internalName,
-      id: id,
-      classId: classId,
-      closure: closure != null ? closure as HTNamespace : null,
-      source: source,
-      isExternal: isExternal,
-      isStatic: isStatic,
-      isConst: isConst,
-      isTopLevel: isTopLevel,
-      category: category,
-      externalTypeId: externalTypeId,
-      genericTypeParameters: genericTypeParameters,
-      hasParamDecls: hasParamDecls,
-      paramDecls: paramDecls,
-      declType: declType,
-      isAbstract: isAbstract,
-      isVariadic: isVariadic,
-      minArity: minArity,
-      maxArity: maxArity,
-      externalFunc: externalFunc,
-      ip: ip,
-      line: line,
-      column: column,
-      // namespace: namespace != null ? namespace as HTNamespace : null,
-      redirectingConstructor: redirectingConstructor,
-      klass: klass);
+  HTFunction clone() => HTFunction(
+        file,
+        module,
+        interpreter,
+        internalName: internalName,
+        id: id,
+        classId: classId,
+        closure: closure != null ? closure as HTNamespace : null,
+        source: source,
+        isExternal: isExternal,
+        isStatic: isStatic,
+        isConst: isConst,
+        isTopLevel: isTopLevel,
+        category: category,
+        externalTypeId: externalTypeId,
+        genericTypeParameters: genericTypeParameters,
+        hasParamDecls: hasParamDecls,
+        paramDecls: paramDecls,
+        declType: declType,
+        isAbstract: isAbstract,
+        isVariadic: isVariadic,
+        minArity: minArity,
+        maxArity: maxArity,
+        externalFunc: externalFunc,
+        ip: ip,
+        line: line,
+        column: column,
+        namespace: namespace != null ? namespace as HTNamespace : null,
+        redirectingConstructor: redirectingConstructor,
+        klass: klass,
+      );
 
   HTFunction bind(HTStruct struct) {
     if (category == FunctionCategory.literal) {
-      return clone()..namespace = struct.namespace;
-      // ..instance = struct;
+      return clone()
+        ..namespace = struct.namespace
+        ..instance = struct;
     } else {
       throw HTError.binding();
     }
@@ -271,12 +276,11 @@ class HTFunction extends HTFunctionDeclaration
     HTStruct struct, {
     List<dynamic> positionalArgs = const [],
     Map<String, dynamic> namedArgs = const {},
-    // List<HTType> typeArgs = const [],
   }) {
     final savedNamespace = namespace;
-    // final savedInstance = instance;
+    final savedInstance = instance;
     namespace = struct.namespace;
-    // instance = struct;
+    instance = struct;
     final result = call(
       positionalArgs: positionalArgs,
       namedArgs: namedArgs,
@@ -284,12 +288,12 @@ class HTFunction extends HTFunctionDeclaration
     if (result is Future) {
       return result.then((value) {
         namespace = savedNamespace;
-        // instance = savedInstance;
+        instance = savedInstance;
         return value;
       });
     } else {
       namespace = savedNamespace;
-      // instance = savedInstance;
+      instance = savedInstance;
       return result;
     }
   }

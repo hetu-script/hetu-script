@@ -484,7 +484,7 @@ class HTIterableClassBinding extends HTExternalClass {
           });
         };
       case 'first':
-        instance.isNotEmpty ? instance.first : null;
+        return instance.isNotEmpty ? instance.first : null;
       case 'last':
         return instance.isNotEmpty ? instance.last : null;
       case 'single':
