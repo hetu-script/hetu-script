@@ -48,11 +48,11 @@ Hetu have a prototyped based struct object like the literal object syntax in Jav
 
 ````typescript
 
-struct Prototype {
+struct Object {
   /// Create a struct from a dart Json data
   /// Usage:
   /// ```
-  /// var obj = Prototype.fromJson(jsonDataFromDart)
+  /// var obj = Object.fromJson(jsonDataFromDart)
   /// ```
   external static function fromJson(data) -> {}
 
@@ -102,7 +102,7 @@ obj.contains('a') // true
 For static methods, you need to explicitly call by the prototype:
 
 ```dart
-final book = Prototype.fromJson(data);
+final book = Object.fromJson(data);
 ```
 
 ## Math

@@ -36,7 +36,7 @@ In script:
 
 ```kotlin
 function main (data) {
-  var book = Prototype.fromJson(data)
+  var book = Object.fromJson(data)
   print(book)
 }
 ```

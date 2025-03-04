@@ -95,6 +95,7 @@ class HTFunction extends HTFunctionDeclaration
     int? column,
     this.redirectingConstructor,
     this.klass,
+    this.namespace,
   }) {
     this.interpreter = interpreter;
     this.file = file;
@@ -720,36 +721,37 @@ class HTFunction extends HTFunctionDeclaration
           // a external class method
           if (klass!.isExternal) {
             if (category != FunctionCategory.getter) {
-              assert(instance != null);
               assert(externalFunc != null);
               final func = externalFunc!;
-              if (func is HTExternalMethod) {
-                result = func(
-                  object: instance!,
-                  positionalArgs: finalPosArgs,
-                  namedArgs: finalNamedArgs,
-                );
+              if (isStatic || category == FunctionCategory.constructor) {
+                if (func is HTExternalFunction) {
+                  result = func(
+                    positionalArgs: finalPosArgs,
+                    namedArgs: finalNamedArgs,
+                  );
+                } else {
+                  result = Function.apply(
+                      func,
+                      finalPosArgs,
+                      finalNamedArgs.map<Symbol, dynamic>(
+                          (key, value) => MapEntry(Symbol(key), value)));
+                }
               } else {
-                result = Function.apply(
-                    func,
-                    [instance!, ...finalPosArgs],
-                    finalNamedArgs.map<Symbol, dynamic>(
-                        (key, value) => MapEntry(Symbol(key), value)));
+                assert(instance != null);
+                if (func is HTExternalMethod) {
+                  result = func(
+                    object: instance!,
+                    positionalArgs: finalPosArgs,
+                    namedArgs: finalNamedArgs,
+                  );
+                } else {
+                  result = Function.apply(
+                      func,
+                      [instance!, ...finalPosArgs],
+                      finalNamedArgs.map<Symbol, dynamic>(
+                          (key, value) => MapEntry(Symbol(key), value)));
+                }
               }
-              // if (func is HTExternalMethod) {
-              //   result = func(
-              //     // namespace: interpreter.currentNamespace,
-              //     positionalArgs: finalPosArgs,
-              //     namedArgs: finalNamedArgs,
-              //     // typeArgs: typeArgs,
-              //   );
-              // } else {
-              //   result = Function.apply(
-              //       func,
-              //       finalPosArgs,
-              //       finalNamedArgs.map<Symbol, dynamic>(
-              //           (key, value) => MapEntry(Symbol(key), value)));
-              // }
             } else {
               result = klass!.externalClass!.memberGet('$classId.$id');
             }

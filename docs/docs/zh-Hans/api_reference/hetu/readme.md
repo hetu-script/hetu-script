@@ -49,11 +49,11 @@ void main() {
 
 ````typescript
 
-struct Prototype {
+struct Object {
   /// Create a struct from a dart Json data
   /// Usage:
   /// ```
-  /// var obj = Prototype.fromJson(jsonDataFromDart)
+  /// var obj = Object.fromJson(jsonDataFromDart)
   /// ```
   external static function fromJson(data) -> {}
 
@@ -103,7 +103,7 @@ obj.contains('a') // true
 对于 static 方法，需要通过原型的名字来调用：
 
 ```dart
-final book = Prototype.fromJson(data);
+final book = Object.fromJson(data);
 ```
 
 ## Math

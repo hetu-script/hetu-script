@@ -2220,7 +2220,7 @@ class HTInterpreter {
           ip: definitionIp,
           line: line,
           column: column,
-          // namespace: currentNamespace,
+          namespace: currentNamespace,
         );
         if (!hasExternalTypedef) {
           _localValue = func;

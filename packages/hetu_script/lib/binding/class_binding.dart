@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:collection';
 
 import 'package:characters/characters.dart';
+import 'package:hetu_script/utils/math.dart';
 
 import '../external/external_class.dart';
 // import '../value/object.dart';
@@ -371,7 +372,7 @@ class HTIteratorClassBinding extends HTExternalClass {
       case 'moveNext':
         return ({object, positionalArgs, namedArgs}) => object.moveNext();
       case 'current':
-        return ({object, positionalArgs, namedArgs}) => object.current;
+        return instance.current;
       default:
         throw HTError.undefined(id);
     }
@@ -390,14 +391,12 @@ class HTIterableClassBinding extends HTExternalClass {
       case 'toJSON':
         return ({object, positionalArgs, namedArgs}) => jsonifyList(object);
       case 'random':
-        ({object, positionalArgs, namedArgs}) {
-          final random = math.Random();
-          if (object.isNotEmpty) {
-            return object.elementAt(random.nextInt(object.length));
-          } else {
-            return null;
-          }
-        };
+        final random = math.Random();
+        if (instance.isNotEmpty) {
+          return instance.elementAt(random.nextInt(instance.length));
+        } else {
+          return null;
+        }
       case 'iterator':
         return instance.iterator;
       case 'map':
@@ -411,13 +410,13 @@ class HTIterableClassBinding extends HTExternalClass {
         return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.where((element) {
-            return func.call(positionalArgs: [element]);
+            return func.call(positionalArgs: [element]) as bool;
           });
         };
       case 'expand':
         return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
-          return object.expand((element) {
+          return instance.expand((element) {
             return func.call(positionalArgs: [element]) as Iterable;
           });
         };
@@ -828,33 +827,34 @@ class HTRandomClassBinding extends HTExternalClass {
         return ({object, positionalArgs, namedArgs}) {
           final double input = (positionalArgs[0] as num).toDouble();
           final double target = (positionalArgs[1] as num).toDouble();
-          return object.nextBoolBiased(input, target);
+          return (object as math.Random).nextBoolBiased(input, target);
         };
       case 'nextDouble':
         return ({object, positionalArgs, namedArgs}) => object.nextDouble();
       case 'nearInt':
         return ({object, positionalArgs, namedArgs}) {
-          return object.nearInt(positionalArgs.first,
-              exponent: namedArgs['exponent']);
+          return (object as math.Random)
+              .nearInt(positionalArgs.first, exponent: namedArgs['exponent']);
         };
       case 'distantInt':
-        return ({object, positionalArgs, namedArgs}) => object
+        return ({object, positionalArgs, namedArgs}) => (object as math.Random)
             .distantInt(positionalArgs.first, exponent: namedArgs['exponent']);
       case 'nextInt':
         return ({object, positionalArgs, namedArgs}) =>
             object.nextInt(positionalArgs[0].toInt());
       case 'nextColorHex':
-        return ({object, positionalArgs, namedArgs}) => object.nextColorHex(
+        return ({object, positionalArgs, namedArgs}) =>
+            (object as math.Random).nextColorHex(
               hasAlpha: namedArgs['hasAlpha'],
             );
       case 'nextBrightColorHex':
         return ({object, positionalArgs, namedArgs}) =>
-            object.nextBrightColorHex(
+            (object as math.Random).nextBrightColorHex(
               hasAlpha: namedArgs['hasAlpha'],
             );
       case 'nextIterable':
         return ({object, positionalArgs, namedArgs}) =>
-            object.nextIterable(positionalArgs.first);
+            (object as math.Random).nextIterable(positionalArgs.first);
       case 'shuffle':
         return ({object, positionalArgs, namedArgs}) sync* {
           final Iterable iterable = positionalArgs.first;

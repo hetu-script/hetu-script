@@ -36,7 +36,7 @@ final result = hetu.invoke('calculate', positionalArgs: [6, 7], namedArgs: {'isF
 
 ```kotlin
 function main (data) {
-  var book = Prototype.fromJson(data)
+  var book = Object.fromJson(data)
   print(book)
 }
 ```
