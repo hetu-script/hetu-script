@@ -9,6 +9,11 @@ import 'package:args/args.dart';
 import 'common.dart';
 // import 'command.dart';
 
+const kConsoleColorRed = '\x1B[31m';
+const kConsoleColorGreen = '\x1B[32m';
+const kConsoleColorYellow = '\x1B[33m';
+const kConsoleColorReset = '\x1B[0m';
+
 final argParser = ArgParser();
 late final ArgParser runCmd, formatCmd, analyzeCmd, compileCmd;
 
@@ -42,6 +47,24 @@ void initargParser() {
       abbr: 'v', help: 'Set the version string for this module.');
 }
 
+void colorPrint(dynamic error, {bool isError = false}) {
+  if (error is HTError) {
+    if (error.severity >= MessageSeverity.error) {
+      isError = true;
+    }
+  }
+
+  if (isError) {
+    print('$kConsoleColorRed$error$kConsoleColorReset');
+  } else {
+    print('$kConsoleColorYellow$error$kConsoleColorReset');
+  }
+}
+
+void info(String message) {
+  print('$kConsoleColorGreen$message$kConsoleColorReset');
+}
+
 void main(List<String> arguments) {
   hetu.init();
   initargParser();
@@ -56,42 +79,41 @@ void main(List<String> arguments) {
     } else {
       final results = argParser.parse(arguments);
       if (results['help']) {
-        print(cliHelp);
-        print(argParser.usage);
+        info(cliHelp);
+        info(argParser.usage);
       } else if (results['version']) {
-        print('Hetu Script Language, version: $version');
+        info('Hetu Script Language, version: $version');
       } else if (results.command != null) {
         final cmd = results.command!;
         switch (cmd.name) {
           case 'run':
             if (cmd['help']) {
-              print(r'''hetu run [path] [option]
+              info(r'''hetu run [path] [option]
 Interpret a Hetu script file and print its result to terminal.
 ''');
-              print(runCmd.usage);
+              info(runCmd.usage);
             } else {
               run(cmd.rest, enterRepl: cmd['repl'], printPerfs: cmd['perfs']);
             }
           case 'format':
             if (cmd['help']) {
-              print('hetu format [path] [option]\nFormat a Hetu script file.');
-              print(formatCmd.usage);
+              info('hetu format [path] [option]\nFormat a Hetu script file.');
+              info(formatCmd.usage);
             } else {
               format(cmd.rest, cmd['out']);
             }
           case 'analyze':
             if (cmd['help']) {
-              print(
-                  'hetu analyze [path] [option]\nAnalyze a Hetu script file.');
-              print(analyzeCmd.usage);
+              info('hetu analyze [path] [option]\nAnalyze a Hetu script file.');
+              info(analyzeCmd.usage);
             } else {
               analyze(cmd.rest);
             }
           case 'compile':
             if (cmd['help']) {
-              print(
+              info(
                   'hetu compile [path] [output_path] [option]\nCompile a Hetu script file.');
-              print(compileCmd.usage);
+              info(compileCmd.usage);
             } else {
               compile(
                 cmd.rest,
@@ -101,45 +123,56 @@ Interpret a Hetu script file and print its result to terminal.
             }
         }
       } else {
-        throw 'Error: Unrecognizable commands: $arguments.';
+        colorPrint('Unrecognizable commands: $arguments.', isError: true);
       }
     }
   } catch (e) {
-    print(e);
+    colorPrint(e, isError: true);
   }
 }
 
 void enterReplMode({dynamic prompt}) async {
-  print(replInfo);
+  info(replInfo);
   if (prompt != null) {
-    print(hetu.lexicon.stringify(prompt));
+    info(hetu.lexicon.stringify(prompt));
   }
   while (true) {
     stdout.write('>>>');
-    var input = stdin.readLineSync();
-    if (input == '.exit') {
+    String input = '';
+    bool inputContinued = true;
+    while (inputContinued) {
+      String? line = stdin.readLineSync();
+      if (line == null || line.trim().isEmpty) {
+        break;
+      }
+      if (line.endsWith('\\')) {
+        line = line.substring(0, line.length - 1);
+      } else {
+        inputContinued = false;
+      }
+      input += '$line\n';
+    }
+    if (input == '.exit\n') {
       break;
     } else {
-      if (input!.endsWith('\\')) {
-        input += '\n${stdin.readLineSync()!}';
-      }
       try {
         dynamic result = hetu.eval(input);
         if (result is Future) {
           result = await result;
-          print('(Future) ${hetu.lexicon.stringify(result)}');
+          info('(Future) ${hetu.lexicon.stringify(result)}');
         } else {
-          print(hetu.lexicon.stringify(result));
+          info(hetu.lexicon.stringify(result));
         }
-      } catch (e) {
-        if (e is HTError) {
+      } catch (error) {
+        if (error is HTError) {
           if (showDetailsOfError) {
-            print(e);
+            colorPrint(error, isError: true);
           } else {
-            print(e.message);
+            colorPrint(error.message,
+                isError: error.severity >= MessageSeverity.error);
           }
         } else {
-          print(e);
+          colorPrint(error, isError: true);
         }
         print('');
       }
@@ -149,7 +182,8 @@ void enterReplMode({dynamic prompt}) async {
 
 void run(List<String> args, {bool enterRepl = false, bool printPerfs = false}) {
   if (args.isEmpty) {
-    throw 'Error: Path argument is required for \'run\' command.';
+    colorPrint('Path argument is required for \'run\' command.', isError: true);
+    return;
   }
   if (printPerfs) {
     hetu.config.printPerformanceStatistics = true;
@@ -198,14 +232,14 @@ void run(List<String> args, {bool enterRepl = false, bool printPerfs = false}) {
     showDetailsOfError = true;
     enterReplMode(prompt: prompt);
   } else {
-    print(hetu.lexicon.stringify(result));
+    info(hetu.lexicon.stringify(result));
   }
 }
 
 void format(List<String> args, String outPath) {
   // final parser = HTAstParser();
   final source = fileSystemResourceContext.getResource(args.first);
-  stdout.write('Formating: [${source.fullName}] ... ');
+  colorPrint('Formating: [${source.fullName}] ... ');
   // final config = ParserConfig(sourceType: sourceType);
   // final compilation = parser.parseToCompilation(source); //, config);
   // final module = compilation.modules[source.fullName]!;
@@ -216,11 +250,11 @@ void format(List<String> args, String outPath) {
   }
   final outFile = File(outPath);
   if (!outFile.existsSync()) {
-    stdout.write('path not exist, creating file ...');
+    colorPrint('Path not exist, creating file ...');
     outFile.createSync(recursive: true);
   }
   outFile.writeAsStringSync(fmtResult);
-  stdout.writeln('saved file to [$outPath]');
+  colorPrint('Saved file to [$outPath]');
 }
 
 void analyze(List<String> args) {
@@ -229,37 +263,35 @@ void analyze(List<String> args) {
   final result = analyzer.analyzeCompilation(compilation);
   if (result.errors.isNotEmpty) {
     for (final error in result.errors) {
-      if (error.severity >= MessageSeverity.error) {
-        print('Error: $error');
-      } else {
-        print('Warning: $error');
-      }
+      colorPrint(error, isError: true);
     }
   } else {
-    print('Analyzer found 0 problem.');
+    colorPrint('Analyzer found 0 problem.');
   }
 }
 
 void compile(List<String> args,
     {String? compileToIntArrayWithName, String? versionString}) {
   if (args.isEmpty) {
-    throw 'Error: Path argument is required for \'compile\' command.';
+    colorPrint('Path argument is required for \'compile\' command.',
+        isError: true);
+    return;
   }
   Version? version;
   if (versionString != null) {
     version = Version.parse(versionString);
   }
   final source = sourceContext.getResource(args.first);
-  print('Compiling [${source.fullName}] ...');
+  colorPrint('Compiling [${source.fullName}] ...');
   final module = bundler.bundle(
     source: source,
     version: version,
   );
   if (module.errors.isNotEmpty) {
-    for (final err in module.errors) {
-      print(err);
+    for (final error in module.errors) {
+      colorPrint(error, isError: true);
     }
-    throw 'Syntactic error(s) occurred while parsing.';
+    return;
   } else {
     final compileConfig = CompilerConfig(removeLineInfo: false);
     final compiler = HTCompiler(config: compileConfig);
@@ -300,15 +332,15 @@ final $compileToIntArrayWithName = [''');
       final content = output.toString();
       final outFile = File(outPath);
       if (!outFile.existsSync()) {
-        stdout.write('path not exist, creating file ...');
+        colorPrint('Path not exist, creating file ...');
         outFile.createSync(recursive: true);
       }
       outFile.writeAsStringSync(content);
-      stdout.writeln('saved file to [$outPath]');
+      stdout.writeln('Saved file to [$outPath]');
     } else {
       final outFile = File(outPath);
       if (!outFile.existsSync()) {
-        stdout.write('path not exist, creating file ...');
+        stdout.write('Path not exist, creating file ...');
         outFile.createSync(recursive: true);
       }
       outFile.writeAsBytesSync(bytes);

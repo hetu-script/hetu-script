@@ -14,11 +14,12 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-    final obj = Map()
+    final m = Map()
+    m['a'] = 42
 
-    obj.name = 'steve'
+    delete m['a']
 
-    print(obj)
+    print(m)
 ''');
 
   if (r is Future) {

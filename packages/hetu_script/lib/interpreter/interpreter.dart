@@ -1508,7 +1508,7 @@ class HTInterpreter {
             final object = execute();
             if (object is HTStruct) {
               final symbol = _currentBytecodeModule.getConstString();
-              object.delete(symbol);
+              object.remove(symbol);
             } else {
               throw HTError.delete(
                   filename: _currentFile,
@@ -1517,9 +1517,9 @@ class HTInterpreter {
             }
           } else if (deletingType == HTDeletingTypeCode.sub) {
             final object = execute();
-            if (object is HTStruct) {
+            if (object is HTStruct || object is Map) {
               final symbol = execute().toString();
-              object.delete(symbol);
+              object.remove(symbol);
             } else {
               throw HTError.delete(
                   filename: _currentFile,

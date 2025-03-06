@@ -115,10 +115,6 @@ class HTStruct with HTObject {
     _fields.remove(id);
   }
 
-  void delete(String? id) {
-    _fields.remove(id);
-  }
-
   void clear() {
     _fields.clear();
   }
