@@ -356,6 +356,11 @@ class Hetu {
         final struct = object as HTStruct;
         return struct.length;
       });
+      interpreter.bindExternalMethod('Object::remove', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
+        struct.remove(positionalArgs.first);
+      });
       interpreter.bindExternalMethod('Object::clone', (
           {object, positionalArgs, namedArgs}) {
         final struct = object as HTStruct;
@@ -371,7 +376,20 @@ class Hetu {
       // must convert the return type to let dart know its return value type.
       interpreter.bindExternalFunctionType(
         'VoidCallback',
-        (HTFunction function) => () => function.call(),
+        (HTFunction function) {
+          return () {
+            return function.call();
+          };
+        },
+      );
+
+      interpreter.bindExternalFunctionType(
+        'FutureOrVoidCallback',
+        (HTFunction function) {
+          return () {
+            return function.call();
+          };
+        },
       );
 
       // bind non-dynamic external functions
@@ -433,6 +451,8 @@ class Hetu {
   //   assert(_parsers.containsKey(name));
   //   _currentParser = _parsers[name]!;
   // }
+
+  String stringify(dynamic) => lexicon.stringify(dynamic);
 
   /// Evaluate a string content.
   /// If [invoke] is provided, will immediately

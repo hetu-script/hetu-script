@@ -9,9 +9,18 @@ import 'package:args/args.dart';
 import 'common.dart';
 // import 'command.dart';
 
+enum ConsoleColor {
+  red,
+  green,
+  yellow,
+  blue,
+  none,
+}
+
 const kConsoleColorRed = '\x1B[31m';
 const kConsoleColorGreen = '\x1B[32m';
 const kConsoleColorYellow = '\x1B[33m';
+const kConsoleColorBlue = '\x1B[34m';
 const kConsoleColorReset = '\x1B[0m';
 
 final argParser = ArgParser();
@@ -47,22 +56,23 @@ void initargParser() {
       abbr: 'v', help: 'Set the version string for this module.');
 }
 
-void colorPrint(dynamic error, {bool isError = false}) {
-  if (error is HTError) {
-    if (error.severity >= MessageSeverity.error) {
-      isError = true;
-    }
+void info(String message, {ConsoleColor color = ConsoleColor.green}) {
+  switch (color) {
+    case ConsoleColor.red:
+      print('$kConsoleColorRed$message$kConsoleColorReset');
+      return;
+    case ConsoleColor.green:
+      print('$kConsoleColorGreen$message$kConsoleColorReset');
+      return;
+    case ConsoleColor.yellow:
+      print('$kConsoleColorYellow$message$kConsoleColorReset');
+      return;
+    case ConsoleColor.blue:
+      print('$kConsoleColorBlue$message$kConsoleColorReset');
+      return;
+    case ConsoleColor.none:
+      print(message);
   }
-
-  if (isError) {
-    print('$kConsoleColorRed$error$kConsoleColorReset');
-  } else {
-    print('$kConsoleColorYellow$error$kConsoleColorReset');
-  }
-}
-
-void info(String message) {
-  print('$kConsoleColorGreen$message$kConsoleColorReset');
 }
 
 void main(List<String> arguments) {
@@ -123,18 +133,18 @@ Interpret a Hetu script file and print its result to terminal.
             }
         }
       } else {
-        colorPrint('Unrecognizable commands: $arguments.', isError: true);
+        info('Unrecognizable commands: $arguments.', color: ConsoleColor.red);
       }
     }
   } catch (e) {
-    colorPrint(e, isError: true);
+    info(e.toString(), color: ConsoleColor.red);
   }
 }
 
 void enterReplMode({dynamic prompt}) async {
   info(replInfo);
   if (prompt != null) {
-    info(hetu.lexicon.stringify(prompt));
+    info(hetu.lexicon.stringify(prompt), color: ConsoleColor.blue);
   }
   while (true) {
     stdout.write('>>>');
@@ -159,20 +169,23 @@ void enterReplMode({dynamic prompt}) async {
         dynamic result = hetu.eval(input);
         if (result is Future) {
           result = await result;
-          info('(Future) ${hetu.lexicon.stringify(result)}');
+          info('(Future) ${hetu.lexicon.stringify(result)}',
+              color: ConsoleColor.blue);
         } else {
-          info(hetu.lexicon.stringify(result));
+          info(hetu.lexicon.stringify(result), color: ConsoleColor.blue);
         }
       } catch (error) {
         if (error is HTError) {
           if (showDetailsOfError) {
-            colorPrint(error, isError: true);
+            info(error.toString(), color: ConsoleColor.red);
           } else {
-            colorPrint(error.message,
-                isError: error.severity >= MessageSeverity.error);
+            info(error.message,
+                color: error.severity >= MessageSeverity.error
+                    ? ConsoleColor.red
+                    : ConsoleColor.yellow);
           }
         } else {
-          colorPrint(error, isError: true);
+          info(error.toString(), color: ConsoleColor.red);
         }
         print('');
       }
@@ -182,7 +195,8 @@ void enterReplMode({dynamic prompt}) async {
 
 void run(List<String> args, {bool enterRepl = false, bool printPerfs = false}) {
   if (args.isEmpty) {
-    colorPrint('Path argument is required for \'run\' command.', isError: true);
+    info('Path argument is required for \'run\' command.',
+        color: ConsoleColor.red);
     return;
   }
   if (printPerfs) {
@@ -226,11 +240,10 @@ void run(List<String> args, {bool enterRepl = false, bool printPerfs = false}) {
           positionalArgs: scriptInvocationArgs);
     }
   }
-  final prompt =
-      'Loaded module: [${args.first}] with execution result:\n${hetu.lexicon.stringify(result)}';
+  info('Loaded module: [${args.first}] with execution result:\n');
   if (enterRepl) {
     showDetailsOfError = true;
-    enterReplMode(prompt: prompt);
+    enterReplMode(prompt: result);
   } else {
     info(hetu.lexicon.stringify(result));
   }
@@ -239,7 +252,7 @@ void run(List<String> args, {bool enterRepl = false, bool printPerfs = false}) {
 void format(List<String> args, String outPath) {
   // final parser = HTAstParser();
   final source = fileSystemResourceContext.getResource(args.first);
-  colorPrint('Formating: [${source.fullName}] ... ');
+  info('Formating: [${source.fullName}] ... ');
   // final config = ParserConfig(sourceType: sourceType);
   // final compilation = parser.parseToCompilation(source); //, config);
   // final module = compilation.modules[source.fullName]!;
@@ -250,11 +263,11 @@ void format(List<String> args, String outPath) {
   }
   final outFile = File(outPath);
   if (!outFile.existsSync()) {
-    colorPrint('Path not exist, creating file ...');
+    info('Path not exist, creating file ...', color: ConsoleColor.red);
     outFile.createSync(recursive: true);
   }
   outFile.writeAsStringSync(fmtResult);
-  colorPrint('Saved file to [$outPath]');
+  info('Saved file to [$outPath]', color: ConsoleColor.blue);
 }
 
 void analyze(List<String> args) {
@@ -263,18 +276,21 @@ void analyze(List<String> args) {
   final result = analyzer.analyzeCompilation(compilation);
   if (result.errors.isNotEmpty) {
     for (final error in result.errors) {
-      colorPrint(error, isError: true);
+      info(error.toString(),
+          color: error.severity >= MessageSeverity.error
+              ? ConsoleColor.red
+              : ConsoleColor.yellow);
     }
   } else {
-    colorPrint('Analyzer found 0 problem.');
+    info('Analyzer found 0 problem.', color: ConsoleColor.blue);
   }
 }
 
 void compile(List<String> args,
     {String? compileToIntArrayWithName, String? versionString}) {
   if (args.isEmpty) {
-    colorPrint('Path argument is required for \'compile\' command.',
-        isError: true);
+    info('Path argument is required for \'compile\' command.',
+        color: ConsoleColor.red);
     return;
   }
   Version? version;
@@ -282,14 +298,17 @@ void compile(List<String> args,
     version = Version.parse(versionString);
   }
   final source = sourceContext.getResource(args.first);
-  colorPrint('Compiling [${source.fullName}] ...');
+  info('Compiling [${source.fullName}] ...');
   final module = bundler.bundle(
     source: source,
     version: version,
   );
   if (module.errors.isNotEmpty) {
     for (final error in module.errors) {
-      colorPrint(error, isError: true);
+      info(error.toString(),
+          color: error.severity >= MessageSeverity.error
+              ? ConsoleColor.red
+              : ConsoleColor.yellow);
     }
     return;
   } else {
@@ -332,7 +351,7 @@ final $compileToIntArrayWithName = [''');
       final content = output.toString();
       final outFile = File(outPath);
       if (!outFile.existsSync()) {
-        colorPrint('Path not exist, creating file ...');
+        info('Path not exist, creating file ...', color: ConsoleColor.yellow);
         outFile.createSync(recursive: true);
       }
       outFile.writeAsStringSync(content);

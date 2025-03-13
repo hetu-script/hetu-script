@@ -635,5 +635,8 @@ class HTLexiconHetu extends HTLexicon {
   String get idApply => 'apply';
 
   @override
+  String get idCall => 'call';
+
+  @override
   String get idThen => 'then';
 }

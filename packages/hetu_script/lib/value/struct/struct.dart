@@ -288,6 +288,7 @@ class HTStruct with HTObject {
     final cloned =
         HTStruct(interpreter, prototype: prototype, closure: closure);
     for (final key in _fields.keys) {
+      if (key.startsWith(interpreter.lexicon.internalPrefix)) continue;
       final value = _fields[key];
       final copiedValue = interpreter.toStructValue(value);
       cloned.define(key, copiedValue);

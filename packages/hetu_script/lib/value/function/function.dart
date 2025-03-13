@@ -311,6 +311,8 @@ class HTFunction extends HTFunctionDeclaration
           namedArgs: namedArgs,
         );
       };
+    } else if (id == interpreter.lexicon.idCall) {
+      return this;
     }
 
     if (!ignoreUndefined) {

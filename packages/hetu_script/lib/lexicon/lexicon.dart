@@ -1019,6 +1019,9 @@ abstract class HTLexicon {
   /// `apply()` api on function object.
   String get idApply;
 
+  /// `call()` api on function object.
+  String get idCall;
+
   /// `then()` api on Future object.
   String get idThen;
 }
