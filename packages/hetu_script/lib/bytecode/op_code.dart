@@ -168,30 +168,24 @@ Type getConstantType(HTConstantType type) {
 /// Register values exists as groups,
 /// the index determines a certain value within this group.
 class HTRegIdx {
-  static const value = 0;
-  static const identifier = 1;
-  static const objectId = 2;
-  static const loopCount = 3;
-  static const anchorCount = 4;
+  static const assignRight = 0;
+  static const ifNullLeft = 1;
+  static const orLeft = 2;
+  static const andLeft = 3;
+  static const equalLeft = 4;
+  static const relationLeft = 5;
 
-  static const assignRight = 7;
-  static const ifNullLeft = 8;
-  static const orLeft = 9;
-  static const andLeft = 10;
-  static const equalLeft = 11;
-  static const relationLeft = 12;
+  static const bitwiseOrLeft = 6;
+  static const bitwiseXorLeft = 7;
+  static const bitwiseAndLeft = 8;
 
-  static const bitwiseOrLeft = 13;
-  static const bitwiseXorLeft = 14;
-  static const bitwiseAndLeft = 15;
+  static const bitwiseShiftLeft = 9;
 
-  static const bitwiseShiftLeft = 16;
+  static const additiveLeft = 10;
+  static const multiplicativeLeft = 11;
 
-  static const additiveLeft = 17;
-  static const multiplicativeLeft = 18;
+  static const postfixObject = 12;
+  static const postfixKey = 13;
 
-  static const postfixObject = 19;
-  static const postfixKey = 20;
-
-  static const length = 24;
+  static const length = 16;
 }

@@ -47,6 +47,29 @@ double aangle(x1, y1, x2, y2) {
   return radians(angle(x1, y1, x2, y2));
 }
 
+// Box–Muller transform for generating normally distributed random numbers
+double gaussianNoise(double mean, double standardDeviation,
+    {math.Random? randomGenerator}) {
+  const double pi2 = math.pi * 2.0;
+
+  randomGenerator ??= math.Random();
+
+  double r1 = randomGenerator.nextDouble();
+  double r2 = randomGenerator.nextDouble();
+
+  bool quadrant = randomGenerator.nextBool();
+
+  return quadrant
+      ? math.sqrt(-2.0 * math.log(r1)) *
+              math.cos(pi2 * r2) *
+              standardDeviation +
+          mean
+      : math.sqrt(-2.0 * math.log(r1)) *
+              math.sin(pi2 * r2) *
+              standardDeviation +
+          mean;
+}
+
 extension RandomEx on math.Random {
   bool nextBoolBiased(double input, double target) {
     if (input >= target) {

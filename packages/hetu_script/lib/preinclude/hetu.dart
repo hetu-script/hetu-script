@@ -295,9 +295,14 @@ class Hetu {
       interpreter.bindExternalClass(HTJSONClassBinding(lexicon: lexicon));
 
       // bind dynamic external functions or static method
-      interpreter.bindExternalFunction('print', ({positionalArgs, namedArgs}) {
-        console.log(positionalArgs);
-      });
+      interpreter.bindExternalFunction('print',
+          ({positionalArgs, namedArgs}) => console.log(positionalArgs));
+      interpreter.bindExternalFunction(
+          'eval', ({positionalArgs, namedArgs}) => eval(positionalArgs.first));
+      interpreter.bindExternalFunction('require',
+          ({positionalArgs, namedArgs}) => require(positionalArgs.first));
+      interpreter.bindExternalFunction(
+          'help', ({positionalArgs, namedArgs}) => help(positionalArgs.first));
       interpreter.bindExternalFunction('Object.fromJSON', (
           {positionalArgs, namedArgs}) {
         final jsonData = positionalArgs.first as Map<dynamic, dynamic>;
@@ -525,6 +530,7 @@ class Hetu {
       return null;
     }
     final bytes = _compileSource(source);
+    final savedContext = interpreter.getContext();
     final result = interpreter.loadBytecode(
       bytes: bytes,
       module: module ?? source.fullName,
@@ -534,6 +540,7 @@ class Hetu {
       namedArgs: namedArgs,
       // typeArgs: typeArgs,
     );
+    interpreter.setContext(savedContext);
     return result;
   }
 
@@ -662,7 +669,7 @@ class Hetu {
   }
 
   /// Dynamically load a source into current bytecode.
-  HTNamespace require(String path, [bool isScript = true]) {
+  HTNamespace require(String path) {
     final key = config.normalizeImportPath
         ? sourceContext.getAbsolutePath(key: path)
         : path;
@@ -691,7 +698,7 @@ class Hetu {
     interpreter.loadBytecode(bytes: bytes, module: key);
 
     final nsp = interpreter.currentBytecodeModule.namespaces.values.last;
-    interpreter.setContext(context: savedContext);
+    interpreter.setContext(savedContext);
     return nsp;
   }
 

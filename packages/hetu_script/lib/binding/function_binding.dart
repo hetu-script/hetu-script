@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:quiver/iterables.dart';
 import 'package:fast_noise/fast_noise.dart';
 
-import '../utils/gaussian_noise.dart';
 import '../utils/math.dart';
 
 // import '../../value/object.dart';

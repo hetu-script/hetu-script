@@ -67,8 +67,6 @@ abstract class HTParser with TokenReader {
   // All import decl in this list must have non-null [fromPath]
   late List<ImportExportDecl> currentModuleImports;
 
-  List<ASTAnnotation> currentPrecedings = [];
-
   HTSource? currentSource;
 
   HTParser({
@@ -88,48 +86,27 @@ abstract class HTParser with TokenReader {
     required T? Function() parseFunction,
   }) {
     final List<T> listResult = [];
-    final savedPrecedings = savePrecedings();
     while (curTok.lexeme != endToken && curTok.lexeme != Token.endOfFile) {
       // deal with comments or empty liens before spread syntax
-      handlePrecedings();
+      final precedings = savePrecedings();
       if (curTok.lexeme == endToken) break;
       final expr = parseFunction();
       if (expr != null) {
+        expr.precedings = precedings;
         listResult.add(expr);
         handleTrailing(expr,
             handleComma: handleComma, endMarkForCommaExpressions: endToken);
       }
     }
-    if (currentPrecedings.isNotEmpty && listResult.isNotEmpty) {
-      listResult.last.succeedings = currentPrecedings;
-      currentPrecedings = [];
-    }
-    currentPrecedings = savedPrecedings;
     return listResult;
   }
 
   // save current preceding comments & empty lines
-  List<ASTAnnotation> savePrecedings() {
-    final saved = currentPrecedings;
-    currentPrecedings = [];
-    return saved;
-  }
-
-  // set current preceding comments & empty lines on parsed ast.
-  bool setPrecedings(ASTNode expr) {
-    if (currentPrecedings.isNotEmpty) {
-      expr.precedings = currentPrecedings;
-      currentPrecedings = [];
-      return true;
-    }
-    return false;
-  }
 
   /// To handle the comments & empty lines before a expr;
-  bool handlePrecedings() {
-    bool handled = false;
+  List<ASTAnnotation> savePrecedings() {
+    List<ASTAnnotation> precedings = [];
     while (curTok is TokenComment || curTok is TokenEmptyLine) {
-      handled = true;
       ASTAnnotation documentation;
       if (curTok is TokenComment) {
         documentation = ASTComment.fromCommentToken(advance() as TokenComment);
@@ -143,9 +120,9 @@ abstract class HTParser with TokenReader {
           length: token.length,
         );
       }
-      currentPrecedings.add(documentation);
+      precedings.add(documentation);
     }
-    return handled;
+    return precedings;
   }
 
   void _handleTrailing(ASTNode expr, {bool afterComma = false}) {
@@ -168,8 +145,10 @@ abstract class HTParser with TokenReader {
     _handleTrailing(expr);
     if (endMarkForCommaExpressions != null &&
         curTok.lexeme != endMarkForCommaExpressions) {
-      if (handleComma) match(lexer.lexicon.comma);
-      _handleTrailing(expr, afterComma: true);
+      if (handleComma && curTok.lexeme == lexer.lexicon.comma) {
+        advance();
+        _handleTrailing(expr, afterComma: true);
+      }
     }
   }
 

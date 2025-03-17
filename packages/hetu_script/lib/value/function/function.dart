@@ -577,7 +577,7 @@ class HTFunction extends HTFunctionDeclaration
             for (var i = 0; i < referCtorPosArgIps.length; ++i) {
               final HTContext savedContext = interpreter.getContext();
               interpreter.setContext(
-                context: HTContext(
+                HTContext(
                   file: file,
                   module: module,
                   namespace: callClosure,
@@ -592,7 +592,7 @@ class HTFunction extends HTFunctionDeclaration
                 final List arg = interpreter.execute();
                 referCtorPosArgs.addAll(arg);
               }
-              interpreter.setContext(context: savedContext);
+              interpreter.setContext(savedContext);
             }
 
             final referCtorNamedArgs = <String, dynamic>{};

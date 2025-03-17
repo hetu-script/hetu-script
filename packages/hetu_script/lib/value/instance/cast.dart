@@ -43,7 +43,7 @@ class HTCast with HTObject, InterpreterRef {
     } else if (castee is HTCast) {
       object = castee.object;
     } else {
-      throw HTError.castee(interpreter.localSymbol!);
+      throw HTError.castee(interpreter.stack.localSymbol!);
     }
   }
 

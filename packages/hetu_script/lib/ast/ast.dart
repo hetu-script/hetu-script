@@ -2149,7 +2149,10 @@ class StructObjField extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(InternalIdentifier.literalStructField);
+  }) : super(
+          InternalIdentifier.literalStructField,
+          isStatement: true,
+        );
 }
 
 class StructObjExpr extends ASTNode {

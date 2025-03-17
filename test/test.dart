@@ -14,15 +14,7 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-    struct T {
-      constructor() {
-        this.a = 1
-      }
-      var b = 42
-    }
-
-    struct T2 extends T {}
-    let obj = T2()
+    let result = eval('1 + 2')
 ''');
 
   if (r is Future) {
