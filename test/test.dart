@@ -14,6 +14,18 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
+    async function futureTest (n) {
+      await Future.delayed(1);
+      return 'hello, ${n}'
+    }
+
+    var i = 0
+    while (i < 5) {
+      final v = await futureTest(i)
+      print(v);
+      i++
+    }
+
 ''');
 
   if (r is Future) {

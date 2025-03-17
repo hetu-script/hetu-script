@@ -151,10 +151,12 @@ class HTContext {
 class FutureExecution {
   Future future;
   HTContext context;
+  HTStackFrame stack;
 
   FutureExecution({
     required this.future,
     required this.context,
+    required this.stack,
   });
 }
 
@@ -169,9 +171,6 @@ class HTStackFrame {
   /// [loopCount] in current stack frame.
   final List<HTInterpreterLoopInfo> loops = [];
   final List<int> anchors = [];
-
-  int loopCount = 0;
-  int anchorCount = 0;
 
   final List<dynamic> registerValues = List.filled(HTRegIdx.length, null);
 
@@ -1044,7 +1043,7 @@ class HTInterpreter {
       ip: currentBytecodeModule.ip,
       line: currentLine,
       column: currentColumn,
-      stackFrames: _stackFrames,
+      // stackFrames: _stackFrames,
       scriptMode: scriptMode,
       globallyImport: globallyImport,
       compilerVersion: compilerVersion,
@@ -1102,9 +1101,9 @@ class HTInterpreter {
     } else if (libChanged) {
       _currentColumn = 0;
     }
-    if (context.stackFrames != null) {
-      _stackFrames = context.stackFrames!;
-    }
+    // if (context.stackFrames != null) {
+    //   _stackFrames = context.stackFrames!;
+    // }
   }
 
   /// Interpret a loaded module with the key of [module]
@@ -1131,6 +1130,9 @@ class HTInterpreter {
     if (createStackFrame) {
       _createStackFrame();
     }
+    if (stackFrame != null) {
+      _stackFrames.add(stackFrame);
+    }
     if (localValue != null) stack.localValue = localValue;
     final result = _execute(
         // endOfFileHandler, endOfModuleHandler
@@ -1138,7 +1140,7 @@ class HTInterpreter {
     if (context != null) {
       setContext(savedContext);
     }
-    if (retractStackFrame) {
+    if (retractStackFrame || stackFrame != null) {
       _retractStackFrame();
     }
     return result;
@@ -1193,24 +1195,20 @@ class HTInterpreter {
               _currentBytecodeModule.ip + continueLength,
               _currentBytecodeModule.ip + breakLength,
               currentNamespace));
-          ++stack.loopCount;
         case OpCode.breakLoop:
           assert(stack.loops.isNotEmpty);
           _currentBytecodeModule.ip = stack.loops.last.breakIp;
           currentNamespace = stack.loops.last.namespace;
           stack.loops.removeLast();
-          --stack.loopCount;
         case OpCode.continueLoop:
           assert(stack.loops.isNotEmpty);
           _currentBytecodeModule.ip = stack.loops.last.continueIp;
         // store the goto jump point
         case OpCode.anchor:
           stack.anchors.add(_currentBytecodeModule.ip);
-          ++stack.anchorCount;
         case OpCode.clearAnchor:
           assert(stack.anchors.isNotEmpty);
           stack.anchors.removeLast();
-          --stack.anchorCount;
         case OpCode.goto:
           assert(stack.anchors.isNotEmpty);
           final distance = _currentBytecodeModule.readUint16();
@@ -1236,14 +1234,8 @@ class HTInterpreter {
         case OpCode.endOfExec:
           return stack.localValue;
         case OpCode.endOfFunc:
-          for (var i = 0; i < stack.loopCount; ++i) {
-            stack.loops.removeLast();
-          }
-          stack.loopCount = 0;
-          for (var i = 0; i < stack.anchorCount; ++i) {
-            stack.anchors.removeLast();
-          }
-          stack.anchorCount = 0;
+          stack.loops.clear();
+          stack.anchors.clear();
           return stack.localValue;
         case OpCode.createStackFrame:
           _createStackFrame();
@@ -1442,6 +1434,7 @@ class HTInterpreter {
                 final savedContext = getContext();
                 futureExecution = FutureExecution(
                   context: savedContext,
+                  stack: stack,
                   future: waitFutureExucution(initValue).then((value) {
                     decl.value = value;
                   }),
@@ -1565,10 +1558,10 @@ class HTInterpreter {
           final truthValue = _truthy(stack.localValue);
           stack.localValue = null;
           if (!truthValue) {
+            assert(stack.loops.isNotEmpty);
             _currentBytecodeModule.ip = stack.loops.last.breakIp;
             currentNamespace = stack.loops.last.namespace;
             stack.loops.removeLast();
-            --stack.loopCount;
             _clearLocals();
           }
         case OpCode.doStmt:
@@ -1578,13 +1571,13 @@ class HTInterpreter {
             truthValue = _truthy(stack.localValue);
             stack.localValue = null;
           }
+          assert(stack.loops.isNotEmpty);
           if (truthValue) {
             _currentBytecodeModule.ip = stack.loops.last.startIp;
           } else {
             _currentBytecodeModule.ip = stack.loops.last.breakIp;
             currentNamespace = stack.loops.last.namespace;
             stack.loops.removeLast();
-            --stack.loopCount;
             _clearLocals();
           }
         case OpCode.switchStmt:
@@ -1780,7 +1773,10 @@ class HTInterpreter {
           if (stack.localValue is Future) {
             final HTContext savedContext = getContext();
             return FutureExecution(
-                future: stack.localValue, context: savedContext);
+              future: stack.localValue,
+              context: savedContext,
+              stack: stack,
+            );
           }
         case OpCode.memberGet:
           final object = stack.getValue(HTRegIdx.postfixObject);
@@ -1952,32 +1948,19 @@ class HTInterpreter {
     } while (instruction != OpCode.endOfCode);
   }
 
-  Future<dynamic> waitFutureExucution(
-    FutureExecution futureExecution, {
-    HTContext? context,
-    HTStackFrame? stackFrame,
-  }) async {
-    final v = await futureExecution.future;
-    var f = execute(
+  Future<dynamic> waitFutureExucution(FutureExecution futureExecution) async {
+    var possibleFutureValue = await futureExecution.future;
+    var result = execute(
       createStackFrame: false,
       retractStackFrame: false,
-      context: context ?? futureExecution.context,
-      stackFrame: stackFrame,
-      localValue: v,
+      context: futureExecution.context,
+      stackFrame: futureExecution.stack,
+      localValue: possibleFutureValue,
     );
-    if (f is FutureExecution) {
-      while (f is FutureExecution) {
-        f = await waitFutureExucution(
-          f,
-          context: f.context,
-          stackFrame: stack,
-        );
-      }
-      return f;
-    } else {
-      _retractStackFrame();
-      return f;
+    while (result is FutureExecution) {
+      result = await waitFutureExucution(result);
     }
+    return result;
   }
 
   void _handleImportExport() {
