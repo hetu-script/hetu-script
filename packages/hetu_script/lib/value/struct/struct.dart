@@ -49,7 +49,7 @@ class HTStruct with HTObject {
     for (final key in _fields.keys) {
       final value = _fields[key];
       final encap = interpreter.encapsulate(value);
-      fieldTypes[key] = encap.valueType?.resolve(namespace) ??
+      fieldTypes[key] = encap?.valueType?.resolve(namespace) ??
           HTTypeAny(interpreter.lexicon.kAny);
     }
     return HTStructuralType(fieldTypes: fieldTypes, closure: namespace);
@@ -317,5 +317,12 @@ class HTStruct with HTObject {
       final copiedValue = interpreter.toStructValue(value);
       define(key, copiedValue, override: true, throws: false);
     }
+  }
+
+  String help() {
+    StringBuffer buffer = StringBuffer();
+    buffer.writeln('struct $id');
+    buffer.write(interpreter.lexicon.stringify(valueType));
+    return buffer.toString();
   }
 }

@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:hetu_script/declaration/declaration.dart';
 import 'package:hetu_script/declaration/variable/variable_declaration.dart';
+import 'package:hetu_script/value/instance/instance.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -271,7 +272,7 @@ class HTInterpreter {
 
   /// Catch errors throwed by other code, and wrap them with detailed informations.
   void processError(Object error, [Object? externalStackTrace]) {
-    final sb = StringBuffer();
+    final buffer = StringBuffer();
 
     void handleStackTrace(List<String> stackTrace,
         {bool withLineNumber = false}) {
@@ -281,42 +282,42 @@ class HTInterpreter {
               i >= stackTrace.length - errorConfig.stackTraceDisplayCountLimit;
               --i) {
             if (withLineNumber) {
-              sb.write('#${stackTrace.length - 1 - i}\t');
+              buffer.write('#${stackTrace.length - 1 - i}\t');
             }
-            sb.writeln(stackTrace[i]);
+            buffer.writeln(stackTrace[i]);
           }
-          sb.writeln(
+          buffer.writeln(
               '...(and other ${stackTrace.length - errorConfig.stackTraceDisplayCountLimit} messages)');
         } else {
           for (var i = stackTrace.length - 1; i >= 0; --i) {
             if (withLineNumber) {
-              sb.write('#${stackTrace.length - 1 - i}\t');
+              buffer.write('#${stackTrace.length - 1 - i}\t');
             }
-            sb.writeln(stackTrace[i]);
+            buffer.writeln(stackTrace[i]);
           }
         }
       } else if (errorConfig.stackTraceDisplayCountLimit < 0) {
         for (var i = stackTrace.length - 1; i >= 0; --i) {
           if (withLineNumber) {
-            sb.write('#${stackTrace.length - 1 - i}\t');
+            buffer.write('#${stackTrace.length - 1 - i}\t');
           }
-          sb.writeln(stackTrace[i]);
+          buffer.writeln(stackTrace[i]);
         }
       }
     }
 
     if (stackTraceList.isNotEmpty && errorConfig.showHetuStackTrace) {
-      sb.writeln(HTLocale.current.scriptStackTrace);
+      buffer.writeln(HTLocale.current.scriptStackTrace);
       handleStackTrace(stackTraceList, withLineNumber: true);
     }
     if (externalStackTrace != null && errorConfig.showDartStackTrace) {
-      sb.writeln(HTLocale.current.externalStackTrace);
+      buffer.writeln(HTLocale.current.externalStackTrace);
       final externalStackTraceList =
           externalStackTrace.toString().trim().split('\n').reversed.toList();
       handleStackTrace(externalStackTraceList);
     }
 
-    final stackTraceString = sb.toString().trimRight();
+    final stackTraceString = buffer.toString().trimRight();
     if (error is HTError) {
       final wrappedError = HTError(
         error.code,
@@ -482,16 +483,34 @@ class HTInterpreter {
   }
 
   /// Get the documentation of a declaration in a certain namespace.
-  String? help(dynamic id, {String? module}) {
+  String? help(dynamic object, {String? module}) {
     try {
-      if (id is HTDeclaration) {
-        return id.documentation;
-      } else if (id is String) {
-        HTNamespace nsp = getModuleNamespace(id: module);
-        return nsp.help(id);
+      StringBuffer buffer = StringBuffer();
+      final encap = encapsulate(object);
+      if (encap == null) {
+        buffer.write(globalNamespace.help());
+      } else if (encap is HTTypeObject) {
+        buffer.writeln('type ${object.id}');
+        buffer.write(lexicon.stringify(object));
+      } else if (encap is HTNamespace) {
+        if (encap.documentation != null) {
+          buffer.write(object.documentation);
+        }
+        buffer.write(encap.help());
+      } else if (encap is HTFunction) {
+        buffer.write(encap.help());
+      } else if (encap is HTClass) {
+        buffer.write(encap.help());
+      } else if (encap is HTInstance) {
+        buffer.write(encap.help());
+      } else if (encap is HTStruct) {
+        buffer.write(encap.help());
+      } else if (encap is HTExternalInstance) {
+        buffer.write(encap.help());
       } else {
-        throw 'The argument of the `help` api [$id] is neither a defined symbol nor a string.';
+        buffer.writeln('found no help information on object: $object');
       }
+      return buffer.toString();
     } catch (error, stackTrace) {
       if (config.processError) {
         processError(error, stackTrace);
@@ -712,10 +731,10 @@ class HTInterpreter {
   }
 
   /// Get a object's type value at runtime.
-  HTType typeValueOf(dynamic object) {
+  HTType typeOf(dynamic object) {
     final encap = encapsulate(object);
     HTType type;
-    if (encap == HTObject.nullValue) {
+    if (encap == null) {
       type = HTTypeNull(_lexicon.kNull);
     } else if (encap is HTType) {
       type = HTTypeType(_lexicon.kType);
@@ -741,12 +760,15 @@ class HTInterpreter {
   }
 
   /// Encapsulate any value to a Hetu object, for members accessing and type check.
-  HTObject encapsulate(dynamic object) {
-    if (object is HTObject) {
+  HTObject? encapsulate(dynamic object) {
+    if (object == null) {
+      return null;
+    } else if (object is HTObject) {
       return object;
-    } else if (object == null) {
-      return HTObject.nullValue;
+    } else if (object is HTType) {
+      return HTTypeObject(object);
     }
+
     late String typeString;
     if (object is bool) {
       typeString = _lexicon.idBoolean;
@@ -1498,7 +1520,7 @@ class HTInterpreter {
           );
         case OpCode.namespaceDeclEnd:
           final nsp = currentNamespace;
-          stack.localValue = nsp;
+          stack.localValue = null;
           assert(nsp.closure != null);
           currentNamespace = nsp.closure!;
           assert(nsp.id != null);
@@ -1534,12 +1556,14 @@ class HTInterpreter {
         case OpCode.ifStmt:
           final thenBranchLength = _currentBytecodeModule.readUint16();
           final truthValue = _truthy(stack.localValue);
+          stack.localValue = null;
           if (!truthValue) {
             _currentBytecodeModule.skip(thenBranchLength);
             _clearLocals();
           }
         case OpCode.whileStmt:
           final truthValue = _truthy(stack.localValue);
+          stack.localValue = null;
           if (!truthValue) {
             _currentBytecodeModule.ip = stack.loops.last.breakIp;
             currentNamespace = stack.loops.last.namespace;
@@ -1549,7 +1573,11 @@ class HTInterpreter {
           }
         case OpCode.doStmt:
           final hasCondition = _currentBytecodeModule.readBool();
-          final truthValue = hasCondition ? _truthy(stack.localValue) : false;
+          bool truthValue = false;
+          if (hasCondition) {
+            truthValue = _truthy(stack.localValue);
+            stack.localValue = null;
+          }
           if (truthValue) {
             _currentBytecodeModule.ip = stack.loops.last.startIp;
           } else {
@@ -1742,7 +1770,7 @@ class HTInterpreter {
         case OpCode.bitwiseNot:
           stack.localValue = ~stack.localValue;
         case OpCode.typeValueOf:
-          stack.localValue = typeValueOf(stack.localValue);
+          stack.localValue = typeOf(stack.localValue);
         case OpCode.decltypeOf:
           final symbol = stack.localSymbol;
           assert(symbol != null);
@@ -1782,7 +1810,7 @@ class HTInterpreter {
                   from: currentNamespace.fullName, isRecursive: false);
             } else {
               stack.localValue =
-                  encap.memberGet(key, from: currentNamespace.fullName);
+                  encap?.memberGet(key, from: currentNamespace.fullName);
             }
           }
 
@@ -1860,7 +1888,7 @@ class HTInterpreter {
               encap.memberSet(key, value,
                   from: currentNamespace.fullName, isRecursive: false);
             } else {
-              encap.memberSet(key, value, from: currentNamespace.fullName);
+              encap?.memberSet(key, value, from: currentNamespace.fullName);
             }
           }
         case OpCode.subSet:
@@ -2310,8 +2338,8 @@ class HTInterpreter {
       if (object is HTType) {
         leftType = object;
       } else {
-        final encapsulated = encapsulate(object);
-        leftType = encapsulated.valueType!;
+        final encap = encapsulate(object);
+        leftType = encap!.valueType!;
       }
     } else {
       leftType = HTTypeNull(_lexicon.kNull);
@@ -2824,6 +2852,8 @@ class HTInterpreter {
     if (id == _lexicon.idGlobalObject) {
       classRoot = klass;
     }
+
+    stack.localValue = null;
   }
 
   void _handleExternalEnumDecl() {
@@ -2888,6 +2918,6 @@ class HTInterpreter {
       definitionIp: definitionIp,
     );
     currentNamespace.define(id, struct);
-    stack.localValue = struct;
+    stack.localValue = null;
   }
 }

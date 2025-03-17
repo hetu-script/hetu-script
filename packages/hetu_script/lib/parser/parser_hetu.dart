@@ -2236,15 +2236,15 @@ class HTParserHetu extends HTParser {
     final condition = parseExpr();
     match(lexer.lexicon.groupExprEnd);
     var thenBranch = _parseExprStmtOrBlock(isStatement: isStatement);
+    final precedings = savePrecedings();
     ASTNode? elseBranch;
     if (requireElse) {
       match(lexer.lexicon.kElse);
       elseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
-    } else {
-      if (expect([lexer.lexicon.kElse], consume: true)) {
-        elseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
-      }
+    } else if (expect([lexer.lexicon.kElse], consume: true)) {
+      elseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
     }
+    elseBranch?.precedings = precedings;
 
     if (elseBranch != null) {
       if (thenBranch.isBlock != elseBranch.isBlock) {

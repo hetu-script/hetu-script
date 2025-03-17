@@ -9,7 +9,6 @@ import '../value/class/class.dart';
 import 'external_class.dart';
 // import '../value/external_enum/external_enum.dart';
 import '../interpreter/interpreter.dart';
-import '../declaration/class/class_declaration.dart';
 
 /// Class for external object.
 class HTExternalInstance<T> with HTObject, InterpreterRef {
@@ -21,7 +20,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   final String typeString;
   late final HTExternalClass? externalClass;
 
-  HTClassDeclaration? klass;
+  HTClass? klass;
 
   // HTExternalEnum? enumClass;
 
@@ -36,11 +35,8 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       externalClass = null;
     }
 
-    final def = interpreter.currentNamespace
-        .memberGet(id, isRecursive: true, ignoreUndefined: false);
-    if (def is HTClassDeclaration) {
-      klass = def;
-    }
+    klass = interpreter.currentNamespace
+        .memberGet(id, isRecursive: true, ignoreUndefined: true);
     // else if (def is HTExternalEnum) {
     //   enumClass = def;
     // }
@@ -56,7 +52,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
     if (externalClass != null) {
       dynamic member = externalClass!.instanceMemberGet(externalObject, id);
       if (member is Function) {
-        HTClass? currentKlass = klass! as HTClass;
+        HTClass? currentKlass = klass!;
         HTFunction? decl;
         while (decl == null && currentKlass != null) {
           decl = currentKlass.memberGet(id, ignoreUndefined: true);
@@ -85,5 +81,14 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
     } else {
       throw HTError.unknownExternalTypeName(typeString);
     }
+  }
+
+  String help() {
+    final buffer = StringBuffer();
+    buffer.writeln('external object: $typeString');
+    if (klass != null) {
+      buffer.write(klass!.help());
+    }
+    return buffer.toString();
   }
 }

@@ -2,6 +2,7 @@ import '../../declaration/namespace/declaration_namespace.dart';
 import '../../declaration/declaration.dart';
 import '../../error/error.dart';
 import '../../type/type.dart';
+import '../function/function.dart';
 
 /// A namespace that will return the actual value of the declaration.
 class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
@@ -25,22 +26,22 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
   })  : _closure = closure,
         super(closure: closure);
 
-  String? help(String id) {
-    if (symbols.containsKey(id)) {
-      final decl = symbols[id]!;
-      return decl.documentation;
-    } else if (importedSymbols.containsKey(id)) {
-      final decl = importedSymbols[id]!;
-      return decl.documentation;
-    } else if (closure != null) {
-      final decl =
-          closure!.memberGet(id, isRecursive: true, ignoreUndefined: false);
-      if (decl != null) {
-        return (decl as HTDeclaration).documentation;
-      }
-    }
-    throw HTError.undefined(id);
-  }
+  // String? help(String id) {
+  //   if (symbols.containsKey(id)) {
+  //     final decl = symbols[id]!;
+  //     return decl.documentation;
+  //   } else if (importedSymbols.containsKey(id)) {
+  //     final decl = importedSymbols[id]!;
+  //     return decl.documentation;
+  //   } else if (closure != null) {
+  //     final decl =
+  //         closure!.memberGet(id, isRecursive: true, ignoreUndefined: false);
+  //     if (decl != null) {
+  //       return (decl as HTDeclaration).documentation;
+  //     }
+  //   }
+  //   throw HTError.undefined(id);
+  // }
 
   @override
   dynamic memberGet(
@@ -141,5 +142,31 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       cloned.importedSymbols[decl.id!] = decl.clone();
     }
     return cloned;
+  }
+
+  String help({bool displayNamespaceName = true}) {
+    final buffer = StringBuffer();
+    final id = displayNamespaceName ? fullName : '';
+    if (symbols.isNotEmpty || importedSymbols.isNotEmpty) {
+      buffer.writeln('namespace $id {');
+      for (final decl in symbols.values) {
+        if (decl is HTFunction) {
+          buffer.writeln('  ${decl.internalName}');
+        } else {
+          buffer.writeln('  ${decl.id}');
+        }
+      }
+      for (final decl in importedSymbols.values) {
+        if (decl is HTFunction) {
+          buffer.writeln('  ${decl.internalName}');
+        } else {
+          buffer.writeln('  ${decl.id}');
+        }
+      }
+      buffer.writeln('}');
+    } else {
+      buffer.writeln('namespace $id {}');
+    }
+    return buffer.toString();
   }
 }

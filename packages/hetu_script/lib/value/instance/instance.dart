@@ -330,4 +330,11 @@ class HTInstance with HTObject, InterpreterRef {
     final hash = hashObjects(hashList);
     return hash;
   }
+
+  String help() {
+    StringBuffer buffer = StringBuffer();
+    buffer.writeln('instance of $classId');
+    buffer.write(namespace.help(displayNamespaceName: false));
+    return buffer.toString();
+  }
 }

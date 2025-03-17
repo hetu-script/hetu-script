@@ -1,3 +1,6 @@
+// import 'package:hetu_script/declaration/declaration.dart';
+// import 'package:hetu_script/value/function/function.dart';
+
 import '../error/error.dart';
 // import '../lexicon/lexicon.dart';
 import '../type/type.dart';

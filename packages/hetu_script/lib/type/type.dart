@@ -1,9 +1,16 @@
 import '../value/object.dart';
 import '../declaration/namespace/declaration_namespace.dart';
 
+class HTTypeObject with HTObject {
+  @override
+  final HTType valueType;
+
+  HTTypeObject(this.valueType);
+}
+
 /// Type is basically a set of things.
 /// It is used to check errors in code.
-abstract class HTType with HTObject {
+abstract class HTType {
   bool get isResolved => true;
 
   /// Every type is assignable to a top type,

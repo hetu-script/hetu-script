@@ -889,4 +889,14 @@ class HTFunction extends HTFunctionDeclaration
       }
     }
   }
+
+  String help() {
+    StringBuffer buffer = StringBuffer();
+    buffer.writeln('function $internalName');
+    if (documentation != null) {
+      buffer.write(documentation);
+    }
+    buffer.writeln(interpreter.lexicon.stringify(valueType));
+    return buffer.toString();
+  }
 }
