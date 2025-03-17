@@ -175,7 +175,7 @@ class HTStackFrame {
 
   final List<dynamic> registerValues = List.filled(HTRegIdx.length, null);
 
-  void setRegisterValue(int index, dynamic value) {
+  void setValue(int index, dynamic value) {
     assert(index < HTRegIdx.length);
     registerValues[index] = value;
   }
@@ -1127,9 +1127,9 @@ class HTInterpreter {
     if (context != null) {
       savedContext = getContext();
       setContext(context);
-      if (createStackFrame) {
-        _createStackFrame();
-      }
+    }
+    if (createStackFrame) {
+      _createStackFrame();
     }
     if (localValue != null) stack.localValue = localValue;
     final result = _execute(
@@ -1137,9 +1137,9 @@ class HTInterpreter {
         );
     if (context != null) {
       setContext(savedContext);
-      if (retractStackFrame) {
-        _retractStackFrame();
-      }
+    }
+    if (retractStackFrame) {
+      _retractStackFrame();
     }
     return result;
   }
@@ -1167,7 +1167,7 @@ class HTInterpreter {
         // store current local value to a register position
         case OpCode.register:
           final index = _currentBytecodeModule.read();
-          stack.setRegisterValue(index, stack.localValue);
+          stack.setValue(index, stack.localValue);
         case OpCode.skip:
           final distance = _currentBytecodeModule.readInt16();
           _currentBytecodeModule.ip += distance;

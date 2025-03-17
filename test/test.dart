@@ -14,10 +14,6 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-    if (42 > 0) {
-    } // test
-    else {
-    }
 ''');
 
   if (r is Future) {

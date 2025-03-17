@@ -418,7 +418,7 @@ class HTFunction extends HTFunctionDeclaration
           // a struct method
           else {
             final prototype = (instance as HTStruct);
-            result = instance = prototype.clone();
+            result = instance = prototype.clone(withInternals: true);
             namespace = (instance as HTStruct).namespace;
           }
         }

@@ -119,14 +119,15 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
 
   @override
   HTNamedStruct clone() => HTNamedStruct(
-      id: id!,
-      interpreter: interpreter,
-      file: file,
-      module: module,
-      closure: closure != null ? closure as HTNamespace : null,
-      source: source,
-      prototypeId: prototypeId,
-      isTopLevel: isTopLevel,
-      staticDefinitionIp: staticDefinitionIp,
-      definitionIp: ip);
+        id: id!,
+        interpreter: interpreter,
+        file: file,
+        module: module,
+        closure: closure != null ? closure as HTNamespace : null,
+        source: source,
+        prototypeId: prototypeId,
+        isTopLevel: isTopLevel,
+        staticDefinitionIp: staticDefinitionIp,
+        definitionIp: ip,
+      );
 }

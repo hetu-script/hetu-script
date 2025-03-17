@@ -789,50 +789,55 @@ abstract class HTLexicon {
         return object;
       }
     } else if (object is Iterable) {
-      if (object.isEmpty) {
-        return '$listStart$listEnd';
-      }
-      output.writeln(listStart);
-      ++_curIndentCount;
-      for (var i = 0; i < object.length; ++i) {
-        final item = object.elementAt(i);
-        output.write(_curIndent());
-        final itemString = stringify(item, asStringLiteral: true);
-        output.write(itemString);
-        if (i < object.length - 1) {
-          output.write(comma);
+      if (object.isNotEmpty) {
+        output.writeln(listStart);
+        ++_curIndentCount;
+        for (var i = 0; i < object.length; ++i) {
+          final item = object.elementAt(i);
+          output.write(_curIndent());
+          final itemString = stringify(item, asStringLiteral: true);
+          output.write(itemString);
+          if (i < object.length - 1) {
+            output.write(comma);
+          }
+          output.writeln();
         }
-        output.writeln();
-      }
-      --_curIndentCount;
-      output.write(_curIndent());
-      output.write(listEnd);
-    } else if (object is Map) {
-      output.writeln(structStart);
-      ++_curIndentCount;
-      final keys = object.keys.toList();
-      for (var i = 0; i < keys.length; ++i) {
+        --_curIndentCount;
         output.write(_curIndent());
-        final key = keys[i];
-        final value = object[key];
-        final keyString = stringify(key);
-        final valueString = stringify(value);
-        if (i < keys.length - 1) {
-          output.write('$keyString: $valueString');
-          output.writeln('$comma ');
-        } else {
-          output.writeln('$keyString: $valueString');
-        }
-      }
-      --_curIndentCount;
-      output.write(_curIndent());
-      output.write(structEnd);
-    } else if (object is HTStruct) {
-      if (object.isEmpty) {
-        output.write('$structStart$structEnd');
+        output.write(listEnd);
       } else {
+        output.write('$listStart$listEnd');
+      }
+    } else if (object is Map) {
+      if (object.isNotEmpty) {
+        output.writeln(structStart);
+        ++_curIndentCount;
+        final keys = object.keys.toList();
+        for (var i = 0; i < keys.length; ++i) {
+          output.write(_curIndent());
+          final key = keys[i];
+          final value = object[key];
+          final keyString = stringify(key);
+          final valueString = stringify(value);
+          if (i < keys.length - 1) {
+            output.write('$keyString: $valueString');
+            output.writeln('$comma ');
+          } else {
+            output.writeln('$keyString: $valueString');
+          }
+        }
+        --_curIndentCount;
+        output.write(_curIndent());
+        output.write(structEnd);
+      } else {
+        output.write('$structStart$structEnd');
+      }
+    } else if (object is HTStruct) {
+      if (object.isNotEmpty) {
         final structString = _stringifyStruct(object);
         output.write(structString);
+      } else {
+        output.write('$structStart$structEnd');
       }
     } else if (object is HTClass) {
       output.write('$kClass ${object.id}');
@@ -884,16 +889,17 @@ abstract class HTLexicon {
       }
       output.writeln();
     }
-    if (struct.prototype != null && !struct.prototype!.isPrototypeRoot) {
-      final inherits = _stringifyStruct(struct.prototype!,
-          from: from ?? struct, withBraces: false);
-      output.write(inherits);
-    }
+    // if (struct.prototype != null && !struct.prototype!.isPrototypeRoot) {
+    //   final inherits = _stringifyStruct(struct.prototype!,
+    //       from: from ?? struct, withBraces: false);
+    //   output.write(inherits);
+    // }
     if (withBraces) {
       --_curIndentCount;
       output.write(_curIndent());
       output.write(structEnd);
     }
+
     return output.toString();
   }
 

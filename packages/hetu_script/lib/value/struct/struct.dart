@@ -152,10 +152,13 @@ class HTStruct with HTObject {
   int get length => _fields.length;
 
   /// Whether there is no key/value pair in the map.
-  bool get isEmpty => _fields.isEmpty;
+  bool get isEmpty => _fields.keys
+      .where((key) => !key.startsWith(interpreter.lexicon.internalPrefix))
+      .isEmpty;
 
   /// Whether there is at least one key/value pair in the map.
-  bool get isNotEmpty => _fields.isNotEmpty;
+  bool get isNotEmpty => !isEmpty;
+
   @override
   dynamic memberGet(dynamic id,
       {String? from, HTStruct? caller, bool ignoreUndefined = true}) {
@@ -284,11 +287,14 @@ class HTStruct with HTObject {
       memberSet(id, value, from: from);
 
   /// return a deep copy of this struct.
-  HTStruct clone() {
+  HTStruct clone({bool withInternals = false}) {
     final cloned =
         HTStruct(interpreter, prototype: prototype, closure: closure);
     for (final key in _fields.keys) {
-      if (key.startsWith(interpreter.lexicon.internalPrefix)) continue;
+      if (!withInternals &&
+          key.startsWith(interpreter.lexicon.internalPrefix)) {
+        continue;
+      }
       final value = _fields[key];
       final copiedValue = interpreter.toStructValue(value);
       cloned.define(key, copiedValue);
