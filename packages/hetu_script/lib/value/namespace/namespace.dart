@@ -5,7 +5,7 @@ import '../../type/type.dart';
 import '../function/function.dart';
 
 /// A namespace that will return the actual value of the declaration.
-class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
+class HTNamespace extends HTDeclarationNamespace<dynamic> {
   @override
   HTType? get valueType => HTTypeNamespace(lexicon.kNamespace);
 
@@ -91,6 +91,7 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
     String id,
     dynamic value, {
     String? from,
+    bool defineIfAbsent = false,
     bool isRecursive = false,
     bool ignoreUndefined = false,
   }) {
@@ -114,7 +115,9 @@ class HTNamespace extends HTDeclarationNamespace<HTDeclaration> {
       return closure!.memberSet(id, value,
           from: from, isRecursive: true, ignoreUndefined: ignoreUndefined);
     } else {
-      if (!ignoreUndefined) {
+      if (defineIfAbsent) {
+        symbols[id] = value;
+      } else if (!ignoreUndefined) {
         throw HTError.undefined(id);
       }
     }

@@ -299,7 +299,8 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     if (id == interpreter.lexicon.idBind) {
       return ({positionalArgs, namedArgs}) => bind(positionalArgs.first);
     } else if (id == interpreter.lexicon.idApply) {

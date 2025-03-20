@@ -226,7 +226,7 @@ class HTInterpreter {
   /// Register values are stored by groups.
   /// Every group have 16 values, they are HTRegIdx.
   /// A such group can be understanded as the stack frame of a runtime function.
-  List<HTStackFrame> _stackFrames = [HTStackFrame()];
+  final List<HTStackFrame> _stackFrames = [HTStackFrame()];
   HTStackFrame get stack => _stackFrames.last;
 
   /// A bytecode interpreter.
@@ -444,12 +444,17 @@ class HTInterpreter {
   }
 
   /// Get a namespace in certain module with a certain name.
-  HTNamespace getModuleNamespace({String? id}) {
-    HTNamespace nsp = globalNamespace;
-    if (id != null) {
-      final bytecodeModule = cachedModules[id]!;
-      assert(bytecodeModule.namespaces.isNotEmpty);
-      nsp = bytecodeModule.namespaces.values.last;
+  HTObject _fetchNamespace<T extends HTObject>(
+      {String? namespace, String? module}) {
+    HTObject nsp = globalNamespace;
+    HTBytecodeModule byteModule = _currentBytecodeModule;
+    if (module != null) {
+      byteModule = cachedModules[module]!;
+      assert(byteModule.namespaces.isNotEmpty);
+      nsp = byteModule.namespaces.values.last;
+    }
+    if (namespace != null) {
+      nsp = nsp.memberGet(namespace, isRecursive: true);
     }
     return nsp;
   }
@@ -457,28 +462,17 @@ class HTInterpreter {
   /// Add a declaration to certain namespace.
   /// if the value is not a declaration, will create one with [isMutable] value.
   /// if not, the [isMutable] will be ignored.
-  bool define(
+  void define(
     String id,
     dynamic value, {
     bool isMutable = false,
     bool override = false,
     bool throws = true,
     String? module,
+    String? namespace,
   }) {
-    final nsp = getModuleNamespace(id: module);
-    if (value is HTDeclaration) {
-      return nsp.define(id, value, override: override, throws: throws);
-    } else {
-      final decl = HTVariable(
-        id: id,
-        interpreter: this,
-        value: value,
-        isMutable: isMutable,
-        closure: nsp,
-        isPrivate: _lexicon.isPrivate(id),
-      );
-      return nsp.define(id, decl, override: override, throws: throws);
-    }
+    final nsp = _fetchNamespace(namespace: namespace, module: module);
+    nsp.define(id, value, override: override);
   }
 
   /// Get the documentation of a declaration in a certain namespace.
@@ -521,10 +515,11 @@ class HTInterpreter {
   }
 
   /// Get a top level variable defined in a certain namespace.
-  dynamic fetch(String id, {String? namespace, String? module}) {
+  dynamic fetch(String id,
+      {String? namespace, String? module, bool ignoreUndefined = false}) {
     try {
-      HTNamespace nsp = getModuleNamespace(id: module);
-      final result = nsp.memberGet(id, isRecursive: false);
+      final nsp = _fetchNamespace(namespace: namespace, module: module);
+      final result = nsp.memberGet(id, ignoreUndefined: ignoreUndefined);
       return result;
     } catch (error, stackTrace) {
       if (config.processError) {
@@ -536,11 +531,12 @@ class HTInterpreter {
   }
 
   /// Assign value to a top level variable defined in a certain namespace in the interpreter.
-  void assign(String id, dynamic value, {String? namespace, String? module}) {
+  void assign(String id, dynamic value,
+      {String? namespace, String? module, bool defineIfAbsent = false}) {
     try {
       final savedModuleName = _currentBytecodeModule.id;
-      HTNamespace nsp = getModuleNamespace(id: module);
-      nsp.memberSet(id, value, isRecursive: false);
+      final nsp = _fetchNamespace(namespace: namespace, module: module);
+      nsp.memberSet(id, value, defineIfAbsent: defineIfAbsent);
       if (_currentBytecodeModule.id != savedModuleName) {
         _currentBytecodeModule = cachedModules[savedModuleName]!;
       }

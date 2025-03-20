@@ -24,7 +24,8 @@ class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Person':
         return ({positionalArgs, namedArgs}) => Person(positionalArgs[0]);
@@ -34,8 +35,13 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  void memberSet(String id, dynamic value,
-      {String? from, bool ignoreUndefined = false}) {
+  void memberSet(
+    String id,
+    dynamic value, {
+    String? from,
+    bool defineIfAbsent = false,
+    bool ignoreUndefined = false,
+  }) {
     switch (id) {
       default:
         if (!ignoreUndefined) throw HTError.undefined(id);

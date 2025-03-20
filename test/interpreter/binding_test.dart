@@ -50,7 +50,8 @@ class ProfileClassBinding extends HTExternalClass {
   ProfileClassBinding() : super('Profile');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Profile':
         return (HTObject entity,
@@ -95,7 +96,8 @@ class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Person.profile':
         return Person.profile;
@@ -105,8 +107,13 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  dynamic memberSet(String id, dynamic value,
-      {String? from, bool ignoreUndefined = false}) {
+  dynamic memberSet(
+    String id,
+    dynamic value, {
+    String? from,
+    bool defineIfAbsent = false,
+    bool ignoreUndefined = false,
+  }) {
     switch (id) {
       case 'Person.profile':
         return Person.profile = value;

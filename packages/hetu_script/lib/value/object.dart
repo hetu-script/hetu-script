@@ -19,12 +19,17 @@ mixin HTObject {
 
   bool contains(String id) => false;
 
+  void define(String id, dynamic value, {bool override = false}) {
+    throw HTError.undefined(id);
+  }
+
   /// Fetch a member by the [id], in the form of
   /// ```
   /// object.id
   /// ```
   /// [id] must be of String type.
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     throw HTError.undefined(id);
   }
 
@@ -33,7 +38,8 @@ mixin HTObject {
   /// object.id = value
   /// ```
   /// [id] must be of String type.
-  void memberSet(String id, dynamic value, {String? from}) {
+  void memberSet(String id, dynamic value,
+      {String? from, bool defineIfAbsent = false}) {
     throw HTError.undefined(id);
   }
 

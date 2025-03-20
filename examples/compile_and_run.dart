@@ -11,7 +11,8 @@ class TestClassBinding extends HTExternalClass {
   TestClassBinding() : super('Test');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Test.greeting':
         return ({positionalArgs, namedArgs}) => Test.greeting();

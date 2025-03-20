@@ -12,7 +12,8 @@ class CountryEnumBinding extends HTExternalClass {
   CountryEnumBinding() : super('Country');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'values':
         return Country.values;

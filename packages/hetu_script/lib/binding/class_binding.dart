@@ -24,7 +24,8 @@ class HTNumberClassBinding extends HTExternalClass {
   HTNumberClassBinding() : super('number');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'number.parse':
         return ({positionalArgs, namedArgs}) =>
@@ -104,7 +105,8 @@ class HTIntegerClassBinding extends HTExternalClass {
   HTIntegerClassBinding({required super.superClass}) : super('integer');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'integer.fromEnvironment':
         return ({positionalArgs, namedArgs}) => int.fromEnvironment(
@@ -156,7 +158,8 @@ class HTBigIntClassBinding extends HTExternalClass {
   HTBigIntClassBinding() : super('BigInt');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'BigInt.zero':
         return BigInt.zero;
@@ -228,7 +231,8 @@ class HTFloatClassBinding extends HTExternalClass {
   HTFloatClassBinding({required super.superClass}) : super('float');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'float.nan':
         return double.nan;
@@ -265,7 +269,8 @@ class HTBooleanClassBinding extends HTExternalClass {
   HTBooleanClassBinding() : super('bool');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'bool.parse':
         return ({positionalArgs, namedArgs}) {
@@ -281,7 +286,8 @@ class HTStringClassBinding extends HTExternalClass {
   HTStringClassBinding() : super('string');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'string.parse':
         return ({positionalArgs, namedArgs}) => positionalArgs.first.toString();
@@ -532,7 +538,8 @@ class HTListClassBinding extends HTExternalClass {
   HTListClassBinding({required super.superClass}) : super('List');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'List':
         return ({positionalArgs, namedArgs}) => List.from(positionalArgs);
@@ -675,7 +682,8 @@ class HTSetClassBinding extends HTExternalClass {
   HTSetClassBinding({required super.superClass}) : super('Set');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Set':
         return ({positionalArgs, namedArgs}) =>
@@ -749,7 +757,8 @@ class HTMapClassBinding extends HTExternalClass {
   HTMapClassBinding() : super('Map');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Map':
         return ({positionalArgs, namedArgs}) => {};
@@ -807,7 +816,8 @@ class HTRandomClassBinding extends HTExternalClass {
   HTRandomClassBinding() : super('Random');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Random':
         return ({positionalArgs, namedArgs}) =>
@@ -881,7 +891,8 @@ class HTFutureClassBinding extends HTExternalClass {
   HTFutureClassBinding() : super('Future');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Future':
         return ({positionalArgs, namedArgs}) {
@@ -931,7 +942,8 @@ class HTCryptoClassBinding extends HTExternalClass {
   HTCryptoClassBinding() : super('crypto');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'crypto.randomUUID':
         return ({positionalArgs, namedArgs}) {
@@ -975,7 +987,8 @@ class HTConsoleClassBinding extends HTExternalClass {
   HTConsoleClassBinding({required this.console}) : super('console');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'console.log':
         return ({positionalArgs, namedArgs}) => console.log(positionalArgs);
@@ -1008,7 +1021,8 @@ class HTJSONClassBinding extends HTExternalClass {
   HTJSONClassBinding({required this.lexicon}) : super('JSON');
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'JSON.parse':
         return ({positionalArgs, namedArgs}) =>

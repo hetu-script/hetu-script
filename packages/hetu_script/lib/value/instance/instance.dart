@@ -149,8 +149,13 @@ class HTInstance with HTObject, InterpreterRef {
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
-  dynamic memberGet(String id,
-      {String? from, String? cast, bool ignoreUndefined = true}) {
+  dynamic memberGet(
+    String id, {
+    String? from,
+    bool isRecursive = false,
+    bool ignoreUndefined = true,
+    String? cast,
+  }) {
     final getter = '${InternalIdentifier.getter}$id';
 
     if (cast == null) {
@@ -225,8 +230,14 @@ class HTInstance with HTObject, InterpreterRef {
   /// If [cast] is provided, then the instance will
   /// only search that [cast]'s corresponed [HTInstanceNamespace].
   @override
-  void memberSet(String id, dynamic value,
-      {String? from, String? cast, bool throws = true}) {
+  void memberSet(
+    String id,
+    dynamic value, {
+    String? from,
+    bool defineIfAbsent = false,
+    String? cast,
+    bool throws = true,
+  }) {
     final setter = '${InternalIdentifier.setter}$id';
 
     if (cast == null) {

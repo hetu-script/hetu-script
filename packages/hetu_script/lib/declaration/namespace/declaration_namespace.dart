@@ -63,28 +63,27 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
 
   /// define a declaration in this namespace,
   /// the defined id could be different from declaration's id
-  bool define(String id, T decl, {bool override = false, bool throws = true}) {
+  @override
+  void define(String id, dynamic decl,
+      {bool override = false, bool throws = true}) {
     if (!symbols.containsKey(id)) {
       symbols[id] = decl;
-      return true;
     } else {
       if (!override) {
         if (throws) {
           throw HTError.defined(id, HTErrorType.staticWarning);
         }
       } else {
-        final existedValue = symbols[id];
-        if (existedValue is HTDeclarationNamespace &&
-            decl is HTDeclarationNamespace) {
-          // TODO: merge namespace?
-        } else {
-          symbols[id] = decl;
-          return true;
-        }
+        // final existedValue = symbols[id];
+        // if (existedValue is HTDeclarationNamespace &&
+        //     decl is HTDeclarationNamespace) {
+        //   // TODO: merge namespace?
+        // } else {
+        //   symbols[id] = decl;
+        // }
+        symbols[id] = decl;
       }
     }
-
-    return false;
   }
 
   void delete(String id, {bool throws = true}) {
@@ -106,10 +105,10 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
   @override
   dynamic memberGet(
     String id, {
-    bool isPrivate = false,
     String? from,
     bool isRecursive = false,
     bool ignoreUndefined = false,
+    bool isPrivate = false,
   }) {
     if (symbols.containsKey(id)) {
       final decl = symbols[id];

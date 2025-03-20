@@ -131,6 +131,7 @@ class HTStruct with HTObject {
     }
   }
 
+  @override
   void define(String id, dynamic value,
       {bool override = false, bool throws = true}) {
     _fields[id] = value;
@@ -160,8 +161,13 @@ class HTStruct with HTObject {
   bool get isNotEmpty => !isEmpty;
 
   @override
-  dynamic memberGet(dynamic id,
-      {String? from, HTStruct? caller, bool ignoreUndefined = true}) {
+  dynamic memberGet(
+    dynamic id, {
+    String? from,
+    bool isRecursive = false,
+    bool ignoreUndefined = true,
+    HTStruct? caller,
+  }) {
     if (id == null) {
       return null;
     }
@@ -272,7 +278,7 @@ class HTStruct with HTObject {
     //     return true;
     //   }
     // }
-    if (defineIfAbsent) {
+    else if (defineIfAbsent) {
       _fields[id] = value;
       return true;
     }

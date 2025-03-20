@@ -48,7 +48,8 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   }
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     if (externalClass != null) {
       dynamic member = externalClass!.instanceMemberGet(externalObject, id);
       if (member is Function) {
@@ -75,7 +76,8 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   }
 
   @override
-  void memberSet(String id, dynamic value, {String? from}) {
+  void memberSet(String id, dynamic value,
+      {String? from, bool defineIfAbsent = false}) {
     if (externalClass != null) {
       externalClass!.instanceMemberSet(externalObject, id, value);
     } else {

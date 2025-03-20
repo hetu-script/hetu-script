@@ -27,7 +27,8 @@ class HTExternalEnum extends HTDeclaration with HTObject, InterpreterRef {
   }
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     final item = externalClass!
         .memberGet(id, from: from, ignoreUndefined: ignoreUndefined);
     return item;

@@ -707,7 +707,7 @@ class Hetu {
       interpreter.help(id, module: module);
 
   /// Add a declaration to certain namespace.
-  bool define(
+  void define(
     String id,
     dynamic value, {
     bool isMutable = false,
@@ -729,8 +729,10 @@ class Hetu {
       interpreter.fetch(id, module: module);
 
   /// Assign value to a top level variable defined in a certain namespace in the interpreter.
-  void assign(String id, dynamic value, {String? namespace, String? module}) =>
-      interpreter.assign(id, value, namespace: namespace, module: module);
+  void assign(String id, dynamic value,
+          {String? namespace, String? module, bool defineIfAbsent = false}) =>
+      interpreter.assign(id, value,
+          namespace: namespace, module: module, defineIfAbsent: defineIfAbsent);
 
   /// Invoke a top level function defined in a certain namespace in the interpreter.
   dynamic invoke(

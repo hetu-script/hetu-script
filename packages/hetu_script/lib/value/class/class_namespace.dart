@@ -73,6 +73,7 @@ class HTClassNamespace extends HTNamespace {
     String? from,
     bool isRecursive = true,
     bool ignoreUndefined = false,
+    bool defineIfAbsent = false,
   }) {
     final setter = '${InternalIdentifier.setter}$id';
     if (symbols.containsKey(id)) {

@@ -96,6 +96,7 @@ class HTInstanceNamespace extends HTNamespace {
     String? from,
     bool isRecursive = true,
     bool ignoreUndefined = false,
+    bool defineIfAbsent = false,
   }) {
     final setter = '${InternalIdentifier.getter}$id';
 

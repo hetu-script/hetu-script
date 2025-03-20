@@ -48,11 +48,15 @@ class HTCast with HTObject, InterpreterRef {
   }
 
   @override
-  dynamic memberGet(String id, {String? from, bool ignoreUndefined = false}) =>
+  dynamic memberGet(String id,
+          {String? from,
+          bool isRecursive = false,
+          bool ignoreUndefined = false}) =>
       object.memberGet(id,
           cast: klass.id, from: from, ignoreUndefined: ignoreUndefined);
 
   @override
-  void memberSet(String id, dynamic value, {String? from}) =>
+  void memberSet(String id, dynamic value,
+          {String? from, bool defineIfAbsent = false}) =>
       object.memberSet(id, value, cast: klass.id, from: from);
 }
