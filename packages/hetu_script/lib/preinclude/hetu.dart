@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:hetu_script/value/variable/variable.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../version.dart';
@@ -412,8 +413,25 @@ class Hetu {
 
       interpreter.define(
         'kHetuVersion',
-        kHetuVersion.toString(),
-        override: true,
+        HTVariable(
+          id: 'kHetuVersion',
+          interpreter: interpreter,
+          closure: interpreter.globalNamespace,
+          isMutable: false,
+          isTopLevel: true,
+          value: kHetuVersion.toString(),
+        ),
+      );
+      interpreter.define(
+        lexicon.kThis,
+        HTVariable(
+          id: lexicon.kThis,
+          interpreter: interpreter,
+          closure: interpreter.globalNamespace,
+          isMutable: false,
+          isTopLevel: true,
+          value: interpreter.globalNamespace,
+        ),
       );
 
       // interpreter.assign('console', console);
@@ -725,14 +743,34 @@ class Hetu {
       );
 
   /// Get a variable defined in a certain namespace in the interpreter.
-  dynamic fetch(String id, {String? namespace, String? module}) =>
-      interpreter.fetch(id, module: module);
+  dynamic fetch(
+    String id, {
+    String? namespace,
+    String? module,
+    bool ignoreUndefined = false,
+  }) =>
+      interpreter.fetch(
+        id,
+        namespace: namespace,
+        module: module,
+        ignoreUndefined: ignoreUndefined,
+      );
 
   /// Assign value to a top level variable defined in a certain namespace in the interpreter.
-  void assign(String id, dynamic value,
-          {String? namespace, String? module, bool defineIfAbsent = false}) =>
-      interpreter.assign(id, value,
-          namespace: namespace, module: module, defineIfAbsent: defineIfAbsent);
+  void assign(
+    String id,
+    dynamic value, {
+    String? namespace,
+    String? module,
+    bool defineIfAbsent = false,
+  }) =>
+      interpreter.assign(
+        id,
+        value,
+        namespace: namespace,
+        module: module,
+        defineIfAbsent: defineIfAbsent,
+      );
 
   /// Invoke a top level function defined in a certain namespace in the interpreter.
   dynamic invoke(

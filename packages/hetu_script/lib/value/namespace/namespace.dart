@@ -3,6 +3,7 @@ import '../../declaration/declaration.dart';
 import '../../error/error.dart';
 import '../../type/type.dart';
 import '../function/function.dart';
+import '../../common/internal_identifier.dart';
 
 /// A namespace that will return the actual value of the declaration.
 class HTNamespace extends HTDeclarationNamespace<dynamic> {
@@ -52,6 +53,10 @@ class HTNamespace extends HTDeclarationNamespace<dynamic> {
     bool ignoreUndefined = false,
     bool asDeclaration = false,
   }) {
+    if (id == InternalIdentifier.name) {
+      return fullName;
+    }
+
     if (symbols.containsKey(id)) {
       final decl = symbols[id]!;
       if (asDeclaration) return decl;

@@ -1588,16 +1588,16 @@ class HTParserHetu extends HTParser {
             length: token.length);
       } else if (curTok.lexeme == lexer.lexicon.kThis) {
         // this expression
-        if (_currentFunctionDeclaration?.category != FunctionCategory.literal &&
-            (_currentClassDeclaration == null && _currentStructId == null)) {
-          final err = HTError.misplacedThis(
-              filename: currrentFileName,
-              line: curTok.line,
-              column: curTok.column,
-              offset: curTok.offset,
-              length: curTok.length);
-          errors.add(err);
-        }
+        // if (_currentFunctionDeclaration?.category != FunctionCategory.literal &&
+        //     (_currentClassDeclaration == null && _currentStructId == null)) {
+        //   final err = HTError.misplacedThis(
+        //       filename: currrentFileName,
+        //       line: curTok.line,
+        //       column: curTok.column,
+        //       offset: curTok.offset,
+        //       length: curTok.length);
+        //   errors.add(err);
+        // }
         final keyword = advance();
         _isLegalLeftValue = false;
         expr = IdentifierExpr(keyword.lexeme,

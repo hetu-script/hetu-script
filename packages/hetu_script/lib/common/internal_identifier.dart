@@ -1,4 +1,6 @@
 base class InternalIdentifier {
+  static const name = r'__name__';
+  static const filename = r'__filename__';
   static const prototype = r'__proto__';
   static const call = r'__call__';
   static const instance = r'__instance__';

@@ -444,13 +444,24 @@ class HTFunction extends HTFunctionDeclaration
             );
           }
           callClosure.define(
-              interpreter.lexicon.kThis,
-              HTVariable(
-                id: interpreter.lexicon.kThis,
-                interpreter: interpreter,
-                value: instance,
-                closure: callClosure,
-              ));
+            interpreter.lexicon.kThis,
+            HTVariable(
+              id: interpreter.lexicon.kThis,
+              interpreter: interpreter,
+              closure: callClosure,
+              value: instance,
+            ),
+          );
+        } else {
+          callClosure.define(
+            interpreter.lexicon.kThis,
+            HTVariable(
+              id: interpreter.lexicon.kThis,
+              interpreter: interpreter,
+              closure: callClosure,
+              value: callClosure,
+            ),
+          );
         }
 
         var variadicStart = -1;

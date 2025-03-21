@@ -131,16 +131,16 @@ struct P {
 final p1 = struct extends P {}
 ```
 
-Or, you can dynamically access and modify a struct's prototype by internal member **$prototype**:
+Or, you can dynamically access and modify a struct's prototype by internal member `__proto__`:
 
 ```dart
 final p2 = {}
-p2.$prototype = P
+p2.__proto__ = P
 ```
 
 ### struct mixins
 
-When `extends` another struct, the content of the super class will stored within `$prototype` varialbe. Although you can access those members at runtime via `.` operator, you won't see them when you stringify or jsonify the struct.
+When `extends` another struct, the content of the super class will stored within `__proto__` varialbe. Although you can access those members at runtime via `.` operator, you won't see them when you stringify or jsonify the struct.
 
 If you wish to copy and assign another content of struct to the declaring struct. You can use `with` keyword instead of `extends`.
 

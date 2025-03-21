@@ -1377,10 +1377,10 @@ class HTInterpreter {
           if (hasTypeDecl) {
             declType = _handleTypeExpr();
           }
-          late final HTVariable decl;
-          final hasInitializer = _currentBytecodeModule.readBool();
+          HTVariable? decl;
           dynamic initValue;
           FutureExecution? futureExecution;
+          final hasInitializer = _currentBytecodeModule.readBool();
           if (hasInitializer) {
             if (lateInitialize) {
               final definitionLine = _currentBytecodeModule.readUint16();
@@ -1432,7 +1432,7 @@ class HTInterpreter {
                   context: savedContext,
                   stack: stack,
                   future: waitFutureExucution(initValue).then((value) {
-                    decl.value = value;
+                    decl!.value = value;
                   }),
                 );
               } else {
@@ -1472,11 +1472,11 @@ class HTInterpreter {
               lateFinalize: lateFinalize,
             );
           }
+          stack.localValue = initValue;
           if (!isField) {
             currentNamespace.define(id, decl,
                 override: config.allowVariableShadowing);
           }
-          stack.localValue = initValue;
           if (futureExecution != null) {
             return futureExecution;
           }
@@ -2025,13 +2025,7 @@ class HTInterpreter {
             final jsonSource = _currentBytecodeModule.jsonSources[fromPath];
             currentNamespace.defineImport(
               alias!,
-              HTVariable(
-                id: alias,
-                interpreter: this,
-                value: jsonSource!.value,
-                closure: currentNamespace,
-                isPrivate: _lexicon.isPrivate(alias),
-              ),
+              jsonSource!.value,
               jsonSource.fullName,
             );
             if (isExported) {
