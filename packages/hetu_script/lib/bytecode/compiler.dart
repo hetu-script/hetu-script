@@ -827,15 +827,15 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(OpCode.typeIsNot);
     } else if (expr.op == _lexicon.kIn) {
       final containsCallExpr = CallExpr(
-          MemberExpr(expr.right,
-              IdentifierExpr(_lexicon.idCollectionContains, isLocal: false)),
+          MemberExpr(
+              expr.right, IdentifierExpr(_lexicon.idContains, isLocal: false)),
           positionalArgs: [expr.left]);
       final containsCallExprBytes = visitCallExpr(containsCallExpr);
       bytesBuilder.add(containsCallExprBytes);
     } else if (expr.op == _lexicon.kNotIn) {
       final containsCallExpr = CallExpr(
-          MemberExpr(expr.right,
-              IdentifierExpr(_lexicon.idCollectionContains, isLocal: false)),
+          MemberExpr(
+              expr.right, IdentifierExpr(_lexicon.idContains, isLocal: false)),
           positionalArgs: [expr.left]);
       final containsCallExprBytes = visitCallExpr(containsCallExpr);
       bytesBuilder.add(containsCallExprBytes);
@@ -1382,13 +1382,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.add(_identifier(InternalIdentifier.forExpressionInit));
 
     final collection = stmt.iterateValue
-        ? MemberExpr(stmt.collection,
-            IdentifierExpr(_lexicon.idCollectionValues, isLocal: false))
+        ? MemberExpr(
+            stmt.collection, IdentifierExpr(_lexicon.idValues, isLocal: false))
         : stmt.collection;
 
     // declare the iterator
-    final iterInit = MemberExpr(collection,
-        IdentifierExpr(_lexicon.idIterableIterator, isLocal: false));
+    final iterInit = MemberExpr(
+        collection, IdentifierExpr(_lexicon.idIterator, isLocal: false));
     // final iterInitBytes = compileAST(iterInit, endOfExec: true);
     final iterId = '__iter${iterIndex++}';
     final iterDecl = VarDecl(
@@ -1405,13 +1405,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     // update iter move result
     // calls iterator.moveNext()
     final moveIter = CallExpr(MemberExpr(IdentifierExpr(iterId),
-        IdentifierExpr(_lexicon.idIterableIteratorMoveNext, isLocal: false)));
+        IdentifierExpr(_lexicon.idMoveNext, isLocal: false)));
     final moveIterBytes = visitCallExpr(moveIter);
     final condition = moveIterBytes;
 
     // get current item value
     stmt.iterator.initializer = MemberExpr(IdentifierExpr(iterId),
-        IdentifierExpr(_lexicon.idIterableIteratorCurrent, isLocal: false));
+        IdentifierExpr(_lexicon.idCurrent, isLocal: false));
     stmt.loop.statements.insert(0, stmt.iterator);
     final loop = visitBlockStmt(stmt.loop);
 
@@ -1470,7 +1470,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
           Uint8List bytes;
           if (ast.valueOf) {
             final getValues = MemberExpr(ast.collection,
-                IdentifierExpr(_lexicon.idCollectionValues, isLocal: false));
+                IdentifierExpr(_lexicon.idValues, isLocal: false));
             bytes = compileAST(getValues, endOfExec: true);
           } else {
             bytes = compileAST(ast.collection, endOfExec: true);
@@ -1996,15 +1996,14 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(0); // bool: has super class
       bytesBuilder.addByte(1); // bool: is enum
 
-      final valueId =
-          '${_lexicon.preferredPrivatePrefix}${_lexicon.idEnumItemName}';
+      final valueId = '${_lexicon.preferredPrivatePrefix}${_lexicon.idName}';
       final value = VarDecl(IdentifierExpr(valueId), classId: stmt.id.id);
       final valueBytes = visitVarDecl(value);
       bytesBuilder.add(valueBytes);
 
-      final ctorParam = ParamDecl(IdentifierExpr(_lexicon.idEnumItemName));
+      final ctorParam = ParamDecl(IdentifierExpr(_lexicon.idName));
       final ctorDef = AssignExpr(IdentifierExpr(valueId), _lexicon.assign,
-          IdentifierExpr(_lexicon.idEnumItemName));
+          IdentifierExpr(_lexicon.idName));
       final ctorId =
           '${InternalIdentifier.namedConstructorPrefix}${_lexicon.preferredPrivatePrefix}';
       final constructor = FuncDecl(ctorId,
@@ -2054,7 +2053,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       }
 
       final valuesInit = ListExpr(itemList);
-      final valuesDecl = VarDecl(IdentifierExpr(_lexicon.idCollectionValues),
+      final valuesDecl = VarDecl(IdentifierExpr(_lexicon.idValues),
           classId: stmt.classId,
           initializer: valuesInit,
           isStatic: true,

@@ -608,22 +608,28 @@ class HTLexiconHetu extends HTLexicon {
   String get importExportListEnd => '}';
 
   @override
-  String get idEnumItemName => 'name';
+  String get idGlobal => 'global';
 
   @override
-  String get idCollectionValues => 'values';
+  String get idName => 'name';
 
   @override
-  String get idCollectionContains => 'contains';
+  String get idKeys => 'keys';
 
   @override
-  String get idIterableIterator => 'iterator';
+  String get idValues => 'values';
 
   @override
-  String get idIterableIteratorMoveNext => 'moveNext';
+  String get idContains => 'contains';
 
   @override
-  String get idIterableIteratorCurrent => 'current';
+  String get idIterator => 'iterator';
+
+  @override
+  String get idMoveNext => 'moveNext';
+
+  @override
+  String get idCurrent => 'current';
 
   @override
   String get idToString => 'toString';

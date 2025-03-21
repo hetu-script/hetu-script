@@ -452,7 +452,7 @@ class HTFunction extends HTFunctionDeclaration
               value: instance,
             ),
           );
-        } else {
+        } else if (category != FunctionCategory.literal) {
           callClosure.define(
             interpreter.lexicon.kThis,
             HTVariable(

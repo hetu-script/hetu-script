@@ -49,7 +49,7 @@ mixin HTObject {
   /// ```
   /// [id] is of dynamic type, and will be converted to String by [toString] method.
   dynamic subGet(dynamic id, {String? from}) {
-    return memberGet(id.toString(), from: from);
+    return memberGet(id.toString(), from: from, ignoreUndefined: true);
   }
 
   /// Assign a value to a member by the [id], in the form of

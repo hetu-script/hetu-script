@@ -998,23 +998,29 @@ abstract class HTLexicon {
 
   // below are language specific ids.
 
+  /// `global` identifer.
+  String get idGlobal;
+
   /// `name` api on enum item.
-  String get idEnumItemName;
+  String get idName;
+
+  /// `keys` api.
+  String get idKeys;
 
   /// `values` api.
-  String get idCollectionValues;
+  String get idValues;
 
   /// `contains` api.
-  String get idCollectionContains;
+  String get idContains;
 
   /// `iterator` api on Iterable.
-  String get idIterableIterator;
+  String get idIterator;
 
   /// `moveNext()` api on iterator.
-  String get idIterableIteratorMoveNext;
+  String get idMoveNext;
 
   /// `current` api on iterator.
-  String get idIterableIteratorCurrent;
+  String get idCurrent;
 
   /// `toString()` api on Object & struct object.
   String get idToString;

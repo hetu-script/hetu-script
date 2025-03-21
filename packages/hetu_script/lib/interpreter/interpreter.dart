@@ -480,15 +480,15 @@ class HTInterpreter {
     try {
       StringBuffer buffer = StringBuffer();
       final encap = encapsulate(object);
+      if (object is HTDeclaration) {
+        buffer.write(object.documentation);
+      }
       if (encap == null) {
         buffer.write(globalNamespace.help());
       } else if (encap is HTTypeObject) {
         buffer.writeln('type ${object.id}');
         buffer.write(lexicon.stringify(object));
       } else if (encap is HTNamespace) {
-        if (encap.documentation != null) {
-          buffer.write(object.documentation);
-        }
         buffer.write(encap.help());
       } else if (encap is HTFunction) {
         buffer.write(encap.help());
@@ -899,7 +899,7 @@ class HTInterpreter {
         nsp.import(importedNamespace, export: importDecl.isExported);
       } else {
         for (final id in importDecl.showList) {
-          HTDeclaration decl;
+          dynamic decl;
           if (importedNamespace.symbols.containsKey(id)) {
             decl = importedNamespace.symbols[id]!;
           } else if (importedNamespace.exports.contains(id)) {
@@ -922,7 +922,7 @@ class HTInterpreter {
             throw HTError.undefined(id);
           }
           final decl = importedNamespace.symbols[id]!;
-          assert(!decl.isPrivate);
+          // assert(!decl.isPrivate);
           aliasNamespace.define(id, decl);
         }
         nsp.defineImport(
@@ -1998,7 +1998,7 @@ class HTInterpreter {
               lexicon: _lexicon, id: alias!, closure: currentNamespace.closure);
           for (final id in showList) {
             final decl = importedNamespace.symbols[id]!;
-            assert(!decl.isPrivate);
+            // assert(!decl.isPrivate);
             aliasNamespace.define(id, decl);
           }
           currentNamespace.defineImport(
@@ -2021,16 +2021,20 @@ class HTInterpreter {
         } else {
           // TODO: import binary bytes
           assert(_currentBytecodeModule.jsonSources.containsKey(fromPath));
-          if (_currentBytecodeModule.jsonSources.containsKey(fromPath)) {
-            final jsonSource = _currentBytecodeModule.jsonSources[fromPath];
-            currentNamespace.defineImport(
-              alias!,
-              jsonSource!.value,
-              jsonSource.fullName,
-            );
-            if (isExported) {
-              currentNamespace.declareExport(alias);
-            }
+          final jsonSource = _currentBytecodeModule.jsonSources[fromPath]!;
+          currentNamespace.defineImport(
+            alias!,
+            HTVariable(
+              id: alias,
+              interpreter: this,
+              value: jsonSource.value,
+              closure: currentNamespace,
+              isPrivate: _lexicon.isPrivate(alias),
+            ),
+            jsonSource.fullName,
+          );
+          if (isExported) {
+            currentNamespace.declareExport(alias);
           }
         }
       } else {

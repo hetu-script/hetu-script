@@ -60,19 +60,27 @@ class HTNamespace extends HTDeclarationNamespace<dynamic> {
     if (symbols.containsKey(id)) {
       final decl = symbols[id]!;
       if (asDeclaration) return decl;
-      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(id);
+      if (decl is HTDeclaration) {
+        if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+          throw HTError.privateMember(id);
+        }
+        decl.resolve();
+        return decl.value;
+      } else {
+        return decl;
       }
-      decl.resolve();
-      return decl.value;
     } else if (importedSymbols.containsKey(id)) {
       final decl = importedSymbols[id]!;
-      if (asDeclaration) return decl;
-      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(id);
+      if (decl is HTDeclaration) {
+        if (asDeclaration) return decl;
+        if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+          throw HTError.privateMember(id);
+        }
+        decl.resolve();
+        return decl.value;
+      } else {
+        return decl;
       }
-      decl.resolve();
-      return decl.value;
     } else if (isRecursive && (closure != null)) {
       return closure!.memberGet(
         id,
@@ -82,6 +90,13 @@ class HTNamespace extends HTDeclarationNamespace<dynamic> {
         asDeclaration: asDeclaration,
       );
     }
+
+    if (id == lexicon.idKeys) {
+      return symbols.keys;
+    } else if (id == lexicon.idValues) {
+      return symbols.values;
+    }
+
     if (!ignoreUndefined) {
       throw HTError.undefined(id);
     }

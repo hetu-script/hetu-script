@@ -1,3 +1,4 @@
+import 'package:test/test.dart';
 import 'package:hetu_script/hetu_script.dart';
 
 Future<void> main() async {
@@ -8,32 +9,27 @@ Future<void> main() async {
     config: HetuConfig(
       normalizeImportPath: false,
       allowImplicitNullToZeroConversion: true,
-      printPerformanceStatistics: true,
     ),
   );
   hetu.init();
 
-  sourceContext.addResource('file1.ht', HTSource('''
+  group('namespace tests -', () {
+    test('automatic semicolon insertion', () {
+      sourceContext.addResource('file1.ht', HTSource('''
     fun test () {
       print('Hello, World!');
     }
   '''));
 
-  sourceContext.addResource('file2.json', HTSource('''
-{
-  value: 1.0,
-  type: 'percentage',
-}
-  ''', type: HTResourceType.json));
-
-  var r = hetu.eval(r'''
-    this['test'] 
+      final result = hetu.eval(r'''
+    import 'file1.ht' as file1
+    file1.keys
 ''');
 
-  if (r is Future) {
-    print('wait for async function...');
-    r = await r;
-  }
-
-  print(hetu.stringify(r));
+      expect(
+        result,
+        ['test'],
+      );
+    });
+  });
 }

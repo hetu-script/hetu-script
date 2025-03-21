@@ -417,8 +417,6 @@ class Hetu {
           id: 'kHetuVersion',
           interpreter: interpreter,
           closure: interpreter.globalNamespace,
-          isMutable: false,
-          isTopLevel: true,
           value: kHetuVersion.toString(),
         ),
       );
@@ -428,8 +426,15 @@ class Hetu {
           id: lexicon.kThis,
           interpreter: interpreter,
           closure: interpreter.globalNamespace,
-          isMutable: false,
-          isTopLevel: true,
+          value: interpreter.globalNamespace,
+        ),
+      );
+      interpreter.define(
+        lexicon.idGlobal,
+        HTVariable(
+          id: lexicon.idGlobal,
+          interpreter: interpreter,
+          closure: interpreter.globalNamespace,
           value: interpreter.globalNamespace,
         ),
       );
