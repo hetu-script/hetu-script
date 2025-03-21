@@ -49,7 +49,7 @@ mixin HTObject {
   /// ```
   /// [id] is of dynamic type, and will be converted to String by [toString] method.
   dynamic subGet(dynamic id, {String? from}) {
-    throw HTError.undefined(id);
+    return memberGet(id.toString(), from: from);
   }
 
   /// Assign a value to a member by the [id], in the form of
@@ -58,6 +58,6 @@ mixin HTObject {
   /// ```
   /// [id] is of dynamic type, and will be converted to String by [toString] method.
   void subSet(dynamic id, dynamic value, {String? from}) {
-    throw HTError.undefined(id);
+    memberSet(id.toString(), value, from: from);
   }
 }

@@ -47,9 +47,9 @@ class HTNamespace extends HTDeclarationNamespace<dynamic> {
   @override
   dynamic memberGet(
     String id, {
-    bool isPrivate = false,
     String? from,
     bool isRecursive = false,
+    bool isPrivate = false,
     bool ignoreUndefined = false,
     bool asDeclaration = false,
   }) {
