@@ -1199,8 +1199,11 @@ class AssertStmt extends Statement {
 
   final ASTNode expr;
 
+  final String? description;
+
   AssertStmt(
     this.expr, {
+    this.description,
     super.hasEndOfStmtMark = false,
     super.source,
     super.line = 0,

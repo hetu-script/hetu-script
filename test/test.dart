@@ -27,7 +27,7 @@ Future<void> main() async {
   ''', type: HTResourceType.json));
 
   var r = hetu.eval(r'''
-    this['test'] 
+    assert(1 > 2, '1 is not greater than 2');
 ''');
 
   if (r is Future) {

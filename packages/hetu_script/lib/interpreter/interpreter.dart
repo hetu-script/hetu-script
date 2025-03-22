@@ -1211,9 +1211,15 @@ class HTInterpreter {
           _currentBytecodeModule.ip = stack.anchors.last + distance;
         case OpCode.assertion:
           assert(stack.localValue is bool);
-          final text = _currentBytecodeModule.getConstString();
+          final text = _currentBytecodeModule.readUtf8String();
+          final hasDescription = _currentBytecodeModule.readBool();
+          String? description;
+          if (hasDescription) {
+            description = _currentBytecodeModule.readUtf8String();
+          }
           if (!stack.localValue) {
-            throw HTError.assertionFailed(text);
+            throw HTError.assertionFailed(
+                '\'$text\'${description != null ? ': $description' : ''}');
           }
         case OpCode.throws:
           throw HTError.scriptThrows(_lexicon.stringify(stack.localValue));

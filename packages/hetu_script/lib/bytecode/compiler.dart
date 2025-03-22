@@ -1183,7 +1183,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(OpCode.assertion);
       final content = stmt.source!.content;
       final text = content.substring(stmt.expr.offset, stmt.expr.end);
-      bytesBuilder.add(_identifier(text.trim()));
+      bytesBuilder.add(_utf8String(text.trim()));
+      if (stmt.description != null) {
+        bytesBuilder.addByte(1); // bool: has description
+        bytesBuilder.add(_utf8String(stmt.description!));
+      } else {
+        bytesBuilder.addByte(0); // bool: has description
+      }
       bytesBuilder.addByte(OpCode.endOfStmt);
     }
     return bytesBuilder.toBytes();

@@ -219,9 +219,9 @@ class HTError {
     }
     output.writeln(
         '${HTLocale.current.errorType}: ${HTLocale.current.getErrorType(type.name)}($name)');
-    output.writeln('${HTLocale.current.message}: $message');
+    output.write('${HTLocale.current.message}: $message');
     if (extra != null) {
-      output.writeln(extra);
+      output.write('\n$extra');
     }
     return output.toString();
   }
