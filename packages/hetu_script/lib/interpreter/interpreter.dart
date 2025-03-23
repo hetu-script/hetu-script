@@ -255,6 +255,7 @@ class HTInterpreter {
     if (config.allowImplicitEmptyValueToFalseConversion) {
       if (condition == false ||
           condition == null ||
+          condition == 0 ||
           condition == '' ||
           condition == 'false' ||
           (condition is Iterable && condition.isEmpty) ||
