@@ -10,8 +10,10 @@ external class Random {
   /// the more likely to return true.
   function nextBoolBiased(input: float, target: float) -> bool
 
+  /// generate a random integer value, it has a higher probability to get value near the target value.
   function nearInt(max: integer, {exponent: float = 0.5}) -> integer
 
+  /// generate a random integer value, it has a lower probability to get value near the target value.
   function distantInt(max: integer, {exponent: float = 0.5}) -> integer
 
   function nextInt(max: integer) -> integer
@@ -62,6 +64,9 @@ abstract class Math {
   /// Square root of 2.
   static const sqrt2 = 1.4142135623730951;
 
+  /// Returns a random float value between 0.0 and 1.0.
+  external static function random()
+
   /// Return the smaller value between a & b.
   /// If one of them is null, return the other value.
   external static function min(a, b)
@@ -110,12 +115,8 @@ abstract class Math {
 
   /// Calculate the angle in dgree from start to end, return the result in radians.
   external static function aangle(startx, starty, endx, endy)
-
-  function gradualValue(input, target, { rate = 0.1 }) {
-    return target * (1 - Math.exp(-rate * input));
-  }
+  
+  /// Input a value and a target, get a output between 0.0 and 1.0.
+  /// The more the input is near the target, the more the output is near 1.0.
+  external static function gradualValue(input, target, { rate = 0.1 })
 }
-
-external function parseInt(source: string, [radix: integer?]) -> number
-
-external function parseFloat(source: string) -> number

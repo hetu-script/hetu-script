@@ -70,6 +70,13 @@ double gaussianNoise(double mean, double standardDeviation,
           mean;
 }
 
+/// Input a value and a target, get a output between 0.0 and 1.0.
+/// The more the input is near the target, the more the output is near 1.0.
+double gradualValue(num input, num target, {double rate = 0.5}) {
+  assert(input < target, 'input must be less than target');
+  return target * (1 - math.exp(-rate * input));
+}
+
 extension RandomEx on math.Random {
   bool nextBoolBiased(double input, double target) {
     if (input >= target) {

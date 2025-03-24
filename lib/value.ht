@@ -3,6 +3,10 @@
 
 /// There are some original methods, like List.random, etc...
 
+external function parseInt(source: string, [radix: integer?]) -> number
+
+external function parseFloat(source: string) -> number
+
 external abstract class number {
 
   function toPercentageString([fractionDigits: integer = 0]) -> string

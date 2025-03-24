@@ -251,7 +251,7 @@ class HTInterpreter {
   }
 
   /// inexpicit type conversion for truthy values
-  bool _truthy(dynamic condition) {
+  bool truthy(dynamic condition) {
     if (config.allowImplicitEmptyValueToFalseConversion) {
       if (condition == false ||
           condition == null ||
@@ -482,7 +482,9 @@ class HTInterpreter {
       StringBuffer buffer = StringBuffer();
       final encap = encapsulate(object);
       if (object is HTDeclaration) {
-        buffer.write(object.documentation);
+        if (object.documentation != null) {
+          buffer.write(object.documentation);
+        }
       }
       if (encap == null) {
         buffer.write(globalNamespace.help());
@@ -1551,14 +1553,14 @@ class HTInterpreter {
           }
         case OpCode.ifStmt:
           final thenBranchLength = _currentBytecodeModule.readUint16();
-          final truthValue = _truthy(stack.localValue);
+          final truthValue = truthy(stack.localValue);
           stack.localValue = null;
           if (!truthValue) {
             _currentBytecodeModule.skip(thenBranchLength);
             _clearLocals();
           }
         case OpCode.whileStmt:
-          final truthValue = _truthy(stack.localValue);
+          final truthValue = truthy(stack.localValue);
           stack.localValue = null;
           if (!truthValue) {
             assert(stack.loops.isNotEmpty);
@@ -1571,7 +1573,7 @@ class HTInterpreter {
           final hasCondition = _currentBytecodeModule.readBool();
           bool truthValue = false;
           if (hasCondition) {
-            truthValue = _truthy(stack.localValue);
+            truthValue = truthy(stack.localValue);
             stack.localValue = null;
           }
           assert(stack.loops.isNotEmpty);
@@ -1616,10 +1618,10 @@ class HTInterpreter {
             stack.localValue = left;
           }
         case OpCode.truthyValue:
-          stack.localValue = _truthy(stack.localValue);
+          stack.localValue = truthy(stack.localValue);
         case OpCode.logicalOr:
           final left = stack.getValue(HTRegIdx.orLeft);
-          final leftTruthValue = _truthy(left);
+          final leftTruthValue = truthy(left);
           final rightValueLength = _currentBytecodeModule.readUint16();
           if (leftTruthValue) {
             _currentBytecodeModule.skip(rightValueLength);
@@ -1627,7 +1629,7 @@ class HTInterpreter {
           }
         case OpCode.logicalAnd:
           final left = stack.getValue(HTRegIdx.andLeft);
-          final leftTruthValue = _truthy(left);
+          final leftTruthValue = truthy(left);
           final rightValueLength = _currentBytecodeModule.readUint16();
           if (!leftTruthValue) {
             _currentBytecodeModule.skip(rightValueLength);
@@ -1761,7 +1763,7 @@ class HTInterpreter {
         case OpCode.negative:
           stack.localValue = -stack.localValue;
         case OpCode.logicalNot:
-          final truthValue = _truthy(stack.localValue);
+          final truthValue = truthy(stack.localValue);
           stack.localValue = !truthValue;
         case OpCode.bitwiseNot:
           stack.localValue = ~stack.localValue;

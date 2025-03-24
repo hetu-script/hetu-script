@@ -289,9 +289,6 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
   String help() {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('class $id');
-    if (documentation != null) {
-      buffer.write(documentation);
-    }
     buffer.write(namespace.help(displayNamespaceName: false));
     return buffer.toString();
   }

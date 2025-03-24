@@ -18,6 +18,7 @@ final Map<String, Function> preincludeFunctions = {
       int.tryParse(positionalArgs[0], radix: positionalArgs[1]),
   'parseFloat': ({positionalArgs, namedArgs}) =>
       double.tryParse(positionalArgs.first),
+  'Math.random': ({positionalArgs, namedArgs}) => math.Random().nextDouble(),
   'Math.min': ({positionalArgs, namedArgs}) {
     if (positionalArgs[0] == null) {
       return positionalArgs[1];
@@ -109,4 +110,7 @@ final Map<String, Function> preincludeFunctions = {
       positionalArgs[1], positionalArgs[2], positionalArgs[3]),
   'Math.aangle': ({positionalArgs, namedArgs}) => aangle(positionalArgs[0],
       positionalArgs[1], positionalArgs[2], positionalArgs[3]),
+  'Math.gradualValue': ({positionalArgs, namedArgs}) => gradualValue(
+      positionalArgs[0], positionalArgs[1],
+      rate: namedArgs['rate'] ?? 0.5),
 };
