@@ -192,7 +192,7 @@ external class BigInt {
 
 external class float extends number {
   
-  function toDoubleAsFixed(digits: integer) -> float
+  function toFixed(digits: integer) -> float
 
   function toString() -> string
 

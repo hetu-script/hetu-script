@@ -118,5 +118,5 @@ abstract class Math {
   
   /// Input a value and a target, get a output between 0.0 and 1.0.
   /// The more the input is near the target, the more the output is near 1.0.
-  external static function gradualValue(input, target, { rate = 0.1 })
+  external static function gradualValue(input, target, { power = 0.1 })
 }

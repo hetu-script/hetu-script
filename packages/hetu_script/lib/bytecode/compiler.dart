@@ -1186,7 +1186,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.add(_utf8String(text.trim()));
       if (stmt.description != null) {
         bytesBuilder.addByte(1); // bool: has description
-        bytesBuilder.add(_utf8String(stmt.description!));
+        final descriptionBytes = compileAST(stmt.description!, endOfExec: true);
+        bytesBuilder.add(descriptionBytes);
       } else {
         bytesBuilder.addByte(0); // bool: has description
       }

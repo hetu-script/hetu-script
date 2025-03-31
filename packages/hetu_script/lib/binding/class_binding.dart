@@ -84,6 +84,9 @@ class HTNumberClassBinding extends HTExternalClass {
         return ({object, positionalArgs, namedArgs}) => object.toInt();
       case 'toDouble':
         return ({object, positionalArgs, namedArgs}) => object.toDouble();
+      case 'clamp':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.clamp(positionalArgs[0], positionalArgs[1]);
       case 'toStringAsFixed':
         return ({object, positionalArgs, namedArgs}) =>
             object.toStringAsFixed(positionalArgs[0]);
@@ -124,6 +127,9 @@ class HTIntegerClassBinding extends HTExternalClass {
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
     switch (id) {
+      case 'clamp':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.clamp(positionalArgs[0], positionalArgs[1]);
       case 'modPow':
         return ({object, positionalArgs, namedArgs}) =>
             object.modPow(positionalArgs[0], positionalArgs[1]);
@@ -256,7 +262,7 @@ class HTFloatClassBinding extends HTExternalClass {
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
     switch (id) {
-      case 'toDoubleAsFixed':
+      case 'toFixed':
         return ({object, positionalArgs, namedArgs}) =>
             double.parse(object.toStringAsFixed(positionalArgs.first));
       default:

@@ -30,7 +30,6 @@ void initargParser() {
   argParser.addFlag('help',
       abbr: 'h', negatable: false, help: 'Show command help.');
   argParser.addFlag('version',
-      abbr: 'v',
       negatable: false,
       help: 'Show version of current using hetu_script package.');
   runCmd = argParser.addCommand('run');

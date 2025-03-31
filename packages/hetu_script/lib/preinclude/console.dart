@@ -44,19 +44,20 @@ class Console {
     _tiks[id] = DateTime.now().millisecondsSinceEpoch;
   }
 
-  void timeLog(String? id, {bool endTimer = false}) {
+  int? timeLog(String? id, {bool endTimer = false}) {
     id ??= _defaultTimerId;
+    int? t;
     if (_tiks.containsKey(id)) {
-      log('$id: ${DateTime.now().millisecondsSinceEpoch - _tiks[id]!} ms');
+      t = DateTime.now().millisecondsSinceEpoch - _tiks[id]!;
+      log('$id: $t ms');
       if (endTimer) {
         _tiks.remove(id);
       }
     } else {
       error('Timer \'$id\' does not exist.');
     }
+    return t;
   }
 
-  void timeEnd(String? id) {
-    timeLog(id, endTimer: true);
-  }
+  int? timeEnd(String? id) => timeLog(id, endTimer: true);
 }

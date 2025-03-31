@@ -1213,16 +1213,16 @@ class HTInterpreter {
           final distance = _currentBytecodeModule.readUint16();
           _currentBytecodeModule.ip = stack.anchors.last + distance;
         case OpCode.assertion:
-          assert(stack.localValue is bool);
+          final assertionValue = stack.localValue as bool;
           final text = _currentBytecodeModule.readUtf8String();
           final hasDescription = _currentBytecodeModule.readBool();
-          String? description;
+          dynamic description;
           if (hasDescription) {
-            description = _currentBytecodeModule.readUtf8String();
+            description = execute();
           }
-          if (!stack.localValue) {
+          if (!assertionValue) {
             throw HTError.assertionFailed(
-                '\'$text\'${description != null ? ': $description' : ''}');
+                '\'$text\', ${description != null ? lexicon.stringify(description) : ''}');
           }
         case OpCode.throws:
           throw HTError.scriptThrows(_lexicon.stringify(stack.localValue));

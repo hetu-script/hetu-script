@@ -880,9 +880,9 @@ class HTParserHetu extends HTParser {
     final keyword = match(lexer.lexicon.kAssert);
     match(lexer.lexicon.groupExprStart);
     final expr = parseExpr();
-    String? description;
+    ASTNode? description;
     if (expect([lexer.lexicon.comma], consume: true)) {
-      description = matchString().literal;
+      description = parseExpr();
     }
     match(lexer.lexicon.groupExprEnd);
     final hasEndOfStmtMark = parseEndOfStmtMark();
