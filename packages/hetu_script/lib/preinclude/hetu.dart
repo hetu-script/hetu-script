@@ -106,6 +106,10 @@ class HetuConfig
   @override
   bool allowImplicitEmptyValueToFalseConversion;
 
+  /// defaults to `false`
+  @override
+  bool allowAssignmentAndInitializationExpresssionHaveValue;
+
   /// Wether check the nominal typename validity at runtime,
   /// will slightly affect the efficiency of the interpreter.
   ///
@@ -133,10 +137,11 @@ class HetuConfig
     this.stackTraceDisplayCountLimit = 5,
     this.processError = true,
     this.debugMode = false,
-    this.allowVariableShadowing = true,
+    this.allowVariableShadowing = false,
     this.allowImplicitVariableDeclaration = false,
     this.allowImplicitNullToZeroConversion = false,
     this.allowImplicitEmptyValueToFalseConversion = false,
+    this.allowAssignmentAndInitializationExpresssionHaveValue = false,
     this.checkTypeAnnotationAtRuntime = false,
     this.resolveExternalFunctionsDynamically = false,
     this.printPerformanceStatistics = false,

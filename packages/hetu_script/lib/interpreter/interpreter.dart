@@ -75,6 +75,8 @@ class InterpreterConfig implements ErrorHandlerConfig {
 
   bool allowImplicitEmptyValueToFalseConversion;
 
+  bool allowAssignmentAndInitializationExpresssionHaveValue;
+
   bool printPerformanceStatistics;
 
   bool checkTypeAnnotationAtRuntime;
@@ -91,6 +93,7 @@ class InterpreterConfig implements ErrorHandlerConfig {
     this.allowImplicitVariableDeclaration = false,
     this.allowImplicitNullToZeroConversion = false,
     this.allowImplicitEmptyValueToFalseConversion = false,
+    this.allowAssignmentAndInitializationExpresssionHaveValue = false,
     this.printPerformanceStatistics = false,
     this.checkTypeAnnotationAtRuntime = false,
     this.resolveExternalFunctionsDynamically = false,
@@ -1481,7 +1484,11 @@ class HTInterpreter {
               lateFinalize: lateFinalize,
             );
           }
-          stack.localValue = initValue;
+          if (config.allowAssignmentAndInitializationExpresssionHaveValue) {
+            stack.localValue = initValue;
+          } else {
+            stack.localValue = null;
+          }
           if (!isField) {
             currentNamespace.define(id, decl,
                 override: config.allowVariableShadowing);
@@ -1609,7 +1616,11 @@ class HTInterpreter {
               throw HTError.undefined(id);
             }
           }
-          stack.localValue = value;
+          if (config.allowAssignmentAndInitializationExpresssionHaveValue) {
+            stack.localValue = value;
+          } else {
+            stack.localValue = null;
+          }
         case OpCode.ifNull:
           final left = stack.getValue(HTRegIdx.ifNullLeft);
           final rightValueLength = _currentBytecodeModule.readUint16();
