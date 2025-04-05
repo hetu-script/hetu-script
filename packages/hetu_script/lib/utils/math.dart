@@ -72,8 +72,8 @@ double gaussianNoise(double mean, double standardDeviation,
 
 /// Input a value and a target, get a output between 0.0 and 1.0.
 /// The more the input is near the target, the more the output is near 1.0.
-double gradualValue(num input, num target, {double power = 0.1}) {
-  assert(input >= 0 && input <= target);
+double gradualValue(num input, num target, {double power = 0.5}) {
+  input = input.clamp(0, target);
   final ratio = input / target;
   return math.pow(ratio, 1 / power).toDouble();
 }

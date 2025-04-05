@@ -112,5 +112,5 @@ final Map<String, Function> preincludeFunctions = {
       positionalArgs[1], positionalArgs[2], positionalArgs[3]),
   'Math.gradualValue': ({positionalArgs, namedArgs}) => gradualValue(
       positionalArgs[0], positionalArgs[1],
-      power: namedArgs['power'] ?? 0.1),
+      power: namedArgs['power'] ?? 0.5),
 };

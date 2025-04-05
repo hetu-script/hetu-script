@@ -27,8 +27,7 @@ Future<void> main() async {
   ''', type: HTResourceType.json));
 
   var r = hetu.eval(r'''
-    final msg = 'some error message ${6*7}'
-    assert(1 > 2, msg)
+    0xFF
 ''');
 
   if (r is Future) {

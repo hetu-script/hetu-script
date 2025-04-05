@@ -2526,7 +2526,7 @@ class HTInterpreter {
       isPrivate: isPrivate,
     );
     currentNamespace.define(id, decl);
-    stack.localValue = value;
+    stack.localValue = null;
   }
 
   void _handleConstDecl() {
@@ -2867,7 +2867,7 @@ class HTInterpreter {
     final enumClass =
         HTExternalEnum(this, id: id, documentation: documentation);
     currentNamespace.define(id, enumClass);
-    stack.localValue = enumClass;
+    stack.localValue = null;
   }
 
   void _handleStructDecl() {

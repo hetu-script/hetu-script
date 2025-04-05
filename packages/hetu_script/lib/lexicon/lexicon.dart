@@ -12,15 +12,10 @@ abstract class HTLexicon {
   String get name;
 
   String get identifierStartPattern;
-  String get identifierPattern;
-  String get numberStartPattern;
-  String get digitPattern;
-  String get numberPattern;
-  String get hexNumberPattern;
-  String get stringInterpolationPattern;
 
-  /// a character sequence that marked the start of literal hex number.
-  String get hexNumberStart;
+  String get identifierPattern;
+
+  String get stringInterpolationPattern;
 
   /// a character sequence that marked the start of single line comment.
   String get singleLineCommentStart;

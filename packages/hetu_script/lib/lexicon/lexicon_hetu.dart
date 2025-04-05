@@ -13,22 +13,7 @@ class HTLexiconHetu extends HTLexicon {
   String get identifierPattern => r'[_\$\p{L}0-9]';
 
   @override
-  String get numberStartPattern => r'[\.\d]';
-
-  @override
-  String get numberPattern => r'[\.\d]';
-
-  @override
-  String get digitPattern => r'\d';
-
-  @override
-  String get hexNumberPattern => r'[0-9a-fA-F]';
-
-  @override
   String get stringInterpolationPattern => r'\${([^\${}]*)}';
-
-  @override
-  String get hexNumberStart => r'0x';
 
   @override
   String get singleLineCommentStart => r'//';
