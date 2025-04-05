@@ -13,21 +13,12 @@ Future<void> main() async {
   );
   hetu.init();
 
-  sourceContext.addResource('file1.ht', HTSource('''
-    fun test () {
-      print('Hello, World!');
-    }
-  '''));
-
-  sourceContext.addResource('file2.json', HTSource('''
-{
-  value: 1.0,
-  type: 'percentage',
-}
-  ''', type: HTResourceType.json));
-
   var r = hetu.eval(r'''
-    0xFF
+    '
+    ${
+    1 + 2
+    }
+    '
 ''');
 
   if (r is Future) {

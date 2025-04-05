@@ -7,6 +7,15 @@ class HTLexiconHetu extends HTLexicon {
   String get name => r'lexicon_javascript';
 
   @override
+  String get digitPattern => r'\d';
+
+  @override
+  String get hexDigitPattern => r'[0-9a-fA-F]';
+
+  @override
+  String get hexNumberStart => r'0x';
+
+  @override
   String get identifierStartPattern => r'[_#\$\p{L}]';
 
   @override

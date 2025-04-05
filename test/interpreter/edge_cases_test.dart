@@ -4,6 +4,7 @@ import 'package:hetu_script/hetu_script.dart';
 void main() {
   final hetu = Hetu(
     config: HetuConfig(
+      allowVariableShadowing: true,
       printPerformanceStatistics: false,
     ),
   );
@@ -143,6 +144,7 @@ void main() {
       final result = hetu.eval(r'''
         var a
         a ??= 'not null!'
+        a
       ''');
       expect(
         result,

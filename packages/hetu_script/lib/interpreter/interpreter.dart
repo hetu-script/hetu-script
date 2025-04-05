@@ -232,6 +232,8 @@ class HTInterpreter {
   final List<HTStackFrame> _stackFrames = [HTStackFrame()];
   HTStackFrame get stack => _stackFrames.last;
 
+  bool isInitted = false;
+
   /// A bytecode interpreter.
   HTInterpreter(
       {InterpreterConfig? config,
@@ -242,6 +244,10 @@ class HTInterpreter {
     globalNamespace =
         HTNamespace(lexicon: _lexicon, id: InternalIdentifier.global);
     currentNamespace = globalNamespace;
+
+    _currentBytecodeModule =
+        HTBytecodeModule(id: 'uninitialized', bytes: Uint8List.fromList([]));
+    cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
   }
 
   /// inexpicit type conversion for zero or null values

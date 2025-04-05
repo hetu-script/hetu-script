@@ -11,6 +11,12 @@ abstract class HTLexicon {
   /// the name of this lexicon.
   String get name;
 
+  String get digitPattern;
+
+  String get hexDigitPattern;
+
+  String get hexNumberStart;
+
   String get identifierStartPattern;
 
   String get identifierPattern;

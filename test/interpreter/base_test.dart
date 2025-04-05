@@ -4,6 +4,7 @@ import 'package:hetu_script/hetu_script.dart';
 void main() {
   final hetu = Hetu(
     config: HetuConfig(
+      allowVariableShadowing: true,
       printPerformanceStatistics: false,
     ),
   );
