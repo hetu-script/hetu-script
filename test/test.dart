@@ -14,11 +14,7 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-    '
-    ${
-    1 + 2
-    }
-    '
+    -.4
 ''');
 
   if (r is Future) {
