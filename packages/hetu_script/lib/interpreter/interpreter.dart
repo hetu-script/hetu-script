@@ -75,7 +75,7 @@ class InterpreterConfig implements ErrorHandlerConfig {
 
   bool allowImplicitEmptyValueToFalseConversion;
 
-  bool allowAssignmentAndInitializationExpresssionHaveValue;
+  bool allowInitializationExpresssionHaveValue;
 
   bool printPerformanceStatistics;
 
@@ -93,7 +93,7 @@ class InterpreterConfig implements ErrorHandlerConfig {
     this.allowImplicitVariableDeclaration = false,
     this.allowImplicitNullToZeroConversion = false,
     this.allowImplicitEmptyValueToFalseConversion = false,
-    this.allowAssignmentAndInitializationExpresssionHaveValue = false,
+    this.allowInitializationExpresssionHaveValue = false,
     this.printPerformanceStatistics = false,
     this.checkTypeAnnotationAtRuntime = false,
     this.resolveExternalFunctionsDynamically = false,
@@ -1490,7 +1490,7 @@ class HTInterpreter {
               lateFinalize: lateFinalize,
             );
           }
-          if (config.allowAssignmentAndInitializationExpresssionHaveValue) {
+          if (config.allowInitializationExpresssionHaveValue) {
             stack.localValue = initValue;
           } else {
             stack.localValue = null;
@@ -1622,11 +1622,7 @@ class HTInterpreter {
               throw HTError.undefined(id);
             }
           }
-          if (config.allowAssignmentAndInitializationExpresssionHaveValue) {
-            stack.localValue = value;
-          } else {
-            stack.localValue = null;
-          }
+          stack.localValue = value;
         case OpCode.ifNull:
           final left = stack.getValue(HTRegIdx.ifNullLeft);
           final rightValueLength = _currentBytecodeModule.readUint16();

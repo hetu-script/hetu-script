@@ -157,13 +157,13 @@ ${
         var jimmy = {
           age: 17
         }
-        jimmy.age -= 10
+        jimmy.age -= 5 + 2
         jimmy.age *= 6
-        jimmy.age
+        jimmy.age += 3 * 4
       ''');
       expect(
         result,
-        42,
+        72,
       );
     });
   });

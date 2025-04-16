@@ -1,4 +1,20 @@
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/binding.dart';
+
+class ConstantsClassBinding extends HTExternalClass {
+  ConstantsClassBinding() : super('Constants');
+
+  @override
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
+    switch (id) {
+      case 'Constants.aaa':
+        return 42;
+      default:
+        if (!ignoreUndefined) throw HTError.undefined(id);
+    }
+  }
+}
 
 Future<void> main() async {
   final sourceContext = HTOverlayContext();
@@ -13,8 +29,23 @@ Future<void> main() async {
   );
   hetu.init();
 
+  hetu.interpreter.bindExternalClass(ConstantsClassBinding());
+
   var r = hetu.eval(r'''
-    -.4
+    // external abstract class Constants {
+    //   get aaa
+    // }
+    // Constants.aaa
+
+        var jimmy = {
+          age: 17
+        }
+        jimmy.age -= 5 + 2
+       print(jimmy.age)
+        jimmy.age *= 6
+       print(jimmy.age)
+        jimmy.age -= 3 * 6
+       print(jimmy.age)
 ''');
 
   if (r is Future) {

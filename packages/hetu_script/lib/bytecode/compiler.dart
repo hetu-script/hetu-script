@@ -1047,15 +1047,15 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final bytes = visitIf(ifStmt);
       bytesBuilder.add(bytes);
     } else {
-      final spreaded = AssignExpr(
+      final expanded = AssignExpr(
           expr.left,
           _lexicon.assign,
-          BinaryExpr(
-              expr.left, expr.op.substring(0, expr.op.length - 1), expr.right),
+          BinaryExpr(expr.left, expr.op.substring(0, expr.op.length - 1),
+              GroupExpr(expr.right)),
           source: expr.source,
           line: expr.line,
           column: expr.column);
-      final bytes = visitAssignExpr(spreaded);
+      final bytes = visitAssignExpr(expanded);
       bytesBuilder.add(bytes);
     }
     return bytesBuilder.toBytes();
