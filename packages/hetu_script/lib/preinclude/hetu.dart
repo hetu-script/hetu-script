@@ -332,6 +332,11 @@ class Hetu {
           {object, positionalArgs, namedArgs}) {
         return lexicon.stringify(object);
       });
+      interpreter.bindExternalMethod('Object::iterator', (
+          {object, positionalArgs, namedArgs}) {
+        final struct = object as HTStruct;
+        return struct.keys.iterator;
+      });
       interpreter.bindExternalMethod('Object::keys', (
           {object, positionalArgs, namedArgs}) {
         final struct = object as HTStruct;

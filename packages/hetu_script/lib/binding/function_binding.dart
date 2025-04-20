@@ -84,26 +84,19 @@ final Map<String, Function> preincludeFunctions = {
     final int width = positionalArgs[0].toInt();
     final int height = positionalArgs[1].toInt();
     final seed = namedArgs['seed'] ?? math.Random().nextInt(1 << 32);
-    final frequency = namedArgs['frequency'];
+    final double frequency = namedArgs['frequency'] ?? 0.01;
+    final int octaves = namedArgs['octaves'] ?? 3;
     final noiseTypeString = namedArgs['noiseType'];
-    NoiseType noiseType;
-    switch (noiseTypeString) {
-      case 'perlinFractal':
-        noiseType = NoiseType.perlinFractal;
-      case 'perlin':
-        noiseType = NoiseType.perlin;
-      case 'cubicFractal':
-        noiseType = NoiseType.cubicFractal;
-      case 'cubic':
-      default:
-        noiseType = NoiseType.cubic;
-    }
+    NoiseType noiseType = NoiseType.values.singleWhere((item) {
+      return item.name == noiseTypeString;
+    }, orElse: () => NoiseType.valueFractal);
     return noise2(
       width,
       height,
       seed: seed,
       frequency: frequency,
       noiseType: noiseType,
+      octaves: octaves,
     );
   },
   'Math.angle': ({positionalArgs, namedArgs}) => angle(positionalArgs[0],

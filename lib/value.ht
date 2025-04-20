@@ -513,6 +513,8 @@ external class Map {
 
 	get isNotEmpty -> bool
 
+  get iterator -> Iterator
+
   get keys -> Iterable
 
   get values -> Iterable

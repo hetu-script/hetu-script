@@ -785,6 +785,8 @@ class HTMapClassBinding extends HTExternalClass {
         return instance.isEmpty;
       case 'isNotEmpty':
         return instance.isNotEmpty;
+      case 'iterator':
+        return instance.keys.iterator;
       case 'keys':
         return instance.keys;
       case 'values':

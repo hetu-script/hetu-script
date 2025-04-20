@@ -9,6 +9,8 @@ struct Object {
   /// Assign source object's member to target if target does not have that member.
   external static function merge(target, source)
 
+  external get iterator -> Iterator
+
   external get keys -> Iterable
 
   external get values -> Iterable
