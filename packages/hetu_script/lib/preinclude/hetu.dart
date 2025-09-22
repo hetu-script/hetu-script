@@ -490,7 +490,7 @@ class Hetu {
   //   _currentParser = _parsers[name]!;
   // }
 
-  String stringify(dynamic) => lexicon.stringify(dynamic);
+  String stringify(dynamic dynamic) => lexicon.stringify(dynamic);
 
   /// Evaluate a string content.
   /// If [invoke] is provided, will immediately

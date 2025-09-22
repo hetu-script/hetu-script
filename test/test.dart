@@ -32,20 +32,12 @@ Future<void> main() async {
   hetu.interpreter.bindExternalClass(ConstantsClassBinding());
 
   var r = hetu.eval(r'''
-    // external abstract class Constants {
-    //   get aaa
-    // }
-    // Constants.aaa
+    let a = {}
+    a.b = Map()
+    a.b.name = 'jimmy'
 
-        var jimmy = {
-          age: 17
-        }
-        jimmy.age -= 5 + 2
-       print(jimmy.age)
-        jimmy.age *= 6
-       print(jimmy.age)
-        jimmy.age -= 3 * 6
-       print(jimmy.age)
+    let j = a.toJSON()
+    print(j)
 ''');
 
   if (r is Future) {

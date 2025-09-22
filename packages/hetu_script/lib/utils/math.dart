@@ -43,7 +43,7 @@ double angle(num x1, num y1, num x2, num y2) {
   return angle;
 }
 
-double aangle(x1, y1, x2, y2) {
+double aangle(num x1, num y1, num x2, num y2) {
   return radians(angle(x1, y1, x2, y2));
 }
 

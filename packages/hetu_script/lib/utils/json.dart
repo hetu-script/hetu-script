@@ -5,7 +5,7 @@ bool isJsonDataType(dynamic object) {
       object is num ||
       object is bool ||
       object is String ||
-      object is Map<String, dynamic> ||
+      object is Map ||
       object is HTStruct ||
       object is Iterable) {
     return true;
@@ -45,6 +45,8 @@ Map<String, dynamic> jsonifyStruct(HTStruct struct, {HTStruct? from}) {
         value = jsonify(value);
       } else if (value is HTStruct) {
         value = jsonifyStruct(value);
+      } else {
+        value = value;
       }
       output[key] = value;
     }
@@ -88,6 +90,8 @@ dynamic jsonify(dynamic value, {bool deep = true}) {
       }
       return map;
     }
+  } else if (isJsonDataType(value)) {
+    return value;
   } else {
     return null;
   }

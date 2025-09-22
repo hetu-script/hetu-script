@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'package:intl/intl.dart';
+// import 'package:intl/intl.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../version.dart';
@@ -324,8 +324,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       mainBytesBuilder.addByte(0); // bool: hasVersion
     }
     final compiledAt = DateTime.now().toUtc();
-    final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
-    final compiledAtString = formatter.format(compiledAt);
+    // final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    // final compiledAtString = formatter.format(compiledAt);
+    final compiledAtString = compiledAt.toIso8601String();
     mainBytesBuilder.add(_utf8String(compiledAtString));
     // entry file name
     mainBytesBuilder.add(_utf8String(compilation.entryFullname));

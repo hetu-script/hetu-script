@@ -137,11 +137,11 @@ class HTStruct with HTObject {
     _fields[id] = value;
   }
 
-  operator [](dynamic key) {
+  dynamic operator [](dynamic key) {
     return memberGet(key);
   }
 
-  operator []=(dynamic key, dynamic value) {
+  void operator []=(dynamic key, dynamic value) {
     memberSet(key, value);
   }
 
