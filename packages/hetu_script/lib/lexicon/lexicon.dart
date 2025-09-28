@@ -942,13 +942,12 @@ abstract class HTLexicon {
         if (i < type.parameterTypes.length - 1) {
           output.write('$comma ');
         }
-        if (optionalStarted) {
-          output.write(functionPositionalParameterEnd);
-        } else if (namedStarted) {
-          namedStarted = true;
-          output.write(functionNamedParameterEnd);
-        }
         ++i;
+      }
+      if (optionalStarted) {
+        output.write(functionPositionalParameterEnd);
+      } else if (namedStarted) {
+        output.write(functionNamedParameterEnd);
       }
       final returnTypeString =
           type.returnType != null ? _stringifyType(type.returnType!) : kAny;

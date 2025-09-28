@@ -32,12 +32,9 @@ Future<void> main() async {
   hetu.interpreter.bindExternalClass(ConstantsClassBinding());
 
   var r = hetu.eval(r'''
-    let a = {}
-    a.b = Map()
-    a.b.name = 'jimmy'
+    function test({a: integer, b: integer}) -> integer {}
 
-    let j = a.toJSON()
-    print(j)
+    print(typeof test)
 ''');
 
   if (r is Future) {
