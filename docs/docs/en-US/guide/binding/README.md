@@ -112,11 +112,9 @@ And the output should be:
 hetu value: {'greeting': 'Hello from Dart!', 'reply': 'Hi, this is Hetu.'}
 ```
 
-### External methods in classes
+### External methods in script class
 
 A Hetu class could have a external method, even if other part of this class is all Hetu.
-
-When called, the first argument passed from the script will be the instance instead of the namespace.
 
 For example, we have the following class with a external method:
 
@@ -126,15 +124,16 @@ class Someone {
 }
 ```
 
-We have to define a external method in Dart code:
+We have to define a external method in Dart code. There is a difference in the typedef of the external method and the external fucntion. The instance of the class will be passed as the argument `object`.
 
 ```dart
+// note the typedef of a external method is different.
 dynamic calculate({object, positionalArgs, namedArgs}) {
   // do somthing about the object
 };
 ```
 
-We have to bind this external method some where in the Dart code, before we can use it in Hetu:
+We have to bind this external method some where in the Dart code, before we can use it in Hetu. Note we have to use the form of `className::funcName` to define the method.
 
 ```dart
 // the key of this external method have to be in the form of 'className::methodName'
@@ -148,7 +147,7 @@ var ss = Someone()
 ss.calculate()
 ```
 
-You can also have a external method on a named struct:
+You can also have a external method on a named struct, everything else you should do is the same to a external method on a class.
 
 ```javascript
 struct Person {
@@ -156,15 +155,22 @@ struct Person {
 }
 ```
 
-Everything else you should do is the same to a external method on a class.
+### External function in an explicity namespace
 
-### External function in explicity namespace
+Use same way to bind a external method of a normal class, but use `bindExternalFunction` instead. And use normal external function typedef when binding a namespace function. because there is no instance exist.
 
-Use same way to bind a external method of a normal class, but use `bindExternalMethod` instead.
+```
+namespace MyNamespace {
+  external function calculate
+}
+```
 
 ```dart
-// the key of this external method have to be in the form of 'className::methodName'
-hetu.bindExternalFunction('MyNamespace::calculate', calculate);
+// the key of this external method have to be in the form of 'namespaceName::functionName'
+// note the typedef is not `externalMethod`, but normal `externalFunction`
+hetu.bindExternalFunction('MyNamespace::calculate', ({positionalArgs, namedArgs}) {
+  // do somthing
+})
 ```
 
 ### External class

@@ -122,9 +122,9 @@ void main() async {
 hetu value: {'greeting': 'Hello from Dart!', 'reply': 'Hi, this is Hetu.'}
 ```
 
-### 绑定一个外部方法
+### 为一个脚本定义的 class 绑定一个外部方法
 
-你可以在脚本中的类定义中，定义外部方法（外部成员函数）。
+你可以在一个脚本中的类定义中，定义外部方法（外部成员函数）。
 
 ```dart
 class Someone {
@@ -132,15 +132,16 @@ class Someone {
 }
 ```
 
-对于脚本类中的外部成员函数，在 Dart 侧的定义和普通函数一样：
+对于脚本类中的外部成员函数，在 Dart 侧同样需要额外定义。注意外部方法在 Dart 中的函数定义和普通的外部函数不同，参数中额外包含一个 object，指向该 class 的一个 instance。
 
 ```dart
+// note the typedef of a external method is different.
 dynamic calculate({object, positionalArgs, namedArgs}) {
   // do somthing about the object
 };
 ```
 
-但在绑定时，约定使用 className::funcName 的形式作为绑定名, 但要改为使用 `bindExternalMethod` api：
+但在绑定时，约定使用 `className::funcName` 的形式作为绑定名, 但要改为使用 `bindExternalMethod` api：
 
 ```dart
 // the key of this external method have to be in the form of 'className.methodName'
@@ -164,11 +165,20 @@ struct Person {
 
 ### 显式命名空间中的外部函数
 
-和类的外部方法相同，约定使用 namespaceName::funcName 的形式作为绑定名，注意此时要使用 `bindExternalFunction` 而非 `bindExternalMethod`
+和类的外部方法相同，约定使用 namespaceName::funcName 的形式作为绑定名，注意此时要使用 `bindExternalFunction` 而非 `bindExternalMethod`。而且函数定义和普通外部函数相同，而不是外部方法，因为命名空间显然并没有对应的 instance.
+
+```
+namespace MyNamespace {
+  external function calculate
+}
+```
 
 ```dart
 // the key of this external method have to be in the form of 'className::methodName'
-hetu.bindExternalFunction('namespaceName::calculate', calculate);
+// note the typedef is not `externalMethod`, but normal `externalFunction`
+hetu.bindExternalFunction('namespaceName::calculate', ({positionalArgs, namedArgs}) {
+  // do somthing
+})
 ```
 
 ### 外部类的定义和声明
