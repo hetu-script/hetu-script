@@ -363,6 +363,8 @@ external class Iterable {
 
   function toList() -> List
 
+  function toSet() -> Set
+
 	get length -> integer
 
 	get isEmpty -> bool

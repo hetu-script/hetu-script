@@ -469,6 +469,8 @@ class HTIterableClassBinding extends HTExternalClass {
         };
       case 'toList':
         return ({object, positionalArgs, namedArgs}) => object.toList();
+      case 'toSet':
+        return ({object, positionalArgs, namedArgs}) => object.toSet();
       case 'length':
         return instance.length;
       case 'isEmpty':
