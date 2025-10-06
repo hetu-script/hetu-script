@@ -10,3 +10,5 @@ external class Future {
 
   function then(func: (value) -> any) -> Future
 }
+
+type Promise = Future

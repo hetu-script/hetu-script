@@ -68,6 +68,8 @@ external abstract class number {
   function toString() -> string
 }
 
+type num = number
+
 external class integer extends number {
   
   /// Parse [source] as a, possibly signed, integer literal.
@@ -107,6 +109,8 @@ external class integer extends number {
   /// Converts [this] to a string representation in the given [radix].
   function toRadixString(radix: integer) -> string
 }
+
+type int = integer
 
 /// An arbitrarily large integer.
 external class BigInt {
@@ -257,6 +261,8 @@ external class float extends number {
   get sign -> float
 }
 
+type double = float
+
 external class bool {
 
   function toString() -> string
@@ -316,6 +322,8 @@ external class string {
 
 	function toUpperCase() -> string
 }
+
+type str = string
 
 external class Iterator {
   /// Advances the iterator to the next element of the iteration.
