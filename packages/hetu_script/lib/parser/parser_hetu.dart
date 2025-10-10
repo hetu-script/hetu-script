@@ -970,8 +970,7 @@ class HTParserHetu extends HTParser {
   /// precedence 1, associativity right
   @override
   ASTNode parseExpr() {
-    ASTNode? expr;
-    final left = _parseTernaryExpr();
+    ASTNode left = _parseTernaryExpr();
     if (lexer.lexicon.assignments.contains(curTok.lexeme)) {
       if (!_isLegalLeftValue) {
         final err = HTError.invalidLeftValue(
@@ -984,36 +983,35 @@ class HTParserHetu extends HTParser {
       }
       final op = advance();
       final right = parseExpr();
-      expr = AssignExpr(left, op.lexeme, right,
+      left = AssignExpr(left, op.lexeme, right,
           source: currentSource,
           line: left.line,
           column: left.column,
           offset: left.offset,
           length: curTok.offset - left.offset);
-    } else {
-      expr = left;
     }
     handleTrailing(left);
-    return expr;
+    return left;
   }
 
   /// Ternery operator: e1 ? e2 : e3
   /// precedence 3, associativity right
   ASTNode _parseTernaryExpr() {
-    var condition = _parseIfNullExpr();
-    if (expect([lexer.lexicon.ternaryThen], consume: true)) {
+    ASTNode expr = _parseIfNullExpr();
+    if (curTok.lexeme == lexer.lexicon.ternaryThen) {
+      advance();
       _isLegalLeftValue = false;
       final thenBranch = _parseTernaryExpr();
       match(lexer.lexicon.ternaryElse);
       final elseBranch = _parseTernaryExpr();
-      condition = TernaryExpr(condition, thenBranch, elseBranch,
+      expr = TernaryExpr(expr, thenBranch, elseBranch,
           source: currentSource,
-          line: condition.line,
-          column: condition.column,
-          offset: condition.offset,
-          length: curTok.offset - condition.offset);
+          line: expr.line,
+          column: expr.column,
+          offset: expr.offset,
+          length: curTok.offset - expr.offset);
     }
-    return condition;
+    return expr;
   }
 
   /// If null: e1 ?? e2
@@ -1256,7 +1254,7 @@ class HTParserHetu extends HTParser {
       _isLegalLeftValue = false;
       while (lexer.lexicon.multiplicatives.contains(curTok.lexeme)) {
         final op = advance();
-        final right = _parseUnaryPrefixExpr();
+        final right = _parseMultiplicativeExpr();
         left = BinaryExpr(left, op.lexeme, right,
             source: currentSource,
             line: left.line,

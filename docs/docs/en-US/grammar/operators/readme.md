@@ -92,7 +92,11 @@ Operators in Hetu is a subset of Dart:
 | Unary postfix  | e., e?., e++, e--, e1[e2], e()     |     None      |     16     |
 | Unary prefix   | -e, !e, ++e, --e, await e          |     None      |     15     |
 | Multiplicative | \*, /, ~/, %                       |     Left      |     14     |
-| Additive       | +,                                 |     Left      |     13     |
+| Additive       | +, -                               |     Left      |     13     |
+| Shift          | <<,>>, >>>                         |     Left      |     12     |
+| Bitwise AND    | &                                  |     Left      |     11     |
+| Bitwise XOR    | ^                                  |     Left      |     10     |
+| Bitwise OR     | \|                                 |     Left      |     9      |
 | Relational     | <, >, <=, >=, as, is, is!, in, in! |     None      |     8      |
 | Equality       | ==, !=                             |     None      |     7      |
 | Logical AND    | &&                                 |     Left      |     6      |
@@ -100,3 +104,4 @@ Operators in Hetu is a subset of Dart:
 | If null        | \?\?                               |     Left      |     4      |
 | Conditional    | e1 ? e2 : e3                       |     Right     |     3      |
 | Assignment     | =, \*=, /=, ~/=, +=, -=, ??=       |     Right     |     1      |
+| Spread         | ...                                |     None      |     0      |

@@ -19,14 +19,7 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-        function switchTest(expr) {
-          return switch (expr) {
-            0 => '0'
-            1 => '1'
-            _ => ''
-          }
-        }
-        switchTest(5 - 4)
+     2 * 3 - 5
 ''');
 
   if (r is Future) {
