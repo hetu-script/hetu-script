@@ -182,7 +182,7 @@ class HTFormatter implements AbstractASTVisitor<String> {
   }
 
   @override
-  String visitCommaExpr(CommaExpr expr) {
+  String visitCommaExpr(ParallelExpr expr) {
     final output = StringBuffer();
     output.write(
         expr.list.map((item) => formatAST(item)).join('${_lexicon.comma} '));

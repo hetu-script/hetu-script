@@ -86,7 +86,7 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   }
 
   @override
-  void visitCommaExpr(CommaExpr node) {
+  void visitCommaExpr(ParallelExpr node) {
     node.subAccept(this);
   }
 

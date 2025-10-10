@@ -1438,7 +1438,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   }
 
   @override
-  Uint8List visitCommaExpr(CommaExpr expr) {
+  Uint8List visitCommaExpr(ParallelExpr expr) {
     final bytesBuilder = BytesBuilder();
     if (expr.isLocal) {
       bytesBuilder.addByte(OpCode.local);
@@ -1469,7 +1469,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     for (final ast in stmt.cases.keys) {
       final caseBytesBuilder = BytesBuilder();
       if (condition != null) {
-        if (ast is CommaExpr) {
+        if (ast is ParallelExpr) {
           caseBytesBuilder.addByte(HTSwitchCaseTypeCode.eigherEquals);
           final bytes = visitCommaExpr(ast);
           caseBytesBuilder.add(bytes);

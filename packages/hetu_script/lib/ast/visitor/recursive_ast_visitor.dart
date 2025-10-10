@@ -76,7 +76,7 @@ abstract class RecursiveASTVisitor<T> implements AbstractASTVisitor<T> {
   }
 
   @override
-  T? visitCommaExpr(CommaExpr node) {
+  T? visitCommaExpr(ParallelExpr node) {
     node.subAccept(this);
   }
 

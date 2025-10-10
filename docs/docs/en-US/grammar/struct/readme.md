@@ -67,7 +67,7 @@ And if you changed the static fields in a named struct. All the object created f
 struct Named {
   static var race = 'Human'
   var name
-  constructor(name) {
+  constructor (name) {
     this.name = name
   }
 }

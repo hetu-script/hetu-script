@@ -81,7 +81,7 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
   }
 
   @override
-  HTType visitCommaExpr(CommaExpr node) {
+  HTType visitCommaExpr(ParallelExpr node) {
     return HTTypeAny(_lexicon.kAny);
   }
 

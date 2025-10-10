@@ -928,8 +928,7 @@ class HTParserHetu extends HTParser {
         match(lexer.lexicon.namedArgumentValueIndicator);
         final namedArg = parseExpr();
         namedArg.precedings = precedings;
-        handleTrailing(namedArg,
-            endMarkForCommaExpressions: lexer.lexicon.functionParameterEnd);
+        handleTrailing(namedArg);
         namedArgs[name] = namedArg;
       } else {
         ASTNode positionalArg;
@@ -946,8 +945,7 @@ class HTParserHetu extends HTParser {
           positionalArg = parseExpr();
         }
         positionalArg.precedings = precedings;
-        handleTrailing(positionalArg,
-            endMarkForCommaExpressions: lexer.lexicon.functionParameterEnd);
+        handleTrailing(positionalArg);
         positionalArgs.add(positionalArg);
       }
     }
@@ -1485,7 +1483,7 @@ class HTParserHetu extends HTParser {
           //         lexer.lexicon.literalFunctionDefinitionIndicator)) {
           (tokenAfterParameterList.lexeme == lexer.lexicon.blockStart ||
               tokenAfterParameterList.lexeme ==
-                  lexer.lexicon.singleLineFunctionIndicator ||
+                  lexer.lexicon.singleLineIndicator ||
               tokenAfterParameterList.lexeme == lexer.lexicon.kAsync)) {
         _isLegalLeftValue = false;
         expr = _parseFunction(category: FunctionCategory.literal);
@@ -1759,13 +1757,15 @@ class HTParserHetu extends HTParser {
     return expr;
   }
 
-  CommaExpr _handleCommaExpr(String endMark, {bool isLocal = true}) {
+  ParallelExpr _parseParallelExpr(String endMark, String separateToken,
+      {bool isLocal = true}) {
     final List<ASTNode> list = parseExprList(
       endToken: endMark,
+      separateToken: separateToken,
       parseFunction: () => parseExpr(),
     );
     assert(list.isNotEmpty);
-    return CommaExpr(list,
+    return ParallelExpr(list,
         isLocal: isLocal,
         source: currentSource,
         line: list.first.line,
@@ -1894,8 +1894,7 @@ class HTParserHetu extends HTParser {
           param.precedings = precedings;
           parameters.add(param);
           if (isVariadic) break;
-          handleTrailing(param,
-              endMarkForCommaExpressions: lexer.lexicon.functionParameterEnd);
+          handleTrailing(param);
         }
       }
       match(lexer.lexicon.functionParameterEnd);
@@ -2142,7 +2141,6 @@ class HTParserHetu extends HTParser {
         }
         return stmt;
       },
-      handleComma: false,
     );
     if (statements.isEmpty) {
       final empty = ASTEmptyLine(
@@ -2393,33 +2391,56 @@ class HTParserHetu extends HTParser {
       if (curTok.lexeme == lexer.lexicon.blockEnd && options.isNotEmpty) {
         break;
       }
+      ASTNode? caseExpr;
       if (curTok.lexeme == lexer.lexicon.kElse ||
           curTok.lexeme == lexer.lexicon.kDefault ||
           curTok.lexeme == lexer.lexicon.defaultMark) {
         advance();
-        match(lexer.lexicon.switchBranchIndicator);
-        elseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
-        elseBranch.precedings = precedings;
       } else {
         if (curTok.lexeme == lexer.lexicon.kCase) {
           advance();
         }
-        ASTNode caseExpr;
         // TODO: this part is dubious, might have edge cases that not covered
-        if (peek(1).lexeme == lexer.lexicon.comma) {
-          caseExpr = _handleCommaExpr(lexer.lexicon.switchBranchIndicator,
-              isLocal: false);
-        } else if (curTok.lexeme == lexer.lexicon.kIn) {
+        if (curTok.lexeme == lexer.lexicon.kIn) {
           caseExpr = _handleInOfExpr();
         } else {
-          caseExpr = parseExpr();
+          final expr = _parseParallelExpr(
+              lexer.lexicon.switchBranchIndicator, lexer.lexicon.comma,
+              isLocal: false);
+          if (expr.list.length == 1) {
+            caseExpr = expr.list.first;
+          } else {
+            caseExpr = expr;
+          }
         }
-        match(lexer.lexicon.switchBranchIndicator);
+      }
+      ASTNode caseBranch;
+      if (expect([lexer.lexicon.switchBranchIndicator], consume: true)) {
         // TODO: 如果使用了case，那么这里可以允许不带括号的多行语句，
         // 且允许这些语句以break结束。但不允许break出现在最后一行之外的其他位置。
-        var caseBranch = _parseExprStmtOrBlock(isStatement: isStatement);
-        caseBranch.precedings = precedings;
+        caseBranch = _parseBlockStmt(
+          id: HTLocale.current.caseBranch,
+          blockStartMark: lexer.lexicon.blockStart,
+        );
+      } else if (expect([lexer.lexicon.singleLineIndicator], consume: true)) {
+        caseBranch = parseStmt(style: ParseStyle.functionDefinition)!;
+      } else {
+        throw HTError.unexpected(
+          HTLocale.current.caseBranch,
+          '${lexer.lexicon.singleLineIndicator} or ${lexer.lexicon.singleLineIndicator}',
+          curTok.lexeme,
+          filename: currrentFileName,
+          line: curTok.line,
+          column: curTok.column,
+          offset: curTok.offset,
+          length: curTok.length,
+        );
+      }
+      caseBranch.precedings = precedings;
+      if (caseExpr != null) {
         options[caseExpr] = caseBranch;
+      } else {
+        elseBranch = caseBranch;
       }
     }
     match(lexer.lexicon.blockEnd);
@@ -2835,7 +2856,7 @@ class HTParserHetu extends HTParser {
         declType = _parseTypeExpr();
       }
       ids[id] = declType;
-      handleTrailing(declType ?? id, endMarkForCommaExpressions: endMark);
+      handleTrailing(declType ?? id);
     }
     match(endMark);
     match(lexer.lexicon.assign);
@@ -3078,8 +3099,7 @@ class HTParserHetu extends HTParser {
           final param = parseParam();
           param.precedings = precedings;
           paramDecls.add(param);
-          handleTrailing(param,
-              endMarkForCommaExpressions: lexer.lexicon.functionParameterEnd);
+          handleTrailing(param);
         }
       }
       final endTok = match(lexer.lexicon.functionParameterEnd);
@@ -3215,8 +3235,7 @@ class HTParserHetu extends HTParser {
         id: HTLocale.current.functionCall,
         blockStartMark: lexer.lexicon.functionStart,
       );
-    } else if (expect([lexer.lexicon.singleLineFunctionIndicator],
-        consume: true)) {
+    } else if (expect([lexer.lexicon.singleLineIndicator], consume: true)) {
       isExpressionBody = true;
       definition = parseExpr();
       hasEndOfStmtMark = parseEndOfStmtMark();
@@ -3372,8 +3391,7 @@ class HTParserHetu extends HTParser {
         final enumId =
             IdentifierExpr.fromToken(enumIdTok, source: currentSource);
         enumId.precedings = precedings;
-        handleTrailing(enumId,
-            endMarkForCommaExpressions: lexer.lexicon.blockEnd);
+        handleTrailing(enumId);
         enumerations.add(enumId);
       }
       match(lexer.lexicon.enumEnd);
@@ -3435,8 +3453,7 @@ class HTParserHetu extends HTParser {
         }
         final mixinId =
             IdentifierExpr.fromToken(mixinIdTok, source: currentSource);
-        handleTrailing(mixinId,
-            endMarkForCommaExpressions: lexer.lexicon.structStart);
+        handleTrailing(mixinId);
         mixinIds.add(mixinId);
       }
     }
@@ -3526,16 +3543,14 @@ class HTParserHetu extends HTParser {
         }
         field.precedings = precedings;
         fields.add(field);
-        handleTrailing(field,
-            endMarkForCommaExpressions: lexer.lexicon.structEnd);
+        handleTrailing(field);
       } else if (curTok.lexeme == lexer.lexicon.spreadSyntax) {
         advance();
         final value = parseExpr();
         final field = StructObjField(fieldValue: value);
         field.precedings = precedings;
         fields.add(field);
-        handleTrailing(field,
-            endMarkForCommaExpressions: lexer.lexicon.structEnd);
+        handleTrailing(field);
       } else {
         final errTok = advance();
         final err = HTError.structMemberId(curTok.lexeme,

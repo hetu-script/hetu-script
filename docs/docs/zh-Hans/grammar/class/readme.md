@@ -1,6 +1,6 @@
 # 类（class）
 
-河图中的类是类似 C++/Java/Dart 中的 class 的一种名义类型（nominal type）。支持大多数 Dart 中的 class 的功能，例如构造函数，属性（get/set），继承（extends），以及在构造函数声明中重定向到其他构造函数或者父类构造函数（通过 this 和 super），以及在构造函数的参数列表中使用 `this` 来快速初始化实例成员。
+河图中的类是类似 C++/Java/Dart 中的 class 的一种名义类型（nominal type）。支持大多数 Dart 中的 class 的功能，例如构造函数，属性（get/set），继承（extends），以及在构造函数声明中重定向到其他构造函数或者父类构造函数（通过 this 和 super），以及在构造函数的参数列表中使用 `this` 来快速初始化实例成员。构造函数也可以拥有名字，命名的构造函数可以在定义时重定向到默认构造函数。
 
 但 mixin 和 implements 用法暂时不支持。
 
@@ -39,6 +39,10 @@ class Calculator {
     // use this to access instance members shadowed by function parameters
     this.birthDate = Now() + age
   }
+
+  // named constructyor redirecting to default constructor
+  constructor fromPosition (position, age): this(position.x, position.y, age)
+
   function meaning -> number {
     // when there's no shadowing, `this` keyword can be omitted
     return x * y

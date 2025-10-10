@@ -97,7 +97,7 @@ abstract class HTLexicon {
         structValueIndicator,
         returnTypeIndicator,
         switchBranchIndicator,
-        singleLineFunctionIndicator,
+        singleLineIndicator,
         typeListStart,
       ];
 
@@ -326,7 +326,7 @@ abstract class HTLexicon {
 
   String get defaultMark;
 
-  String get singleLineFunctionIndicator;
+  String get singleLineIndicator;
 
   String get literalFunctionIndicator;
 
@@ -632,7 +632,7 @@ abstract class HTLexicon {
         literalFunctionIndicator,
         returnTypeIndicator,
         switchBranchIndicator,
-        singleLineFunctionIndicator,
+        singleLineIndicator,
         nullableMemberGet,
         memberGet,
         nullableSubGet,

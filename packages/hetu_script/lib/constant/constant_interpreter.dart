@@ -61,7 +61,7 @@ class HTConstantInterpreter extends RecursiveASTVisitor<void> {
   }
 
   @override
-  void visitCommaExpr(CommaExpr node) {
+  void visitCommaExpr(ParallelExpr node) {
     node.subAccept(this);
   }
 

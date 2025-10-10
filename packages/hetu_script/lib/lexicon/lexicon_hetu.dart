@@ -308,7 +308,7 @@ class HTLexiconHetu extends HTLexicon {
   String get defaultMark => '_';
 
   @override
-  String get singleLineFunctionIndicator => '=>';
+  String get singleLineIndicator => '=>';
 
   @override
   String get literalFunctionIndicator => '=>';

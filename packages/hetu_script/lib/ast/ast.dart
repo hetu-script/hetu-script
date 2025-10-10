@@ -20,7 +20,7 @@ abstract class ASTNode {
 
   ASTAnnotation? trailing;
 
-  ASTAnnotation? trailingAfterComma;
+  ASTAnnotation? trailingAfter;
 
   List<ASTAnnotation> succeedings = [];
 
@@ -462,7 +462,7 @@ class SpreadExpr extends ASTNode {
         );
 }
 
-class CommaExpr extends ASTNode {
+class ParallelExpr extends ASTNode {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitCommaExpr(this);
 
@@ -477,7 +477,7 @@ class CommaExpr extends ASTNode {
 
   final bool isLocal;
 
-  CommaExpr(
+  ParallelExpr(
     this.list, {
     this.isLocal = true,
     super.source,

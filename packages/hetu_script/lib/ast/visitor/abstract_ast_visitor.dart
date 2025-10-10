@@ -34,7 +34,7 @@ abstract class AbstractASTVisitor<T> {
 
   T? visitSpreadExpr(SpreadExpr node) {}
 
-  T? visitCommaExpr(CommaExpr node) {}
+  T? visitCommaExpr(ParallelExpr node) {}
 
   T? visitListExpr(ListExpr node) {}
 

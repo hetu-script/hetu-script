@@ -17,37 +17,24 @@ Future<void> main() async {
   );
   hetu.init();
 
-  hetu.interpreter.bindExternalFunction('Test.v1', (
-      {positionalArgs, namedArgs}) {
-    return v1;
-  });
-
-  hetu.interpreter.bindExternalMethod('Test::v2', (
-      {object, positionalArgs, namedArgs}) {
-    return v2;
-  });
-
-  hetu.interpreter.bindExternalFunction('Test2::v3', (
-      {positionalArgs, namedArgs}) {
-    return v3;
-  });
-
   var r = hetu.eval(r'''
-    class Test {
-      external static get v1
-      external get v2
+    function test(n) {
+      let result = 
+      switch (n) {
+        case 0,1: {
+          'small number';
+        }
+        case 2 =>
+          'medium number';
+        default =>
+          'unknown number: ${n}';
+      }
+      return result;
     }
 
-    namespace Test2 {
-      external function v3
+    for (var i in range(4)) {
+      print('${i}: ${test(i)}');
     }
-
-    print(Test.v1)
-
-    final t = Test()
-    print(t.v2)
-
-    print(Test2.v3())
 ''');
 
   if (r is Future) {

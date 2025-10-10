@@ -6,7 +6,9 @@ Member functions can also be declared with **get**, **set**, **constructor**, th
 
 If a class have a getter or setter function. You can use 'class_name.func_name' to get or set the value hence get rid of the empty parentheses.
 
-Constructors can be with no function name and cannot return values. When calling they will always return a instance.
+Constructors can have or have not names and cannot return values. When calling they will always return a instance.
+
+When define constructors with name, can redirecting to default constructor.
 
 You can use `this` syntax in the parameter to quick initialize the member on instance just like in Dart.
 
@@ -29,10 +31,10 @@ class Calculator {
   }
 
   // instance member
-  var x: number
-  var y: number
+  let x: number
+  let y: number
 
-  var birthDate
+  let birthDate
   // constructor with parameters
   // you can use `this` syntax in the parameter to
   // quick initialize the member on instance
@@ -41,6 +43,10 @@ class Calculator {
     // use this to access instance members shadowed by function parameters
     this.birthDate = Now() + age
   }
+
+  // named constructyor redirecting to default constructor
+  constructor fromPosition (position, age): this(position.x, position.y, age)
+
   function meaning -> number {
     // when there's no shadowing, `this` keyword can be omitted
     return x * y

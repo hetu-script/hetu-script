@@ -82,7 +82,7 @@ abstract class HTParser with TokenReader {
   /// Note that this method will not consume either the start or the end mark.
   List<T> parseExprList<T extends ASTNode>({
     required String endToken,
-    bool handleComma = true,
+    String? separateToken,
     required T? Function() parseFunction,
   }) {
     final List<T> listResult = [];
@@ -94,8 +94,11 @@ abstract class HTParser with TokenReader {
       if (expr != null) {
         expr.precedings = precedings;
         listResult.add(expr);
-        handleTrailing(expr,
-            handleComma: handleComma, endMarkForCommaExpressions: endToken);
+        final hasSeparateToken =
+            handleTrailing(expr, separateToken: separateToken);
+        if (separateToken != null && !hasSeparateToken) {
+          break;
+        }
       }
     }
     return listResult;
@@ -125,14 +128,14 @@ abstract class HTParser with TokenReader {
     return precedings;
   }
 
-  void _handleTrailing(ASTNode expr, {bool afterComma = false}) {
+  void _handleTrailing(ASTNode expr, {bool afterSeparator = false}) {
     if (curTok is TokenComment) {
       final tokenComment = curTok as TokenComment;
       if (tokenComment.isTrailing || expr.isExpression) {
         advance();
         final trailing = ASTComment.fromCommentToken(tokenComment);
-        if (afterComma) {
-          expr.trailingAfterComma = trailing;
+        if (afterSeparator) {
+          expr.trailingAfter = trailing;
         } else {
           expr.trailing = trailing;
         }
@@ -140,16 +143,15 @@ abstract class HTParser with TokenReader {
     }
   }
 
-  void handleTrailing(ASTNode expr,
-      {bool handleComma = true, String? endMarkForCommaExpressions}) {
+  /// return true if [separateToken] is found
+  bool handleTrailing(ASTNode expr, {String? separateToken}) {
     _handleTrailing(expr);
-    if (endMarkForCommaExpressions != null &&
-        curTok.lexeme != endMarkForCommaExpressions) {
-      if (handleComma && curTok.lexeme == lexer.lexicon.comma) {
-        advance();
-        _handleTrailing(expr, afterComma: true);
-      }
+    if (curTok.lexeme == separateToken) {
+      advance();
+      _handleTrailing(expr, afterSeparator: true);
+      return true;
     }
+    return false;
   }
 
   /// To read the current token from current position and produce an AST expression.

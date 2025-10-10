@@ -8,9 +8,11 @@ function main {
   for (;;) {
     ++i
     switch (i % 2) {
-      0 : print('even:', i)
-      1 : print('odd:', i)
-      else : print('never going to happen.')
+      0 => print('even:', i)
+      1 => print('odd:', i)
+      else {
+        print('never going to happen.')
+      }
     }
     if (i > 5) {
       break
@@ -89,9 +91,13 @@ However for switch statement's cases, interpreter won't [inexplicitly convert no
 
 'switch' statement's case could be non-const expression or variables;
 
-'switch' statement's body must be enclosed in curly brackets. However, the case branch could be a single statement without brackets;
+'switch' statement's body must be enclosed in curly brackets.
 
-'switch' statement's else branch is optional.
+The case branch could be a single statement without brackets, which leading with a `=>` just like the single line function grammar; or a block, which leading with a `:`.
+
+The keyword `case` itself is optional.
+
+'switch' statement's else branch is optional. You can use either `default`, `else` or simply `_` to match everything else.
 
 If you want to match multiple values in one branch, use comma expression.
 
@@ -100,7 +106,7 @@ If you want to check if an iterable/object contains the value, use in/of express
 ```javascript
 for (final i in range(0, 10)) {
   switch (i) {
-    0 : {
+    case 0 : {
       print('number: 0')
     }
     2, 3, 5, 7 : {
@@ -109,9 +115,7 @@ for (final i in range(0, 10)) {
     in [4, 9] : {
       print('square: ${i}')
     }
-    else : {
-      print('other: ${i}')
-    }
+    else => print('other: ${i}')
   }
 }
 ```
