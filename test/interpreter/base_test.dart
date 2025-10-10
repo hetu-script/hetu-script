@@ -176,8 +176,8 @@ ${
         for (;;) {
           ++i
           switch (i % 2) {
-            0 : j += i
-            1 : j *= i
+            0 => j += i
+            1 => j *= i
           }
           if (i > 5) {
             break
@@ -226,11 +226,11 @@ ${
     test('switch', () {
       final result = hetu.eval(r'''
         function switchTest(expr) {
-          switch (expr) {
-            0 : return '0'
-            1 : return '1'
+          return switch (expr) {
+            0 => '0'
+            1 => '1'
+            _ => ''
           }
-          return ''
         }
         switchTest(5 - 4)
       ''');

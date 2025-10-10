@@ -13,28 +13,20 @@ Future<void> main() async {
       normalizeImportPath: false,
       allowImplicitNullToZeroConversion: true,
       printPerformanceStatistics: true,
+      showHetuStackTrace: true,
     ),
   );
   hetu.init();
 
   var r = hetu.eval(r'''
-    function test(n) {
-      let result = 
-      switch (n) {
-        case 0,1: {
-          'small number';
+        function switchTest(expr) {
+          return switch (expr) {
+            0 => '0'
+            1 => '1'
+            _ => ''
+          }
         }
-        case 2 =>
-          'medium number';
-        default =>
-          'unknown number: ${n}';
-      }
-      return result;
-    }
-
-    for (var i in range(4)) {
-      print('${i}: ${test(i)}');
-    }
+        switchTest(5 - 4)
 ''');
 
   if (r is Future) {

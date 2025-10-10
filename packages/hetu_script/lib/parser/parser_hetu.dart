@@ -928,7 +928,7 @@ class HTParserHetu extends HTParser {
         match(lexer.lexicon.namedArgumentValueIndicator);
         final namedArg = parseExpr();
         namedArg.precedings = precedings;
-        handleTrailing(namedArg);
+        handleTrailing(namedArg, separateToken: lexer.lexicon.comma);
         namedArgs[name] = namedArg;
       } else {
         ASTNode positionalArg;
@@ -945,7 +945,7 @@ class HTParserHetu extends HTParser {
           positionalArg = parseExpr();
         }
         positionalArg.precedings = precedings;
-        handleTrailing(positionalArg);
+        handleTrailing(positionalArg, separateToken: lexer.lexicon.comma);
         positionalArgs.add(positionalArg);
       }
     }
@@ -1677,6 +1677,7 @@ class HTParserHetu extends HTParser {
         final start = advance();
         final listExprs = parseExprList(
           endToken: lexer.lexicon.listEnd,
+          separateToken: lexer.lexicon.comma,
           parseFunction: () {
             if (curTok.lexeme == lexer.lexicon.listEnd) return null;
             final listItemPrecedings = savePrecedings();
@@ -1817,6 +1818,7 @@ class HTParserHetu extends HTParser {
           bool alreadyHasVariadic = false;
           final optionalPositionalParameters = parseExprList(
             endToken: lexer.lexicon.functionPositionalParameterEnd,
+            separateToken: lexer.lexicon.comma,
             parseFunction: () {
               final precedings = savePrecedings();
               final isVariadic =
@@ -1858,6 +1860,7 @@ class HTParserHetu extends HTParser {
           isNamed = true;
           final namedParameters = parseExprList(
             endToken: lexer.lexicon.functionNamedParameterEnd,
+            separateToken: lexer.lexicon.comma,
             parseFunction: () {
               final precedings = savePrecedings();
               final paramId = matchId();
@@ -1893,8 +1896,8 @@ class HTParserHetu extends HTParser {
               length: curTok.offset - paramType.offset);
           param.precedings = precedings;
           parameters.add(param);
+          handleTrailing(param, separateToken: lexer.lexicon.comma);
           if (isVariadic) break;
-          handleTrailing(param);
         }
       }
       match(lexer.lexicon.functionParameterEnd);
@@ -1919,6 +1922,7 @@ class HTParserHetu extends HTParser {
       final startTok = advance();
       final fieldTypes = parseExprList(
         endToken: lexer.lexicon.blockEnd,
+        separateToken: lexer.lexicon.comma,
         parseFunction: () {
           if (curTok is TokenStringLiteral || curTok is TokenIdentifier) {
             final precedings = savePrecedings();
@@ -2074,6 +2078,7 @@ class HTParserHetu extends HTParser {
         if (expect([lexer.lexicon.typeListStart], consume: true)) {
           typeArgs = parseExprList(
             endToken: lexer.lexicon.typeListEnd,
+            separateToken: lexer.lexicon.comma,
             parseFunction: () => _parseTypeExpr(),
           );
           match(lexer.lexicon.typeListEnd);
@@ -2196,7 +2201,7 @@ class HTParserHetu extends HTParser {
     return ReturnStmt(keyword,
         returnValue: expr,
         source: currentSource,
-        hasEndOfStmtMark: hasEndOfStmtMark,
+        hasEndOfStmtMark: expr?.isBlock == true ? false : hasEndOfStmtMark,
         line: keyword.line,
         column: keyword.column,
         offset: keyword.offset,
@@ -2459,6 +2464,7 @@ class HTParserHetu extends HTParser {
     if (expect([lexer.lexicon.typeListStart], consume: true)) {
       genericParams = parseExprList(
         endToken: lexer.lexicon.typeListEnd,
+        separateToken: lexer.lexicon.comma,
         parseFunction: () {
           final precedings = savePrecedings();
           final idTok = matchId();
@@ -2485,6 +2491,7 @@ class HTParserHetu extends HTParser {
       advance();
       showList = parseExprList(
         endToken: lexer.lexicon.importExportListEnd,
+        separateToken: lexer.lexicon.comma,
         parseFunction: () {
           final precedings = savePrecedings();
           final idTok = matchId();
@@ -2579,6 +2586,7 @@ class HTParserHetu extends HTParser {
     if (expect([lexer.lexicon.importExportListStart], consume: true)) {
       final showList = parseExprList(
         endToken: lexer.lexicon.importExportListEnd,
+        separateToken: lexer.lexicon.comma,
         parseFunction: () {
           final precedings = savePrecedings();
           final idTok = matchId();
@@ -2856,7 +2864,7 @@ class HTParserHetu extends HTParser {
         declType = _parseTypeExpr();
       }
       ids[id] = declType;
-      handleTrailing(declType ?? id);
+      handleTrailing(declType ?? id, separateToken: lexer.lexicon.comma);
     }
     match(endMark);
     match(lexer.lexicon.assign);
@@ -3075,6 +3083,7 @@ class HTParserHetu extends HTParser {
           final params = parseExprList(
             endToken: lexer.lexicon.functionPositionalParameterEnd,
             parseFunction: parseParam,
+            separateToken: lexer.lexicon.comma,
           );
           maxArity += params.length;
           match(lexer.lexicon.functionPositionalParameterEnd);
@@ -3090,6 +3099,7 @@ class HTParserHetu extends HTParser {
           final params = parseExprList(
             endToken: lexer.lexicon.functionNamedParameterEnd,
             parseFunction: parseParam,
+            separateToken: lexer.lexicon.comma,
           );
           match(lexer.lexicon.functionNamedParameterEnd);
           paramDecls.addAll(params);
@@ -3099,7 +3109,7 @@ class HTParserHetu extends HTParser {
           final param = parseParam();
           param.precedings = precedings;
           paramDecls.add(param);
-          handleTrailing(param);
+          handleTrailing(param, separateToken: lexer.lexicon.comma);
         }
       }
       final endTok = match(lexer.lexicon.functionParameterEnd);
@@ -3391,7 +3401,7 @@ class HTParserHetu extends HTParser {
         final enumId =
             IdentifierExpr.fromToken(enumIdTok, source: currentSource);
         enumId.precedings = precedings;
-        handleTrailing(enumId);
+        handleTrailing(enumId, separateToken: lexer.lexicon.comma);
         enumerations.add(enumId);
       }
       match(lexer.lexicon.enumEnd);
@@ -3453,7 +3463,7 @@ class HTParserHetu extends HTParser {
         }
         final mixinId =
             IdentifierExpr.fromToken(mixinIdTok, source: currentSource);
-        handleTrailing(mixinId);
+        handleTrailing(mixinId, separateToken: lexer.lexicon.comma);
         mixinIds.add(mixinId);
       }
     }
@@ -3543,17 +3553,17 @@ class HTParserHetu extends HTParser {
         }
         field.precedings = precedings;
         fields.add(field);
-        handleTrailing(field);
+        handleTrailing(field, separateToken: lexer.lexicon.comma);
       } else if (curTok.lexeme == lexer.lexicon.spreadSyntax) {
         advance();
         final value = parseExpr();
         final field = StructObjField(fieldValue: value);
         field.precedings = precedings;
         fields.add(field);
-        handleTrailing(field);
+        handleTrailing(field, separateToken: lexer.lexicon.comma);
       } else {
         final errTok = advance();
-        final err = HTError.structMemberId(curTok.lexeme,
+        final err = HTError.structMemberId(errTok.lexeme,
             filename: currrentFileName,
             line: errTok.line,
             column: errTok.column,
