@@ -169,6 +169,7 @@ Type getConstantType(HTConstantType type) {
 /// the index determines a certain value within this group.
 class HTRegIdx {
   static const assignRight = 0;
+
   static const ifNullLeft = 1;
   static const orLeft = 2;
   static const andLeft = 3;
@@ -178,9 +179,7 @@ class HTRegIdx {
   static const bitwiseOrLeft = 6;
   static const bitwiseXorLeft = 7;
   static const bitwiseAndLeft = 8;
-
   static const bitwiseShiftLeft = 9;
-
   static const additiveLeft = 10;
   static const multiplicativeLeft = 11;
 

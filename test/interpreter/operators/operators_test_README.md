@@ -123,12 +123,6 @@
 ```bash
 # 运行完整测试套件
 dart test test/interpreter/hetu_operators_complete_test.dart
-
-# 运行详细测试套件
-dart test test/interpreter/comprehensive_operators_test.dart
-
-# 运行所有运算符测试
-dart test test/interpreter/ --name "*operator*"
 ```
 
 ## 注意事项
@@ -136,7 +130,7 @@ dart test test/interpreter/ --name "*operator*"
 1. **字符串比较**：河图脚本可能不支持字符串的大小比较运算符（`>`, `<`）
 2. **类型转换**：字符串和数字不能直接相加，会抛出类型错误
 3. **除零处理**：除零运算返回 `Infinity` 而不是抛出异常
-4. **逻辑运算符优先级**：实际测试中发现可能与标准 Dart 的行为略有差异
+4. **逻辑运算符优先级**：河图运算符在设计上应该完全和 Dart 的行为一致
 5. **短路求值**：逻辑运算符支持短路求值，避免不必要的副作用
 
 ## 测试结果

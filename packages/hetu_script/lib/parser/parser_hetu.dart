@@ -1254,7 +1254,7 @@ class HTParserHetu extends HTParser {
       _isLegalLeftValue = false;
       while (lexer.lexicon.multiplicatives.contains(curTok.lexeme)) {
         final op = advance();
-        final right = _parseMultiplicativeExpr();
+        final right = _parseUnaryPrefixExpr();
         left = BinaryExpr(left, op.lexeme, right,
             source: currentSource,
             line: left.line,

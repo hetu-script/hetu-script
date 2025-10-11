@@ -746,30 +746,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     final left = compileAST(expr.left);
     final right = compileAST(expr.right);
-    if (expr.op == _lexicon.ifNull) {
-      bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.ifNullLeft);
-      bytesBuilder.addByte(OpCode.ifNull);
-      bytesBuilder.add(_uint16(right.length)); // length of right value
-      bytesBuilder.add(right);
-    } else if (expr.op == _lexicon.logicalOr) {
-      bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.orLeft);
-      bytesBuilder.addByte(OpCode.logicalOr);
-      bytesBuilder.add(_uint16(right.length + 1)); // length of right value
-      bytesBuilder.add(right);
-      bytesBuilder.addByte(OpCode.truthyValue);
-    } else if (expr.op == _lexicon.logicalAnd) {
-      bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.andLeft);
-      bytesBuilder.addByte(OpCode.logicalAnd);
-      bytesBuilder.add(_uint16(right.length + 1)); // length of right value
-      bytesBuilder.add(right);
-      bytesBuilder.addByte(OpCode.truthyValue);
-    } else if (expr.op == _lexicon.equal) {
+    if (expr.op == _lexicon.equal) {
       bytesBuilder.add(left);
       bytesBuilder.addByte(OpCode.register);
       bytesBuilder.addByte(HTRegIdx.equalLeft);
@@ -841,6 +818,29 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final containsCallExprBytes = visitCallExpr(containsCallExpr);
       bytesBuilder.add(containsCallExprBytes);
       bytesBuilder.addByte(OpCode.logicalNot);
+    } else if (expr.op == _lexicon.ifNull) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(OpCode.register);
+      bytesBuilder.addByte(HTRegIdx.ifNullLeft);
+      bytesBuilder.addByte(OpCode.ifNull);
+      bytesBuilder.add(_uint16(right.length)); // length of right value
+      bytesBuilder.add(right);
+    } else if (expr.op == _lexicon.logicalOr) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(OpCode.register);
+      bytesBuilder.addByte(HTRegIdx.orLeft);
+      bytesBuilder.addByte(OpCode.logicalOr);
+      bytesBuilder.add(_uint16(right.length + 1)); // length of right value
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(OpCode.truthyValue);
+    } else if (expr.op == _lexicon.logicalAnd) {
+      bytesBuilder.add(left);
+      bytesBuilder.addByte(OpCode.register);
+      bytesBuilder.addByte(HTRegIdx.andLeft);
+      bytesBuilder.addByte(OpCode.logicalAnd);
+      bytesBuilder.add(_uint16(right.length + 1)); // length of right value
+      bytesBuilder.add(right);
+      bytesBuilder.addByte(OpCode.truthyValue);
     } else if (expr.op == _lexicon.bitwiseOr) {
       bytesBuilder.add(left);
       bytesBuilder.addByte(OpCode.register);

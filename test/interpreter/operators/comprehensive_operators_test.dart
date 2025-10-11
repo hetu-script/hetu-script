@@ -23,14 +23,6 @@ void main() {
       expect(result3, 26); // (2 * 3) + (4 * 5) = 6 + 20 = 26
     });
 
-    test('parentheses override precedence', () {
-      final result1 = hetu.eval('(2 + 3) * 4');
-      expect(result1, 20);
-
-      final result2 = hetu.eval('(20 - 6) / 2');
-      expect(result2, 7);
-    });
-
     test('unary operators precedence', () {
       final result = hetu.eval(r'''
         var a = 5
@@ -38,6 +30,42 @@ void main() {
         b
       ''');
       expect(result, -10); // -a 先计算，然后 * 2
+    });
+
+    test('associativity, multiplication', () {
+      final result = hetu.eval(r'''
+        4 * 3 * 2
+      ''');
+      expect(result, 24); // 4 * 3 * 2 = 24
+    });
+
+    test('associativity, addition', () {
+      final result = hetu.eval(r'''
+        1 + 2 + 3 + 4
+      ''');
+      expect(result, 10); // 1 + 2 + 3 + 4 = 10
+    });
+
+    test('associativity, mixed', () {
+      final result = hetu.eval(r'''
+        2 + 3 * 4 - 5 / 1
+      ''');
+      expect(result, 9); // 2 + (3 * 4) - (5 / 1) = 2 + 12 - 5 = 9
+    });
+
+    test('associativity, with parentheses', () {
+      final result = hetu.eval(r'''
+        (2 + 3) * (4 - 5) / 1
+      ''');
+      expect(result, -5); // (2 + 3) * (4 - 5) / 1 = 5 * -1 / 1 = -5
+    });
+
+    test('associativity, relation', () {
+      final result = hetu.eval(r'''
+        true && false || true && true
+      ''');
+      expect(result,
+          true); // (true && false) || (true && true) = false || true = true
     });
   });
 

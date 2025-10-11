@@ -19,7 +19,7 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-     2 * 3 - 5
+     4 * 3 * 2
 ''');
 
   if (r is Future) {
