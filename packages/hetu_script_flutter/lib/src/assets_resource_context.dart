@@ -1,6 +1,4 @@
-import 'dart:convert';
-
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:hetu_script/hetu_script.dart';
 
@@ -30,12 +28,12 @@ class HTAssetResourceContext extends HTResourceContext<HTSource> {
 
   @override
   Future<void> init() async {
-    final manifestContent = await rootBundle.loadString('AssetManifest.json');
-    final Map<String, dynamic> manifestMap = json.decode(manifestContent);
-    final assetKeys = manifestMap.keys;
+    final assetManifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final assets = assetManifest.listAssets();
+
     final folderFilter = HTFilterConfig(root);
     final includedKeys = <String>[];
-    for (final key in assetKeys) {
+    for (final key in assets) {
       var isIncluded = false;
       if (_includedFilter.isEmpty) {
         isIncluded = folderFilter.isWithin(key);
