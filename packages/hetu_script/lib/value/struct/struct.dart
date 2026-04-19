@@ -45,12 +45,11 @@ class HTStruct with HTObject {
 
   @override
   HTStructuralType get valueType {
-    final fieldTypes = <String, HTType>{};
+    final fieldTypes = <String, HTType?>{};
     for (final key in _fields.keys) {
       final value = _fields[key];
       final encap = interpreter.encapsulate(value);
-      fieldTypes[key] = encap?.valueType?.resolve(namespace) ??
-          HTTypeAny(interpreter.lexicon.kAny);
+      fieldTypes[key] = encap?.valueType?.resolve(namespace);
     }
     return HTStructuralType(fieldTypes: fieldTypes, closure: namespace);
   }

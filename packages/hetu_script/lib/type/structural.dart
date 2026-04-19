@@ -3,14 +3,14 @@ import '../value/namespace/namespace.dart';
 
 /// A type checks interfaces rather than type ids.
 class HTStructuralType extends HTType {
-  late final Map<String, HTType> fieldTypes;
+  late final Map<String, HTType?> fieldTypes;
 
   HTStructuralType({
     required HTNamespace closure,
-    Map<String, HTType> fieldTypes = const {},
+    Map<String, HTType?> fieldTypes = const {},
   }) {
     this.fieldTypes =
-        fieldTypes.map((key, value) => MapEntry(key, value.resolve(closure)));
+        fieldTypes.map((key, value) => MapEntry(key, value?.resolve(closure)));
   }
 
   @override

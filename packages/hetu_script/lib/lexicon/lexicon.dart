@@ -933,7 +933,8 @@ abstract class HTLexicon {
           namedStarted = true;
           output.write(functionNamedParameterStart);
         }
-        final declTypeString = _stringifyType(param.declType);
+        final declTypeString =
+            _stringifyType(param.declType ?? HTTypeAny(kAny));
         if (param.isNamed) {
           output.write('${param.id}: $declTypeString');
         } else {

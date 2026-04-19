@@ -5,7 +5,7 @@ import 'type.dart';
 import '../declaration/generic/generic_type_parameter.dart';
 
 class HTParameterType {
-  final HTType declType;
+  final HTType? declType;
 
   /// Wether this is an optional parameter.
   final bool isOptional;
@@ -20,7 +20,7 @@ class HTParameterType {
 
   const HTParameterType({
     this.id,
-    required this.declType,
+    this.declType,
     required this.isOptional,
     required this.isVariadic,
   });
@@ -104,7 +104,9 @@ class HTFunctionType extends HTType implements HasGenericTypeParameter {
             otherParam.isOptional != param.isOptional ||
             otherParam.isVariadic != param.isVariadic ||
             otherParam.isNamed != param.isNamed ||
-            (otherParam.declType.isNotA(param.declType))) {
+            (otherParam.declType != null &&
+                (param.declType == null ||
+                    otherParam.declType!.isNotA(param.declType)))) {
           return false;
         }
       }

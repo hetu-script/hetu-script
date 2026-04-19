@@ -2220,12 +2220,12 @@ class HTInterpreter {
         final declType = HTFunctionType(
             parameterTypes: paramDecls.values
                 .map((param) => HTParameterType(
-                    declType: param.declType ?? HTTypeAny(_lexicon.kAny),
+                    declType: param.declType,
                     isOptional: param.isOptional,
                     isVariadic: param.isVariadic,
                     id: param.isNamed ? param.id : null))
                 .toList(),
-            returnType: returnType ?? HTTypeAny(_lexicon.kAny));
+            returnType: returnType);
         int? line, column, definitionIp;
         final hasDefinition = _currentBytecodeModule.readBool();
         if (hasDefinition) {
@@ -2719,12 +2719,12 @@ class HTInterpreter {
     final declType = HTFunctionType(
         parameterTypes: paramDecls.values
             .map((param) => HTParameterType(
-                declType: param.declType ?? HTTypeAny(_lexicon.kAny),
+                declType: param.declType,
                 isOptional: param.isOptional,
                 isVariadic: param.isVariadic,
                 id: param.isNamed ? param.id : null))
             .toList(),
-        returnType: returnType ?? HTTypeAny(_lexicon.kAny));
+        returnType: returnType);
     RedirectingConstructor? redirCtor;
     final positionalArgIps = <int>[];
     final namedArgIps = <String, int>{};
