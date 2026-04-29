@@ -18,15 +18,15 @@ Future<void> main() async {
   );
   hetu.init();
 
+  hetu.interpreter.bindExternalFunction('test', () async {
+    return Future.value([1, 2, 3]);
+  });
+
   var r = hetu.eval(r'''
-     let t1 = typeof () {}
-     type t2 = () -> any
-     
-     switch (t1) {
-       typeval {} => 'structural type'
-       typeval ()->any => 'function type'
-       default => 'other type'
-     }
+    external function test
+
+     final [a,b,c] = await test()
+     [a,b,c]
 ''');
 
   if (r is Future) {

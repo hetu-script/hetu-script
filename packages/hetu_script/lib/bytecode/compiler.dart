@@ -1686,8 +1686,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         if (stmt.lateInitialize) {
           bytesBuilder.add(_uint16(stmt.initializer!.line));
           bytesBuilder.add(_uint16(stmt.initializer!.column));
+          bytesBuilder.add(_uint16(initializer.length));
         }
-        bytesBuilder.add(_uint16(initializer.length));
         bytesBuilder.add(initializer);
       } else {
         bytesBuilder.addByte(0); // bool: has initializer

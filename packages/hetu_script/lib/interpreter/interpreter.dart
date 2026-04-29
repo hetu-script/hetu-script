@@ -411,8 +411,8 @@ class HTVarDeclInitEval extends HTSubEvalFrame {
       isField: isField,
     );
     if (!isField) {
-      i.currentNamespace.define(id, decl,
-          override: i.config.allowVariableShadowing);
+      i.currentNamespace
+          .define(id, decl, override: i.config.allowVariableShadowing);
     }
     if (i.config.allowInitializationExpresssionHaveValue) {
       i.stack.push(initValue);
@@ -437,7 +437,7 @@ class HTDestructuringEval extends HTSubEvalFrame {
   void handleEndOfExec(HTInterpreter i) {
     final collection = i.stack.pop();
     final omittedPrefix = '##';
-    var omittedIndex = 0;
+    // var omittedIndex = 0;
     for (var idx = 0; idx < ids.length; ++idx) {
       var id = ids.keys.elementAt(idx);
       dynamic initValue;
@@ -462,27 +462,25 @@ class HTDestructuringEval extends HTSubEvalFrame {
         isPrivate: i.lexicon.isPrivate(id),
         isMutable: isMutable,
       );
-      i.currentNamespace.define(id, decl,
-          override: i.config.allowVariableShadowing);
+      i.currentNamespace
+          .define(id, decl, override: i.config.allowVariableShadowing);
     }
     isComplete = true;
   }
 }
 
 class HTDeleteEval extends HTSubEvalFrame {
-  int deletingType;
-  String? symbol;
-  dynamic object;
+  final int deletingType;
+  dynamic _object;
 
-  HTDeleteEval({required this.deletingType, this.symbol});
-
-  bool _phase = true; // true = evaluating object, false = evaluating key
+  HTDeleteEval({required this.deletingType});
 
   @override
   void handleEndOfExec(HTInterpreter i) {
     if (deletingType == HTDeletingTypeCode.member) {
       final object = i.stack.pop();
       if (object is HTStruct) {
+        final symbol = i.currentBytecodeModule.getConstString();
         object.remove(symbol);
       } else {
         throw HTError.delete(
@@ -491,14 +489,15 @@ class HTDeleteEval extends HTSubEvalFrame {
             column: i.currentColumn);
       }
       isComplete = true;
-    } else if (deletingType == HTDeletingTypeCode.sub) {
-      if (_phase) {
-        object = i.stack.pop();
-        _phase = false;
+    } else {
+      // sub
+      if (_object == null) {
+        _object = i.stack.pop();
+        // Not complete - main loop evaluates key next
       } else {
         final key = i.stack.pop().toString();
-        if (object is HTStruct || object is Map) {
-          object.remove(key);
+        if (_object is HTStruct || _object is Map) {
+          _object.remove(key);
         } else {
           throw HTError.delete(
               filename: i.currentFile,
@@ -1653,7 +1652,8 @@ class HTInterpreter {
           final text = _currentBytecodeModule.readUtf8String();
           final hasDescription = _currentBytecodeModule.readBool();
           if (hasDescription) {
-            stack.subEvalFrames.add(HTAssertionEval(assertionValue: assertionValue, text: text));
+            stack.subEvalFrames.add(
+                HTAssertionEval(assertionValue: assertionValue, text: text));
           } else if (!assertionValue) {
             throw HTError.assertionFailed('\'$text\', ');
           }
@@ -1765,7 +1765,9 @@ class HTInterpreter {
             );
             return r;
           } else if (scriptMode) {
-            r = _stackFrames.last.operandStack.isNotEmpty ? _stackFrames.last.operandStack.last : null;
+            r = _stackFrames.last.operandStack.isNotEmpty
+                ? _stackFrames.last.operandStack.last
+                : null;
           }
           return r;
         case OpCode.importExportDecl:
@@ -1833,7 +1835,7 @@ class HTInterpreter {
           }
           HTVariable? decl;
           dynamic initValue;
-          FutureExecution? futureExecution;
+          // FutureExecution? futureExecution;
           final hasInitializer = _currentBytecodeModule.readBool();
           if (hasInitializer) {
             if (lateInitialize) {
@@ -1861,53 +1863,23 @@ class HTInterpreter {
                 column: definitionColumn,
               );
             } else {
-              final length = _currentBytecodeModule.readUint16();
-              final definitionIp = _currentBytecodeModule.ip;
-              initValue = execute();
-              if (initValue is FutureExecution) {
-                _currentBytecodeModule.ip = definitionIp + length;
-                decl = HTVariable(
-                  id: id,
-                  interpreter: this,
-                  file: _currentFile,
-                  module: _currentBytecodeModule.id,
-                  classId: classId,
-                  closure: currentNamespace,
-                  documentation: documentation,
-                  declType: declType,
-                  isPrivate: _lexicon.isPrivate(id),
-                  isExternal: isExternal,
-                  isStatic: isStatic,
-                  isMutable: isMutable,
-                  isField: isField,
-                );
-                final savedContext = getContext();
-                futureExecution = FutureExecution(
-                  context: savedContext,
-                  stack: stack,
-                  future: waitFutureExucution(initValue).then((value) {
-                    decl!.value = value;
-                  }),
-                );
-              } else {
-                decl = HTVariable(
-                  id: id,
-                  interpreter: this,
-                  file: _currentFile,
-                  module: _currentBytecodeModule.id,
-                  classId: classId,
-                  closure: currentNamespace,
-                  documentation: documentation,
-                  declType: declType,
-                  value: initValue,
-                  isPrivate: isPrivate,
-                  isExternal: isExternal,
-                  isStatic: isStatic,
-                  isMutable: isMutable,
-                  isField: isField,
-                );
-              }
+              // Use SubEvalFrame to evaluate initializer inline
+              stack.subEvalFrames.add(HTVarDeclInitEval(
+                id: id,
+                classId: classId,
+                isPrivate: isPrivate,
+                isField: isField,
+                isExternal: isExternal,
+                isStatic: isStatic,
+                isMutable: isMutable,
+                isTopLevel: isTopLevel,
+                documentation: documentation,
+                declType: declType,
+                lateFinalize: lateFinalize,
+              ));
+              break; // Main loop evaluates initializer; endOfExec triggers frame
             }
+            if (hasInitializer && !lateInitialize) break; // Frame handles rest
           } else {
             decl = HTVariable(
               id: id,
@@ -1927,21 +1899,17 @@ class HTInterpreter {
             );
           }
           if (config.allowInitializationExpresssionHaveValue) {
-            // Value already pushed by execute() → _retractStackFrame
             if (!hasInitializer || lateInitialize) stack.push(initValue);
           } else {
-            if (hasInitializer && !lateInitialize) {
-              stack.pop(); // remove value pushed by execute() → _retractStackFrame
-            }
             stack.push(null);
           }
           if (!isField) {
             currentNamespace.define(id, decl,
                 override: config.allowVariableShadowing);
           }
-          if (futureExecution != null) {
-            return futureExecution;
-          }
+        // if (futureExecution != null) {
+        //   return futureExecution;
+        // }
         case OpCode.destructuringDecl:
           _handleDestructuringDecl();
         case OpCode.constDecl:
@@ -1978,31 +1946,12 @@ class HTInterpreter {
           currentNamespace.define(nsp.id!, nsp);
         case OpCode.delete:
           final deletingType = _currentBytecodeModule.read();
-          if (deletingType == HTDeletingTypeCode.member) {
-            final object = execute();
-            if (object is HTStruct) {
-              final symbol = _currentBytecodeModule.getConstString();
-              object.remove(symbol);
-            } else {
-              throw HTError.delete(
-                  filename: _currentFile,
-                  line: _currentLine,
-                  column: _currentColumn);
-            }
-          } else if (deletingType == HTDeletingTypeCode.sub) {
-            final object = execute();
-            if (object is HTStruct || object is Map) {
-              final symbol = execute().toString();
-              object.remove(symbol);
-            } else {
-              throw HTError.delete(
-                  filename: _currentFile,
-                  line: _currentLine,
-                  column: _currentColumn);
-            }
-          } else {
+          if (deletingType == HTDeletingTypeCode.local) {
             final symbol = _currentBytecodeModule.getConstString();
             currentNamespace.delete(symbol);
+          } else {
+            stack.subEvalFrames.add(HTDeleteEval(deletingType: deletingType));
+            break; // Main loop evaluates object (and key for sub) inline
           }
         case OpCode.ifStmt:
           final thenBranchLength = _currentBytecodeModule.readUint16();
@@ -2270,8 +2219,8 @@ class HTInterpreter {
               stack.push(encap.memberGet(key,
                   from: currentNamespace.fullName, isRecursive: false));
             } else {
-              stack.push(
-                  encap?.memberGet(key, from: currentNamespace.fullName));
+              stack
+                  .push(encap?.memberGet(key, from: currentNamespace.fullName));
             }
           }
 
@@ -2297,8 +2246,7 @@ class HTInterpreter {
             }
           } else {
             if (object is HTObject) {
-              stack.push(
-                  object.subGet(key, from: currentNamespace.fullName));
+              stack.push(object.subGet(key, from: currentNamespace.fullName));
             } else {
               if (object is List) {
                 if (key is! num) {
@@ -2425,13 +2373,17 @@ class HTInterpreter {
           if (positionalLength == 0) {
             final namedLength = _currentBytecodeModule.read();
             if (namedLength == 0) {
-              stack.push(_call(callee,
-                  calleeId: objectId,
-                  isConstructorCall: hasNewOperator,
+              stack.push(_call(
+                callee,
+                calleeId: objectId,
+                isConstructorCall: hasNewOperator,
               ));
               break;
             }
-            final frame = HTCallArgsEval(callee: callee, objectId: objectId, hasNewOperator: hasNewOperator);
+            final frame = HTCallArgsEval(
+                callee: callee,
+                objectId: objectId,
+                hasNewOperator: hasNewOperator);
             frame.namedLength = namedLength;
             frame._phase = 1;
             frame._currentNamedKey = _currentBytecodeModule.getConstString();
@@ -2579,12 +2531,10 @@ class HTInterpreter {
         stack.push(_currentBytecodeModule.getGlobalConstant(int, index));
       case HTValueTypeCode.constFloat:
         final index = _currentBytecodeModule.readUint16();
-        stack.push(
-            _currentBytecodeModule.getGlobalConstant(double, index));
+        stack.push(_currentBytecodeModule.getGlobalConstant(double, index));
       case HTValueTypeCode.constString:
         final index = _currentBytecodeModule.readUint16();
-        stack.push(
-            _currentBytecodeModule.getGlobalConstant(String, index));
+        stack.push(_currentBytecodeModule.getGlobalConstant(String, index));
       case HTValueTypeCode.string:
         stack.push(_currentBytecodeModule.readUtf8String());
       case HTValueTypeCode.stringInterpolation:
@@ -2605,8 +2555,7 @@ class HTInterpreter {
             stack.localSymbol = _currentBytecodeModule.getConstString();
         final isLocal = _currentBytecodeModule.readBool();
         if (isLocal) {
-          stack.push(
-              currentNamespace.memberGet(symbol, isRecursive: true));
+          stack.push(currentNamespace.memberGet(symbol, isRecursive: true));
           // _curLeftValue = _curNamespace;
         } else {
           stack.push(symbol);
@@ -2631,7 +2580,8 @@ class HTInterpreter {
           break;
         }
         final firstIsSpread = _currentBytecodeModule.readBool();
-        stack.subEvalFrames.add(HTListEval(length: length, firstIsSpread: firstIsSpread));
+        stack.subEvalFrames
+            .add(HTListEval(length: length, firstIsSpread: firstIsSpread));
         return;
       case HTValueTypeCode.struct:
         String? id;
@@ -2767,7 +2717,9 @@ class HTInterpreter {
       // If no case branch matches condition and else branch is provided,
       // will jump to else branch.
       if (caseType == HTSwitchCaseTypeCode.equals) {
-        final value = execute();
+        final value =
+            execute(createStackFrame: false, retractStackFrame: false);
+        stack.pop(); // consume value from operand stack
         if (hasCondition) {
           final matched = (condition is HTType && value is HTType)
               ? condition.isA(value)
@@ -2778,14 +2730,15 @@ class HTInterpreter {
         } else if (value) {
           break;
         }
-        // skip jumpping to branch
         _currentBytecodeModule.skip(3);
       } else if (caseType == HTSwitchCaseTypeCode.eigherEquals) {
         assert(hasCondition);
         final count = _currentBytecodeModule.read();
         final values = [];
         for (var i = 0; i < count; ++i) {
-          values.add(execute());
+          values
+              .add(execute(createStackFrame: false, retractStackFrame: false));
+          stack.pop(); // consume each value from operand stack
         }
         final matched = (condition is HTType)
             ? values.any((v) => v is HTType && condition.isA(v))
@@ -2793,19 +2746,19 @@ class HTInterpreter {
         if (matched) {
           break;
         } else {
-          // skip jumpping to branch
           _currentBytecodeModule.skip(3);
         }
       } else if (caseType == HTSwitchCaseTypeCode.elementIn) {
         assert(hasCondition);
-        final Iterable value = execute();
+        final Iterable value =
+            execute(createStackFrame: false, retractStackFrame: false);
+        stack.pop(); // consume value from operand stack
         final matched = (condition is HTType)
             ? value.any((v) => v is HTType && condition.isA(v))
             : value.contains(condition);
         if (matched) {
           break;
         } else {
-          // skip jumpping to branch
           _currentBytecodeModule.skip(3);
         }
       }
@@ -2828,58 +2781,6 @@ class HTInterpreter {
     }
     final result = leftType.isA(rightType);
     stack.push(isNot ? !result : result);
-  }
-
-  void _handleCallExpr() {
-    final callee = stack.pop();
-    final isNullable = _currentBytecodeModule.readBool();
-    final hasNewOperator = _currentBytecodeModule.readBool();
-    final hasObjectId = _currentBytecodeModule.readBool();
-    String? objectId;
-    if (hasObjectId) {
-      objectId = _currentBytecodeModule.readUtf8String();
-    }
-    final argsBytesLength = _currentBytecodeModule.readUint16();
-    if (callee == null) {
-      if (isNullable) {
-        _currentBytecodeModule.skip(argsBytesLength);
-        stack.push(null);
-        return;
-      } else {
-        throw HTError.callNullObject(
-            objectId ?? stack.localSymbol ?? _lexicon.kNull,
-            filename: _currentFile,
-            line: _currentLine,
-            column: _currentColumn);
-      }
-    }
-    final positionalArgs = [];
-    final positionalArgsLength = _currentBytecodeModule.read();
-    for (var i = 0; i < positionalArgsLength; ++i) {
-      final isSpread = _currentBytecodeModule.readBool();
-      if (!isSpread) {
-        final arg = execute(createStackFrame: false, retractStackFrame: false);
-        positionalArgs.add(arg);
-      } else {
-        final List spreadValue = execute(createStackFrame: false, retractStackFrame: false);
-        positionalArgs.addAll(spreadValue);
-      }
-    }
-    final namedArgs = <String, dynamic>{};
-    final namedArgsLength = _currentBytecodeModule.read();
-    for (var i = 0; i < namedArgsLength; ++i) {
-      final name = _currentBytecodeModule.getConstString();
-      final arg = execute(createStackFrame: false, retractStackFrame: false);
-      namedArgs[name] = arg;
-    }
-
-    stack.push(_call(
-      callee,
-      calleeId: objectId,
-      isConstructorCall: hasNewOperator,
-      positionalArgs: positionalArgs,
-      namedArgs: namedArgs,
-    ));
   }
 
   HTIntrinsicType _handleIntrinsicType() {
@@ -3053,7 +2954,6 @@ class HTInterpreter {
     var omittedIndex = 0;
     for (var i = 0; i < idCount; ++i) {
       var id = _currentBytecodeModule.getConstString();
-      // omit '_' symbols
       if (id == _lexicon.omittedMark) {
         id = omittedPrefix + (omittedIndex++).toString();
       } else {
@@ -3070,37 +2970,9 @@ class HTInterpreter {
     }
     final isVector = _currentBytecodeModule.readBool();
     final isMutable = _currentBytecodeModule.readBool();
-    final collection = execute();
-    for (var i = 0; i < ids.length; ++i) {
-      final id = ids.keys.elementAt(i);
-      dynamic initValue;
-      if (isVector) {
-        // omit '_' symbols
-        if (id.startsWith(omittedPrefix)) {
-          continue;
-        }
-        initValue = (collection as Iterable).elementAt(i);
-      } else {
-        if (collection is HTObject) {
-          initValue = collection.memberGet(id);
-        } else {
-          initValue = collection[id];
-        }
-      }
-      final decl = HTVariable(
-        id: id,
-        interpreter: this,
-        file: _currentFile,
-        module: _currentBytecodeModule.id,
-        closure: currentNamespace,
-        declType: ids[id],
-        value: initValue,
-        isPrivate: _lexicon.isPrivate(id),
-        isMutable: isMutable,
-      );
-      currentNamespace.define(id, decl,
-          override: config.allowVariableShadowing);
-    }
+    stack.subEvalFrames.add(HTDestructuringEval(
+        ids: ids, isVector: isVector, isMutable: isMutable));
+    // Main loop evaluates collection; endOfExec triggers frame
   }
 
   Map<String, HTParameter> _getParams(int paramDeclsLength) {
