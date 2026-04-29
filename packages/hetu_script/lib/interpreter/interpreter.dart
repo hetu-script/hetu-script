@@ -1309,9 +1309,6 @@ class HTInterpreter {
       for (final importDecl in importedNamespace.imports.values) {
         _handleNamespaceImport(importedNamespace, importDecl);
       }
-      // for (final declaration in importNamespace.declarations.values) {
-      //   declaration.resolve();
-      // }
     }
 
     if (importDecl.alias == null) {
@@ -1342,11 +1339,39 @@ class HTInterpreter {
             throw HTError.undefined(id);
           }
           final decl = importedNamespace.symbols[id]!;
-          // assert(!decl.isPrivate);
           aliasNamespace.define(id, decl);
         }
         nsp.defineImport(
             importDecl.alias!, aliasNamespace, importDecl.fromPath);
+      }
+    }
+
+    // Eagerly initialize imported variables that use lazy initialization.
+    // This prevents `initialize()` from being triggered later during
+    // expression evaluation, which would recursively call interpreter.execute()
+    // and corrupt the operand stack.
+    _warmUpImportedNamespace(importedNamespace);
+  }
+
+  /// Trigger eager initialization for all [HTVariable]s within [nsp] that
+  /// have lazy-initialization bytecode (ip != null) but haven't been
+  /// initialized yet (_value == null).
+  ///
+  /// This must be called while the interpreter is not evaluating any
+  /// expression — typically during module loading when the stack is clean.
+  void _warmUpImportedNamespace(HTNamespace nsp) {
+    for (final entry in nsp.symbols.entries) {
+      final decl = entry.value;
+      if (decl is HTVariable) {
+        // Accessing .value triggers initialize() if _value == null && ip != null
+        decl.value;
+      }
+    }
+    // Also warm up re-exported symbols from nested imports
+    for (final entry in nsp.importedSymbols.entries) {
+      final decl = entry.value;
+      if (decl is HTVariable) {
+        decl.value;
       }
     }
   }
@@ -2399,7 +2424,6 @@ class HTInterpreter {
           frame.positionalLength = positionalLength;
           frame._currentIsSpread = _currentBytecodeModule.readBool();
           stack.subEvalFrames.add(frame);
-          break;
         default:
           throw HTError.unknownOpCode(instruction,
               filename: _currentFile,

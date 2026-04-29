@@ -23,10 +23,11 @@ Future<void> main() async {
   });
 
   var r = hetu.eval(r'''
-    external function test
+    const arr = ['1','2','3'];
+    let a = ''
 
-     final [a,b,c] = await test()
-     [a,b,c]
+    a += Random().nextIterable(arr)
+    a
 ''');
 
   if (r is Future) {
