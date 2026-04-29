@@ -83,19 +83,72 @@ for (var item of obj) {
 
 ## Switch
 
-switch 关键字之后，可以跟随一个可选的圆括号内的 condition 表达式。
+`switch` 计算一个可选的 condition 表达式，并将其与各 case 分支进行匹配。如果不提供 condition，行为类似 if-else 链，跳转到第一个真值分支。
 
-如果提供了这个表达式，则会将这个表达式的值和各个分支的值进行匹配。并且跳转到第一个匹配的分支。
+有三种匹配模式：
 
-每个分支的语句，可以只是一个单独的表达式，也可以是一个 `{}` 语句块。前者需要用 `=>`，和单行函数一样。后者则需要用冒号 `:`。
+### 1. 等值匹配（`case` 值）
 
-分支语句本身的 `case` 关键字可写可不写。
+将单个值与 condition 进行匹配。使用逗号分隔的值可以在一行中匹配多个互斥的备选值。
 
-**else** 是一个可选的特殊的分支，当其他所有分支都匹配失败，并且提供了 else 分支时，将会进入 else 分支。else 分支可以使用 `else`, `default`, `_` 三种不同的表达方式。
+```javascript
+switch (i) {
+  0 => print('zero')
+  1, 2, 3 => print('one to three')
+}
+```
 
-使用逗号表达式来匹配多个可能的值。
+### 2. 逗号表达式匹配（either-equals）
 
-使用 in 表达式来匹配一个 Iterable 中的值；使用 of 表达式来匹配一个 struct/Map 的 values 中的值
+在一个 case 中匹配多个不同值的简写。如果 condition 等于其中任何一个值，该分支即匹配。
+
+### 3. 元素包含匹配（`in` / `of`）
+
+检查 condition 值是否包含在某个 Iterable 或 struct/Map 中。
+
+```javascript
+switch (i) {
+  in [4, 9] => print('square')
+  of { key: 'value' } => print('found in struct values')
+}
+```
+
+### 类型值模式匹配（`typeval`）
+
+当 condition 是一个类型值时，可以在 case 中使用 `typeval` 来匹配特定的类型模式：
+
+```dart
+function checkType(t: type) {
+  switch (t) {
+    typeval {} : print('a structural type')
+    typeval ()->any : print('a function type')
+    else => print('other type')
+  }
+}
+```
+
+### Case 语法
+
+- 每个分支的 `case` 关键字可写可不写。
+- 单表达式分支使用 `=>`（类似箭头函数）。
+- 代码块分支使用 `:`。
+- else/default 分支使用 `else`、`default` 或 `_`。
+- else 分支是可选的。
+- 与 C/Java 不同，`break` 是**隐式的** — 执行不会贯穿到下一个 case。
+
+### 无条件的 switch（真值 switch）
+
+当不提供 condition 表达式时，每个 case 的表达式被当作布尔值计算：
+
+```dart
+switch {
+  x > 0 => print('positive')
+  x < 0 => print('negative')
+  else => print('zero')
+}
+```
+
+注意：解释器在 switch condition 中不会[隐式转换非布尔值](../strict_mode/readme.md#truth-value)。
 
 ```javascript
 for (final i in range(0, 10)) {

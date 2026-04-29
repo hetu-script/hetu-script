@@ -85,23 +85,72 @@ for (var item of obj) {
 
 ## Switch
 
-'switch' statement's condition is optional. If not provided, the interpreter will check the cases and jump to the first branch if the expression evaled as true, just like a if else statement.
+`switch` evaluates an optional condition expression and matches it against case branches. If no condition is provided, it behaves like an if-else chain, jumping to the first truthy branch.
 
-However for switch statement's cases, interpreter won't [inexplicitly convert non-boolean values](../strict_mode/readme.md#truth-value).
+There are three case matching modes:
 
-'switch' statement's case could be non-const expression or variables;
+### 1. Equals matching (`case` value)
 
-'switch' statement's body must be enclosed in curly brackets.
+Matches a single value against the condition. Use comma-separated values to match multiple alternatives in one branch.
 
-The case branch could be a single statement without brackets, which leading with a `=>` just like the single line function grammar; or a block, which leading with a `:`.
+```javascript
+switch (i) {
+  0 => print('zero')
+  1, 2, 3 => print('one to three')
+}
+```
 
-The keyword `case` itself is optional.
+### 2. Either-equals matching (comma expression)
 
-'switch' statement's else branch is optional. You can use either `default`, `else` or simply `_` to match everything else.
+A shorthand for matching multiple distinct values in one case. The case matches if the condition equals any of the listed values.
 
-If you want to match multiple values in one branch, use comma expression.
+### 3. Element-in matching (`in` / `of`)
 
-If you want to check if an iterable/object contains the value, use in/of expression.
+Checks whether the condition value is contained within an iterable or struct/map.
+
+```javascript
+switch (i) {
+  in [4, 9] => print('square')
+  of { key: 'value' } => print('found in struct values')
+}
+```
+
+### Type value pattern matching (`typeval`)
+
+When the condition is a type value, you can use `typeval` in cases to match against specific type patterns:
+
+```dart
+function checkType(t: type) {
+  switch (t) {
+    typeval {} : print('a structural type')
+    typeval ()->any : print('a function type')
+    else => print('other type')
+  }
+}
+```
+
+### Case syntax
+
+- `case` keyword is optional for each branch.
+- Single-expression branches use `=>` (like arrow functions).
+- Block branches use `:`.
+- The else/default branch uses `else`, `default`, or `_`.
+- The else branch is optional.
+- Unlike C/Java, `break` is **implicit** — execution never falls through to the next case.
+
+### Condition-less switch (truthy switch)
+
+When no condition expression is provided, each case's expression is evaluated as a boolean:
+
+```dart
+switch {
+  x > 0 => print('positive')
+  x < 0 => print('negative')
+  else => print('zero')
+}
+```
+
+Note: The interpreter does NOT [implicitly convert non-boolean values](../strict_mode/readme.md#truth-value) in switch conditions.
 
 ```javascript
 for (final i in range(0, 10)) {

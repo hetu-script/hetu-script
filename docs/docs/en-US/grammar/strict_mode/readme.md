@@ -47,6 +47,19 @@ if ((err = func())) {
 }
 ```
 
+## Initialization expression return value
+
+If `allowInitializationExpresssionHaveValue` is set to `true`, a variable declaration expression (e.g. `var a = 42`) will leave the initializer's value on the operand stack. This allows variable declarations to be used as part of larger expressions. Defaults to `false`.
+
+```dart
+// With allowInitializationExpresssionHaveValue: true
+print(var a = 42) // prints 42
+```
+
+## Dynamic external function resolution
+
+If `resolveExternalFunctionsDynamically` is set to `true`, the interpreter will look up external function bindings at call time rather than at compile time. This allows hot-swapping external function implementations, at a small performance cost. Defaults to `false`.
+
 ## Zero value
 
 If config.allowImplicitVariableDeclaration == true, null value will be treated as 0 in these situations: <, >, <=, >=, +, -, ++, --, _, /, ~/, %, +=, -=, _=, /=, ~/=, %=.

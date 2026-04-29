@@ -10,6 +10,87 @@ void main() {
   hetu.init();
 
   group('functions -', () {
+    test('arrow function single-line body', () {
+      final result = hetu.eval(r'''
+        var double = (x) => x * 2
+        double(21)
+      ''');
+      expect(result, 42);
+    });
+
+    test('optional named parameters with defaults', () {
+      final result = hetu.eval(r'''
+        function optFunc(a, b, {c: number = 3, d: number = 5}) {
+          return a + b + c + d
+        }
+        optFunc(1, 2, d: 7)
+      ''');
+      expect(result, 1 + 2 + 3 + 7);
+    });
+
+    test('IIFE - immediately invoked function', () {
+      final result = hetu.eval(r'''
+        (function (x) { return x * x })(7)
+      ''');
+      expect(result, 49);
+    });
+
+    test('recursive function', () {
+      final result = hetu.eval(r'''
+        function factorial(n) {
+          if (n <= 1) {
+            return 1
+          }
+          return n * factorial(n - 1)
+        }
+        factorial(5)
+      ''');
+      expect(result, 120);
+    });
+
+    test('function identity - distinct closures are different', () {
+      final result = hetu.eval(r'''
+        function makeCounter() {
+          var count = 0
+          return () { return ++count }
+        }
+        var c1 = makeCounter()
+        var c2 = makeCounter()
+        c1()
+        c1()
+        c2()
+        c1()  // c1 has its own counter
+      ''');
+      expect(result, 3);
+    });
+
+    test('closure captures outer variable', () {
+      final result = hetu.eval(r'''
+        function makeAdder(x) {
+          return (y) => x + y
+        }
+        var add5 = makeAdder(5)
+        add5(10)
+      ''');
+      expect(result, 15);
+    });
+
+    test('variadic parameters', () {
+      final result = hetu.eval(r'''
+        function sumAll(...args) {
+          var total = 0
+          for (var item in args) {
+            total += item
+          }
+          return total
+        }
+        sumAll(1, 2, 3, 4, 5)
+      ''');
+      expect(result, 15);
+    });
+  });
+
+  group('functions existing -', () {
     test('nested & anonymous', () {
       final result = hetu.eval(r'''
         function literalFunction(func) {
@@ -79,6 +160,18 @@ void main() {
         result,
         'jimmy',
       );
+    });
+
+    test('Function.bind() changes this context', () {
+      final result = hetu.eval(r'''
+        final bindObj1 = { name: 'Alice', greeting: '' }
+        function bindGreet() {
+          return this.name
+        }
+        bindObj1.greeting = bindGreet
+        bindObj1.greeting()
+      ''');
+      expect(result, 'Alice');
     });
   });
 }

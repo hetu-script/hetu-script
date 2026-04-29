@@ -83,16 +83,24 @@ Above code will print:
 
 ## await
 
-After Hetu version 0.5.0, it possible to use await keyword within async function to avoid complex `then` callbacks.
+After Hetu version 0.5.0, it is possible to use the `await` keyword within async functions to avoid complex `then` callbacks.
 
-However, this is an experimental feature, and it's only partly supported.
-
-You can now use await in expressions statement (like a function call statement), variable declaration initialization,
-
-but you still cannot use await within For statement initialization or a function call's arguments in this version.
+The `await` keyword is fully implemented. Within an async function or script, `await` suspends execution until the Future resolves. The interpreter saves and restores the full execution context (including the instruction pointer, namespace, and operand stack), so `await` works correctly inside nested function calls, loops, and conditional branches.
 
 Example:
 
 ```dart
+async function fetchData {
+  final a = await fetch()
+  final b = await valueFuture()
+  return a + b
+}
+```
+
+```dart
 final result = await fetch() * await valueFuture() * await sumAll();
 ```
+
+### How await works internally
+
+When the interpreter encounters an `await` expression, it checks whether the top of the operand stack is a Dart `Future`. If so, it saves the current execution context (instruction pointer, namespace, stack frames) into a `FutureExecution` object and suspends. Once the Future completes, the interpreter resumes execution from the saved context with the resolved value. This process repeats for chained Futures until no more pending Futures remain.

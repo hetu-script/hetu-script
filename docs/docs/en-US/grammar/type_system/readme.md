@@ -1,6 +1,6 @@
 # Type system
 
-**WARNING: Type system is not fully implemented yet. It's more of a kind of annotation. You won't get analysis errors from them currently.**
+The Hetu type system supports four kinds of types at runtime: builtin types, nominal types (class names), structural types (duck typing), and function types. Runtime type checks via `is`, `is!`, `as`, `typeof`, and `decltypeof` are fully supported. Static type analysis is available separately by enabling `doStaticAnalysis` in the Hetu config — the analyzer is under active development.
 
 ## Type as a value
 
@@ -50,7 +50,7 @@ Some types are builtin keyword and has special use:
 
 This is the equivalent keyword to Dart's dynamic, to indicate that this type can be assign with anything.
 
-**void, never & unknown are also builtin keyword, they are part of static type checker, and they are not fully implemented for now.**
+**void, never & unknown are also builtin keyword. `void` represents the absence of a return value. `never` is the bottom type (a subtype of all types). `unknown` is the top type for unanalyzed code. These are primarily used during static type checking, but are valid type values at runtime.**
 
 ### nominal type
 
@@ -85,9 +85,11 @@ It should have a pair of brackets, a single arrow and a return type.
 type FuncTypedef = (string) -> number
 ```
 
-## Use is to check a type in run-time
+## Use is / is! to check a type in run-time
 
 Use **is** to do a run-time type check. The expression after **is** will be parsed into a valid type value, and you don't need to use `type` keyword after `is`.
+
+Use **is!** to check that a value is NOT of a given type.
 
 ```typescript
 function doSomething(value) {
@@ -95,10 +97,28 @@ function doSomething(value) {
     print('A String!')
   } else if (value is number) {
     print('A Number!')
+  } else if (value is! bool) {
+    print('Not a Boolean!')
   } else {
     print('Unknown type!')
   }
 }
+```
+
+## Use as for type casting
+
+Use **as** to cast a value to a specific type at runtime. If the cast is invalid (the value is not of the target type), a runtime error is thrown.
+
+```typescript
+class Super3 {
+  var name = 'Super'
+}
+class Extend3 extends Super3 {
+  var name = 'Extend'
+}
+var a = Extend3()
+var b = a as Super3
+print(b.name) // 'Extend' — b still refers to the same Extend3 instance
 ```
 
 ## Use typeof to get a type in run-time
@@ -126,4 +146,15 @@ The type of a type is always 'type', no matter it's a primitive, instance, or fu
 ```typescript
 type Functype = () -> any
 print(typeof functype) // type
+```
+
+## Use decltypeof to get a declared type
+
+Use **decltypeof** keyword to get the declared type annotation of a variable, rather than the runtime type of its current value. This is useful for inspecting type annotations at runtime.
+
+```typescript
+class Person {}
+var p: Person = Person()
+print(decltypeof p) // Person (the declared type)
+print(typeof p)     // Person (the runtime type — same in this case)
 ```

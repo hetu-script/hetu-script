@@ -103,7 +103,7 @@ void main() {
 
     test('assign & merge', () {
       final result = hetu.eval(r'''
-        
+
         let a = {a: 1}
         let b = {a: 4, b: 4}
         let c = {a: 42, c: 5}
@@ -112,6 +112,78 @@ void main() {
         a.a
       ''');
       expect(result, 4);
+    });
+
+    test('prototype chain with extends', () {
+      final result = hetu.eval(r'''
+        struct Animal {
+          function speak() {
+            return 'generic sound'
+          }
+        }
+        struct Dog extends Animal {
+          function speak() {
+            return 'woof'
+          }
+        }
+        var d = Dog()
+        d.speak()
+      ''');
+      expect(result, 'woof');
+    });
+
+    test('prototype inheritance - parent method', () {
+      final result = hetu.eval(r'''
+        struct ParentProto {
+          function breathe() {
+            return true
+          }
+        }
+        struct ChildProto extends ParentProto {
+          var name = 'kitty'
+        }
+        var cp = ChildProto()
+        cp.breathe()
+      ''');
+      expect(result, true);
+    });
+
+    test('struct with mixin', () {
+      final result = hetu.eval(r'''
+        struct MixinFly {
+          function fly() {
+            return 'flying'
+          }
+        }
+        struct MixinBird with MixinFly {
+          var name = 'eagle'
+        }
+        var mb = MixinBird()
+        mb.fly()
+      ''');
+      expect(result, 'flying');
+    });
+
+    test('spread in struct with override', () {
+      final result = hetu.eval(r'''
+        var defaults = { name: 'unknown', age: 0 }
+        var person = {
+          ...defaults,
+          name: 'John',
+        }
+        person.name
+      ''');
+      expect(result, 'John');
+    });
+
+    test('nested struct access', () {
+      final result = hetu.eval(r'''
+        var outer = {
+          inner: { value: 42 }
+        }
+        outer.inner.value
+      ''');
+      expect(result, 42);
     });
   });
 }

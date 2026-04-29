@@ -83,6 +83,51 @@ final p = new P
 print(p)
 ```
 
+## delete operator
+
+The `delete` keyword removes a variable, struct member, or subscript value. Three modes are available:
+
+### Delete a local variable
+
+Removes a top-level or local variable from its namespace. Subsequent access throws an `undefined` error.
+
+```dart
+var a = 42
+delete a
+print(a) // Error: a is undefined
+```
+
+### Delete a struct member
+
+Removes a field from a struct object. The `memberGet` access pattern is used.
+
+```dart
+var obj = { name: 'the world', meaning: 42 }
+delete obj.meaning
+print(obj) // { name: 'the world' }
+```
+
+### Delete a subscript value
+
+Removes a key from a map or a field from a struct by subscript key.
+
+```dart
+var map = { 'a': 1, 'b': 2 }
+delete map['a']
+print(map) // { b: 2 }
+```
+
+```dart
+var obj = { name: 'test', meaning: 42 }
+delete obj['meaning']
+print(obj) // { name: 'test' }
+```
+
+**Notes:**
+- Deleting a local variable removes it from the namespace entirely.
+- You cannot delete fields defined on a class instance.
+- `delete list[index]` is not supported for `List` objects.
+
 ## Operator precedence
 
 Operators in Hetu is a subset of Dart:

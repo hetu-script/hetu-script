@@ -83,16 +83,24 @@ Future.wait([asyncFunc1(), asyncFunc2()]).then((valueList) {
 
 ## await
 
-在河图 0.5.0 版本之后，可以在部分情况下支持 await 关键字，来避免过于复杂的 `then` 形式的回调函数。
+在河图 0.5.0 版本之后，可以在 async 函数中使用 `await` 关键字，来避免过于复杂的 `then` 形式的回调函数。
 
-目前这是一个试验性质的功能，可能会有一些潜在的 bug，而且也并非在所有场景下都支持使用 `await`。
+`await` 关键字已经完整实现。在 async 函数或脚本中，`await` 会暂停执行直到 Future 完成。解释器会保存和恢复完整的执行上下文（包括指令指针、命名空间和操作数栈），因此 `await` 可以在嵌套函数调用、循环和条件分支中正确工作。
 
-目前仅可以在普通的表达式中使用。包括变量初始化表达式等等。
+示例：
 
-但不能在 for 循环的初始化表达式，以及函数调用参数中的表达式中使用 `await`。
-
-可以使用 await 的场合的简单例子：
+```dart
+async function fetchData {
+  final a = await fetch()
+  final b = await valueFuture()
+  return a + b
+}
+```
 
 ```dart
 final result = await fetch() * await valueFuture() * await sumAll();
 ```
+
+### await 的内部实现
+
+当解释器遇到 `await` 表达式时，它会检查操作数栈顶是否是 Dart 的 `Future` 对象。如果是，则将当前执行上下文（指令指针、命名空间、栈帧）保存到 `FutureExecution` 对象中并挂起。当 Future 完成后，解释器从保存的上下文中恢复执行，将解析后的值压入栈中。对于链式 Future，此过程会重复进行，直到没有更多待处理的 Future 为止。

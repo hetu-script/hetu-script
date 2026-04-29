@@ -140,5 +140,55 @@ void main() {
         'a function type',
       );
     });
+
+    test('typeof on various value kinds', () {
+      final result = hetu.eval(r'''
+        var types = []
+        types.add(typeof null)
+        types.add(typeof true)
+        types.add(typeof 42)
+        types.add(typeof 3.14)
+        types.add(typeof 'hello')
+        types.add(typeof [1, 2])
+        types.add(typeof {})
+        types.add(typeof (() => {}))
+        types.length
+      ''');
+      expect(result, 8);
+    });
+
+    test('decltypeof returns declared type', () {
+      final result = hetu.eval(r'''
+        var declVar1: number = 42
+        var dt = decltypeof declVar1
+        dt != null
+      ''');
+      expect(result, true);
+    });
+
+    test('as valid cast preserves original object', () {
+      final result = hetu.eval(r'''
+        class CastSuper { var label = 'Super' }
+        class CastSub extends CastSuper { var other = 'Sub' }
+        var cs = CastSub()
+        var csup = cs as CastSuper
+        csup.label
+      ''');
+      expect(result, 'Super');
+    });
+
+    test('structural type negative match', () {
+      final result = hetu.eval(r'''
+        type Required = {
+          name: string,
+          age: number,
+        }
+        var obj = {
+          name: 'test',
+        }
+        obj is! Required
+      ''');
+      expect(result, true);
+    });
   });
 }

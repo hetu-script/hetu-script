@@ -11,21 +11,31 @@ final skill: List = ['attack', 'defense']
 
 ## Const
 
-You can declare a constant literal int/float/string value by keyword 'const'. The value will be stored in a global set to slightly increase performance.
+You can declare a constant literal value by keyword `const`. Four constant types are supported: boolean, integer, float, and string. Constant values are stored in a global deduplication table to improve performance — identical constant values share the same storage.
 
 ```dart
 const pi = 3.1415926
+const name = 'Hetu'
+const isReady = true
+const answer = 42
 ```
 
-Constant expression is not computed by default, even the identifier is also a constant. So if the const declaration's initializer is a expression, then it is equal to final declaration.
+Constant expression evaluation is not enabled by default. A `const` declaration whose initializer contains runtime expressions behaves like `final`.
 
-However, you can turn on constant interpreter by config after version 0.4.0 of Hetu.
+However, you can enable constant expression computation by setting `computeConstantExpression: true` in the Hetu config (available since version 0.4.0):
 
 ```dart
-// Equal to final pi2 = 3.1415926 * 2
-// at default configuration
+// With computeConstantExpression: true, this is computed at compile time:
 const pi2 = 3.1415926 * 2
+
+// Without it (default), this behaves like:
+// final pi2 = 3.1415926 * 2
 ```
+
+**Differences between `const` and `final`:**
+- `const` values are compile-time constants stored in a deduplicated global table.
+- `final` values are runtime-assigned once immutable variables.
+- `const` can only hold literal values (by default); `final` can hold any runtime value.
 
 ## Late finalize
 
@@ -77,10 +87,23 @@ var [a, b, c] = [1, 2, 3]; // a = 1, b = 2, c = 3
 var { x, y } = { x: 6, y: 7 }; // x = 6, y = 7
 ```
 
-You can **omit** a declaration when you use destructuring declaration on a iterable.
+### Omitting values with `_`
+
+When destructuring from a list/iterable, use `_` to skip values you don't need:
 
 ```javascript
 var [_, _, z] = [1, 2, 3]; // z = 3
 ```
 
-Destructuring declarations have to have a initializer and have to be initialized immediately, hence you can only use them within a script or a function body.
+### Destructuring from structs
+
+When destructuring from a struct, the variable names must match the field names:
+
+```javascript
+final obj = { a: 6, b: 7 }
+final { a, b } = obj  // a = 6, b = 7
+```
+
+### Requirements
+
+Destructuring declarations **must** have an initializer and must be initialized immediately. They can be used within a script body (`ResourceType.hetuScript`) or a function body, but not in class-level declarations.

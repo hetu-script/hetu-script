@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://hetu.dev">
+  <a href="https://hetu-script.github.io/">
     <img alt="hetu script" width="200px" src="https://hetu.dev/image/hetu-logo-large.png">
   </a>
   <h1 align="center">Hetu Script</h1>

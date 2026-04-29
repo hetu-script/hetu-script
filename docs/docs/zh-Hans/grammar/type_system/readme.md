@@ -1,6 +1,6 @@
 # 类型系统
 
-**注意: 河图的类型系统的实现目前并不完整，目前只起到注解的作用，并不能提供静态分析等帮助。**
+河图的类型系统在运行时支持四种类型：内置类型、标称类型（类名）、结构类型（鸭子类型）和函数类型。运行时类型检查（`is`、`is!`、`as`、`typeof`、`decltypeof`）已完整支持。静态类型分析可通过在 Hetu 配置中启用 `doStaticAnalysis` 来单独使用——分析器正在积极开发中。
 
 ## 类型作为值
 
@@ -48,7 +48,7 @@ type StructTypedef = {
 
 等同于 Dart 中的 dynamic，任何值都可以赋值给一个 any 类型。
 
-**void, never & unknown 这三个关键字代表了其他的一些内置类型，但他们需要在静态类型检查阶段发挥作用，因此在目前版本中尚未被完全支持。**
+**void, never & unknown 也属于内置类型。`void` 表示无返回值。`never` 是底部类型（所有类型的子类型）。`unknown` 是未分析代码的顶部类型。它们主要用于静态类型检查，但在运行时也是有效的类型值。**
 
 ### 标称类型（nominal type）
 
@@ -81,9 +81,11 @@ type StructTypedef = {
 type FuncTypedef = (string) -> number
 ```
 
-## 使用 is 在运行时动态检查类型
+## 使用 is / is! 在运行时动态检查类型
 
 使用 **is** 关键字可以在运行时动态检查某个值对应的类型。
+
+使用 **is!** 检查某个值不属于某个类型。
 
 ```typescript
 function doSomething(value) {
@@ -91,10 +93,28 @@ function doSomething(value) {
     print('A String!')
   } else if (value is number) {
     print('A Number!')
+  } else if (value is! bool) {
+    print('Not a Boolean!')
   } else {
     print('Unknown type!')
   }
 }
+```
+
+## 使用 as 进行类型转换
+
+使用 **as** 在运行时将值转换为特定类型。如果转换无效（值不属于目标类型），将抛出运行时错误。
+
+```typescript
+class Super3 {
+  var name = 'Super'
+}
+class Extend3 extends Super3 {
+  var name = 'Extend'
+}
+var a = Extend3()
+var b = a as Super3
+print(b.name) // 'Extend' — b 仍然引用同一个 Extend3 实例
 ```
 
 ## 使用 typeof 在运行时动态获取类型
@@ -122,4 +142,15 @@ function main {
 ```typescript
 type Functype = ()->any
 print(typeof (typeof functype)) // type
+```
+
+## 使用 decltypeof 获取声明类型
+
+使用 **decltypeof** 关键字获取变量的声明类型注解，而非其当前值的运行时类型。这在需要在运行时检查类型注解时很有用。
+
+```typescript
+class Person {}
+var p: Person = Person()
+print(decltypeof p) // Person （声明类型）
+print(typeof p)     // Person （运行时类型 — 此例中相同）
 ```
