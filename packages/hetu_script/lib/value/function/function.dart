@@ -598,10 +598,10 @@ class HTFunction extends HTFunctionDeclaration
               );
               final isSpread = interpreter.currentBytecodeModule.readBool();
               if (!isSpread) {
-                final arg = interpreter.execute();
+                final arg = interpreter.execute(retractStackFrame: false);
                 referCtorPosArgs.add(arg);
               } else {
-                final List arg = interpreter.execute();
+                final List arg = interpreter.execute(retractStackFrame: false);
                 referCtorPosArgs.addAll(arg);
               }
               interpreter.setContext(savedContext);
@@ -648,6 +648,7 @@ class HTFunction extends HTFunctionDeclaration
               line: line,
               column: column,
             ),
+            retractStackFrame: false, // Result returned directly, don't push to parent
           );
         } else {
           interpreter.execute(

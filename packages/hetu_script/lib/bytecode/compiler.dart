@@ -749,58 +749,40 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final right = compileAST(expr.right);
     if (expr.op == _lexicon.equal) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.equalLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.equal);
     } else if (expr.op == _lexicon.notEqual) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.equalLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.notEqual);
     } else if (expr.op == _lexicon.greaterOrEqual) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.relationLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.greaterOrEqual);
     } else if (expr.op == _lexicon.greater) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.relationLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.greater);
     } else if (expr.op == _lexicon.lesserOrEqual) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.relationLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.lesserOrEqual);
     } else if (expr.op == _lexicon.lesser) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.relationLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.lesser);
     } else if (expr.op == _lexicon.kAs) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.relationLeft);
       final right = compileAST(expr.right);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.typeAs);
     } else if (expr.op == _lexicon.kIs) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.relationLeft);
       final right = compileAST(expr.right);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.typeIs);
     } else if (expr.op == _lexicon.kIsNot) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.relationLeft);
       final right = compileAST(expr.right);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.typeIsNot);
@@ -821,97 +803,67 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(OpCode.logicalNot);
     } else if (expr.op == _lexicon.ifNull) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.ifNullLeft);
       bytesBuilder.addByte(OpCode.ifNull);
       bytesBuilder.add(_uint16(right.length)); // length of right value
       bytesBuilder.add(right);
     } else if (expr.op == _lexicon.logicalOr) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.orLeft);
       bytesBuilder.addByte(OpCode.logicalOr);
       bytesBuilder.add(_uint16(right.length + 1)); // length of right value
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.truthyValue);
     } else if (expr.op == _lexicon.logicalAnd) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.andLeft);
       bytesBuilder.addByte(OpCode.logicalAnd);
       bytesBuilder.add(_uint16(right.length + 1)); // length of right value
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.truthyValue);
     } else if (expr.op == _lexicon.bitwiseOr) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.bitwiseOrLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.bitwiseOr);
     } else if (expr.op == _lexicon.bitwiseXor) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.bitwiseXorLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.bitwiseXor);
     } else if (expr.op == _lexicon.bitwiseAnd) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.bitwiseAndLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.bitwiseAnd);
     } else if (expr.op == _lexicon.leftShift) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.bitwiseShiftLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.leftShift);
     } else if (expr.op == _lexicon.rightShift) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.bitwiseShiftLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.rightShift);
     } else if (expr.op == _lexicon.unsignedRightShift) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.bitwiseShiftLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.unsignedRightShift);
     } else if (expr.op == _lexicon.add) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.additiveLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.add);
     } else if (expr.op == _lexicon.subtract) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.additiveLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.subtract);
     } else if (expr.op == _lexicon.multiply) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.multiplicativeLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.multiply);
     } else if (expr.op == _lexicon.devide) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.multiplicativeLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.devide);
     } else if (expr.op == _lexicon.truncatingDevide) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.multiplicativeLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.truncatingDevide);
     } else if (expr.op == _lexicon.modulo) {
       bytesBuilder.add(left);
-      bytesBuilder.addByte(OpCode.register);
-      bytesBuilder.addByte(HTRegIdx.multiplicativeLeft);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.modulo);
     }
@@ -939,8 +891,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     final value = compileAST(expr.object);
     bytesBuilder.add(value);
-    bytesBuilder.addByte(OpCode.register);
-    bytesBuilder.addByte(HTRegIdx.postfixObject);
     if (expr.op == _lexicon.postIncrement) {
       final constOne = ASTLiteralInteger(1);
       late final ASTNode value;
@@ -972,17 +922,11 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       if (expr.left is MemberExpr) {
         final value = compileAST(expr.right);
         bytesBuilder.add(value);
-        bytesBuilder.addByte(OpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assignRight);
         final memberExpr = expr.left as MemberExpr;
         final object = compileAST(memberExpr.object);
         bytesBuilder.add(object);
-        bytesBuilder.addByte(OpCode.register);
-        bytesBuilder.addByte(HTRegIdx.postfixObject);
         final key = visitIdentifierExpr(memberExpr.key);
         bytesBuilder.add(key);
-        bytesBuilder.addByte(OpCode.register);
-        bytesBuilder.addByte(HTRegIdx.postfixKey);
         bytesBuilder.addByte(OpCode.memberSet);
         bytesBuilder.addByte(memberExpr.isNullable ? 1 : 0);
         Uint8List? objectId;
@@ -998,13 +942,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else if (expr.left is SubExpr) {
         final value = compileAST(expr.right);
         bytesBuilder.add(value);
-        bytesBuilder.addByte(OpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assignRight);
         final subExpr = expr.left as SubExpr;
         final array = compileAST(subExpr.object);
         bytesBuilder.add(array);
-        bytesBuilder.addByte(OpCode.register);
-        bytesBuilder.addByte(HTRegIdx.postfixObject);
         final key = compileAST(subExpr.key);
         bytesBuilder.addByte(OpCode.createStackFrame);
         bytesBuilder.add(key);
@@ -1024,8 +964,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       } else {
         final right = compileAST(expr.right);
         bytesBuilder.add(right);
-        bytesBuilder.addByte(OpCode.register);
-        bytesBuilder.addByte(HTRegIdx.assignRight);
         final left = compileAST(expr.left);
         bytesBuilder.add(left);
         bytesBuilder.addByte(OpCode.assign);
@@ -1068,12 +1006,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     final object = compileAST(expr.object);
     bytesBuilder.add(object);
-    bytesBuilder.addByte(OpCode.register);
-    bytesBuilder.addByte(HTRegIdx.postfixObject);
     final key = compileAST(expr.key);
     bytesBuilder.add(key);
-    bytesBuilder.addByte(OpCode.register);
-    bytesBuilder.addByte(HTRegIdx.postfixKey);
     bytesBuilder.addByte(OpCode.memberGet);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
     Uint8List? objectId;
@@ -1111,8 +1045,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     final array = compileAST(expr.object);
     bytesBuilder.add(array);
-    bytesBuilder.addByte(OpCode.register);
-    bytesBuilder.addByte(HTRegIdx.postfixObject);
     final key = compileAST(expr.key);
     bytesBuilder.addByte(OpCode.createStackFrame);
     bytesBuilder.add(key);
@@ -1154,8 +1086,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     final callee = compileAST(expr.callee);
     bytesBuilder.add(callee);
-    bytesBuilder.addByte(OpCode.register);
-    bytesBuilder.addByte(HTRegIdx.postfixObject);
     bytesBuilder.addByte(OpCode.call);
     bytesBuilder.addByte(expr.isNullable ? 1 : 0);
     bytesBuilder.addByte(expr.hasNewOperator ? 1 : 0);
