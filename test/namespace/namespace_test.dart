@@ -119,5 +119,23 @@ Future<void> main() async {
 
       expect(result, 84);
     });
+
+    test('named struct from module is eagerly resolved', () {
+      sourceContext.addResource('cross_mod_g.ht', HTSource('''
+    struct Point {
+      var x = 10
+      var y = 20
+    }
+  '''));
+
+      final result = hetu.eval(r'''
+    import 'cross_mod_g.ht'
+
+    var p = Point()
+    p.x + p.y
+  ''');
+
+      expect(result, 30);
+    });
   });
 }

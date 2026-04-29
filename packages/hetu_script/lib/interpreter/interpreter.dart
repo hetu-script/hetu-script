@@ -1365,6 +1365,11 @@ class HTInterpreter {
       if (decl is HTVariable) {
         // Accessing .value triggers initialize() if _value == null && ip != null
         decl.value;
+      } else if (decl is HTNamedStruct) {
+        // Resolving a named struct executes its static & instance field
+        // initializers via interpreter.execute(). Must be done here during
+        // module loading (clean stack) to avoid corrupting expression eval.
+        decl.resolve();
       }
     }
     // Also warm up re-exported symbols from nested imports
@@ -1372,6 +1377,8 @@ class HTInterpreter {
       final decl = entry.value;
       if (decl is HTVariable) {
         decl.value;
+      } else if (decl is HTNamedStruct) {
+        decl.resolve();
       }
     }
   }
