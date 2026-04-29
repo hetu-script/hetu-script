@@ -2295,7 +2295,10 @@ class HTInterpreter {
       if (caseType == HTSwitchCaseTypeCode.equals) {
         final value = execute();
         if (hasCondition) {
-          if (condition == value) {
+          final matched = (condition is HTType && value is HTType)
+              ? condition.isA(value)
+              : condition == value;
+          if (matched) {
             break;
           }
         } else if (value) {
@@ -2310,7 +2313,10 @@ class HTInterpreter {
         for (var i = 0; i < count; ++i) {
           values.add(execute());
         }
-        if (values.contains(condition)) {
+        final matched = (condition is HTType)
+            ? values.any((v) => v is HTType && condition.isA(v))
+            : values.contains(condition);
+        if (matched) {
           break;
         } else {
           // skip jumpping to branch
@@ -2319,7 +2325,10 @@ class HTInterpreter {
       } else if (caseType == HTSwitchCaseTypeCode.elementIn) {
         assert(hasCondition);
         final Iterable value = execute();
-        if (value.contains(condition)) {
+        final matched = (condition is HTType)
+            ? value.any((v) => v is HTType && condition.isA(v))
+            : value.contains(condition);
+        if (matched) {
           break;
         } else {
           // skip jumpping to branch
