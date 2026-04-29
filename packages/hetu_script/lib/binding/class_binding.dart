@@ -915,11 +915,11 @@ class HTRandomClassBinding extends HTExternalClass {
       case 'nearInt':
         return ({object, positionalArgs, namedArgs}) {
           return (object as math.Random)
-              .nearInt(positionalArgs.first, exponent: namedArgs['exponent']);
+              .nearInt(positionalArgs.first, bias: namedArgs['bias']);
         };
       case 'distantInt':
         return ({object, positionalArgs, namedArgs}) => (object as math.Random)
-            .distantInt(positionalArgs.first, exponent: namedArgs['exponent']);
+            .distantInt(positionalArgs.first, bias: namedArgs['bias']);
       case 'nextInt':
         return ({object, positionalArgs, namedArgs}) =>
             object.nextInt(positionalArgs[0].toInt());

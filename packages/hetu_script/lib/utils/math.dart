@@ -89,12 +89,18 @@ extension RandomEx on math.Random {
     }
   }
 
-  int nearInt(int max, {double exponent = 0.5}) {
-    return (max * math.pow(nextDouble(), exponent)).toInt();
+  int nearInt(int max, {double bias = 1.0}) {
+    if (max <= 1) return 0;
+    final result =
+        (max * math.pow(nextDouble(), 1 / (1 + bias))).toInt();
+    return result.clamp(0, max - 1);
   }
 
-  int distantInt(int max, {double exponent = 0.5}) {
-    return (max * (1 - math.pow(nextDouble(), exponent))).toInt();
+  int distantInt(int max, {double bias = 1.0}) {
+    if (max <= 1) return 0;
+    final result =
+        (max * (1 - math.pow(nextDouble(), 1 / (1 + bias)))).toInt();
+    return result.clamp(0, max - 1);
   }
 
   String nextColorHex({bool hasAlpha = false}) {

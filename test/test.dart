@@ -19,7 +19,14 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-     4 * 3 * 2
+     let t1 = typeof () {}
+     type t2 = () -> any
+     
+     switch (t1) {
+       typeval {} => 'structural type'
+       typeval ()->any => 'function type'
+       default => 'other type'
+     }
 ''');
 
   if (r is Future) {
