@@ -1,3 +1,5 @@
+import 'package:hetu_script/declaration/declaration.dart';
+
 import '../../error/error.dart';
 // import '../../source/source.dart';
 import '../function/function.dart';
@@ -32,26 +34,50 @@ class HTClassNamespace extends HTNamespace {
     final externalStatic = '$id.$id';
 
     if (symbols.containsKey(id)) {
-      final decl = symbols[id]!;
-      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(id);
+      final decl = symbols[id];
+      if (decl == null) return null;
+      if (decl is HTDeclaration) {
+        if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+          throw HTError.privateMember(id);
+        }
+        decl.resolve();
+        return decl.value;
+      } else {
+        if (lexicon.isPrivate(id) && from != null && !from.startsWith(fullName)) {
+          throw HTError.privateMember(id);
+        }
+        return decl;
       }
-      decl.resolve();
-      return decl.value;
     } else if (symbols.containsKey(getter)) {
-      final decl = symbols[getter]!;
-      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(id);
+      final decl = symbols[getter];
+      if (decl == null) return null;
+      if (decl is HTDeclaration) {
+        if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+          throw HTError.privateMember(id);
+        }
+        decl.resolve();
+        return decl.value;
+      } else {
+        if (lexicon.isPrivate(id) && from != null && !from.startsWith(fullName)) {
+          throw HTError.privateMember(id);
+        }
+        return decl;
       }
-      decl.resolve();
-      return decl.value;
     } else if (symbols.containsKey(externalStatic)) {
-      final decl = symbols[externalStatic]!;
-      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(id);
+      final decl = symbols[externalStatic];
+      if (decl == null) return null;
+      if (decl is HTDeclaration) {
+        if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+          throw HTError.privateMember(id);
+        }
+        decl.resolve();
+        return decl.value;
+      } else {
+        if (lexicon.isPrivate(id) && from != null && !from.startsWith(fullName)) {
+          throw HTError.privateMember(id);
+        }
+        return decl;
       }
-      decl.resolve();
-      return decl.value;
     }
 
     if (isRecursive && (closure != null)) {
@@ -77,20 +103,28 @@ class HTClassNamespace extends HTNamespace {
   }) {
     final setter = '${InternalIdentifier.setter}$id';
     if (symbols.containsKey(id)) {
-      final decl = symbols[id]!;
-      if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
-        throw HTError.privateMember(id);
+      final decl = symbols[id];
+      if (decl is HTDeclaration) {
+        if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
+          throw HTError.privateMember(id);
+        }
+        decl.resolve();
+        decl.value = value;
+      } else {
+        if (lexicon.isPrivate(id) && from != null && !from.startsWith(fullName)) {
+          throw HTError.privateMember(id);
+        }
+        symbols[id] = value;
       }
-      decl.resolve();
-      decl.value = value;
       return true;
     } else if (symbols.containsKey(setter)) {
-      final decl = symbols[setter]!;
+      final decl = symbols[setter];
+      if (decl is! HTDeclaration) return false;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(id);
       }
       decl.resolve();
-      final setterFunc = decl as HTFunction;
+      final HTFunction setterFunc = decl as HTFunction;
       setterFunc.call(positionalArgs: [value]);
       return true;
     }

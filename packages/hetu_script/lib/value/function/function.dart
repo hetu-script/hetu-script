@@ -390,6 +390,7 @@ class HTFunction extends HTFunctionDeclaration
               HTValueBinding(
                 id: interpreter.lexicon.kSuper,
                 value: (namespace as HTInstanceNamespace).next,
+                isMutable: false,
               ),
             );
           }
@@ -398,6 +399,7 @@ class HTFunction extends HTFunctionDeclaration
             HTValueBinding(
               id: interpreter.lexicon.kThis,
               value: instance,
+              isMutable: false,
             ),
           );
         } else if (category != FunctionCategory.literal) {
@@ -405,7 +407,8 @@ class HTFunction extends HTFunctionDeclaration
             interpreter.lexicon.kThis,
             HTValueBinding(
               id: interpreter.lexicon.kThis,
-              value: callClosure,
+              value: null,
+              isMutable: false,
             ),
           );
         }
@@ -444,8 +447,7 @@ class HTFunction extends HTFunctionDeclaration
             }
           }
 
-          callClosure.define(
-              paramId, HTValueBinding(id: paramDecl.id, value: paramValue));
+          callClosure.define(paramId, paramValue);
 
           if (paramDecl.isInitialization) {
             result.memberSet(paramDecl.id!, paramValue);
@@ -457,8 +459,7 @@ class HTFunction extends HTFunctionDeclaration
           for (var i = variadicStart; i < positionalArgs.length; ++i) {
             variadicArg.add(positionalArgs[i]);
           }
-          callClosure.define(variadicParamId!,
-              HTValueBinding(id: variadicParamId, value: variadicArg));
+          callClosure.define(variadicParamId!, variadicArg);
         }
 
         if (category == FunctionCategory.constructor) {

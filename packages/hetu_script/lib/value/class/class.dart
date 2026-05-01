@@ -2,10 +2,10 @@ import '../../external/external_class.dart';
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../type/type.dart';
-// import '../declaration.dart';
-import '../../value/namespace/namespace.dart';
+import '../../declaration/declaration.dart';
+import '../namespace/namespace.dart';
 import '../function/function.dart';
-import '../../value/instance/instance.dart';
+import '../instance/instance.dart';
 import '../../declaration/class/class_declaration.dart';
 import '../object.dart';
 import 'class_namespace.dart';
@@ -152,50 +152,49 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
     //   return value;
     // } else {
     if (namespace.symbols.containsKey(id)) {
-      final decl = namespace.symbols[id]!;
-      if (decl.isPrivate &&
-          from != null &&
-          !from.startsWith(namespace.fullName)) {
-        throw HTError.privateMember(id);
+      final decl = namespace.symbols[id];
+      if (decl == null) return null;
+      if (decl is HTDeclaration) {
+        if (decl.isPrivate &&
+            from != null &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(id);
+        }
+        decl.resolve();
+        return decl.value;
+      } else {
+        if (interpreter.lexicon.isPrivate(id) &&
+            from != null &&
+            !from.startsWith(namespace.fullName)) {
+          throw HTError.privateMember(id);
+        }
+        return decl;
       }
-      // if (isExternal) {
-      //   decl.resolve();
-      //   return decl.value;
-      // } else {
-      //   if (decl.isStatic ||
-      //       (decl is HTFunction &&
-      //           decl.category == FunctionCategory.constructor)) {
-      decl.resolve();
-      return decl.value;
-      //   }
-      // }
     } else if (namespace.symbols.containsKey(getter)) {
-      final decl = namespace.symbols[getter]!;
+      final decl = namespace.symbols[getter];
+      if (decl == null) return null;
+      if (decl is! HTFunction) return null;
       if (decl.isPrivate &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(id);
       }
-      final func = decl as HTFunction;
-      // if (isExternal) {
-      //   decl.resolve();
-      //   return func.call();
-      // } else {
-      //   if (decl.isStatic) {
+      final func = decl;
       decl.resolve();
       return func.call();
-      //   }
-      // }
     } else if (namespace.symbols.containsKey(constructor)) {
-      final decl = namespace.symbols[constructor]!.value;
+      final raw = namespace.symbols[constructor];
+      if (raw == null) return null;
+      if (raw is! HTDeclaration) return null;
+      final decl = raw.value;
+      if (decl is! HTFunction) return null;
       if (decl.isPrivate &&
           from != null &&
           !from.startsWith(namespace.fullName)) {
         throw HTError.privateMember(id);
       }
       decl.resolve();
-      final func = decl as HTFunction;
-      return func;
+      return decl;
     }
     // }
 
@@ -219,20 +218,31 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
       return;
     } else {
       if (namespace.symbols.containsKey(id)) {
-        final decl = namespace.symbols[id]!;
-        if (decl.isStatic) {
-          if (decl.isPrivate &&
+        final decl = namespace.symbols[id];
+        if (decl is HTDeclaration) {
+          if (decl.isStatic) {
+            if (decl.isPrivate &&
+                from != null &&
+                !from.startsWith(namespace.fullName)) {
+              throw HTError.privateMember(id);
+            }
+            decl.resolve();
+            decl.value = value;
+            return;
+          }
+        } else {
+          if (interpreter.lexicon.isPrivate(id) &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
             throw HTError.privateMember(id);
           }
-          decl.resolve();
-          decl.value = value;
+          namespace.symbols[id] = value;
           return;
         }
         // TODO: non-static error prompt
       } else if (namespace.symbols.containsKey(setter)) {
-        final decl = namespace.symbols[setter]!;
+        final decl = namespace.symbols[setter];
+        if (decl is! HTFunction) return;
         if (decl.isStatic) {
           if (decl.isPrivate &&
               from != null &&
@@ -240,8 +250,7 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
             throw HTError.privateMember(id);
           }
           decl.resolve();
-          final setterFunc = decl as HTFunction;
-          setterFunc.call(positionalArgs: [value]);
+          decl.call(positionalArgs: [value]);
           return;
         }
         // TODO: non-static error prompt

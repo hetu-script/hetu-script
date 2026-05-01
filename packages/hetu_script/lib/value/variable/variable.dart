@@ -94,6 +94,10 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
     } else {
       _value = null;
     }
+
+    if (isMutable && !isExternal && !isConst && !lateFinalize && classId == null) {
+      _closure.symbols[id!] = _value;
+    }
   }
 
   /// Assign a new value to this variable.

@@ -36,13 +36,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
     required this.lexicon,
     super.isPrivate,
   }) {
-    // calculate the full name of this namespace
-    _fullName = displayName;
-    var curSpace = closure;
-    while (curSpace != null) {
-      _fullName = '${curSpace.displayName}.$fullName';
-      curSpace = curSpace.closure;
-    }
+    _fullName = closure != null ? '${closure!.fullName}.$displayName' : displayName;
   }
 
   @override

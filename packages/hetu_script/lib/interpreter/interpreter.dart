@@ -42,6 +42,7 @@ import '../value/unresolved_import.dart';
 import '../locale/locale.dart';
 import '../common/internal_identifier.dart';
 import '../common/function_category.dart';
+import '../value/value_binding.dart';
 
 const kConsoleColorYellow = '\x1B[33m';
 
@@ -382,25 +383,34 @@ class HTVarDeclInitEval extends HTSubEvalFrame {
   @override
   void handleEndOfExec(HTInterpreter i) {
     final initValue = i.stack.pop();
-    final decl = HTVariable(
-      id: id,
-      interpreter: i,
-      file: i.currentFile,
-      module: i.currentBytecodeModule.id,
-      classId: classId,
-      closure: i.currentNamespace,
-      documentation: documentation,
-      declType: declType,
-      value: initValue,
-      isPrivate: isPrivate,
-      isExternal: isExternal,
-      isStatic: isStatic,
-      isMutable: isMutable,
-      isField: isField,
-    );
-    if (!isField) {
+    if (!isField &&
+        i._isSimpleVariable(
+            isMutable: isMutable,
+            isExternal: isExternal,
+            lateFinalize: lateFinalize)) {
       i.currentNamespace
-          .define(id, decl, override: i.config.allowVariableShadowing);
+          .define(id, initValue, override: i.config.allowVariableShadowing);
+    } else {
+      final decl = HTVariable(
+        id: id,
+        interpreter: i,
+        file: i.currentFile,
+        module: i.currentBytecodeModule.id,
+        classId: classId,
+        closure: i.currentNamespace,
+        documentation: documentation,
+        declType: declType,
+        value: initValue,
+        isPrivate: isPrivate,
+        isExternal: isExternal,
+        isStatic: isStatic,
+        isMutable: isMutable,
+        isField: isField,
+      );
+      if (!isField) {
+        i.currentNamespace
+            .define(id, decl, override: i.config.allowVariableShadowing);
+      }
     }
     if (i.config.allowInitializationExpresssionHaveValue) {
       i.stack.push(initValue);
@@ -1148,8 +1158,11 @@ class HTInterpreter {
   }
 
   HTType decltypeof(String id) {
-    final HTDeclaration decl =
+    final decl =
         currentNamespace.memberGet(id, isRecursive: true, asDeclaration: true);
+    if (decl is! HTDeclaration) {
+      return HTTypeUnknown(lexicon.kUnknown);
+    }
     decl.resolve();
     var decltype = decl.declType;
 
@@ -1160,6 +1173,21 @@ class HTInterpreter {
     } else {
       return HTTypeUnknown(lexicon.kUnknown);
     }
+  }
+
+  /// Whether a variable declaration can be stored as a raw value,
+  /// skipping the HTVariable wrapper entirely.
+  bool _isSimpleVariable({
+    required bool isMutable,
+    bool isExternal = false,
+    bool lateFinalize = false,
+    bool lateInitialize = false,
+  }) {
+    return isMutable &&
+        !isExternal &&
+        !lateFinalize &&
+        !lateInitialize &&
+        !config.checkTypeAnnotationAtRuntime;
   }
 
   /// Encapsulate any value to a Hetu object, for members accessing and type check.
@@ -1306,9 +1334,9 @@ class HTInterpreter {
         for (final id in importDecl.showList) {
           dynamic decl;
           if (importedNamespace.symbols.containsKey(id)) {
-            decl = importedNamespace.symbols[id]!;
+            decl = importedNamespace.symbols[id];
           } else if (importedNamespace.exports.contains(id)) {
-            decl = importedNamespace.importedSymbols[id]!;
+            decl = importedNamespace.importedSymbols[id];
           } else {
             throw HTError.undefined(id);
           }
@@ -1326,7 +1354,7 @@ class HTInterpreter {
           if (!importedNamespace.symbols.containsKey(id)) {
             throw HTError.undefined(id);
           }
-          final decl = importedNamespace.symbols[id]!;
+          final decl = importedNamespace.symbols[id];
           aliasNamespace.define(id, decl);
         }
         nsp.defineImport(
@@ -1952,10 +1980,9 @@ class HTInterpreter {
             // ip + thenBranchLength - 2.
             final elseLenOffset =
                 _currentBytecodeModule.ip + thenBranchLength - 2;
-            final elseBranchLength =
-                _currentBytecodeModule.bytes.buffer
-                    .asByteData()
-                    .getInt16(elseLenOffset);
+            final elseBranchLength = _currentBytecodeModule.bytes.buffer
+                .asByteData()
+                .getInt16(elseLenOffset);
             _currentBytecodeModule.skip(thenBranchLength);
             if (elseBranchLength == 0) {
               stack.push(null);
@@ -1996,16 +2023,7 @@ class HTInterpreter {
               isRecursive: true, ignoreUndefined: true);
           if (!result) {
             if (config.allowImplicitVariableDeclaration) {
-              final decl = HTVariable(
-                  id: id,
-                  interpreter: this,
-                  file: _currentFile,
-                  module: _currentBytecodeModule.id,
-                  closure: currentNamespace,
-                  value: value,
-                  isPrivate: _lexicon.isPrivate(id),
-                  isMutable: true);
-              currentNamespace.define(id, decl);
+              currentNamespace.define(id, value);
             } else {
               throw HTError.undefined(id);
             }
@@ -2462,7 +2480,7 @@ class HTInterpreter {
           final aliasNamespace = HTNamespace(
               lexicon: _lexicon, id: alias!, closure: currentNamespace.closure);
           for (final id in showList) {
-            final decl = importedNamespace.symbols[id]!;
+            final decl = importedNamespace.symbols[id];
             // assert(!decl.isPrivate);
             aliasNamespace.define(id, decl);
           }
@@ -2489,12 +2507,10 @@ class HTInterpreter {
           final jsonSource = _currentBytecodeModule.jsonSources[fromPath]!;
           currentNamespace.defineImport(
             alias!,
-            HTVariable(
+            HTValueBinding(
               id: alias,
-              interpreter: this,
               value: jsonSource.value,
-              closure: currentNamespace,
-              isPrivate: _lexicon.isPrivate(alias),
+              isMutable: false,
             ),
             jsonSource.fullName,
           );

@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:hetu_script/value/variable/variable.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../version.dart';
@@ -33,6 +32,7 @@ import 'console.dart';
 import '../lexicon/lexicon_hetu.dart';
 import '../value/struct/struct.dart';
 import '../value/function/function.dart';
+import '../value/value_binding.dart';
 
 /// The config of hetu environment, this implements all config of components used by this environment.
 class HetuConfig
@@ -423,29 +423,26 @@ class Hetu {
 
       interpreter.define(
         'kHetuVersion',
-        HTVariable(
+        HTValueBinding(
           id: 'kHetuVersion',
-          interpreter: interpreter,
-          closure: interpreter.globalNamespace,
           value: kHetuVersion.toString(),
+          isMutable: false,
         ),
       );
       interpreter.define(
         lexicon.kThis,
-        HTVariable(
+        HTValueBinding(
           id: lexicon.kThis,
-          interpreter: interpreter,
-          closure: interpreter.globalNamespace,
           value: interpreter.globalNamespace,
+          isMutable: false,
         ),
       );
       interpreter.define(
         lexicon.idGlobal,
-        HTVariable(
+        HTValueBinding(
           id: lexicon.idGlobal,
-          interpreter: interpreter,
-          closure: interpreter.globalNamespace,
           value: interpreter.globalNamespace,
+          isMutable: false,
         ),
       );
 

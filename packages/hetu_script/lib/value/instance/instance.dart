@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:hetu_script/declarations.dart';
 import 'package:quiver/core.dart';
 
 import '../../error/error.dart';
@@ -59,7 +60,12 @@ class HTInstance with HTObject, InterpreterRef {
     while (curKlass != null && curNamespace != null) {
       // 继承类成员，所有超类的成员都会分别保存
       for (final key in curKlass.namespace.symbols.keys) {
-        final decl = curKlass.namespace.symbols[key]!;
+        final decl = curKlass.namespace.symbols[key];
+        if (decl == null) continue;
+        if (decl is! HTDeclaration) {
+          curNamespace.define(key, decl);
+          continue;
+        }
         if (decl.isStatic) {
           continue;
         }
@@ -119,11 +125,15 @@ class HTInstance with HTObject, InterpreterRef {
     HTInstanceNamespace? curNamespace = namespace;
     while (curNamespace != null) {
       for (final id in curNamespace.symbols.keys) {
-        final decl = curNamespace.symbols[id]!;
+        final decl = curNamespace.symbols[id];
         if (jsonObject.containsKey(id)) {
           continue;
         }
-        jsonObject[id] = decl.value;
+        if (decl is HTDeclaration) {
+          jsonObject[id] = decl.value;
+        } else {
+          jsonObject[id] = decl;
+        }
       }
       curNamespace = curNamespace.next;
     }
@@ -161,60 +171,80 @@ class HTInstance with HTObject, InterpreterRef {
     if (cast == null) {
       for (final space in _namespaces.values) {
         if (space.symbols.containsKey(id)) {
-          final decl = space.symbols[id]!;
-          if (decl.isPrivate &&
-              from != null &&
-              !from.startsWith(namespace.fullName)) {
-            throw HTError.privateMember(id);
+          final decl = space.symbols[id];
+          if (decl == null) return null;
+          if (decl is HTDeclaration) {
+            if (decl.isPrivate &&
+                from != null &&
+                !from.startsWith(namespace.fullName)) {
+              throw HTError.privateMember(id);
+            }
+            decl.resolve();
+            if (decl is HTFunction && decl.category != FunctionCategory.literal) {
+              decl.namespace = namespace;
+              decl.instance = this;
+            }
+            return decl.value;
+          } else {
+            if (interpreter.lexicon.isPrivate(id) &&
+                from != null &&
+                !from.startsWith(namespace.fullName)) {
+              throw HTError.privateMember(id);
+            }
+            return decl;
           }
-          decl.resolve();
-          if (decl is HTFunction && decl.category != FunctionCategory.literal) {
-            decl.namespace = namespace;
-            decl.instance = this;
-          }
-          return decl.value;
         } else if (space.symbols.containsKey(getter)) {
-          final decl = space.symbols[getter]!;
+          final decl = space.symbols[getter];
+          if (decl == null || decl is! HTFunction) return null;
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
             throw HTError.privateMember(id);
           }
           decl.resolve();
-          final func = decl as HTFunction;
-          func.namespace = namespace;
-          func.instance = this;
-          return func.call();
+          decl.namespace = namespace;
+          decl.instance = this;
+          return decl.call();
         }
       }
     } else {
       final space = _namespaces[cast]!;
       if (space.symbols.containsKey(id)) {
-        var decl = space.symbols[id]!;
-        if (decl.isPrivate &&
-            from != null &&
-            !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(id);
+        var decl = space.symbols[id];
+        if (decl == null) return null;
+        if (decl is HTDeclaration) {
+          if (decl.isPrivate &&
+              from != null &&
+              !from.startsWith(namespace.fullName)) {
+            throw HTError.privateMember(id);
+          }
+          if (decl is HTFunction && decl.category != FunctionCategory.literal) {
+            decl = decl.clone();
+            decl.namespace = _namespaces[classId];
+            decl.instance = this;
+          }
+          decl.resolve();
+          return decl.value;
+        } else {
+          if (interpreter.lexicon.isPrivate(id) &&
+              from != null &&
+              !from.startsWith(namespace.fullName)) {
+            throw HTError.privateMember(id);
+          }
+          return decl;
         }
-        if (decl is HTFunction && decl.category != FunctionCategory.literal) {
-          decl = decl.clone();
-          decl.namespace = _namespaces[classId];
-          decl.instance = this;
-        }
-        decl.resolve();
-        return decl.value;
       } else if (space.symbols.containsKey(getter)) {
-        final decl = space.symbols[getter]!;
+        final decl = space.symbols[getter];
+        if (decl == null || decl is! HTFunction) return null;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(id);
         }
         decl.resolve();
-        final func = decl as HTFunction;
-        func.namespace = _namespaces[classId];
-        func.instance = this;
-        return func.call();
+        decl.namespace = _namespaces[classId];
+        decl.instance = this;
+        return decl.call();
       }
     }
 
@@ -243,27 +273,36 @@ class HTInstance with HTObject, InterpreterRef {
     if (cast == null) {
       for (final space in _namespaces.values) {
         if (space.symbols.containsKey(id)) {
-          final decl = space.symbols[id]!;
-          if (decl.isPrivate &&
-              from != null &&
-              !from.startsWith(namespace.fullName)) {
-            throw HTError.privateMember(id);
+          final decl = space.symbols[id];
+          if (decl is HTDeclaration) {
+            if (decl.isPrivate &&
+                from != null &&
+                !from.startsWith(namespace.fullName)) {
+              throw HTError.privateMember(id);
+            }
+            decl.resolve();
+            decl.value = value;
+          } else {
+            if (interpreter.lexicon.isPrivate(id) &&
+                from != null &&
+                !from.startsWith(namespace.fullName)) {
+              throw HTError.privateMember(id);
+            }
+            space.symbols[id] = value;
           }
-          decl.resolve();
-          decl.value = value;
           return;
         } else if (space.symbols.containsKey(setter)) {
-          final decl = space.symbols[setter]!;
+          final decl = space.symbols[setter];
+          if (decl is! HTFunction) return;
           if (decl.isPrivate &&
               from != null &&
               !from.startsWith(namespace.fullName)) {
             throw HTError.privateMember(id);
           }
           decl.resolve();
-          final method = decl as HTFunction;
-          method.namespace = namespace;
-          method.instance = this;
-          method.call(positionalArgs: [value]);
+          decl.namespace = namespace;
+          decl.instance = this;
+          decl.call(positionalArgs: [value]);
           return;
         }
       }
@@ -274,27 +313,36 @@ class HTInstance with HTObject, InterpreterRef {
 
       final space = _namespaces[cast]!;
       if (space.symbols.containsKey(id)) {
-        var decl = space.symbols[id]!;
-        if (decl.isPrivate &&
-            from != null &&
-            !from.startsWith(namespace.fullName)) {
-          throw HTError.privateMember(id);
+        var decl = space.symbols[id];
+        if (decl is HTDeclaration) {
+          if (decl.isPrivate &&
+              from != null &&
+              !from.startsWith(namespace.fullName)) {
+            throw HTError.privateMember(id);
+          }
+          decl.resolve();
+          decl.value = value;
+        } else {
+          if (interpreter.lexicon.isPrivate(id) &&
+              from != null &&
+              !from.startsWith(namespace.fullName)) {
+            throw HTError.privateMember(id);
+          }
+          space.symbols[id] = value;
         }
-        decl.resolve();
-        decl.value = value;
         return;
       } else if (space.symbols.containsKey(setter)) {
-        final decl = space.symbols[setter]!;
+        final decl = space.symbols[setter];
+        if (decl is! HTFunction) return;
         if (decl.isPrivate &&
             from != null &&
             !from.startsWith(namespace.fullName)) {
           throw HTError.privateMember(id);
         }
         decl.resolve();
-        final method = decl as HTFunction;
-        method.namespace = _namespaces[cast];
-        method.instance = this;
-        method.call(positionalArgs: [value]);
+        decl.namespace = _namespaces[cast];
+        decl.instance = this;
+        decl.call(positionalArgs: [value]);
         return;
       }
     }
