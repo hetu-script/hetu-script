@@ -22,8 +22,10 @@ Standard library sources live in `lib/*.ht` and are precompiled into `packages/h
 ## Build & Test
 
 ```bash
-# Build: compile standard library + activate CLI tool
-python build.py
+# Build: compile standard library
+python buildlib.py
+# Build all: compile standard librayr + activate CLI tool
+python buildall.py
 # Or manually:
 dart run utils/compile_hetu.dart   # generates precompiled_module.dart
 dart pub global activate --source path packages/hetu_script_dev_tools

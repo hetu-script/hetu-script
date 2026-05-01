@@ -3246,7 +3246,13 @@ class HTParserHetu extends HTParser {
     } else if (expect([lexer.lexicon.singleLineIndicator], consume: true)) {
       isExpressionBody = true;
       definition = parseExpr();
-      hasEndOfStmtMark = parseEndOfStmtMark();
+      // For literal functions (expression lambdas), the end-of-stmt mark
+      // belongs to the containing statement, not the function body.
+      // Consuming it here would hide the boundary from the outer parser,
+      // causing the next line to be treated as a call on the lambda (ASI bug).
+      if (category != FunctionCategory.literal) {
+        hasEndOfStmtMark = parseEndOfStmtMark();
+      }
     } else if (expect([lexer.lexicon.assign], consume: true)) {
       final err = HTError.unsupported(
           HTLocale.current.redirectingFunctionDefinition,

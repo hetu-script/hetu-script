@@ -19,11 +19,8 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-    late a
-
-    a = 'hello'
-
-    a
+    let getValue = () => false;
+    (getValue() ? 10 : 1) + 5
 ''');
 
   if (r is Future) {

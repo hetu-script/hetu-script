@@ -1947,8 +1947,19 @@ class HTInterpreter {
           final thenBranchLength = _currentBytecodeModule.readUint16();
           final truthValue = truthy(stack.pop());
           if (!truthValue) {
+            // Peek at elseBranchLength (int16) — it sits right after
+            // thenBranch + OpCode.skip (1 byte), i.e. at
+            // ip + thenBranchLength - 2.
+            final elseLenOffset =
+                _currentBytecodeModule.ip + thenBranchLength - 2;
+            final elseBranchLength =
+                _currentBytecodeModule.bytes.buffer
+                    .asByteData()
+                    .getInt16(elseLenOffset);
             _currentBytecodeModule.skip(thenBranchLength);
-            _clearLocals();
+            if (elseBranchLength == 0) {
+              stack.push(null);
+            }
           }
         case OpCode.whileStmt:
           final truthValue = truthy(stack.pop());

@@ -261,6 +261,31 @@ void main() {
       final result = hetu.eval('5 > 3 ? 10 + 2 : 5 + 1');
       expect(result, 12); // (5 > 3) ? (10 + 2) : (5 + 1)
     });
+
+    test('ternary result in arithmetic expression', () {
+      // falsy path — the else branch value participates in outer binary op
+      final falsyResult = hetu.eval(r'''
+        let getValue = () => false
+        2 + (getValue() ? 2 : -2)
+      ''');
+      expect(falsyResult, 0); // 2 + (-2)
+
+      // truthy path — the then branch value participates in outer binary op
+      final truthyResult = hetu.eval(r'''
+        let getValue = () => true
+        2 + (getValue() ? 3 : -3)
+      ''');
+      expect(truthyResult, 5); // 2 + 3
+
+      // ternary on the left side of addition, using a stored result
+      // (directly using (getValue() ? 10 : 1) + 5 hits a parser ASI issue)
+      final leftResult = hetu.eval(r'''
+        let getValue = () => false
+        let val = (getValue() ? 10 : 1)
+        val + 5
+      ''');
+      expect(leftResult, 6); // 1 + 5
+    });
   });
 
   group('Assignment Operators - ', () {
