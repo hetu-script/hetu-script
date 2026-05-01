@@ -120,16 +120,24 @@ class HTNamespace extends HTDeclarationNamespace<dynamic> {
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(id);
       }
-      decl.resolve();
-      decl.value = value;
+      if (decl is HTDeclaration) {
+        decl.resolve();
+        decl.value = value;
+      } else {
+        symbols[id] = value;
+      }
       return true;
     } else if (importedSymbols.containsKey(id)) {
       final decl = importedSymbols[id]!;
       if (decl.isPrivate && from != null && !from.startsWith(fullName)) {
         throw HTError.privateMember(id);
       }
-      decl.resolve();
-      decl.value = value;
+      if (decl is HTDeclaration) {
+        decl.resolve();
+        decl.value = value;
+      } else {
+        importedSymbols[id] = value;
+      }
       return true;
     } else if (isRecursive && (closure != null)) {
       return closure!.memberSet(id, value,

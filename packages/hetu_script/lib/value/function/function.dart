@@ -1,28 +1,21 @@
-import 'package:hetu_script/declaration/function/abstract_parameter.dart';
-
 import '../../external/external_function.dart';
 import '../../error/error.dart';
-// import '../../source/source.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
-// import '../../type/type.dart';
 import '../../value/instance/instance_namespace.dart';
 import '../../value/class/class.dart';
 import '../../value/instance/instance.dart';
 import '../../value/struct/struct.dart';
 import '../../value/namespace/namespace.dart';
 import '../../declaration/function/function_declaration.dart';
-// import '../../declaration/generic/generic_type_parameter.dart';
 import '../../type/function.dart';
 import '../object.dart';
-// import 'parameter.dart';
-import '../variable/variable.dart';
 import '../../common/function_category.dart';
 import '../../common/internal_identifier.dart';
+import '../value_binding.dart';
 
 class RedirectingConstructor {
   /// id of super class's constructor
-  // final String callee;
   final String name;
 
   final String? key;
@@ -43,9 +36,6 @@ class RedirectingConstructor {
 class HTFunction extends HTFunctionDeclaration
     with HTObject, InterpreterRef, GotoInfo {
   HTClass? klass;
-
-  // @override
-  // final Map<String, HTParameter> paramDecls;
 
   final RedirectingConstructor? redirectingConstructor;
 
@@ -106,59 +96,6 @@ class HTFunction extends HTFunctionDeclaration
     this.line = line;
     this.column = column;
   }
-
-  /// Print function signature to String with function [id] and parameter [id].
-  // @override
-  // String toString() {
-  //   var result = StringBuffer();
-  //   result.write(InternalIdentifier.function);
-  //   if (id != null) {
-  //     result.write(' $id');
-  //   }
-  //   if (declType.typeArgs.isNotEmpty) {
-  //     result.write(interpreter.lexicon.typeParameterStart);
-  //     for (var i = 0; i < declType.typeArgs.length; ++i) {
-  //       result.write(declType.typeArgs[i]);
-  //       if (i < declType.typeArgs.length - 1) {
-  //         result.write('${interpreter.lexicon.comma} ');
-  //       }
-  //     }
-  //     result.write(interpreter.lexicon.typeParameterEnd);
-  //   }
-  //   result.write(interpreter.lexicon.groupExprStart);
-  //   var i = 0;
-  //   var optionalStarted = false;
-  //   var namedStarted = false;
-  //   for (final param in paramDecls.values) {
-  //     if (param.isVariadic) {
-  //       result.write(interpreter.lexicon.variadicArgs + ' ');
-  //     }
-  //     if (param.isOptional && !optionalStarted) {
-  //       optionalStarted = true;
-  //       result.write(interpreter.lexicon.optionalPositionalParameterStart);
-  //     } else if (param.isNamed && !namedStarted) {
-  //       namedStarted = true;
-  //       result.write(interpreter.lexicon.codeBlockStart);
-  //     }
-  //     result.write(param.id);
-  //     if (param.declType != null) {
-  //       result.write('${interpreter.lexicon.typeIndicator} ${param.declType}');
-  //     }
-  //     if (i < paramDecls.length - 1) {
-  //       result.write('${interpreter.lexicon.comma} ');
-  //     }
-  //     ++i;
-  //   }
-  //   if (optionalStarted) {
-  //     result.write(interpreter.lexicon.optionalPositionalParameterEnd);
-  //   } else if (namedStarted) {
-  //     result.write(interpreter.lexicon.codeBlockEnd);
-  //   }
-  //   result.write(
-  //       '${interpreter.lexicon.groupExprEnd} ${interpreter.lexicon.functionReturnTypeIndicator} ' +
-  //           returnType.toString());
-  //   return result.toString();
-  // }
 
   @override
   dynamic get value {
@@ -450,67 +387,68 @@ class HTFunction extends HTFunctionDeclaration
           if (namespace is HTInstanceNamespace) {
             callClosure.define(
               interpreter.lexicon.kSuper,
-              HTVariable(
+              HTValueBinding(
                 id: interpreter.lexicon.kSuper,
-                interpreter: interpreter,
                 value: (namespace as HTInstanceNamespace).next,
-                closure: callClosure,
               ),
             );
           }
           callClosure.define(
             interpreter.lexicon.kThis,
-            HTVariable(
+            HTValueBinding(
               id: interpreter.lexicon.kThis,
-              interpreter: interpreter,
-              closure: callClosure,
               value: instance,
             ),
           );
         } else if (category != FunctionCategory.literal) {
           callClosure.define(
             interpreter.lexicon.kThis,
-            HTVariable(
+            HTValueBinding(
               id: interpreter.lexicon.kThis,
-              interpreter: interpreter,
-              closure: callClosure,
               value: callClosure,
             ),
           );
         }
 
         var variadicStart = -1;
-        HTAbstractParameter? variadicParam;
+        String? variadicParamId;
         for (var i = 0; i < paramDecls.length; ++i) {
-          var paramDecl = paramDecls.values.elementAt(i).clone();
+          final paramDecl = paramDecls.values.elementAt(i);
           final paramId = paramDecls.keys.elementAt(i);
           // omit params with '_' as id
           if (!paramDecl.isNamed &&
               paramId == interpreter.lexicon.omittedMark) {
             continue;
           }
-          callClosure.define(paramId, paramDecl);
 
           if (paramDecl.isVariadic) {
             variadicStart = i;
-            variadicParam = paramDecl;
-          } else {
-            if (i < maxArity) {
-              if (i < positionalArgs.length) {
-                paramDecl.value = positionalArgs[i];
-              } else {
-                paramDecl.resolve();
-              }
+            variadicParamId = paramId;
+            continue;
+          }
+
+          dynamic paramValue;
+          if (i < maxArity) {
+            if (i < positionalArgs.length) {
+              paramValue = positionalArgs[i];
             } else {
-              if (namedArgs.containsKey(paramDecl.id)) {
-                paramDecl.value = namedArgs[paramDecl.id];
-              } else {
-                paramDecl.resolve();
-              }
+              paramDecl.resolve();
+              paramValue = paramDecl.value;
             }
-            if (paramDecl.isInitialization) {
-              result.memberSet(paramDecl.id!, paramDecl.value);
+          } else {
+            if (namedArgs.containsKey(paramDecl.id)) {
+              paramValue = namedArgs[paramDecl.id];
+            } else {
+              paramDecl.resolve();
+              paramValue = paramDecl.value;
             }
+          }
+
+          callClosure.define(
+              paramId, HTValueBinding(id: paramDecl.id, value: paramValue));
+
+          if (paramDecl.isInitialization) {
+            result.memberSet(paramDecl.id!, paramValue);
           }
         }
 
@@ -519,7 +457,8 @@ class HTFunction extends HTFunctionDeclaration
           for (var i = variadicStart; i < positionalArgs.length; ++i) {
             variadicArg.add(positionalArgs[i]);
           }
-          variadicParam!.value = variadicArg;
+          callClosure.define(variadicParamId!,
+              HTValueBinding(id: variadicParamId, value: variadicArg));
         }
 
         if (category == FunctionCategory.constructor) {
@@ -706,31 +645,24 @@ class HTFunction extends HTFunctionDeclaration
           finalNamedArgs = {};
 
           var variadicStart = -1;
-          // HTBytecodeVariable? variadicParam;
           var i = 0;
-          for (var param in paramDecls.values) {
-            var decl = param.clone();
-
-            if (decl.isVariadic) {
+          for (final param in paramDecls.values) {
+            if (param.isVariadic) {
               variadicStart = i;
-              // variadicParam = decl;
-              // break;
             } else {
               if (i < maxArity) {
                 if (i < positionalArgs.length) {
-                  decl.value = positionalArgs[i];
-                  finalPosArgs.add(decl.value);
+                  finalPosArgs.add(positionalArgs[i]);
                 } else {
-                  decl.initialize();
-                  finalPosArgs.add(decl.value);
+                  param.resolve();
+                  finalPosArgs.add(param.value);
                 }
               } else {
-                if (namedArgs.containsKey(decl.id)) {
-                  decl.value = namedArgs[decl.id];
-                  finalNamedArgs[decl.id!] = decl.value;
+                if (namedArgs.containsKey(param.id)) {
+                  finalNamedArgs[param.id!] = namedArgs[param.id];
                 } else {
-                  decl.initialize();
-                  finalNamedArgs[decl.id!] = decl.value;
+                  param.resolve();
+                  finalNamedArgs[param.id!] = param.value;
                 }
               }
             }
@@ -740,10 +672,9 @@ class HTFunction extends HTFunctionDeclaration
 
           if (variadicStart >= 0) {
             final variadicArg = <dynamic>[];
-            for (var i = variadicStart; i < positionalArgs.length; ++i) {
-              variadicArg.add(positionalArgs[i]);
+            for (var j = variadicStart; j < positionalArgs.length; ++j) {
+              variadicArg.add(positionalArgs[j]);
             }
-
             finalPosArgs.addAll(variadicArg);
           }
         } else {
@@ -761,8 +692,8 @@ class HTFunction extends HTFunctionDeclaration
                 externalFunc!,
                 finalPosArgs,
                 finalNamedArgs,
-                isInstanceCall: !isStatic &&
-                    category != FunctionCategory.constructor,
+                isInstanceCall:
+                    !isStatic && category != FunctionCategory.constructor,
                 instance: instance,
               );
             } else {
@@ -779,8 +710,8 @@ class HTFunction extends HTFunctionDeclaration
               externalFunc!,
               finalPosArgs,
               finalNamedArgs,
-              isInstanceCall: !isStatic &&
-                  category != FunctionCategory.constructor,
+              isInstanceCall:
+                  !isStatic && category != FunctionCategory.constructor,
               instance: instance,
             );
           }
@@ -795,8 +726,8 @@ class HTFunction extends HTFunctionDeclaration
             externalFunc!,
             finalPosArgs,
             finalNamedArgs,
-            isInstanceCall: !isStatic &&
-                category != FunctionCategory.constructor,
+            isInstanceCall:
+                !isStatic && category != FunctionCategory.constructor,
             instance: instance,
           );
         }
