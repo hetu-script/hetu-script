@@ -92,7 +92,7 @@ class HTLexiconHetu extends HTLexicon {
       };
 
   @override
-  String get preferredPrivatePrefix => '#';
+  String get preferredPrivatePrefix => '_';
 
   @override
   String get internalPrefix => r'__';

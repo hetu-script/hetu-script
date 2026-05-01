@@ -21,8 +21,6 @@ class HTTypeAliasDeclaration extends HTDeclaration
   HTType get declType => _resolvedDeclType ?? _declType;
 
   bool _isResolved = false;
-  @override
-  bool get isResolved => _isResolved;
 
   HTTypeAliasDeclaration({
     required String id,

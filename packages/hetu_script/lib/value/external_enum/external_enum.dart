@@ -11,8 +11,6 @@ class HTExternalEnum extends HTDeclaration with HTObject, InterpreterRef {
   bool get isNested => classId != null;
 
   bool _isResolved = false;
-  @override
-  bool get isResolved => _isResolved;
 
   HTExternalEnum(
     HTInterpreter interpreter, {

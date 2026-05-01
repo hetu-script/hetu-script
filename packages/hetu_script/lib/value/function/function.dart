@@ -57,6 +57,8 @@ class HTFunction extends HTFunctionDeclaration
   HTNamespace? namespace;
   dynamic instance;
 
+  bool _isResolved = false;
+
   /// Create a standard [HTFunction].
   ///
   /// A [TypedFunctionDeclaration] has to be defined in a [HTNamespace] of an [Interpreter]
@@ -202,7 +204,8 @@ class HTFunction extends HTFunctionDeclaration
 
   @override
   void resolve({bool resolveType = true}) {
-    if (isResolved) return;
+    if (_isResolved) return;
+
     super.resolve();
     if (closure != null && classId != null && klass == null && !isField) {
       klass = closure!.closure!.memberGet(classId!, isRecursive: true);
@@ -227,6 +230,8 @@ class HTFunction extends HTFunctionDeclaration
         resolveExternal();
       }
     }
+
+    _isResolved = true;
   }
 
   @override
@@ -484,13 +489,13 @@ class HTFunction extends HTFunctionDeclaration
               if (i < positionalArgs.length) {
                 paramDecl.value = positionalArgs[i];
               } else {
-                paramDecl.initialize();
+                paramDecl.resolve();
               }
             } else {
               if (namedArgs.containsKey(paramDecl.id)) {
                 paramDecl.value = namedArgs[paramDecl.id];
               } else {
-                paramDecl.initialize();
+                paramDecl.resolve();
               }
             }
             if (paramDecl.isInitialization) {
@@ -598,10 +603,10 @@ class HTFunction extends HTFunctionDeclaration
               );
               final isSpread = interpreter.currentBytecodeModule.readBool();
               if (!isSpread) {
-                final arg = interpreter.execute(retractStackFrame: false);
+                final arg = interpreter.execute(propagateValue: false);
                 referCtorPosArgs.add(arg);
               } else {
-                final List arg = interpreter.execute(retractStackFrame: false);
+                final List arg = interpreter.execute(propagateValue: false);
                 referCtorPosArgs.addAll(arg);
               }
               interpreter.setContext(savedContext);
@@ -648,7 +653,8 @@ class HTFunction extends HTFunctionDeclaration
               line: line,
               column: column,
             ),
-            retractStackFrame: false, // Result returned directly, don't push to parent
+            propagateValue:
+                false, // Result returned directly, don't push to parent
           );
         } else {
           interpreter.execute(

@@ -19,9 +19,8 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
 
   final int? staticDefinitionIp;
 
-  bool _isResolved = false;
-  @override
-  bool get isResolved => _isResolved;
+  bool _isInitialized = false;
+  bool _isInitializing = false;
 
   HTNamedStruct({
     required String id,
@@ -49,7 +48,7 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
     Map<String, dynamic> namedArgs = const {},
     // List<HTType> typeArgs = const [],
   }) {
-    if (!isResolved) {
+    if (!_isInitialized) {
       throw HTError.unresolvedNamedStruct(id!);
     }
     if (_self!.containsKey(InternalIdentifier.defaultConstructor)) {
@@ -65,56 +64,64 @@ class HTNamedStruct extends HTDeclaration with InterpreterRef, GotoInfo {
     }
   }
 
-  @override
-  void resolve() {
-    if (_isResolved) return;
-    HTStruct static = interpreter.execute(
-      context: HTContext(
-        file: file,
-        module: module,
-        ip: staticDefinitionIp!,
-        namespace: closure != null ? closure as HTNamespace : null,
-      ),
-    );
-    if (closure != null) {
-      if (prototypeId != null) {
-        static.prototype = closure!.memberGet(prototypeId!,
-            from: closure!.fullName, isRecursive: true);
-      } else if (id != interpreter.lexicon.idGlobalPrototype) {
-        static.prototype = interpreter.globalNamespace
-            .memberGet(interpreter.lexicon.idGlobalPrototype);
-      }
-    }
-    _self = interpreter.execute(
-      context: HTContext(
-        file: file,
-        module: module,
-        ip: ip!,
-        namespace: closure != null ? closure as HTNamespace : null,
-      ),
-    );
-    _self!.prototype = static;
-    _self!.declaration = this;
+  void initialize() {
+    if (_isInitialized) return;
 
-    if (closure != null) {
-      if (mixinIds.isNotEmpty) {
-        for (final mixinId in mixinIds) {
-          final mixinObj = closure!
-              .memberGet(mixinId, from: closure!.fullName, isRecursive: true);
-          static.assign(mixinObj);
+    if (!_isInitializing) {
+      _isInitializing = true;
+
+      HTStruct static = interpreter.execute(
+        propagateValue: false,
+        context: HTContext(
+          file: file,
+          module: module,
+          ip: staticDefinitionIp!,
+          namespace: closure != null ? closure as HTNamespace : null,
+        ),
+      );
+      if (closure != null) {
+        if (prototypeId != null) {
+          static.prototype = closure!.memberGet(prototypeId!,
+              from: closure!.fullName, isRecursive: true);
+        } else if (id != interpreter.lexicon.idGlobalPrototype) {
+          static.prototype = interpreter.globalNamespace
+              .memberGet(interpreter.lexicon.idGlobalPrototype);
         }
       }
+      _self = interpreter.execute(
+        propagateValue: false,
+        context: HTContext(
+          file: file,
+          module: module,
+          ip: ip!,
+          namespace: closure != null ? closure as HTNamespace : null,
+        ),
+      );
+      _self!.prototype = static;
+      _self!.declaration = this;
+
+      if (closure != null) {
+        if (mixinIds.isNotEmpty) {
+          for (final mixinId in mixinIds) {
+            final mixinObj = closure!
+                .memberGet(mixinId, from: closure!.fullName, isRecursive: true);
+            static.assign(mixinObj);
+          }
+        }
+      }
+      _isInitialized = true;
+      _isInitializing = false;
+    } else {
+      throw HTError.circleInit(id!);
     }
-    _isResolved = true;
   }
 
   @override
   HTStruct get value {
-    if (isResolved) {
-      return _self!;
-    } else {
-      throw HTError.unresolvedNamedStruct(id!);
+    if (!_isInitialized) {
+      initialize();
     }
+    return _self!;
   }
 
   @override

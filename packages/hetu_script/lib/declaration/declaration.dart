@@ -53,8 +53,6 @@ abstract class HTDeclaration {
 
   final bool isField;
 
-  bool get isResolved => true;
-
   final String? documentation;
 
   const HTDeclaration({

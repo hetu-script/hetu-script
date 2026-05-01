@@ -63,8 +63,6 @@ class HTFunctionDeclaration extends HTDeclaration
   final int maxArity;
 
   bool _isResolved = false;
-  @override
-  bool get isResolved => _isResolved;
 
   HTFunctionDeclaration({
     required this.internalName,

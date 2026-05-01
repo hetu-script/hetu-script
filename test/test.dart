@@ -18,15 +18,11 @@ Future<void> main() async {
   );
   hetu.init();
 
-  hetu.interpreter.bindExternalFunction('test', () async {
-    return Future.value([1, 2, 3]);
-  });
-
   var r = hetu.eval(r'''
-    const arr = ['1','2','3'];
-    let a = ''
+    late a
 
-    a += Random().nextIterable(arr)
+    a = 'hello'
+
     a
 ''');
 

@@ -14,9 +14,9 @@
 
 ```dart
 enum Country {
-  kHungary,
-  kJapan,
-  kIndia,
+  hungary,
+  japan,
+  india,
 }
 ```
 
@@ -24,15 +24,15 @@ enum Country {
 
 ```dart
 class Country {
-  final _name;
+  late _name;
   constructor _(name) {
     _name = name;
   }
-  function toString => 'Country.${_name}'
-  static final kHungary = Country._('kHungary')
-  static final kJapan = Country._('kJapan')
-  static final kIndia = Country._('kIndia')
-  static final values = [kHungary, kJapan, kIndia]
+  function toString => _name
+  static final hungary = Country._('hungary')
+  static final japan = Country._('japan')
+  static final india = Country._('india')
+  static final values = [hungary, japan, india]
 }
 ```
 

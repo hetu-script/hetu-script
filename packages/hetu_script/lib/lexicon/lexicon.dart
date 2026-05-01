@@ -843,8 +843,7 @@ abstract class HTLexicon {
     } else if (object is HTClass) {
       output.write('$kClass ${object.id}');
     } else if (object is HTInstance) {
-      output
-          .write('${InternalIdentifier.instanceOf} $kClass ${object.classId}');
+      output.write(object.toString());
     } else if (object is HTFunction) {
       output.write('$kFunction ${object.internalName}');
     } else if (object is HTType) {

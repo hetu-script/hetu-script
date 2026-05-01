@@ -168,7 +168,7 @@ void main() {
       ''');
       expect(
         result,
-        'Race.african',
+        'african',
       );
     });
   });

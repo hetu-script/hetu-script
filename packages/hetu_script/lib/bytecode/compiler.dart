@@ -1936,13 +1936,14 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(1); // bool: is enum
 
       final valueId = '${_lexicon.preferredPrivatePrefix}${_lexicon.idName}';
-      final value = VarDecl(IdentifierExpr(valueId), classId: stmt.id.id);
+      final value = VarDecl(IdentifierExpr(valueId),
+          classId: stmt.id.id, lateFinalize: true);
       final valueBytes = visitVarDecl(value);
       bytesBuilder.add(valueBytes);
 
       final ctorParam = ParamDecl(IdentifierExpr(_lexicon.idName));
-      final ctorDef = AssignExpr(IdentifierExpr(valueId), _lexicon.assign,
-          IdentifierExpr(_lexicon.idName));
+      final ctorDef = AssignExpr(IdentifierExpr(valueId, isLocal: false),
+          _lexicon.assign, IdentifierExpr(_lexicon.idName));
       final ctorId =
           '${InternalIdentifier.namedConstructorPrefix}${_lexicon.preferredPrivatePrefix}';
       final constructor = FuncDecl(ctorId,
@@ -1956,17 +1957,17 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final ctorBytes = visitFuncDecl(constructor);
       bytesBuilder.add(ctorBytes);
 
-      final toStringDef = ASTStringInterpolation(
-          '${stmt.id.id}${_lexicon.memberGet}${_lexicon.stringInterpolationStart}0${_lexicon.stringInterpolationEnd}',
-          _lexicon.stringStart1,
-          _lexicon.stringEnd1,
-          [IdentifierExpr(valueId)]);
+      // final toStringDef = ASTStringInterpolation(
+      //     '${stmt.id.id}${_lexicon.memberGet}${_lexicon.stringInterpolationStart}0${_lexicon.stringInterpolationEnd}',
+      //     _lexicon.stringStart1,
+      //     _lexicon.stringEnd1,
+      //     [IdentifierExpr(valueId)]);
       final toStringFunc = FuncDecl(_lexicon.idToString,
           id: IdentifierExpr(_lexicon.idToString),
           classId: stmt.id.id,
           hasParamDecls: true,
           paramDecls: [],
-          definition: toStringDef);
+          definition: IdentifierExpr(valueId));
       final toStringBytes = visitFuncDecl(toStringFunc);
       bytesBuilder.add(toStringBytes);
 

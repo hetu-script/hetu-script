@@ -36,8 +36,6 @@ class HTClassDeclaration extends HTDeclaration
   bool get isNested => classId != null;
 
   bool _isResolved = false;
-  @override
-  bool get isResolved => _isResolved;
 
   HTClassDeclaration({
     super.id,

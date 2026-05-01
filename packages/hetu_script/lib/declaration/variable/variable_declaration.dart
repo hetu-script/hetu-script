@@ -15,8 +15,6 @@ class HTVariableDeclaration extends HTDeclaration {
   HTType? get declType => _resolvedDeclType ?? _declType;
 
   bool _isResolved = false;
-  @override
-  bool get isResolved => _isResolved;
 
   final bool lateFinalize;
 

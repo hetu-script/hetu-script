@@ -126,13 +126,6 @@ class HTContext {
   final int? line;
   final int? column;
 
-  final List<HTStackFrame>? stackFrames;
-
-  final bool? scriptMode;
-  final bool? globallyImport;
-  final Version? compilerVersion;
-  final List<String>? stackTraceList;
-
   HTContext({
     this.file,
     this.module,
@@ -140,11 +133,6 @@ class HTContext {
     this.ip,
     this.line,
     this.column,
-    this.stackFrames,
-    this.scriptMode,
-    this.globallyImport,
-    this.compilerVersion,
-    this.stackTraceList,
   });
 }
 
@@ -1345,40 +1333,31 @@ class HTInterpreter {
             importDecl.alias!, aliasNamespace, importDecl.fromPath);
       }
     }
-
-    // Eagerly initialize imported variables that use lazy initialization.
-    // This prevents `initialize()` from being triggered later during
-    // expression evaluation, which would recursively call interpreter.execute()
-    // and corrupt the operand stack.
-    _warmUpImportedNamespace(importedNamespace);
   }
 
-  /// Trigger eager initialization for all [HTVariable]s within [nsp] that
+  /// Trigger eager initialization for all [HTVariable]s and [HTNamedStruct]s within [nsp] that
   /// have lazy-initialization bytecode (ip != null) but haven't been
   /// initialized yet (_value == null).
   ///
   /// This must be called while the interpreter is not evaluating any
   /// expression — typically during module loading when the stack is clean.
-  void _warmUpImportedNamespace(HTNamespace nsp) {
-    for (final entry in nsp.symbols.entries) {
-      final decl = entry.value;
-      if (decl is HTVariable) {
-        // Accessing .value triggers initialize() if _value == null && ip != null
-        decl.value;
-      } else if (decl is HTNamedStruct) {
-        // Resolving a named struct executes its static & instance field
-        // initializers via interpreter.execute(). Must be done here during
-        // module loading (clean stack) to avoid corrupting expression eval.
-        decl.resolve();
+  void warmUpNamespaces() {
+    for (final nsp in _currentBytecodeModule.namespaces.values) {
+      for (final entry in nsp.symbols.entries) {
+        final decl = entry.value;
+        if (decl is HTVariable) {
+          decl.initialize();
+        } else if (decl is HTNamedStruct) {
+          decl.initialize();
+        }
       }
-    }
-    // Also warm up re-exported symbols from nested imports
-    for (final entry in nsp.importedSymbols.entries) {
-      final decl = entry.value;
-      if (decl is HTVariable) {
-        decl.value;
-      } else if (decl is HTNamedStruct) {
-        decl.resolve();
+      for (final entry in nsp.importedSymbols.entries) {
+        final decl = entry.value;
+        if (decl is HTVariable) {
+          decl.initialize();
+        } else if (decl is HTNamedStruct) {
+          decl.initialize();
+        }
       }
     }
   }
@@ -1491,11 +1470,6 @@ class HTInterpreter {
       ip: currentBytecodeModule.ip,
       line: currentLine,
       column: currentColumn,
-      // stackFrames: _stackFrames,
-      scriptMode: scriptMode,
-      globallyImport: globallyImport,
-      compilerVersion: compilerVersion,
-      stackTraceList: stackTraceList,
     );
   }
 
@@ -1573,17 +1547,17 @@ class HTInterpreter {
   /// This function will return current expression value
   /// when encountered [OpCode.endOfExec] or [OpCode.endOfFunc].
   ///
-  /// Changing library will create new stack frame for new register values.
+  /// Changing library will create new stackframe.
   /// Such as currrent value, current symbol, current line & column, etc.
   dynamic execute({
     bool createStackFrame = true,
-    bool retractStackFrame = true,
+    bool propagateValue = true,
     HTContext? context,
     HTStackFrame? stackFrame,
     dynamic localValue,
-    // void Function()? endOfFileHandler,
-    // dynamic Function()? endOfModuleHandler,
   }) {
+    createStackFrame = createStackFrame || context != null;
+
     HTContext? savedContext;
     if (context != null) {
       savedContext = getContext();
@@ -1591,28 +1565,21 @@ class HTInterpreter {
     }
     if (createStackFrame) {
       _createStackFrame();
-    }
-    if (stackFrame != null) {
+    } else if (stackFrame != null) {
       _stackFrames.add(stackFrame);
     }
     if (localValue != null) stack.push(localValue);
-    final result = _execute(
-        // endOfFileHandler, endOfModuleHandler
-        );
+    final result = _execute();
     if (context != null) {
       setContext(savedContext);
     }
     // Always remove frames we created (prevent leaks), but only propagate when requested.
-    if (createStackFrame) {
-      final propagated = retractStackFrame;
-      if (propagated) {
+    if (createStackFrame || stackFrame != null) {
+      if (propagateValue) {
         _retractStackFrameAndPropagate();
       } else {
         _retractStackFrame();
       }
-    }
-    if (stackFrame != null) {
-      _retractStackFrame();
     }
     return result;
   }
@@ -1756,7 +1723,6 @@ class HTInterpreter {
             _currentBytecodeModule.namespaces[currentNamespace.id!] =
                 currentNamespace;
           }
-        // endOfFileHandler?.call();
         case OpCode.endOfModule:
           if (!scriptMode) {
             /// deal with import statement within every namespace of this module.
@@ -1766,14 +1732,6 @@ class HTInterpreter {
               }
             }
           }
-          // resolve each declaration after we get all declarations
-          // if (!_isModuleEntryScript) {
-          //   for (final namespace in _currentBytecodeModule.namespaces.values) {
-          //     for (final decl in namespace.declarations.values) {
-          //       decl.resolve();
-          //     }
-          //   }
-          // }
           if (config.printPerformanceStatistics) {
             var message =
                 'hetu: ${DateTime.now().millisecondsSinceEpoch - currentBytecodeModule.timestamp}ms\tto load module\t${_currentBytecodeModule.id}';
@@ -2444,7 +2402,7 @@ class HTInterpreter {
     var possibleFutureValue = await futureExecution.future;
     var result = execute(
       createStackFrame: false,
-      retractStackFrame: false,
+      propagateValue: false,
       context: futureExecution.context,
       stackFrame: futureExecution.stack,
       localValue: possibleFutureValue,
@@ -2748,8 +2706,7 @@ class HTInterpreter {
       // If no case branch matches condition and else branch is provided,
       // will jump to else branch.
       if (caseType == HTSwitchCaseTypeCode.equals) {
-        final value =
-            execute(createStackFrame: false, retractStackFrame: false);
+        final value = execute(createStackFrame: false, propagateValue: false);
         stack.pop(); // consume value from operand stack
         if (hasCondition) {
           final matched = (condition is HTType && value is HTType)
@@ -2767,8 +2724,7 @@ class HTInterpreter {
         final count = _currentBytecodeModule.read();
         final values = [];
         for (var i = 0; i < count; ++i) {
-          values
-              .add(execute(createStackFrame: false, retractStackFrame: false));
+          values.add(execute(createStackFrame: false, propagateValue: false));
           stack.pop(); // consume each value from operand stack
         }
         final matched = (condition is HTType)
@@ -2782,7 +2738,7 @@ class HTInterpreter {
       } else if (caseType == HTSwitchCaseTypeCode.elementIn) {
         assert(hasCondition);
         final Iterable value =
-            execute(createStackFrame: false, retractStackFrame: false);
+            execute(createStackFrame: false, propagateValue: false);
         stack.pop(); // consume value from operand stack
         final matched = (condition is HTType)
             ? value.any((v) => v is HTType && condition.isA(v))

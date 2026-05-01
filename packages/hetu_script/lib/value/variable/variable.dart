@@ -62,7 +62,10 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
     this.column = column;
 
     if (value != null) {
-      this.value = value;
+      _value = value;
+      _isInitialized = true;
+    } else {
+      _isInitialized = (lateFinalize || ip != null) ? false : true;
     }
   }
 
@@ -72,6 +75,7 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
       if (!_isInitializing) {
         _isInitializing = true;
         final initVal = interpreter.execute(
+          propagateValue: false,
           context: HTContext(
             file: file,
             module: module,
@@ -81,14 +85,14 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
             column: column,
           ),
         );
-        value = initVal;
+        _value = initVal;
         _isInitialized = true;
         _isInitializing = false;
       } else {
         throw HTError.circleInit(id!);
       }
     } else {
-      value = null; // assign it even if it's null, for type check
+      _value = null;
     }
   }
 
@@ -120,18 +124,19 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
 
   @override
   dynamic get value {
-    if (lateFinalize && !_isInitialized) {
-      throw HTError.uninitialized(id!);
-    }
-    if (!isExternal) {
-      if (_value == null && (ip != null)) {
-        initialize();
+    if (isExternal) {
+      final externalClass = interpreter.fetchExternalClass(classId!);
+      final externalValue = externalClass.memberGet(id!);
+      return externalValue;
+    } else {
+      if (!_isInitialized) {
+        if (ip != null) {
+          initialize();
+        } else {
+          throw HTError.uninitialized(id!);
+        }
       }
       return _value;
-    } else {
-      final externalClass = interpreter.fetchExternalClass(classId!);
-      final value = externalClass.memberGet(id!);
-      return value;
     }
   }
 
