@@ -1,4 +1,4 @@
-import '../parser/token.dart';
+import '../lexer/token.dart';
 import '../lexicon/lexicon.dart';
 import '../lexicon/lexicon_hetu.dart';
 

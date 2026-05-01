@@ -1,7 +1,7 @@
 import 'package:pub_semver/pub_semver.dart';
 
 import '../declaration/namespace/declaration_namespace.dart';
-import '../parser/token.dart';
+import '../lexer/token.dart';
 import '../source/source.dart';
 import '../declaration/declaration.dart';
 import '../../resource/resource.dart' show HTResourceType;

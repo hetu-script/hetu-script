@@ -18,6 +18,7 @@ export 'lexicon/lexicon.dart';
 export 'lexicon/lexicon_hetu.dart';
 export 'lexer/lexer.dart';
 export 'lexer/lexer_hetu.dart';
+export 'lexer/token.dart';
 export 'parser/parser.dart';
 export 'parser/parser_hetu.dart';
 export 'bundler/bundler.dart';

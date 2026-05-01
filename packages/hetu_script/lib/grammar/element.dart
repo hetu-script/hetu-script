@@ -1,4 +1,4 @@
-import '../parser/token.dart';
+import '../lexer/token.dart';
 
 abstract class SemanticElement {
   SemanticElement();

@@ -3,7 +3,7 @@ import '../locale/locale.dart';
 
 import '../error/error.dart';
 // import '../error/error_handler.dart';
-import 'token.dart';
+import '../lexer/token.dart';
 
 /// Mixin for handling a token list.
 mixin TokenReader {
@@ -74,7 +74,7 @@ mixin TokenReader {
     do {
       current = peek(distance);
       ++distance;
-    } while (current.lexeme != type && curTok.lexeme != Token.endOfFile);
+    } while (current.lexeme != type && current.lexeme != Token.endOfFile);
     return peek(distance);
   }
 

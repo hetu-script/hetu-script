@@ -1,5 +1,3 @@
-import 'package:hetu_script/common/internal_identifier.dart';
-
 import '../value/struct/struct.dart';
 import '../types.dart';
 import '../value/class/class.dart';

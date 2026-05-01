@@ -1,6 +1,6 @@
 import 'package:characters/characters.dart';
 
-import '../parser/token.dart';
+import 'token.dart';
 import 'lexer.dart';
 
 /// Utility methods on String to check whether it's empty,
@@ -157,16 +157,16 @@ class HTLexerHetu extends HTLexer {
       return buffer2.toString();
     }
 
-    void hanldeStringLiteral(String startMark, String endMark) {
-      bool escappingCharacter = false;
+    void handleStringLiteral(String startMark, String endMark) {
+      bool escapingCharacter = false;
       List<Token> interpolations = [];
       while (iter < characters.length) {
         ++iter;
         final current = currentCharacter();
         final char2nd =
             (iter + 1 < characters.length) ? characters[iter + 1] : '';
-        final concact = current + char2nd;
-        if (concact == lexicon.stringInterpolationStart &&
+        final concat = current + char2nd;
+        if (concat == lexicon.stringInterpolationStart &&
             afterString().contains(lexicon.stringInterpolationEnd)) {
           final inner = handleStringInterpolation();
           final innerOffset = offset +
@@ -178,12 +178,12 @@ class HTLexerHetu extends HTLexer {
         } else {
           buffer.write(current);
           if (current == lexicon.escapeCharacterStart &&
-              escappingCharacter == false) {
-            escappingCharacter = true;
-          } else if (escappingCharacter) {
-            escappingCharacter = false;
-          } else if (current == startMark && !escappingCharacter) {
-            escappingCharacter = false;
+              escapingCharacter == false) {
+            escapingCharacter = true;
+          } else if (escapingCharacter) {
+            escapingCharacter = false;
+          } else if (current == startMark && !escapingCharacter) {
+            escapingCharacter = false;
             break;
           }
         }
@@ -217,19 +217,19 @@ class HTLexerHetu extends HTLexer {
 
     bool isNumber(
         String current, String char2nd, String char3rd, String char4th) {
-      final concact12 = '$current$char2nd';
-      final concact23 = '$char2nd$char3rd';
+      final concat12 = '$current$char2nd';
+      final concat23 = '$char2nd$char3rd';
       if (current == lexicon.negative) {
         if (char2nd == lexicon.decimalPoint) {
           return _digitRegExp.hasMatch(char3rd);
-        } else if (concact23 == lexicon.hexNumberStart) {
+        } else if (concat23 == lexicon.hexNumberStart) {
           return _hexDigitRegExp.hasMatch(char4th);
         } else {
           return _digitRegExp.hasMatch(char2nd);
         }
       } else if (current == lexicon.decimalPoint) {
         return _digitRegExp.hasMatch(char2nd);
-      } else if (concact12 == lexicon.hexNumberStart) {
+      } else if (concat12 == lexicon.hexNumberStart) {
         return _hexDigitRegExp.hasMatch(char3rd);
       } else {
         return _digitRegExp.hasMatch(current);
@@ -281,6 +281,7 @@ class HTLexerHetu extends HTLexer {
       // multiline line comment
       else if (current.startsWith(lexicon.multiLineCommentStart)) {
         do {
+          current = currentString();
           if (current.startsWith(lexicon.multiLineCommentEnd)) {
             for (var i = 0; i < lexicon.multiLineCommentEnd.length - 1; ++i) {
               ++iter;
@@ -315,28 +316,28 @@ class HTLexerHetu extends HTLexer {
             (iter + 2 < characters.length) ? characters[iter + 2] : '';
         final char4th =
             (iter + 3 < characters.length) ? characters[iter + 3] : '';
-        final concact12 = character + char2nd;
-        final concact123 = character + char2nd + char3rd;
-        // final concact23 = char2nd + char3rd;
+        final concat12 = character + char2nd;
+        final concat123 = character + char2nd + char3rd;
+        // final concat23 = char2nd + char3rd;
         // 3 characters punctucation token
-        if (lexicon.punctuations.contains(concact123)) {
-          for (var i = 0; i < concact123.length - 1; ++i) {
+        if (lexicon.punctuations.contains(concat123)) {
+          for (var i = 0; i < concat123.length - 1; ++i) {
             ++iter;
           }
           final token = Token(
-              lexeme: concact123, line: line, column: column, offset: offset);
-          handleLineInfo(concact123);
+              lexeme: concat123, line: line, column: column, offset: offset);
+          handleLineInfo(concat123);
           addToken(token);
           buffer.clear();
         }
         // 2 characters punctucation token
-        else if (lexicon.punctuations.contains(concact12)) {
-          for (var i = 0; i < concact12.length - 1; ++i) {
+        else if (lexicon.punctuations.contains(concat12)) {
+          for (var i = 0; i < concat12.length - 1; ++i) {
             ++iter;
           }
           final token = Token(
-              lexeme: concact12, line: line, column: column, offset: offset);
-          handleLineInfo(concact12);
+              lexeme: concat12, line: line, column: column, offset: offset);
+          handleLineInfo(concat12);
           addToken(token);
           buffer.clear();
         }
@@ -350,10 +351,10 @@ class HTLexerHetu extends HTLexer {
           }
           final char2nd =
               (iter + 1 < characters.length) ? characters[iter + 1] : '';
-          final concact = character + char2nd;
-          if (concact == lexicon.hexNumberStart) {
+          final concat = character + char2nd;
+          if (concat == lexicon.hexNumberStart) {
             isHex = true;
-            buffer.write(concact);
+            buffer.write(concat);
             ++iter;
             ++iter;
             character = currentCharacter();
@@ -403,10 +404,12 @@ class HTLexerHetu extends HTLexer {
             handleLineInfo(lexeme);
             addToken(token);
           } else {
+            buffer.write(character);
             while (hasAfterString()) {
-              character = currentCharacter();
-              if (_hexDigitRegExp.hasMatch(character)) {
-                buffer.write(character);
+              final char2nd =
+                  (iter + 1 < characters.length) ? characters[iter + 1] : '';
+              if (_hexDigitRegExp.hasMatch(char2nd)) {
+                buffer.write(char2nd);
                 ++iter;
               } else {
                 break;
@@ -430,10 +433,10 @@ class HTLexerHetu extends HTLexer {
           // string literal
           if (character == lexicon.stringStart1) {
             buffer.write(character);
-            hanldeStringLiteral(lexicon.stringStart1, lexicon.stringEnd1);
+            handleStringLiteral(lexicon.stringStart1, lexicon.stringEnd1);
           } else if (character == lexicon.stringStart2) {
             buffer.write(character);
-            hanldeStringLiteral(lexicon.stringStart2, lexicon.stringEnd2);
+            handleStringLiteral(lexicon.stringStart2, lexicon.stringEnd2);
           }
           // marked identifier
           else if (character == lexicon.identifierStart) {

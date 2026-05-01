@@ -1,7 +1,7 @@
 import 'package:path/path.dart' as path;
 
 import 'parser.dart';
-import 'token.dart';
+import '../lexer/token.dart';
 import '../error/error.dart';
 import '../resource/resource.dart';
 import '../resource/resource_context.dart';
@@ -2430,7 +2430,7 @@ class HTParserHetu extends HTParser {
       } else {
         throw HTError.unexpected(
           HTLocale.current.caseBranch,
-          '${lexer.lexicon.singleLineIndicator} or ${lexer.lexicon.singleLineIndicator}',
+          '${lexer.lexicon.switchBranchIndicator} or ${lexer.lexicon.singleLineIndicator}',
           curTok.lexeme,
           filename: currrentFileName,
           line: curTok.line,
@@ -2498,7 +2498,7 @@ class HTParserHetu extends HTParser {
           return id;
         },
       );
-      match(lexer.lexicon.blockEnd);
+      match(lexer.lexicon.importExportListEnd);
       if (showList.isEmpty) {
         final err = HTError.unexpectedEmptyList(HTLocale.current.importSymbols,
             filename: currrentFileName,
@@ -2593,7 +2593,7 @@ class HTParserHetu extends HTParser {
           return id;
         },
       );
-      match(lexer.lexicon.blockEnd);
+      match(lexer.lexicon.importExportListEnd);
       TokenStringLiteral? fromPathTok;
       if (curTok.lexeme == lexer.lexicon.kFrom) {
         advance();

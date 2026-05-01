@@ -1,6 +1,6 @@
 import '../ast/ast.dart';
 import '../source/source.dart';
-import 'token.dart';
+import '../lexer/token.dart';
 import '../lexicon/lexicon.dart';
 import '../lexer/lexer.dart';
 import '../lexer/lexer_hetu.dart';

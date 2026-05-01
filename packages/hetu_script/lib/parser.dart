@@ -5,6 +5,6 @@ export 'lexer/lexer_hetu.dart';
 export 'ast/ast.dart';
 export 'ast/visitor/recursive_ast_visitor.dart';
 export 'parser/token_reader.dart';
-export 'parser/token.dart';
+export 'lexer/token.dart';
 export 'parser/parser.dart';
 export 'parser/parser_hetu.dart';
