@@ -57,7 +57,7 @@ class HTFunction extends HTFunctionDeclaration
   HTNamespace? namespace;
   dynamic instance;
 
-  bool _isResolved = false;
+  bool _functionResolved = false;
 
   /// Create a standard [HTFunction].
   ///
@@ -181,7 +181,9 @@ class HTFunction extends HTFunctionDeclaration
           funcName = '$classId.$id';
         }
       } else {
-        assert(id != null);
+        if (id == null) {
+          throw HTError.undefined(internalName);
+        }
         if (isStatic) {
           funcName = '$classId.$id';
         } else {
@@ -189,8 +191,14 @@ class HTFunction extends HTFunctionDeclaration
         }
       }
     } else if (explicityNamespaceId != null) {
+      if (id == null) {
+        throw HTError.undefined(internalName);
+      }
       funcName = '$explicityNamespaceId::$id';
     } else {
+      if (id == null) {
+        throw HTError.undefined(internalName);
+      }
       funcName = id!;
     }
     if (classId != null && funcName.contains('::')) {
@@ -204,7 +212,7 @@ class HTFunction extends HTFunctionDeclaration
 
   @override
   void resolve({bool resolveType = true}) {
-    if (_isResolved) return;
+    if (_functionResolved) return;
 
     super.resolve();
     if (closure != null && classId != null && klass == null && !isField) {
@@ -231,7 +239,7 @@ class HTFunction extends HTFunctionDeclaration
       }
     }
 
-    _isResolved = true;
+    _functionResolved = true;
   }
 
   @override
@@ -376,6 +384,7 @@ class HTFunction extends HTFunctionDeclaration
     Map<String, dynamic> namedArgs = const {},
     // List<HTType> typeArgs = const [],
   }) {
+    var stackPushed = false;
     try {
       if (isAbstract) {
         throw HTError.abstractFunction(
@@ -388,6 +397,7 @@ class HTFunction extends HTFunctionDeclaration
 
       interpreter.stackTraceList.add(
           '$internalName (${interpreter.currentFile}:${interpreter.currentLine}:${interpreter.currentColumn})');
+      stackPushed = true;
 
       dynamic result;
       // 如果是脚本函数
@@ -747,36 +757,14 @@ class HTFunction extends HTFunctionDeclaration
           if (klass!.isExternal) {
             if (category != FunctionCategory.getter) {
               assert(externalFunc != null);
-              final func = externalFunc!;
-              if (isStatic || category == FunctionCategory.constructor) {
-                if (func is HTExternalFunction) {
-                  result = func(
-                    positionalArgs: finalPosArgs,
-                    namedArgs: finalNamedArgs,
-                  );
-                } else {
-                  result = Function.apply(
-                      func,
-                      finalPosArgs,
-                      finalNamedArgs.map<Symbol, dynamic>(
-                          (key, value) => MapEntry(Symbol(key), value)));
-                }
-              } else {
-                assert(instance != null);
-                if (func is HTExternalMethod) {
-                  result = func(
-                    object: instance!,
-                    positionalArgs: finalPosArgs,
-                    namedArgs: finalNamedArgs,
-                  );
-                } else {
-                  result = Function.apply(
-                      func,
-                      [instance!, ...finalPosArgs],
-                      finalNamedArgs.map<Symbol, dynamic>(
-                          (key, value) => MapEntry(Symbol(key), value)));
-                }
-              }
+              result = _dispatchExternalCall(
+                externalFunc!,
+                finalPosArgs,
+                finalNamedArgs,
+                isInstanceCall: !isStatic &&
+                    category != FunctionCategory.constructor,
+                instance: instance,
+              );
             } else {
               result = klass!.externalClass!.memberGet('$classId.$id');
             }
@@ -787,36 +775,14 @@ class HTFunction extends HTFunctionDeclaration
               resolveExternal();
             }
             assert(externalFunc != null);
-            final func = externalFunc!;
-            if (isStatic || category == FunctionCategory.constructor) {
-              if (func is HTExternalFunction) {
-                result = func(
-                  positionalArgs: finalPosArgs,
-                  namedArgs: finalNamedArgs,
-                );
-              } else {
-                result = Function.apply(
-                    func,
-                    finalPosArgs,
-                    finalNamedArgs.map<Symbol, dynamic>(
-                        (key, value) => MapEntry(Symbol(key), value)));
-              }
-            } else {
-              assert(instance != null);
-              if (func is HTExternalMethod) {
-                result = func(
-                  object: instance!,
-                  positionalArgs: finalPosArgs,
-                  namedArgs: finalNamedArgs,
-                );
-              } else {
-                result = Function.apply(
-                    func,
-                    [instance!, ...finalPosArgs],
-                    finalNamedArgs.map<Symbol, dynamic>(
-                        (key, value) => MapEntry(Symbol(key), value)));
-              }
-            }
+            result = _dispatchExternalCall(
+              externalFunc!,
+              finalPosArgs,
+              finalNamedArgs,
+              isInstanceCall: !isStatic &&
+                  category != FunctionCategory.constructor,
+              instance: instance,
+            );
           }
         }
         // a external method of a struct
@@ -825,36 +791,14 @@ class HTFunction extends HTFunctionDeclaration
             resolveExternal();
           }
           assert(externalFunc != null);
-          final func = externalFunc!;
-          if (isStatic || category == FunctionCategory.constructor) {
-            if (func is HTExternalFunction) {
-              result = func(
-                positionalArgs: finalPosArgs,
-                namedArgs: finalNamedArgs,
-              );
-            } else {
-              result = Function.apply(
-                  func,
-                  finalPosArgs,
-                  finalNamedArgs.map<Symbol, dynamic>(
-                      (key, value) => MapEntry(Symbol(key), value)));
-            }
-          } else {
-            assert(instance != null);
-            if (func is HTExternalMethod) {
-              result = func(
-                object: instance!,
-                positionalArgs: finalPosArgs,
-                namedArgs: finalNamedArgs,
-              );
-            } else {
-              result = Function.apply(
-                  func,
-                  [instance!, ...finalPosArgs],
-                  finalNamedArgs.map<Symbol, dynamic>(
-                      (key, value) => MapEntry(Symbol(key), value)));
-            }
-          }
+          result = _dispatchExternalCall(
+            externalFunc!,
+            finalPosArgs,
+            finalNamedArgs,
+            isInstanceCall: !isStatic &&
+                category != FunctionCategory.constructor,
+            instance: instance,
+          );
         }
         // a toplevel external function
         else {
@@ -862,21 +806,12 @@ class HTFunction extends HTFunctionDeclaration
             resolveExternal();
           }
           assert(externalFunc != null);
-          final func = externalFunc!;
-          if (func is HTExternalFunction) {
-            result = func(
-              // namespace: interpreter.currentNamespace,
-              positionalArgs: finalPosArgs,
-              namedArgs: finalNamedArgs,
-              // typeArgs: typeArgs,
-            );
-          } else {
-            result = Function.apply(
-                func,
-                finalPosArgs,
-                finalNamedArgs.map<Symbol, dynamic>(
-                    (key, value) => MapEntry(Symbol(key), value)));
-          }
+          result = _dispatchExternalCall(
+            externalFunc!,
+            finalPosArgs,
+            finalNamedArgs,
+            isInstanceCall: false,
+          );
         }
       }
 
@@ -901,10 +836,52 @@ class HTFunction extends HTFunctionDeclaration
 
       return result;
     } catch (error, stackTrace) {
+      if (stackPushed) {
+        interpreter.stackTraceList.removeLast();
+      }
       if (interpreter.config.processError) {
         interpreter.processError(error, stackTrace);
       } else {
         rethrow;
+      }
+    }
+  }
+
+  /// Dispatch an external function call, handling both [HTExternalFunction]
+  /// and raw Dart [Function] via [Function.apply].
+  dynamic _dispatchExternalCall(
+    Function func,
+    List<dynamic> posArgs,
+    Map<String, dynamic> namedArgs, {
+    required bool isInstanceCall,
+    dynamic instance,
+  }) {
+    if (isInstanceCall) {
+      if (func is HTExternalMethod) {
+        return func(
+          object: instance,
+          positionalArgs: posArgs,
+          namedArgs: namedArgs,
+        );
+      } else {
+        return Function.apply(
+            func,
+            [instance, ...posArgs],
+            namedArgs.map<Symbol, dynamic>(
+                (key, value) => MapEntry(Symbol(key), value)));
+      }
+    } else {
+      if (func is HTExternalFunction) {
+        return func(
+          positionalArgs: posArgs,
+          namedArgs: namedArgs,
+        );
+      } else {
+        return Function.apply(
+            func,
+            posArgs,
+            namedArgs.map<Symbol, dynamic>(
+                (key, value) => MapEntry(Symbol(key), value)));
       }
     }
   }
