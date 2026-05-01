@@ -242,6 +242,24 @@ void main() {
       ''');
       expect(result, null);
     });
+
+    test('nullable member assignment on null object', () {
+      final result = hetu.eval(r'''
+        var obj = null
+        obj?.prop = "value"
+        obj
+      ''');
+      expect(result, null);
+    });
+
+    test('nullable member assignment on non-null object', () {
+      final result = hetu.eval(r'''
+        var obj = { prop: "old" }
+        obj?.prop = "new"
+        obj.prop
+      ''');
+      expect(result, "new");
+    });
   });
 
   group('Ternary Operator - ', () {

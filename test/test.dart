@@ -19,15 +19,18 @@ Future<void> main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-    fun fib(n) {
-      if (n <= 1) {
-        return n
-      } else {
-        return fib(n - 1) + fib(n - 2)
-      }
-    }
+    // fun fib(n) {
+    //   if (n <= 1) {
+    //     return n
+    //   } else {
+    //     return fib(n - 1) + fib(n - 2)
+    //   }
+    // }
 
-    fib(30)
+    // fib(30)
+
+    let a
+    a?.b = 2134
 ''');
 
   if (r is Future) {

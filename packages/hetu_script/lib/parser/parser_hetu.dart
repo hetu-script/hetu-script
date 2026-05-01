@@ -1352,7 +1352,7 @@ class HTParserHetu extends HTParser {
             offset: expr.offset,
             length: curTok.offset - expr.offset);
       } else if (op.lexeme == lexer.lexicon.nullableMemberGet) {
-        _isLegalLeftValue = false;
+        _isLegalLeftValue = true;
         final name = matchId();
         final key = IdentifierExpr(
             name.literal, // use literal here to strip the graves.
