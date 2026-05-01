@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
-import 'op_code.dart';
-
 /// An utility class to read bytes and return the actual value.
 mixin BytecodeReader {
   /// The bytecode, stores as uint8 list
@@ -20,12 +18,8 @@ mixin BytecodeReader {
 
   /// Fetch a single byte at the current instruction pointer
   int read() {
-    if (ip >= 0 && ip < bytes.length) {
-      return bytes[ip++];
-    } else {
-      ip = 0;
-      return OpCode.endOfCode;
-    }
+    assert(ip < bytes.length, 'Bytecode IP $ip out of bounds (length: ${bytes.length})');
+    return bytes[ip++];
   }
 
   /// Fetch a bool value from the bytes list

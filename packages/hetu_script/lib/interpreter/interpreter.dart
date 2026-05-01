@@ -1622,7 +1622,7 @@ class HTInterpreter {
       // dynamic Function()? endOfModuleHandler,
       ) {
     int instruction;
-    do {
+    while (true) {
       instruction = _currentBytecodeModule.read();
       switch (instruction) {
         case OpCode.lineInfo:
@@ -2424,7 +2424,7 @@ class HTInterpreter {
               line: _currentLine,
               column: _currentColumn);
       }
-    } while (instruction != OpCode.endOfCode);
+    }
   }
 
   Future<dynamic> waitFutureExucution(FutureExecution futureExecution) async {

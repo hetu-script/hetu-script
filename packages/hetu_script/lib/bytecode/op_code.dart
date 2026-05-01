@@ -1,6 +1,5 @@
 /// Operation code used by compiler.
 abstract class OpCode {
-  static const endOfCode = -1;
   static const local = 0;
   static const register = 1;
   static const copy = 2;
