@@ -1,3 +1,7 @@
+# About Dart
+
+Remember: In mordern Dart, non-empty case clauses jump to the end of the switch after completion. They do not require a break statement.
+
 # AI Agent Instructions — Hetu Script
 
 ## Project Overview

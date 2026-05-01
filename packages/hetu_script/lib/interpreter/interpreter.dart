@@ -1591,10 +1591,11 @@ class HTInterpreter {
       savedContext = getContext();
       setContext(context);
     }
-    if (createStackFrame) {
-      _createStackFrame();
-    } else if (stackFrame != null) {
+    if (stackFrame != null) {
       _stackFrames.add(stackFrame);
+      createStackFrame = true;
+    } else if (createStackFrame) {
+      _createStackFrame();
     }
     if (localValue != null) stack.push(localValue);
     final result = _execute();
@@ -2204,9 +2205,10 @@ class HTInterpreter {
         case OpCode.awaitedValue:
           // handle the possible future execution request raised by await keyword and Future value.
           if (stack.top is Future) {
+            final future = stack.pop();
             final HTContext savedContext = getContext();
             return FutureExecution(
-              future: stack.top as Future,
+              future: future,
               context: savedContext,
               stack: stack,
             );

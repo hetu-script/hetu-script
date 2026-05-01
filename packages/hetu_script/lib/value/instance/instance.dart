@@ -9,7 +9,6 @@ import '../../type/nominal.dart';
 import '../function/function.dart';
 import '../class/class.dart';
 import 'cast.dart';
-import '../../value/namespace/namespace.dart';
 import '../object.dart';
 import 'instance_namespace.dart';
 import '../../interpreter/interpreter.dart';
@@ -180,7 +179,8 @@ class HTInstance with HTObject, InterpreterRef {
               throw HTError.privateMember(id);
             }
             decl.resolve();
-            if (decl is HTFunction && decl.category != FunctionCategory.literal) {
+            if (decl is HTFunction &&
+                decl.category != FunctionCategory.literal) {
               decl.namespace = namespace;
               decl.instance = this;
             }
