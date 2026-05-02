@@ -101,6 +101,26 @@ async function fetchData {
 final result = await fetch() * await valueFuture() * await sumAll();
 ```
 
+### await 的使用限制
+
+`await` 关键字在所有表达式上下文中都可以使用 — 包括列表字面量、结构体字面量、字符串插值、函数调用参数、switch case 值、算术表达式以及脚本和函数体内的变量初始化表达式。
+
+仅有三处**不支持** `await`：
+
+- **模块 (.ht) 顶层变量初始值** — 模块级变量使用延迟初始化，无法为 `await` 挂起。请改用函数。
+- **命名结构体成员初始值**（包括 `static var` 字段和实例字段默认值）— 结构体构造是同步的。
+- **函数参数默认值** — 分析器在编译期会拒绝参数默认值中的 `await`。
+
+```dart
+// 在模块 (.ht) 中，不要这样写：
+// final x = await fetch()
+
+// 改为使用函数：
+function init async {
+  final x = await fetch()
+}
+```
+
 ### await 的内部实现
 
 当解释器遇到 `await` 表达式时，它会检查操作数栈顶是否是 Dart 的 `Future` 对象。如果是，则将当前执行上下文（指令指针、命名空间、栈帧）保存到 `FutureExecution` 对象中并挂起。当 Future 完成后，解释器从保存的上下文中恢复执行，将解析后的值压入栈中。对于链式 Future，此过程会重复进行，直到没有更多待处理的 Future 为止。

@@ -107,3 +107,15 @@ final { a, b } = obj  // a = 6, b = 7
 ### Requirements
 
 Destructuring declarations **must** have an initializer and must be initialized immediately. They can be used within a script body (`ResourceType.hetuScript`) or a function body, but not in class-level declarations.
+
+## Async initializers
+
+You can use `await` in a variable initializer within a **script** (.hts) or **function body**:
+
+```dart
+// Inside a script or async function:
+final data = await fetchData()
+var result = await compute() + offset
+```
+
+However, `await` is **not supported** in variable initializers at the **module** (.ht) top level. Module-level variables use lazy initialization, which does not support async suspension. See the [Future & await](../future/readme.md#where-await-is-supported) documentation for details.

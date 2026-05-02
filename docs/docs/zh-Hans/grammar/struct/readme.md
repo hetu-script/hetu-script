@@ -157,3 +157,20 @@ struct Person with Wings {
 final p = Person()
 p.fly()
 ```
+
+## 异步初始化值
+
+命名结构体的成员初始值（包括 `static var` 字段和实例字段默认值）在结构体构造期间同步求值，**不支持** `await`。如需异步初始化逻辑，请使用构造函数或工厂函数：
+
+```dart
+// 不要在命名结构体中这样写：
+// struct Config {
+//   static var data = await loadConfig()  // 不支持
+// }
+
+// 改为：
+async function createConfig {
+  final data = await loadConfig()
+  return Config(data: data)
+}
+```

@@ -452,18 +452,18 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitStringInterpolationExpr(ASTStringInterpolation expr) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(OpCode.local);
-    bytesBuilder.addByte(HTValueTypeCode.stringInterpolation);
+    // Compile interpolations first — they push onto operand stack
+    for (final node in expr.interpolations) {
+      bytesBuilder.add(compileAST(node));
+    }
+    // Terminal opcode
+    bytesBuilder.addByte(OpCode.makeString);
     var literal = expr.text;
     _lexicon.escapeCharacters.forEach((key, value) {
       literal = literal.replaceAll(key, value);
     });
     bytesBuilder.add(_utf8String(literal));
     bytesBuilder.addByte(expr.interpolations.length);
-    for (final node in expr.interpolations) {
-      final bytes = compileAST(node, endOfExec: true);
-      bytesBuilder.add(bytes);
-    }
     return bytesBuilder.toBytes();
   }
 
@@ -478,17 +478,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitListExpr(ListExpr expr) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(OpCode.local);
-    bytesBuilder.addByte(HTValueTypeCode.list);
+    for (final item in expr.list) {
+      bytesBuilder.add(compileAST(item));
+    }
+    bytesBuilder.addByte(OpCode.makeList);
     bytesBuilder.add(_uint16(expr.list.length));
     for (final item in expr.list) {
-      final spreadFlag = item is SpreadExpr ? 1 : 0; // bool: isSpread
-      bytesBuilder.addByte(spreadFlag);
-      // final ifItemFlag =
-      //     (item is IfExpr && item.elseBranch == null) ? 1 : 0; // bool: isSpread
-      // bytesBuilder.addByte(ifItemFlag);
-      final bytes = compileAST(item, endOfExec: true);
-      bytesBuilder.add(bytes);
+      bytesBuilder.addByte(item is SpreadExpr ? 1 : 0);
     }
     return bytesBuilder.toBytes();
   }
@@ -512,8 +508,19 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitStructObjExpr(StructObjExpr obj) {
     final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(OpCode.local);
-    bytesBuilder.addByte(HTValueTypeCode.struct);
+    // Compile field values first — they push onto operand stack
+    for (final field in obj.fields) {
+      bytesBuilder.add(compileAST(field.fieldValue));
+    }
+    // Terminal opcode
+    bytesBuilder.addByte(OpCode.makeStruct);
+    bytesBuilder.addByte(obj.fields.length);
+    for (final field in obj.fields) {
+      bytesBuilder.addByte(field.isSpread ? 1 : 0);
+      if (!field.isSpread) {
+        bytesBuilder.add(_identifier(field.key!.id));
+      }
+    }
     if (obj.id != null) {
       bytesBuilder.addByte(1); // bool: has id
       bytesBuilder.add(_identifier(obj.id!.id));
@@ -525,11 +532,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.add(_identifier(obj.prototypeId!.id));
     } else {
       bytesBuilder.addByte(0); // bool: has prototype
-    }
-    bytesBuilder.addByte(obj.fields.length);
-    for (final field in obj.fields) {
-      final bytes = visitStructObjField(field);
-      bytesBuilder.add(bytes);
     }
     return bytesBuilder.toBytes();
   }
@@ -545,12 +547,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   @override
   Uint8List visitGroupExpr(GroupExpr expr) {
-    final bytesBuilder = BytesBuilder();
-    bytesBuilder.addByte(OpCode.local);
-    bytesBuilder.addByte(HTValueTypeCode.group);
-    final innerExpr = compileAST(expr.inner, endOfExec: true);
-    bytesBuilder.add(innerExpr);
-    return bytesBuilder.toBytes();
+    return compileAST(expr.inner);
   }
 
   @override
@@ -1084,24 +1081,38 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitCallExpr(CallExpr expr) {
     final bytesBuilder = BytesBuilder();
-    final callee = compileAST(expr.callee);
-    bytesBuilder.add(callee);
+    // Callee first
+    bytesBuilder.add(compileAST(expr.callee));
+    // Positional args — values push onto operand stack
+    for (final arg in expr.positionalArgs) {
+      bytesBuilder.add(compileAST(arg));
+    }
+    // Named args — values push onto operand stack
+    for (final arg in expr.namedArgs.values) {
+      bytesBuilder.add(compileAST(arg));
+    }
+    // Terminal call opcode
     bytesBuilder.addByte(OpCode.call);
-    bytesBuilder.addByte(expr.isNullable ? 1 : 0);
-    bytesBuilder.addByte(expr.hasNewOperator ? 1 : 0);
+    int flags = 0;
+    if (expr.isNullable) flags |= 1;
+    if (expr.hasNewOperator) flags |= 2;
     Uint8List? objectId;
     if (expr.callee is IdentifierExpr) {
       objectId = _utf8String((expr.callee as IdentifierExpr).id);
     }
+    if (objectId != null) flags |= 4;
+    bytesBuilder.addByte(flags);
     if (objectId != null) {
-      bytesBuilder.addByte(1);
       bytesBuilder.add(objectId);
-    } else {
-      bytesBuilder.addByte(0);
     }
-    final argBytes = _parseCallArguments(expr.positionalArgs, expr.namedArgs);
-    bytesBuilder.add(_uint16(argBytes.length));
-    bytesBuilder.add(argBytes);
+    bytesBuilder.addByte(expr.namedArgs.length);
+    for (final name in expr.namedArgs.keys) {
+      bytesBuilder.add(_identifier(name));
+    }
+    bytesBuilder.addByte(expr.positionalArgs.length);
+    for (final arg in expr.positionalArgs) {
+      bytesBuilder.addByte(arg is SpreadExpr ? 1 : 0);
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -1110,19 +1121,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     final bytesBuilder = BytesBuilder();
     if (!config.removeAssertion) {
       bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
-      final bytes = compileAST(stmt.expr);
-      bytesBuilder.add(bytes);
+      final hasDescription = stmt.description != null;
+      if (hasDescription) {
+        bytesBuilder.add(compileAST(stmt.description!));
+      }
+      bytesBuilder.add(compileAST(stmt.expr));
       bytesBuilder.addByte(OpCode.assertion);
       final content = stmt.source!.content;
       final text = content.substring(stmt.expr.offset, stmt.expr.end);
       bytesBuilder.add(_utf8String(text.trim()));
-      if (stmt.description != null) {
-        bytesBuilder.addByte(1); // bool: has description
-        final descriptionBytes = compileAST(stmt.description!, endOfExec: true);
-        bytesBuilder.add(descriptionBytes);
-      } else {
-        bytesBuilder.addByte(0); // bool: has description
-      }
+      bytesBuilder.addByte(hasDescription ? 1 : 0);
       bytesBuilder.addByte(OpCode.endOfStmt);
     }
     return bytesBuilder.toBytes();
@@ -1372,13 +1380,17 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitCommaExpr(ParallelExpr expr) {
     final bytesBuilder = BytesBuilder();
     if (expr.isLocal) {
-      bytesBuilder.addByte(OpCode.local);
-      bytesBuilder.addByte(HTValueTypeCode.tuple);
-    }
-    bytesBuilder.addByte(expr.list.length);
-    for (final item in expr.list) {
-      final bytes = compileAST(item, endOfExec: true);
-      bytesBuilder.add(bytes);
+      for (final item in expr.list) {
+        bytesBuilder.add(compileAST(item));
+      }
+      bytesBuilder.addByte(OpCode.makeTuple);
+      bytesBuilder.addByte(expr.list.length);
+    } else {
+      bytesBuilder.addByte(expr.list.length);
+      for (final item in expr.list) {
+        final bytes = compileAST(item, endOfExec: true);
+        bytesBuilder.add(bytes);
+      }
     }
     return bytesBuilder.toBytes();
   }
@@ -1387,8 +1399,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitSwitch(SwitchStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
+    final hasCondition = stmt.condition != null;
     Uint8List? condition;
-    if (stmt.condition != null) {
+    if (hasCondition) {
       condition = compileAST(stmt.condition!);
     }
     final cases = <Uint8List>[];
@@ -1399,31 +1412,30 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     }
     for (final ast in stmt.cases.keys) {
       final caseBytesBuilder = BytesBuilder();
-      if (condition != null) {
-        if (ast is ParallelExpr) {
-          caseBytesBuilder.addByte(HTSwitchCaseTypeCode.eigherEquals);
-          final bytes = visitCommaExpr(ast);
-          caseBytesBuilder.add(bytes);
-        } else if (ast is InOfExpr) {
-          caseBytesBuilder.addByte(HTSwitchCaseTypeCode.elementIn);
-          Uint8List bytes;
-          if (ast.valueOf) {
-            final getValues = MemberExpr(ast.collection,
-                IdentifierExpr(_lexicon.idValues, isLocal: false));
-            bytes = compileAST(getValues, endOfExec: true);
-          } else {
-            bytes = compileAST(ast.collection, endOfExec: true);
-          }
-          caseBytesBuilder.add(bytes);
-        } else {
-          caseBytesBuilder.addByte(HTSwitchCaseTypeCode.equals);
-          final bytes = compileAST(ast, endOfExec: true);
-          caseBytesBuilder.add(bytes);
+      int matchFlags = hasCondition ? 0x80 : 0;
+      int multipleEqualsCount = 0;
+      if (ast is ParallelExpr) {
+        matchFlags |= HTSwitchCaseTypeCode.multipleEquals;
+        multipleEqualsCount = ast.list.length;
+        for (final item in ast.list) {
+          caseBytesBuilder.add(compileAST(item));
         }
+      } else if (ast is InOfExpr) {
+        matchFlags |= HTSwitchCaseTypeCode.elementIn;
+        final collection = ast.valueOf
+            ? MemberExpr(ast.collection,
+                IdentifierExpr(_lexicon.idValues, isLocal: false))
+            : ast.collection;
+        caseBytesBuilder.add(compileAST(collection));
       } else {
-        caseBytesBuilder.addByte(HTSwitchCaseTypeCode.equals);
-        final bytes = compileAST(ast, endOfExec: true);
-        caseBytesBuilder.add(bytes);
+        matchFlags |= HTSwitchCaseTypeCode.equals;
+        caseBytesBuilder.add(compileAST(ast));
+      }
+      caseBytesBuilder.addByte(OpCode.matchCase);
+      caseBytesBuilder.add(_uint16(3)); // skipDist: skip the goto instruction
+      caseBytesBuilder.addByte(matchFlags);
+      if (multipleEqualsCount > 0) {
+        caseBytesBuilder.addByte(multipleEqualsCount);
       }
       cases.add(caseBytesBuilder.toBytes());
       final branchBytes = compileAST(stmt.cases[ast]!);
@@ -1433,9 +1445,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (condition != null) {
       bytesBuilder.add(condition);
     }
-    bytesBuilder.addByte(OpCode.switchStmt);
-    bytesBuilder.addByte(condition != null ? 1 : 0);
-    bytesBuilder.addByte(cases.length);
     var curBranchIp = 0;
     var caseJumpIps = List.filled(branches.length, 0);
     for (var i = 1; i < branches.length; ++i) {
@@ -1444,24 +1453,23 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     }
     curBranchIp += branches.last.length + 3;
     final endIp = curBranchIp + (elseBranch?.length ?? 0);
-    // calculate the length of the code since the anchor,
-    // for goto the specific location of branches.
-    var offsetIp = (condition?.length ?? 0) + 3;
-    // calculate the length of all cases end else jump code first
+    var offsetIp = condition?.length ?? 0;
     for (final expr in cases) {
       offsetIp += expr.length + 3;
     }
-    offsetIp += 3;
-    // for each case, if true, will jump to a certain branch.
+    if (hasCondition) offsetIp += 1; // pop
+    offsetIp += 3; // default goto
     for (var i = 0; i < cases.length; ++i) {
       final expr = cases[i];
       bytesBuilder.add(expr);
       bytesBuilder.addByte(OpCode.goto);
       bytesBuilder.add(_uint16(offsetIp + caseJumpIps[i]));
     }
+    if (hasCondition) {
+      bytesBuilder.addByte(OpCode.pop);
+    }
     bytesBuilder.addByte(OpCode.goto);
     bytesBuilder.add(_uint16(offsetIp + curBranchIp));
-    // for each branch, after execution, will jump to end of statement.
     for (var i = 0; i < branches.length; ++i) {
       bytesBuilder.add(branches[i]);
       bytesBuilder.addByte(OpCode.goto);
@@ -1505,10 +1513,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitDeleteMemberStmt(DeleteMemberStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
+    bytesBuilder.add(compileAST(stmt.object));
     bytesBuilder.addByte(OpCode.delete);
     bytesBuilder.addByte(HTDeletingTypeCode.member);
-    final objectBytes = compileAST(stmt.object, endOfExec: true);
-    bytesBuilder.add(objectBytes);
     bytesBuilder.add(_identifier(stmt.key));
     return bytesBuilder.toBytes();
   }
@@ -1517,12 +1524,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitDeleteSubStmt(DeleteSubStmt stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
+    bytesBuilder.add(compileAST(stmt.object));
+    bytesBuilder.add(compileAST(stmt.key));
     bytesBuilder.addByte(OpCode.delete);
     bytesBuilder.addByte(HTDeletingTypeCode.sub);
-    final objectBytes = compileAST(stmt.object, endOfExec: true);
-    bytesBuilder.add(objectBytes);
-    final keyBytes = compileAST(stmt.key, endOfExec: true);
-    bytesBuilder.add(keyBytes);
     return bytesBuilder.toBytes();
   }
 
@@ -1651,6 +1656,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(type);
       bytesBuilder.add(_uint16(index));
     } else {
+      if (stmt.initializer != null && !stmt.lateInitialize) {
+        bytesBuilder.add(compileAST(stmt.initializer!));
+      }
       bytesBuilder.addByte(OpCode.varDecl);
       if (docs.isNotEmpty && !config.removeDocumentation) {
         bytesBuilder.addByte(1); // bool: has doc
@@ -1682,13 +1690,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       }
       if (stmt.initializer != null) {
         bytesBuilder.addByte(1); // bool: has initializer
-        final initializer = compileAST(stmt.initializer!, endOfExec: true);
         if (stmt.lateInitialize) {
+          final initializer = compileAST(stmt.initializer!, endOfExec: true);
           bytesBuilder.add(_uint16(stmt.initializer!.line));
           bytesBuilder.add(_uint16(stmt.initializer!.column));
           bytesBuilder.add(_uint16(initializer.length));
+          bytesBuilder.add(initializer);
         }
-        bytesBuilder.add(initializer);
       } else {
         bytesBuilder.addByte(0); // bool: has initializer
       }
@@ -1702,6 +1710,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitDestructuringDecl(DestructuringDecl stmt) {
     final bytesBuilder = BytesBuilder();
+    bytesBuilder.add(compileAST(stmt.initializer));
     bytesBuilder.addByte(OpCode.destructuringDecl);
     bytesBuilder.addByte(stmt.isTopLevel ? 1 : 0);
     bytesBuilder.addByte(stmt.ids.length);
@@ -1718,8 +1727,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     }
     bytesBuilder.addByte(stmt.isVector ? 1 : 0);
     bytesBuilder.addByte(stmt.isMutable ? 1 : 0);
-    final initializer = compileAST(stmt.initializer, endOfExec: true);
-    bytesBuilder.add(initializer);
     bytesBuilder.addByte(OpCode.endOfStmt);
     return bytesBuilder.toBytes();
   }
@@ -1957,17 +1964,19 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final ctorBytes = visitFuncDecl(constructor);
       bytesBuilder.add(ctorBytes);
 
-      // final toStringDef = ASTStringInterpolation(
-      //     '${stmt.id.id}${_lexicon.memberGet}${_lexicon.stringInterpolationStart}0${_lexicon.stringInterpolationEnd}',
-      //     _lexicon.stringStart1,
-      //     _lexicon.stringEnd1,
-      //     [IdentifierExpr(valueId)]);
-      final toStringFunc = FuncDecl(_lexicon.idToString,
-          id: IdentifierExpr(_lexicon.idToString),
-          classId: stmt.id.id,
-          hasParamDecls: true,
-          paramDecls: [],
-          definition: IdentifierExpr(valueId));
+      final toStringDef = ASTStringInterpolation(
+          '${stmt.id.id}${_lexicon.memberGet}${_lexicon.stringInterpolationStart}0${_lexicon.stringInterpolationEnd}',
+          _lexicon.stringStart1,
+          _lexicon.stringEnd1,
+          [IdentifierExpr(valueId)]);
+      final toStringFunc = FuncDecl(
+        _lexicon.idToString,
+        id: IdentifierExpr(_lexicon.idToString),
+        classId: stmt.id.id,
+        hasParamDecls: true,
+        paramDecls: [],
+        definition: toStringDef,
+      );
       final toStringBytes = visitFuncDecl(toStringFunc);
       bytesBuilder.add(toStringBytes);
 

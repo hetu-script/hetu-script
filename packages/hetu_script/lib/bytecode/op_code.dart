@@ -1,14 +1,10 @@
 /// Operation code used by compiler.
 abstract class OpCode {
   static const local = 0;
-  static const register = 1;
-  static const copy = 2;
   static const skip = 3;
   static const anchor = 4;
   static const clearAnchor = 5;
   static const goto = 6;
-  static const moveReg = 7;
-  static const leftValue = 8;
   static const assertion = 9;
   static const throws = 10;
   static const loopPoint = 11;
@@ -20,7 +16,6 @@ abstract class OpCode {
   static const switchStmt = 17;
 
   static const codeBlock = 18;
-  static const library = 19;
   static const file = 20;
   static const endOfStmt = 21;
   static const endOfCodeBlock = 22;
@@ -101,6 +96,13 @@ abstract class OpCode {
   static const typeValueOf = 110;
   static const decltypeOf = 111;
 
+  static const makeList = 120;
+  static const makeStruct = 121;
+  static const makeTuple = 122;
+  static const makeString = 123;
+  static const matchCase = 124;
+  static const pop = 125;
+
   static const lineInfo = 205;
 }
 
@@ -134,7 +136,7 @@ abstract class HTDeletingTypeCode {
 
 abstract class HTSwitchCaseTypeCode {
   static const equals = 0;
-  static const eigherEquals = 1;
+  static const multipleEquals = 1;
   static const elementIn = 2;
 }
 

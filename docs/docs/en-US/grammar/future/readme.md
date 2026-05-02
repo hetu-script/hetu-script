@@ -101,6 +101,28 @@ async function fetchData {
 final result = await fetch() * await valueFuture() * await sumAll();
 ```
 
+### Where await is supported
+
+The `await` keyword works in all expression contexts — including list literals, struct literals, string interpolation, function call arguments, switch case values, arithmetic expressions, and variable initializers within scripts and function bodies.
+
+The only contexts where `await` is **not** supported are:
+
+- **Module (.ht) top-level variable initializers** — Module-level variables use lazy initialization, which cannot suspend for `await`. Use a function instead.
+- **Named struct member initializers** (including `static var` fields and instance field defaults) — Struct construction is synchronous.
+- **Function parameter default values** — The analyzer rejects `await` in parameter defaults at compile time.
+
+Note that `await` in an `async` function's parameter defaults would also not make semantic sense, since the default value is evaluated during argument resolution, before the function body's async context is active.
+
+```dart
+// In a module (.ht), don't do this:
+// final x = await fetch()
+
+// Instead, use a function:
+function init async {
+  final x = await fetch()
+}
+```
+
 ### How await works internally
 
 When the interpreter encounters an `await` expression, it checks whether the top of the operand stack is a Dart `Future`. If so, it saves the current execution context (instruction pointer, namespace, stack frames) into a `FutureExecution` object and suspends. Once the Future completes, the interpreter resumes execution from the saved context with the resolved value. This process repeats for chained Futures until no more pending Futures remain.

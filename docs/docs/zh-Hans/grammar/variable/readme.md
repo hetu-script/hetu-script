@@ -98,3 +98,15 @@ final { a, b } = obj  // a = 6, b = 7
 ### 要求
 
 解构声明**必须**有一个初始化值，并且必须立即初始化。只能在脚本体（`ResourceType.hetuScript`）或函数体中使用，不能在类级声明中使用。
+
+## 异步初始化值
+
+在**脚本** (.hts) 或**函数体**中，可以在变量初始化表达式中使用 `await`：
+
+```dart
+// 在脚本或 async 函数中：
+final data = await fetchData()
+var result = await compute() + offset
+```
+
+但在**模块** (.ht) 顶层变量中**不支持** `await`。模块级变量使用延迟初始化（late-initialized），不支持异步挂起。详见 [Future & await](../future/readme.md#await-的使用限制) 文档。

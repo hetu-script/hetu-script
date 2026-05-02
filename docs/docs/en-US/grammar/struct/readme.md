@@ -131,6 +131,25 @@ struct P {
 final p1 = struct extends P {}
 ```
 
+## Async initializers
+
+Named struct member initializers (including `static var` fields and instance field defaults) are evaluated synchronously during struct construction and do **not** support `await`. If you need async initialization logic, use a constructor or a factory function instead:
+
+```dart
+// Don't do this in a named struct:
+// struct Config {
+//   static var data = await loadConfig()  // Not supported
+// }
+
+// Instead:
+async function createConfig {
+  final data = await loadConfig()
+  return Config(data: data)
+}
+```
+
+## Dynamically access prototype
+
 Or, you can dynamically access and modify a struct's prototype by internal member `__proto__`:
 
 ```dart

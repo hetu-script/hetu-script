@@ -2806,6 +2806,15 @@ class HTParserHetu extends HTParser {
       // } else {
       if (expect([lexer.lexicon.assign], consume: true)) {
         initializer = parseExpr();
+        if (initializer.isAwait && lateInitialize) {
+          final err = HTError.awaitExpression(
+              filename: currrentFileName,
+              line: initializer.line,
+              column: initializer.column,
+              offset: initializer.offset,
+              length: initializer.length);
+          errors.add(err);
+        }
       } else {
         initializer = additionalInitializer;
       }

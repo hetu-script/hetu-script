@@ -152,432 +152,9 @@ class FutureExecution {
   });
 }
 
-/// A sub-expression evaluation frame.
-/// Used to replace recursive execute() calls for compound expressions
-/// (list, struct, string interpolation, function call arguments, switch cases, etc.)
-/// Each frame tracks partially-built state and processes the value
-/// when OpCode.endOfExec fires.
-abstract class HTSubEvalFrame {
-  bool isComplete = false;
-  void handleEndOfExec(HTInterpreter i);
-}
-
-// --- Concrete SubEvalFrame implementations ---
-
-class HTAssertionEval extends HTSubEvalFrame {
-  final bool assertionValue;
-  final String text;
-  HTAssertionEval({required this.assertionValue, required this.text});
-
-  @override
-  void handleEndOfExec(HTInterpreter i) {
-    final description = i.stack.pop();
-    if (!assertionValue) {
-      throw HTError.assertionFailed(
-          '\'$text\', ${i.lexicon.stringify(description)}');
-    }
-    isComplete = true;
-  }
-}
-
-class HTListEval extends HTSubEvalFrame {
-  final List<dynamic> items = [];
-  int index = 0;
-  final int length;
-  bool _currentIsSpread = false;
-
-  HTListEval({required this.length, required bool firstIsSpread}) {
-    _currentIsSpread = firstIsSpread;
-  }
-
-  @override
-  void handleEndOfExec(HTInterpreter i) {
-    final value = i.stack.pop();
-    if (_currentIsSpread) {
-      items.addAll(value as Iterable);
-    } else {
-      items.add(value);
-    }
-    index++;
-    if (index >= length) {
-      i.stack.push(items);
-      isComplete = true;
-    } else {
-      _currentIsSpread = i.currentBytecodeModule.readBool();
-    }
-  }
-}
-
-class HTStructEval extends HTSubEvalFrame {
-  final HTStruct struct;
-  int index = 0;
-  final int fieldsCount;
-  bool _currentIsSpread = false;
-  String? _currentKey;
-
-  HTStructEval({required this.struct, required this.fieldsCount});
-
-  @override
-  void handleEndOfExec(HTInterpreter i) {
-    final value = i.stack.pop();
-    if (_currentIsSpread) {
-      if (value is Map || value is HTStruct) {
-        for (final key in value.keys) {
-          if (key.startsWith(i.lexicon.internalPrefix)) continue;
-          struct.define(key, i.toStructValue(value[key]));
-        }
-      } else {
-        throw HTError.notSpreadableObj(
-          filename: i.currentFile,
-          line: i.currentLine,
-          column: i.currentColumn,
-        );
-      }
-    } else {
-      struct.memberSet(_currentKey!, value);
-    }
-    index++;
-    if (index >= fieldsCount) {
-      i.stack.push(struct);
-      isComplete = true;
-    } else {
-      _currentIsSpread = i.currentBytecodeModule.readBool();
-      if (!_currentIsSpread) {
-        _currentKey = i.currentBytecodeModule.getConstString();
-      }
-    }
-  }
-}
-
-class HTGroupEval extends HTSubEvalFrame {
-  @override
-  void handleEndOfExec(HTInterpreter i) {
-    // value is already on the operand stack, nothing to do
-    isComplete = true;
-  }
-}
-
-class HTStringInterpEval extends HTSubEvalFrame {
-  String literal;
-  int index = 0;
-  final int length;
-  final String interpStart;
-  final String interpEnd;
-  HTStringInterpEval({
-    required this.literal,
-    required this.length,
-    required this.interpStart,
-    required this.interpEnd,
-  });
-
-  @override
-  void handleEndOfExec(HTInterpreter i) {
-    final value = i.stack.pop();
-    literal = literal.replaceAll(
-        '$interpStart$index$interpEnd', i.lexicon.stringify(value));
-    index++;
-    if (index >= length) {
-      i.stack.push(literal);
-      isComplete = true;
-    }
-  }
-}
-
-class HTCallArgsEval extends HTSubEvalFrame {
-  final dynamic callee;
-  final String? objectId;
-  final bool hasNewOperator;
-  final List<dynamic> positionalArgs = [];
-  final Map<String, dynamic> namedArgs = {};
-  int positionalIndex = 0;
-  int positionalLength = 0;
-  int namedIndex = 0;
-  int namedLength = 0;
-  int _phase = 0; // 0=positional, 1=named
-  bool _currentIsSpread = false;
-  String? _currentNamedKey;
-
-  HTCallArgsEval({
-    required this.callee,
-    this.objectId,
-    required this.hasNewOperator,
-  });
-
-  @override
-  void handleEndOfExec(HTInterpreter i) {
-    final value = i.stack.pop();
-    if (_phase == 0) {
-      // Positional arg
-      if (_currentIsSpread) {
-        positionalArgs.addAll(value as List);
-      } else {
-        positionalArgs.add(value);
-      }
-      positionalIndex++;
-      if (positionalIndex < positionalLength) {
-        _currentIsSpread = i.currentBytecodeModule.readBool();
-      } else {
-        // Transition to named args
-        namedLength = i.currentBytecodeModule.read();
-        if (namedLength > 0) {
-          _phase = 1;
-          _currentNamedKey = i.currentBytecodeModule.getConstString();
-          i.stack.localSymbol = _currentNamedKey;
-        } else {
-          _finishCall(i);
-        }
-      }
-    } else {
-      // Named arg
-      namedArgs[_currentNamedKey!] = value;
-      namedIndex++;
-      if (namedIndex < namedLength) {
-        _currentNamedKey = i.currentBytecodeModule.getConstString();
-        i.stack.localSymbol = _currentNamedKey;
-      } else {
-        _finishCall(i);
-      }
-    }
-  }
-
-  void _finishCall(HTInterpreter i) {
-    i.stack.push(i._call(
-      callee,
-      calleeId: objectId,
-      isConstructorCall: hasNewOperator,
-      positionalArgs: positionalArgs,
-      namedArgs: namedArgs,
-    ));
-    isComplete = true;
-  }
-}
-
-class HTVarDeclInitEval extends HTSubEvalFrame {
-  // varDecl metadata
-  final String id;
-  final String? classId;
-  final bool isPrivate;
-  final bool isField;
-  final bool isExternal;
-  final bool isStatic;
-  final bool isMutable;
-  final bool isTopLevel;
-  final String? documentation;
-  final HTType? declType;
-  final bool lateFinalize;
-
-  HTVarDeclInitEval({
-    required this.id,
-    this.classId,
-    required this.isPrivate,
-    required this.isField,
-    required this.isExternal,
-    required this.isStatic,
-    required this.isMutable,
-    required this.isTopLevel,
-    this.documentation,
-    this.declType,
-    required this.lateFinalize,
-  });
-
-  @override
-  void handleEndOfExec(HTInterpreter i) {
-    final initValue = i.stack.pop();
-    if (!isField &&
-        i._isSimpleVariable(
-            isMutable: isMutable,
-            isExternal: isExternal,
-            lateFinalize: lateFinalize)) {
-      i.currentNamespace
-          .define(id, initValue, override: i.config.allowVariableShadowing);
-    } else {
-      final decl = HTVariable(
-        id: id,
-        interpreter: i,
-        file: i.currentFile,
-        module: i.currentBytecodeModule.id,
-        classId: classId,
-        closure: i.currentNamespace,
-        documentation: documentation,
-        declType: declType,
-        value: initValue,
-        isPrivate: isPrivate,
-        isExternal: isExternal,
-        isStatic: isStatic,
-        isMutable: isMutable,
-        isField: isField,
-      );
-      if (!isField) {
-        i.currentNamespace
-            .define(id, decl, override: i.config.allowVariableShadowing);
-      }
-    }
-    if (i.config.allowInitializationExpresssionHaveValue) {
-      i.stack.push(initValue);
-    } else {
-      i.stack.push(null);
-    }
-    isComplete = true;
-  }
-}
-
-class HTDestructuringEval extends HTSubEvalFrame {
-  final Map<String, HTType?> ids;
-  final bool isVector;
-  final bool isMutable;
-  HTDestructuringEval({
-    required this.ids,
-    required this.isVector,
-    required this.isMutable,
-  });
-
-  @override
-  void handleEndOfExec(HTInterpreter i) {
-    final collection = i.stack.pop();
-    final omittedPrefix = '##';
-    // var omittedIndex = 0;
-    for (var idx = 0; idx < ids.length; ++idx) {
-      var id = ids.keys.elementAt(idx);
-      dynamic initValue;
-      if (isVector) {
-        if (id.startsWith(omittedPrefix)) continue;
-        initValue = (collection as Iterable).elementAt(idx);
-      } else {
-        if (collection is HTObject) {
-          initValue = collection.memberGet(id);
-        } else {
-          initValue = collection[id];
-        }
-      }
-      final decl = HTVariable(
-        id: id,
-        interpreter: i,
-        file: i.currentFile,
-        module: i.currentBytecodeModule.id,
-        closure: i.currentNamespace,
-        declType: ids[id],
-        value: initValue,
-        isPrivate: i.lexicon.isPrivate(id),
-        isMutable: isMutable,
-      );
-      i.currentNamespace
-          .define(id, decl, override: i.config.allowVariableShadowing);
-    }
-    isComplete = true;
-  }
-}
-
-class HTDeleteEval extends HTSubEvalFrame {
-  final int deletingType;
-  dynamic _object;
-
-  HTDeleteEval({required this.deletingType});
-
-  @override
-  void handleEndOfExec(HTInterpreter i) {
-    if (deletingType == HTDeletingTypeCode.member) {
-      final object = i.stack.pop();
-      if (object is HTStruct) {
-        final symbol = i.currentBytecodeModule.getConstString();
-        object.remove(symbol);
-      } else {
-        throw HTError.delete(
-            filename: i.currentFile,
-            line: i.currentLine,
-            column: i.currentColumn);
-      }
-      isComplete = true;
-    } else {
-      // sub
-      if (_object == null) {
-        _object = i.stack.pop();
-        // Not complete - main loop evaluates key next
-      } else {
-        final key = i.stack.pop().toString();
-        if (_object is HTStruct || _object is Map) {
-          _object.remove(key);
-        } else {
-          throw HTError.delete(
-              filename: i.currentFile,
-              line: i.currentLine,
-              column: i.currentColumn);
-        }
-        isComplete = true;
-      }
-    }
-  }
-}
-
-class HTSwitchEval extends HTSubEvalFrame {
-  final dynamic condition;
-  final bool hasCondition;
-  final int casesCount;
-  int caseIndex = 0;
-
-  HTSwitchEval({
-    required this.condition,
-    required this.hasCondition,
-    required this.casesCount,
-  });
-
-  @override
-  void handleEndOfExec(HTInterpreter i) {
-    final value = i.stack.pop();
-    final caseType = _currentCaseType;
-    bool matched = false;
-
-    if (caseType == HTSwitchCaseTypeCode.equals) {
-      if (hasCondition) {
-        matched = (condition is HTType && value is HTType)
-            ? condition.isA(value)
-            : condition == value;
-      } else {
-        matched = value == true;
-      }
-      if (!matched) {
-        i.currentBytecodeModule.skip(3); // skip jump to branch
-      }
-    } else if (caseType == HTSwitchCaseTypeCode.eigherEquals) {
-      // value list was already collected; check match
-      final values = _eitherValues ?? [value];
-      matched = (condition is HTType)
-          ? values.any((v) => v is HTType && condition.isA(v))
-          : values.contains(condition);
-      if (!matched) {
-        i.currentBytecodeModule.skip(3);
-      }
-    } else if (caseType == HTSwitchCaseTypeCode.elementIn) {
-      final Iterable iterable = value;
-      matched = (condition is HTType)
-          ? iterable.any((v) => v is HTType && condition.isA(v))
-          : iterable.contains(condition);
-      if (!matched) {
-        i.currentBytecodeModule.skip(3);
-      }
-    }
-
-    caseIndex++;
-    if (caseIndex >= casesCount || matched) {
-      isComplete = true;
-    }
-  }
-
-  // HACK: These are set by the switch handler before each case evaluation
-  int _currentCaseType = 0;
-  List<dynamic>? _eitherValues;
-
-  void startCase(int caseType) {
-    _currentCaseType = caseType;
-    _eitherValues = null;
-  }
-}
-
 class HTStackFrame {
   /// Operand stack — replaces the old localValue + registerValues design.
   final List<dynamic> operandStack = [];
-
-  /// Sub-expression evaluation frames — replaces recursive execute() calls.
-  final List<HTSubEvalFrame> subEvalFrames = [];
 
   String? localSymbol;
 
@@ -1629,9 +1206,9 @@ class HTInterpreter {
         case OpCode.lineInfo:
           _currentLine = _currentBytecodeModule.readUint16();
           _currentColumn = _currentBytecodeModule.readUint16();
-        // store a local value in interpreter
         case OpCode.local:
-          _storeLocal();
+          // store a local value in interpreter stack, this value will be cleared when encounter endOfStmt or endOfExec.
+          _pushStack();
         case OpCode.skip:
           final distance = _currentBytecodeModule.readInt16();
           _currentBytecodeModule.ip += distance;
@@ -1676,14 +1253,15 @@ class HTInterpreter {
           final distance = _currentBytecodeModule.readUint16();
           _currentBytecodeModule.ip = stack.anchors.last + distance;
         case OpCode.assertion:
-          final assertionValue = stack.pop() as bool;
           final text = _currentBytecodeModule.readUtf8String();
           final hasDescription = _currentBytecodeModule.readBool();
+          String? description;
           if (hasDescription) {
-            stack.subEvalFrames.add(
-                HTAssertionEval(assertionValue: assertionValue, text: text));
-          } else if (!assertionValue) {
-            throw HTError.assertionFailed('\'$text\', ');
+            description = _lexicon.stringify(stack.pop());
+          }
+          final assertionValue = stack.pop() as bool;
+          if (!assertionValue) {
+            throw HTError.assertionFailed('\'$text\', ${description ?? ''}');
           }
         case OpCode.throws:
           throw HTError.scriptThrows(_lexicon.stringify(stack.pop()));
@@ -1698,22 +1276,10 @@ class HTInterpreter {
         case OpCode.endOfStmt:
           _clearLocals();
         case OpCode.endOfExec:
-          if (stack.subEvalFrames.isNotEmpty) {
-            final frame = stack.subEvalFrames.last;
-            frame.handleEndOfExec(this);
-            if (frame.isComplete) stack.subEvalFrames.removeLast();
-            break; // Always continue main loop when frames were involved
-          }
           return stack.operandStack.isNotEmpty ? stack.operandStack.last : null;
         case OpCode.endOfFunc:
           stack.loops.clear();
           stack.anchors.clear();
-          if (stack.subEvalFrames.isNotEmpty) {
-            final frame = stack.subEvalFrames.last;
-            frame.handleEndOfExec(this);
-            if (frame.isComplete) stack.subEvalFrames.removeLast();
-            break;
-          }
           return stack.operandStack.isNotEmpty ? stack.operandStack.last : null;
         case OpCode.createStackFrame:
           _createStackFrame();
@@ -1882,23 +1448,43 @@ class HTInterpreter {
                 column: definitionColumn,
               );
             } else {
-              // Use SubEvalFrame to evaluate initializer inline
-              stack.subEvalFrames.add(HTVarDeclInitEval(
-                id: id,
-                classId: classId,
-                isPrivate: isPrivate,
-                isField: isField,
-                isExternal: isExternal,
-                isStatic: isStatic,
-                isMutable: isMutable,
-                isTopLevel: isTopLevel,
-                documentation: documentation,
-                declType: declType,
-                lateFinalize: lateFinalize,
-              ));
-              break; // Main loop evaluates initializer; endOfExec triggers frame
+              initValue = stack.pop();
+              if (!isField &&
+                  _isSimpleVariable(
+                      isMutable: isMutable,
+                      isExternal: isExternal,
+                      lateFinalize: lateFinalize)) {
+                currentNamespace.define(id, initValue,
+                    override: config.allowVariableShadowing);
+              } else {
+                decl = HTVariable(
+                  id: id,
+                  interpreter: this,
+                  file: _currentFile,
+                  module: _currentBytecodeModule.id,
+                  classId: classId,
+                  closure: currentNamespace,
+                  documentation: documentation,
+                  declType: declType,
+                  value: initValue,
+                  isPrivate: isPrivate,
+                  isExternal: isExternal,
+                  isStatic: isStatic,
+                  isMutable: isMutable,
+                  isField: isField,
+                );
+                if (!isField) {
+                  currentNamespace.define(id, decl,
+                      override: config.allowVariableShadowing);
+                }
+              }
+              if (config.allowInitializationExpresssionHaveValue) {
+                stack.push(initValue);
+              } else {
+                stack.push(null);
+              }
+              break;
             }
-            if (hasInitializer && !lateInitialize) break; // Frame handles rest
           } else {
             decl = HTVariable(
               id: id,
@@ -1968,9 +1554,28 @@ class HTInterpreter {
           if (deletingType == HTDeletingTypeCode.local) {
             final symbol = _currentBytecodeModule.getConstString();
             currentNamespace.delete(symbol);
-          } else {
-            stack.subEvalFrames.add(HTDeleteEval(deletingType: deletingType));
-            break; // Main loop evaluates object (and key for sub) inline
+          } else if (deletingType == HTDeletingTypeCode.member) {
+            final key = _currentBytecodeModule.getConstString();
+            final object = stack.pop();
+            if (object is HTStruct) {
+              object.remove(key);
+            } else {
+              throw HTError.delete(
+                  filename: _currentFile,
+                  line: _currentLine,
+                  column: _currentColumn);
+            }
+          } else if (deletingType == HTDeletingTypeCode.sub) {
+            final key = stack.pop().toString();
+            final object = stack.pop();
+            if (object is HTStruct || object is Map) {
+              object.remove(key);
+            } else {
+              throw HTError.delete(
+                  filename: _currentFile,
+                  line: _currentLine,
+                  column: _currentColumn);
+            }
           }
         case OpCode.ifStmt:
           final thenBranchLength = _currentBytecodeModule.readUint16();
@@ -2013,8 +1618,52 @@ class HTInterpreter {
             stack.loops.removeLast();
             _clearLocals();
           }
-        case OpCode.switchStmt:
-          _handleSwitch();
+        case OpCode.matchCase:
+          final skipDist = _currentBytecodeModule.readUint16();
+          final flags = _currentBytecodeModule.read();
+          final hasCondition = (flags & 0x80) != 0;
+          final caseKind = flags & 0x03;
+          int multipleEqualsCount = 0;
+          if (caseKind == HTSwitchCaseTypeCode.multipleEquals) {
+            multipleEqualsCount = _currentBytecodeModule.read();
+          }
+          bool matched = false;
+          if (caseKind == HTSwitchCaseTypeCode.equals) {
+            final value = stack.pop();
+            if (hasCondition) {
+              final condition = stack.operandStack.last; // now on top after pop
+              matched = (condition is HTType && value is HTType)
+                  ? condition.isA(value)
+                  : condition == value;
+            } else {
+              matched = truthy(value);
+            }
+          } else if (caseKind == HTSwitchCaseTypeCode.multipleEquals) {
+            final values = <dynamic>[];
+            for (var i = 0; i < multipleEqualsCount; i++) {
+              values.insert(0, stack.pop());
+            }
+            final condition = stack.operandStack.last; // peek after pops
+            matched = (condition is HTType)
+                ? values.any((v) => v is HTType && condition.isA(v))
+                : values.contains(condition);
+          } else if (caseKind == HTSwitchCaseTypeCode.elementIn) {
+            final Iterable value = stack.pop();
+            final condition = stack.operandStack.last; // peek after pop
+            matched = (condition is HTType)
+                ? value.any((v) => v is HTType && condition.isA(v))
+                : value.contains(condition);
+          }
+          if (matched && hasCondition) {
+            stack.operandStack.removeLast(); // pop condition
+          }
+          if (!matched) {
+            _currentBytecodeModule.skip(skipDist);
+          }
+
+        case OpCode.pop:
+          stack.pop();
+
         case OpCode.assign:
           stack.pop(); // discard left identifier result (old value / symbol)
           final value = stack.pop(); // the right-side value to assign
@@ -2369,18 +2018,50 @@ class HTInterpreter {
             }
           }
         case OpCode.call:
-          final callee = stack.pop();
-          final isNullable = _currentBytecodeModule.readBool();
-          final hasNewOperator = _currentBytecodeModule.readBool();
-          final hasObjectId = _currentBytecodeModule.readBool();
+          final flags = _currentBytecodeModule.read();
+          final isNullable = (flags & 1) != 0;
+          final hasNewOperator = (flags & 2) != 0;
+          final hasObjectId = (flags & 4) != 0;
           String? objectId;
           if (hasObjectId) {
             objectId = _currentBytecodeModule.readUtf8String();
           }
-          final argsBytesLength = _currentBytecodeModule.readUint16();
+          // Named args
+          final namedCount = _currentBytecodeModule.read();
+          final namedKeys = <String>[];
+          for (var i = 0; i < namedCount; i++) {
+            namedKeys.add(_currentBytecodeModule.getConstString());
+          }
+          final namedValues = <dynamic>[];
+          for (var i = 0; i < namedCount; i++) {
+            namedValues.insert(0, stack.pop());
+          }
+          final namedArgs = <String, dynamic>{};
+          for (var i = 0; i < namedCount; i++) {
+            namedArgs[namedKeys[i]] = namedValues[i];
+          }
+          // Positional args
+          final posCount = _currentBytecodeModule.read();
+          final posFlags = <int>[];
+          for (var i = 0; i < posCount; i++) {
+            posFlags.add(_currentBytecodeModule.read());
+          }
+          final posValues = <dynamic>[];
+          for (var i = 0; i < posCount; i++) {
+            posValues.insert(0, stack.pop());
+          }
+          final posArgs = <dynamic>[];
+          for (var i = 0; i < posCount; i++) {
+            if (posFlags[i] == 1) {
+              posArgs.addAll(posValues[i] as Iterable);
+            } else {
+              posArgs.add(posValues[i]);
+            }
+          }
+          // Callee
+          final callee = stack.pop();
           if (callee == null) {
             if (isNullable) {
-              _currentBytecodeModule.skip(argsBytesLength);
               stack.push(null);
               break;
             }
@@ -2390,36 +2071,114 @@ class HTInterpreter {
                 line: _currentLine,
                 column: _currentColumn);
           }
-          final positionalLength = _currentBytecodeModule.read();
-          if (positionalLength == 0) {
-            final namedLength = _currentBytecodeModule.read();
-            if (namedLength == 0) {
-              stack.push(_call(
-                callee,
-                calleeId: objectId,
-                isConstructorCall: hasNewOperator,
-              ));
-              break;
-            }
-            final frame = HTCallArgsEval(
-                callee: callee,
-                objectId: objectId,
-                hasNewOperator: hasNewOperator);
-            frame.namedLength = namedLength;
-            frame._phase = 1;
-            frame._currentNamedKey = _currentBytecodeModule.getConstString();
-            stack.localSymbol = frame._currentNamedKey;
-            stack.subEvalFrames.add(frame);
-            break;
+          stack.push(_call(
+            callee,
+            calleeId: objectId,
+            isConstructorCall: hasNewOperator,
+            positionalArgs: posArgs,
+            namedArgs: namedArgs,
+          ));
+          break;
+
+        case OpCode.makeList:
+          final itemCount = _currentBytecodeModule.readUint16();
+          final spreadFlags = <int>[];
+          for (var i = 0; i < itemCount; i++) {
+            spreadFlags.add(_currentBytecodeModule.read());
           }
-          final frame = HTCallArgsEval(
-            callee: callee,
-            objectId: objectId,
-            hasNewOperator: hasNewOperator,
-          );
-          frame.positionalLength = positionalLength;
-          frame._currentIsSpread = _currentBytecodeModule.readBool();
-          stack.subEvalFrames.add(frame);
+          final items = <dynamic>[];
+          for (var i = 0; i < itemCount; i++) {
+            items.insert(0, stack.pop());
+          }
+          final result = <dynamic>[];
+          for (var i = 0; i < itemCount; i++) {
+            if (spreadFlags[i] == 1) {
+              result.addAll(items[i] as Iterable);
+            } else {
+              result.add(items[i]);
+            }
+          }
+          stack.push(result);
+
+        case OpCode.makeTuple:
+          final count = _currentBytecodeModule.read();
+          final items = <dynamic>[];
+          for (var i = 0; i < count; i++) {
+            items.insert(0, stack.pop());
+          }
+          stack.push(items);
+
+        case OpCode.makeStruct:
+          final fieldCount = _currentBytecodeModule.read();
+          final fieldIsSpread = <bool>[];
+          final fieldKeys = <String?>[];
+          for (var i = 0; i < fieldCount; i++) {
+            final flags = _currentBytecodeModule.read();
+            final isSpread = (flags & 1) != 0;
+            fieldIsSpread.add(isSpread);
+            if (isSpread) {
+              fieldKeys.add(null);
+            } else {
+              fieldKeys.add(_currentBytecodeModule.getConstString());
+            }
+          }
+          final hasId = _currentBytecodeModule.readBool();
+          String? id;
+          if (hasId) {
+            id = _currentBytecodeModule.getConstString();
+          }
+          HTStruct? prototype;
+          final hasPrototypeId = _currentBytecodeModule.readBool();
+          if (hasPrototypeId) {
+            final prototypeId = _currentBytecodeModule.getConstString();
+            prototype = currentNamespace.memberGet(prototypeId,
+                from: currentNamespace.fullName, isRecursive: true);
+          }
+          final struct = HTStruct(this,
+              id: id,
+              prototype: prototype,
+              isPrototypeRoot: id == _lexicon.idGlobalPrototype,
+              closure: currentNamespace);
+          final values = <dynamic>[];
+          for (var i = 0; i < fieldCount; i++) {
+            values.insert(0, stack.pop());
+          }
+          for (var i = 0; i < fieldCount; i++) {
+            if (fieldIsSpread[i]) {
+              final value = values[i];
+              if (value is Map || value is HTStruct) {
+                for (final key in value.keys) {
+                  if (key.startsWith(_lexicon.internalPrefix)) continue;
+                  struct.define(key, toStructValue(value[key]));
+                }
+              } else {
+                throw HTError.notSpreadableObj(
+                  filename: _currentFile,
+                  line: _currentLine,
+                  column: _currentColumn,
+                );
+              }
+            } else {
+              struct.memberSet(fieldKeys[i]!, values[i]);
+            }
+          }
+          stack.push(struct);
+
+        case OpCode.makeString:
+          var literal = _currentBytecodeModule.readUtf8String();
+          final interpolationLength = _currentBytecodeModule.read();
+          final values = <dynamic>[];
+          for (var i = 0; i < interpolationLength; i++) {
+            values.insert(0, stack.pop());
+          }
+          for (var i = 0; i < interpolationLength; i++) {
+            literal = literal.replaceAll(
+              '${_lexicon.stringInterpolationStart}$i${_lexicon.stringInterpolationEnd}',
+              _lexicon.stringify(values[i]),
+            );
+          }
+          stack.push(literal);
+
         default:
           throw HTError.unknownOpCode(instruction,
               filename: _currentFile,
@@ -2535,7 +2294,7 @@ class HTInterpreter {
     }
   }
 
-  void _storeLocal() {
+  void _pushStack() {
     final valueType = _currentBytecodeModule.read();
     switch (valueType) {
       case HTValueTypeCode.nullValue:
@@ -2555,19 +2314,6 @@ class HTInterpreter {
         stack.push(_currentBytecodeModule.getGlobalConstant(String, index));
       case HTValueTypeCode.string:
         stack.push(_currentBytecodeModule.readUtf8String());
-      case HTValueTypeCode.stringInterpolation:
-        var literal = _currentBytecodeModule.readUtf8String();
-        final interpolationLength = _currentBytecodeModule.read();
-        if (interpolationLength > 0) {
-          stack.subEvalFrames.add(HTStringInterpEval(
-            literal: literal,
-            length: interpolationLength,
-            interpStart: _lexicon.stringInterpolationStart,
-            interpEnd: _lexicon.stringInterpolationEnd,
-          ));
-          return;
-        }
-        stack.push(literal);
       case HTValueTypeCode.identifier:
         final symbol =
             stack.localSymbol = _currentBytecodeModule.getConstString();
@@ -2588,49 +2334,6 @@ class HTInterpreter {
       //   }
       //   _curTypeArgs = typeArgs;
       // }
-      case HTValueTypeCode.group:
-        stack.subEvalFrames.add(HTGroupEval());
-        return;
-      case HTValueTypeCode.list:
-        final length = _currentBytecodeModule.readUint16();
-        if (length == 0) {
-          stack.push([]);
-          break;
-        }
-        final firstIsSpread = _currentBytecodeModule.readBool();
-        stack.subEvalFrames
-            .add(HTListEval(length: length, firstIsSpread: firstIsSpread));
-        return;
-      case HTValueTypeCode.struct:
-        String? id;
-        final hasId = _currentBytecodeModule.readBool();
-        if (hasId) {
-          id = _currentBytecodeModule.getConstString();
-        }
-        HTStruct? prototype;
-        final hasPrototypeId = _currentBytecodeModule.readBool();
-        if (hasPrototypeId) {
-          final prototypeId = _currentBytecodeModule.getConstString();
-          prototype = currentNamespace.memberGet(prototypeId,
-              from: currentNamespace.fullName, isRecursive: true);
-        }
-        final struct = HTStruct(this,
-            id: id,
-            prototype: prototype,
-            isPrototypeRoot: id == _lexicon.idGlobalPrototype,
-            closure: currentNamespace);
-        final fieldsCount = _currentBytecodeModule.read();
-        if (fieldsCount == 0) {
-          stack.push(struct);
-          break;
-        }
-        final frame = HTStructEval(struct: struct, fieldsCount: fieldsCount);
-        frame._currentIsSpread = _currentBytecodeModule.readBool();
-        if (!frame._currentIsSpread) {
-          frame._currentKey = _currentBytecodeModule.getConstString();
-        }
-        stack.subEvalFrames.add(frame);
-        return;
       // case HTValueTypeCode.map:
       //   final map = {};
       //   final length = _curLibrary.readUint16();
@@ -2719,65 +2422,6 @@ class HTInterpreter {
           line: _currentLine,
           column: _currentColumn,
         );
-    }
-  }
-
-  void _handleSwitch() {
-    var condition = stack.pop();
-    final hasCondition = _currentBytecodeModule.readBool();
-    final casesCount = _currentBytecodeModule.read();
-    for (var i = 0; i < casesCount; ++i) {
-      final caseType = _currentBytecodeModule.read();
-      // If condition expression is provided,
-      // jump to the first case branch where its value equals condition.
-      // If condition expression is not provided,
-      // jump to the first case branch where its value is true.
-      // If no case branch matches condition and else branch is provided,
-      // will jump to else branch.
-      if (caseType == HTSwitchCaseTypeCode.equals) {
-        final value = execute(createStackFrame: false, propagateValue: false);
-        stack.pop(); // consume value from operand stack
-        if (hasCondition) {
-          final matched = (condition is HTType && value is HTType)
-              ? condition.isA(value)
-              : condition == value;
-          if (matched) {
-            break;
-          }
-        } else if (value) {
-          break;
-        }
-        _currentBytecodeModule.skip(3);
-      } else if (caseType == HTSwitchCaseTypeCode.eigherEquals) {
-        assert(hasCondition);
-        final count = _currentBytecodeModule.read();
-        final values = [];
-        for (var i = 0; i < count; ++i) {
-          values.add(execute(createStackFrame: false, propagateValue: false));
-          stack.pop(); // consume each value from operand stack
-        }
-        final matched = (condition is HTType)
-            ? values.any((v) => v is HTType && condition.isA(v))
-            : values.contains(condition);
-        if (matched) {
-          break;
-        } else {
-          _currentBytecodeModule.skip(3);
-        }
-      } else if (caseType == HTSwitchCaseTypeCode.elementIn) {
-        assert(hasCondition);
-        final Iterable value =
-            execute(createStackFrame: false, propagateValue: false);
-        stack.pop(); // consume value from operand stack
-        final matched = (condition is HTType)
-            ? value.any((v) => v is HTType && condition.isA(v))
-            : value.contains(condition);
-        if (matched) {
-          break;
-        } else {
-          _currentBytecodeModule.skip(3);
-        }
-      }
     }
   }
 
@@ -2986,9 +2630,34 @@ class HTInterpreter {
     }
     final isVector = _currentBytecodeModule.readBool();
     final isMutable = _currentBytecodeModule.readBool();
-    stack.subEvalFrames.add(HTDestructuringEval(
-        ids: ids, isVector: isVector, isMutable: isMutable));
-    // Main loop evaluates collection; endOfExec triggers frame
+    final collection = stack.pop();
+    for (var idx = 0; idx < ids.length; ++idx) {
+      var id = ids.keys.elementAt(idx);
+      dynamic initValue;
+      if (isVector) {
+        if (id.startsWith(omittedPrefix)) continue;
+        initValue = (collection as Iterable).elementAt(idx);
+      } else {
+        if (collection is HTObject) {
+          initValue = collection.memberGet(id);
+        } else {
+          initValue = collection[id];
+        }
+      }
+      final decl = HTVariable(
+        id: id,
+        interpreter: this,
+        file: _currentFile,
+        module: _currentBytecodeModule.id,
+        closure: currentNamespace,
+        declType: ids[id],
+        value: initValue,
+        isPrivate: _lexicon.isPrivate(id),
+        isMutable: isMutable,
+      );
+      currentNamespace.define(id, decl,
+          override: config.allowVariableShadowing);
+    }
   }
 
   Map<String, HTParameter> _getParams(int paramDeclsLength) {
