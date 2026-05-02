@@ -185,5 +185,134 @@ void main() {
       ''');
       expect(result, 42);
     });
+
+    test('call struct constructor within another struct constructor', () {
+      final obj = hetu.eval(r'''
+        struct Tile {
+          var left
+          var right
+
+          constructor (left, right) {
+            this.left = left
+            this.right = right
+          }
+        }
+
+        struct Test {
+          constructor (left, right) {
+            Object.assign(this, Tile(left, right))
+          }
+        }
+
+        let t1 = Test(1, 2)
+        t1
+      ''');
+      expect(obj['left'], 1);
+      expect(obj['right'], 2);
+    });
+
+    test('nested constructor calls within constructor body', () {
+      final result = hetu.eval(r'''
+        struct Inner {
+          var value
+
+          constructor (value) {
+            this.value = value
+          }
+        }
+
+        struct Middle {
+          var inner
+
+          constructor (value) {
+            this.inner = Inner(value)
+          }
+        }
+
+        struct Outer {
+          var middle
+
+          constructor (value) {
+            this.middle = Middle(value)
+          }
+        }
+
+        let o1 = Outer(42)
+        o1.middle.inner.value
+      ''');
+      expect(result, 42);
+    });
+
+    test('constructor with multiple Object.assign calls', () {
+      final c1 = hetu.eval(r'''
+        struct A {
+          var a
+
+          constructor (a) {
+            this.a = a
+          }
+        }
+
+        struct B {
+          var b
+
+          constructor (b) {
+            this.b = b
+          }
+        }
+
+        struct C {
+          constructor (a, b) {
+            Object.assign(this, A(a))
+            Object.assign(this, B(b))
+          }
+        }
+
+        let c1 = C(1, 2)
+        c1
+      ''');
+      expect(c1['a'], 1);
+      expect(c1['b'], 2);
+    });
+
+    test('constructor return value is instance not last expression', () {
+      final f = hetu.eval(r'''
+        struct Foo {
+          var x
+          var y
+
+          constructor (a, b) {
+            this.x = a
+            this.y = b
+          }
+        }
+
+        let f1 = Foo('hello', 'world')
+        f1
+      ''');
+      expect(f['x'], 'hello');
+      expect(f['y'], 'world');
+    });
+
+    test('constructor call as argument to function', () {
+      final result = hetu.eval(r'''
+        struct Point {
+          var x
+          var y
+
+          constructor (x, y) {
+            this.x = x
+            this.y = y
+          }
+        }
+
+        function getX(pt) {
+          return pt.x
+        }
+
+        getX(Point(10, 20))
+      ''');
+      expect(result, 10);
+    });
   });
 }

@@ -567,6 +567,7 @@ class HTFunction extends HTFunctionDeclaration
             for (final name in referCtorNamedArgIps.keys) {
               final referCtorNamedArgIp = referCtorNamedArgIps[name]!;
               final arg = interpreter.execute(
+                propagateValue: false,
                 context: HTContext(
                     file: file,
                     module: module,
@@ -595,6 +596,7 @@ class HTFunction extends HTFunctionDeclaration
 
         if (category != FunctionCategory.constructor) {
           result = interpreter.execute(
+            propagateValue: false,
             context: HTContext(
               file: file,
               module: module,
@@ -603,11 +605,10 @@ class HTFunction extends HTFunctionDeclaration
               line: line,
               column: column,
             ),
-            propagateValue:
-                false, // Result returned directly, don't push to parent
           );
         } else {
           interpreter.execute(
+            propagateValue: false,
             context: HTContext(
               file: file,
               module: module,

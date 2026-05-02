@@ -6,7 +6,24 @@ void main() async {
   hetu.init();
 
   var r = hetu.eval(r'''
-    assert(true, 'message')
+    struct Tile {
+      var left
+      var right
+
+      constructor (left, right) {
+        this.left = left
+        this.right = right
+      }
+    }
+
+    struct Test {
+      constructor (left, right) {
+        Object.assign(this, Tile(left, right))
+      }
+    }
+
+    let obj = Test(1, 2)
+    obj
 ''');
 
   if (r is Future) {

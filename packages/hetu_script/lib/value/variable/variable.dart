@@ -95,7 +95,11 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
       _value = null;
     }
 
-    if (isMutable && !isExternal && !isConst && !lateFinalize && classId == null) {
+    if (isMutable &&
+        !isExternal &&
+        !isConst &&
+        !lateFinalize &&
+        classId == null) {
       _closure.symbols[id!] = _value;
     }
   }
@@ -150,44 +154,6 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
         resolveType:
             resolveType || interpreter.config.checkTypeAnnotationAtRuntime);
   }
-
-  // dynamic _computeValue(dynamic value, HTType type) {
-  //   final resolvedType = type.isResolved ? type : type.resolve(interpreter);
-  //   if (resolvedType is HTNominalType && value is Map) {
-  //     return resolvedType.klass.createInstanceFromJson(value);
-  //   }
-  //   // basically doing a type erasure here.
-  //   if ((value is List) &&
-  //       (type.id == HTLexicon.list) &&
-  //       (type.typeArgs.isNotEmpty)) {
-  //     final computedValueList = [];
-  //     for (final item in value) {
-  //       final computedValue = _computeValue(item, type.typeArgs.first);
-  //       computedValueList.add(computedValue);
-  //     }
-  //     return computedValueList;
-  //   } else if ((value is Map) &&
-  //       (type.id == HTLexicon.map) &&
-  //       (type.typeArgs.length >= 2)) {
-  //     final mapValueTypeResolveResult = type.typeArgs[1].resolve(interpreter);
-  //     if (mapValueTypeResolveResult is HTNominalType) {
-  //       final computedValueMap = {};
-  //       for (final entry in value.entries) {
-  //         final computedValue = mapValueTypeResolveResult.klass
-  //             .createInstanceFromJson(entry.value);
-  //         computedValueMap[entry.key] = computedValue;
-  //       }
-  //       return computedValueMap;
-  //     }
-  //   } else {
-  //     final encapsulation = interpreter.encapsulate(value);
-  //     final valueType = encapsulation.valueType;
-  //     if (valueType.isNotA(resolvedType)) {
-  //       throw HTError.type(id, valueType.toString(), type.toString());
-  //     }
-  //     return value;
-  //   }
-  // }
 
   @override
   HTVariable clone() => HTVariable(
