@@ -1255,11 +1255,11 @@ class HTInterpreter {
         case OpCode.assertion:
           final text = _currentBytecodeModule.readUtf8String();
           final hasDescription = _currentBytecodeModule.readBool();
+          final assertionValue = stack.pop() as bool;
           String? description;
           if (hasDescription) {
             description = _lexicon.stringify(stack.pop());
           }
-          final assertionValue = stack.pop() as bool;
           if (!assertionValue) {
             throw HTError.assertionFailed('\'$text\', ${description ?? ''}');
           }

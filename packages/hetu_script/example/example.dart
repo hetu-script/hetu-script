@@ -9,7 +9,7 @@ void main() {
       external function hello
       var dartValue = hello()
       dartValue['reply'] = 'Hi, this is Hetu.'
-      dartValue // the script will return the value of it's last expression
+      dartValue // the script will return the value if it's the last expression
       ''');
 
   print('hetu value: $hetuValue');

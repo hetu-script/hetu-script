@@ -1,18 +1,18 @@
 import 'package:hetu_script/hetu_script.dart';
 
-void main() {
+void main() async {
   final hetu = Hetu();
 
   hetu.init();
 
-  hetu.eval(r'''
-    class A {
-      constructor () {
-        print('a')
-      }
-    }
-
-    let a = A()
-    a
+  var r = hetu.eval(r'''
+    assert(true, 'message')
 ''');
+
+  if (r is Future) {
+    print('wait for async function...');
+    r = await r;
+  }
+
+  print(hetu.stringify(r));
 }

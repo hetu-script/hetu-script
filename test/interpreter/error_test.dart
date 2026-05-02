@@ -52,6 +52,21 @@ void main() {
       ''');
       expect(result, 42);
     });
+
+    test('assert with message success', () {
+      final result = hetu.eval(r'''
+        assert(true, 'should be true')
+        42
+      ''');
+      expect(result, 42);
+    });
+
+    test('assert with message failure includes message', () {
+      expect(
+        () => hetu.eval(r''' assert(false, 'expected true') '''),
+        throwsA(isA<HTError>()),
+      );
+    });
   });
 
   group('undefined variable -', () {
