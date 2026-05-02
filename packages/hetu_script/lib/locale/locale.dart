@@ -177,6 +177,7 @@ abstract class HTLocale {
   String get errorGetterParam;
   String get errorStructMemberId;
   String get errorIfBlock;
+  String get errorAsyncConstructor;
 
   // compile time errors
   String get errorDefined;

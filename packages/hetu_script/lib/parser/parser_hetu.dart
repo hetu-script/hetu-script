@@ -108,8 +108,24 @@ class HTParserHetu extends HTParser {
                 offset: errToken.offset);
           } else if (curTok.lexeme == lexer.lexicon.kAsync) {
             advance();
-            stmt = _parseFunction(
-                isAsync: true, isExternal: true, isTopLevel: true);
+            if (lexer.lexicon.kConstructors.contains(curTok.lexeme)) {
+              final err = HTError.asyncConstructor(
+                  filename: currrentFileName,
+                  line: curTok.line,
+                  column: curTok.column,
+                  offset: curTok.offset,
+                  length: curTok.length);
+              errors.add(err);
+              final errToken = advance();
+              stmt = ASTEmptyLine(
+                  source: currentSource,
+                  line: errToken.line,
+                  column: errToken.column,
+                  offset: errToken.offset);
+            } else {
+              stmt = _parseFunction(
+                  isAsync: true, isExternal: true, isTopLevel: true);
+            }
           } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
             stmt = _parseFunction(isExternal: true, isTopLevel: true);
           } else {
@@ -164,7 +180,23 @@ class HTParserHetu extends HTParser {
           stmt = _parseVarDecl(lateFinalize: true, isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
-          stmt = _parseFunction(isAsync: true, isTopLevel: true);
+          if (lexer.lexicon.kConstructors.contains(curTok.lexeme)) {
+            final err = HTError.asyncConstructor(
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
+          } else {
+            stmt = _parseFunction(isAsync: true, isTopLevel: true);
+          }
         } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
           stmt = _parseFunction(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kStruct) {
@@ -282,7 +314,23 @@ class HTParserHetu extends HTParser {
           );
         } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
-          stmt = _parseFunction(isAsync: true, isTopLevel: true);
+          if (lexer.lexicon.kConstructors.contains(curTok.lexeme)) {
+            final err = HTError.asyncConstructor(
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
+          } else {
+            stmt = _parseFunction(isAsync: true, isTopLevel: true);
+          }
         } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
           stmt = _parseFunction(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kStruct) {
@@ -337,7 +385,23 @@ class HTParserHetu extends HTParser {
           // } else
           if (curTok.lexeme == lexer.lexicon.kAsync) {
             advance();
-            stmt = _parseFunction(isAsync: true, isExternal: true);
+            if (lexer.lexicon.kConstructors.contains(curTok.lexeme)) {
+              final err = HTError.asyncConstructor(
+                  filename: currrentFileName,
+                  line: curTok.line,
+                  column: curTok.column,
+                  offset: curTok.offset,
+                  length: curTok.length);
+              errors.add(err);
+              final errToken = advance();
+              stmt = ASTEmptyLine(
+                  source: currentSource,
+                  line: errToken.line,
+                  column: errToken.column,
+                  offset: errToken.offset);
+            } else {
+              stmt = _parseFunction(isAsync: true, isExternal: true);
+            }
           } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
             stmt = _parseFunction(isExternal: true);
           }
@@ -497,14 +561,30 @@ class HTParserHetu extends HTParser {
           }
         } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
-          stmt = _parseFunction(
-            // category: FunctionCategory.method,
-            classId: _currentClassDeclaration?.id,
-            isAsync: true,
-            // isOverrided: isOverrided,
-            isExternal: isExternal,
-            isStatic: isStatic,
-          );
+          if (lexer.lexicon.kConstructors.contains(curTok.lexeme)) {
+            final err = HTError.asyncConstructor(
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
+          } else {
+            stmt = _parseFunction(
+              // category: FunctionCategory.method,
+              classId: _currentClassDeclaration?.id,
+              isAsync: true,
+              // isOverrided: isOverrided,
+              isExternal: isExternal,
+              isStatic: isStatic,
+            );
+          }
         } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
           stmt = _parseFunction(
               // category: FunctionCategory.method,
@@ -639,14 +719,30 @@ class HTParserHetu extends HTParser {
           );
         } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
-          stmt = _parseFunction(
-            // category: FunctionCategory.method,
-            classId: _currentStructId,
-            isAsync: true,
-            isExternal: isExternal,
-            isStatic: isStatic,
-            isField: true,
-          );
+          if (lexer.lexicon.kConstructors.contains(curTok.lexeme)) {
+            final err = HTError.asyncConstructor(
+                filename: currrentFileName,
+                line: curTok.line,
+                column: curTok.column,
+                offset: curTok.offset,
+                length: curTok.length);
+            errors.add(err);
+            final errToken = advance();
+            stmt = ASTEmptyLine(
+                source: currentSource,
+                line: errToken.line,
+                column: errToken.column,
+                offset: errToken.offset);
+          } else {
+            stmt = _parseFunction(
+              // category: FunctionCategory.method,
+              classId: _currentStructId,
+              isAsync: true,
+              isExternal: isExternal,
+              isStatic: isStatic,
+              isField: true,
+            );
+          }
         } else if (lexer.lexicon.kFunctions.contains(curTok.lexeme)) {
           stmt = _parseFunction(
             // category: FunctionCategory.method,
@@ -2951,6 +3047,15 @@ class HTParserHetu extends HTParser {
         _hasUserDefinedConstructor = true;
         if (curTok is TokenIdentifier) {
           id = advance();
+          if (id.lexeme == lexer.lexicon.kAsync) {
+            final err = HTError.asyncConstructor(
+                filename: currrentFileName,
+                line: id.line,
+                column: id.column,
+                offset: id.offset,
+                length: id.length);
+            errors.add(err);
+          }
         }
         internalName = (id == null)
             ? InternalIdentifier.defaultConstructor

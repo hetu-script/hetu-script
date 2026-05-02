@@ -340,6 +340,9 @@ class HTLocaleEnglish implements HTLocale {
   @override
   String get errorIfBlock =>
       'If statement then and else should be both expression or both block';
+  @override
+  String get errorAsyncConstructor =>
+      'Constructor cannot be async. Consider using a normal async method instead.';
 
   // compile time errors
   @override

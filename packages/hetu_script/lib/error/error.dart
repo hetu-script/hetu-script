@@ -40,6 +40,7 @@ enum HTErrorCode {
   getterParam,
   structMemberId,
   ifBlock,
+  asyncConstructor,
 
   defined,
   outsideThis,
@@ -834,6 +835,25 @@ class HTError {
       int? length})
       : this(HTErrorCode.awaitExpression, HTErrorType.syntacticError,
             message: HTLocale.current.errorAwaitExpression,
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Constructor cannot be async.
+  HTError.asyncConstructor(
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(HTErrorCode.asyncConstructor, HTErrorType.syntacticError,
+            message: HTLocale.current.errorAsyncConstructor,
             extra: extra,
             correction: correction,
             filename: filename,

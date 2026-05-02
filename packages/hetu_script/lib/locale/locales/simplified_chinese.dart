@@ -331,6 +331,8 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   String get errorStructMemberId => '对象的 key 只能是字符串或者标识符，但实际的类型是 [{0}]。';
   @override
   String get errorIfBlock => 'If 语句的两个分支必须同为表达式或者同为块。';
+  @override
+  String get errorAsyncConstructor => '构造函数不能是 async。请改用普通的异步方法实现。';
 
   // compile time errors
   @override
