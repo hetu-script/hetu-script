@@ -5,31 +5,24 @@ void main() async {
 
   hetu.init();
 
-  var r = hetu.eval(r'''
-    struct Tile {
-      var left
-      var right
+  // var r =
+  hetu.eval(r'''
+    fun test1 ({arg1 = true}) {
 
-      constructor (left, right) {
-        this.left = left
-        this.right = right
-      }
     }
 
-    struct Test {
-      constructor (left, right) {
-        Object.assign(this, Tile(left, right))
-      }
+    fun arg1 ( ) {
+      print('arg1 called!');
     }
+  ''');
 
-    let obj = Test(1, 2)
-    obj
-''');
+  hetu.invoke('test1');
+  hetu.invoke('arg1');
 
-  if (r is Future) {
-    print('wait for async function...');
-    r = await r;
-  }
+  // if (r is Future) {
+  //   print('wait for async function...');
+  //   r = await r;
+  // }
 
-  print(hetu.stringify(r));
+  // print(hetu.stringify(r));
 }

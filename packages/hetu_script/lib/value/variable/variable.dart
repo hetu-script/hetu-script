@@ -95,11 +95,13 @@ class HTVariable extends HTVariableDeclaration with InterpreterRef, GotoInfo {
       _value = null;
     }
 
+    // optimize variable access by storing the value directly in the namespace
     if (isMutable &&
         !isExternal &&
         !isConst &&
         !lateFinalize &&
-        classId == null) {
+        classId == null &&
+        identical(_closure.symbols[id!], this)) {
       _closure.symbols[id!] = _value;
     }
   }
