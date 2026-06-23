@@ -1,7 +1,7 @@
 import 'package:hetu_script/hetu_script.dart';
 
 void ext({positionalArgs, namedArgs}) {
-  throw 'an error occured';
+  throw 'an error occurred';
 }
 
 void main() {
