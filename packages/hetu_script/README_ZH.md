@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://hetu.dev">
-    <img alt="hetu script" width="200px" src="https://hetu.dev/image/hetu-logo-large.png">
+    <img alt="hetu script" width="200px" src="https://hetu-script.github.io/image/hetu-logo-large.png">
   </a>
   <h1 align="center">河图脚本语言</h1>
 </p>
