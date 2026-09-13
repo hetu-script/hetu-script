@@ -46,6 +46,7 @@ enum HTErrorCode {
   outsideThis,
   notMember,
   notClass,
+  notNamespace,
   abstracted,
   abstractFunction,
   interfaceCtor,
@@ -994,6 +995,26 @@ class HTError {
       int? length})
       : this(HTErrorCode.notClass, HTErrorType.compileTimeError,
             message: HTLocale.current.errorNotClass,
+            interpolations: [id],
+            extra: extra,
+            correction: correction,
+            filename: filename,
+            line: line,
+            column: column,
+            offset: offset,
+            length: length);
+
+  /// Error: Symbol is not a namespace name.
+  HTError.notNamespace(String id,
+      {String? extra,
+      String? correction,
+      String? filename,
+      int? line,
+      int? column,
+      int? offset,
+      int? length})
+      : this(HTErrorCode.notNamespace, HTErrorType.compileTimeError,
+            message: HTLocale.current.errorNotNamespace,
             interpolations: [id],
             extra: extra,
             correction: correction,

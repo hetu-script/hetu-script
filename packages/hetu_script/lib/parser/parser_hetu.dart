@@ -79,6 +79,8 @@ class HTParserHetu extends HTParser {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
           stmt = _parseExplicitNamespaceDecl(isTopLevel: true);
+        } else if (curTok.lexeme == lexer.lexicon.kExtension) {
+          stmt = _parseExtensionDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kAssert) {
           stmt = _parseAssertStmt();
         } else if (curTok.lexeme == lexer.lexicon.kExternal) {
@@ -228,6 +230,8 @@ class HTParserHetu extends HTParser {
           stmt = _parseTypeAliasDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
           stmt = _parseExplicitNamespaceDecl(isTopLevel: true);
+        } else if (curTok.lexeme == lexer.lexicon.kExtension) {
+          stmt = _parseExtensionDecl(isTopLevel: true);
         } else if (curTok.lexeme == lexer.lexicon.kExternal) {
           advance();
           if (curTok.lexeme == lexer.lexicon.kAbstract) {
@@ -356,6 +360,8 @@ class HTParserHetu extends HTParser {
           stmt = _parseTypeAliasDecl();
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
           stmt = _parseExplicitNamespaceDecl();
+        } else if (curTok.lexeme == lexer.lexicon.kExtension) {
+          stmt = _parseExtensionDecl();
         } else if (curTok.lexeme == lexer.lexicon.kExternal) {
           advance();
           // if (curTok.lexeme == lexer.lexicon.kAbstract) {
@@ -853,6 +859,8 @@ class HTParserHetu extends HTParser {
           stmt = _parseTypeAliasDecl();
         } else if (curTok.lexeme == lexer.lexicon.kNamespace) {
           stmt = _parseExplicitNamespaceDecl();
+        } else if (curTok.lexeme == lexer.lexicon.kExtension) {
+          stmt = _parseExtensionDecl();
         } else if (curTok.lexeme == lexer.lexicon.kAssert) {
           stmt = _parseAssertStmt();
         } else if (curTok.lexeme == lexer.lexicon.kAbstract) {
@@ -2814,6 +2822,62 @@ class HTParserHetu extends HTParser {
       definition,
       classId: _currentClassDeclaration?.id,
       isPrivate: lexer.lexicon.isPrivate(id.id),
+      isTopLevel: isTopLevel,
+      source: currentSource,
+      line: keyword.line,
+      column: keyword.column,
+      offset: keyword.offset,
+      length: curTok.end - keyword.offset,
+    );
+  }
+
+  ExtensionDecl _parseExtensionDecl({bool isTopLevel = false}) {
+    final keyword = advance();
+    final kindTok = advance();
+    var targetKind = ExtensionTargetKind.namespace;
+    if (kindTok.lexeme == lexer.lexicon.kNamespace) {
+      targetKind = ExtensionTargetKind.namespace;
+    } else {
+      final err = HTError.unexpected(
+          InternalIdentifier.extensionDeclaration, lexer.lexicon.kNamespace,
+          kindTok.lexeme,
+          filename: currrentFileName,
+          line: kindTok.line,
+          column: kindTok.column,
+          offset: kindTok.offset,
+          length: kindTok.length);
+      errors.add(err);
+    }
+    final idTok = matchId();
+    final id = IdentifierExpr.fromToken(idTok, source: currentSource);
+    final savedCurrentExplicitNamespaceId = _currentExplicitNamespaceId;
+    _currentExplicitNamespaceId = idTok.lexeme;
+    final definition = _parseBlockStmt(
+      id: id.id,
+      sourceType: ParseStyle.explicitNamespace,
+      isScriptBlock: false,
+      blockStartMark: lexer.lexicon.namespaceStart,
+    );
+    _currentExplicitNamespaceId = savedCurrentExplicitNamespaceId;
+    // only function declarations are allowed in an extension block
+    for (final stmt in definition.statements) {
+      if (stmt is! FuncDecl && stmt is! ASTEmptyLine) {
+        final err = HTError.unexpected(
+            InternalIdentifier.extensionDeclaration,
+            HTLocale.current.functionDeclaration,
+            stmt.type,
+            filename: currrentFileName,
+            line: stmt.line,
+            column: stmt.column,
+            offset: stmt.offset,
+            length: stmt.length);
+        errors.add(err);
+      }
+    }
+    return ExtensionDecl(
+      targetKind,
+      id,
+      definition,
       isTopLevel: isTopLevel,
       source: currentSource,
       line: keyword.line,

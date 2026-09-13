@@ -1587,6 +1587,18 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   }
 
   @override
+  Uint8List visitExtensionDecl(ExtensionDecl stmt) {
+    final bytesBuilder = BytesBuilder();
+    bytesBuilder.addByte(OpCode.extensionDecl);
+    bytesBuilder.addByte(stmt.targetKind.index);
+    bytesBuilder.add(_identifier(stmt.id.id));
+    final bytes = visitBlockStmt(stmt.definition);
+    bytesBuilder.add(bytes);
+    bytesBuilder.addByte(OpCode.extensionDeclEnd);
+    return bytesBuilder.toBytes();
+  }
+
+  @override
   Uint8List visitTypeAliasDecl(TypeAliasDecl stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.addByte(OpCode.typeAliasDecl);

@@ -347,6 +347,8 @@ class HTLocaleSimplifiedChinese implements HTLocale {
   @override
   String get errorNotClass => '[{0}] 不是一个类。';
   @override
+  String get errorNotNamespace => '[{0}] 不是一个命名空间。';
+  @override
   String get errorAbstracted => '不能从抽象类 [{0}] 创建实例。';
   @override
   String get errorAbstractFunction => '不能调用函数 [{0}]，该函数是抽象函数，或者没有定义函数体。';

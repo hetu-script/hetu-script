@@ -195,6 +195,10 @@ class HTInterpreter {
 
   late HTNamespace currentNamespace;
 
+  /// Saved enclosing namespaces while executing extension blocks,
+  /// so that [OpCode.extensionDeclEnd] can restore the definition context.
+  final _extensionContextStack = <HTNamespace>[];
+
   String _currentFile = '';
   String get currentFile => _currentFile;
   late HTResourceType _currentFileResourceType;
@@ -999,6 +1003,7 @@ class HTInterpreter {
   }) {
     try {
       this.globallyImport = globallyImport;
+      _extensionContextStack.clear();
 
       if (cachedModules.containsKey(module)) {
         _currentBytecodeModule = cachedModules[module]!;
@@ -1549,6 +1554,53 @@ class HTInterpreter {
           currentNamespace = nsp.closure!;
           assert(nsp.id != null);
           currentNamespace.define(nsp.id!, nsp);
+        case OpCode.extensionDecl:
+          final targetKind = _currentBytecodeModule.read();
+          final id = _currentBytecodeModule.getConstString();
+          var target = currentNamespace.memberGet(
+            id,
+            from: currentNamespace.fullName,
+            isRecursive: true,
+            ignoreUndefined: true,
+            asDeclaration: true,
+          );
+          if (target == null && currentNamespace.imports.isNotEmpty) {
+            // Imports of a module file are normally resolved at endOfModule.
+            // Eagerly resolve the already-loaded ones so that an extension
+            // block can see symbols from its import declarations.
+            for (final decl in currentNamespace.imports.values.toList()) {
+              if (_currentBytecodeModule.namespaces
+                  .containsKey(decl.fromPath)) {
+                _handleNamespaceImport(currentNamespace, decl);
+                currentNamespace.imports.remove(decl.fromPath);
+              }
+            }
+            target = currentNamespace.memberGet(
+              id,
+              from: currentNamespace.fullName,
+              isRecursive: true,
+              ignoreUndefined: true,
+              asDeclaration: true,
+            );
+          }
+          if (target == null) {
+            throw HTError.undefined(id,
+                filename: _currentFile,
+                line: _currentLine,
+                column: _currentColumn);
+          }
+          if (targetKind != HTExtensionTargetKindCode.namespace ||
+              target is! HTNamespace) {
+            throw HTError.notNamespace(id,
+                filename: _currentFile,
+                line: _currentLine,
+                column: _currentColumn);
+          }
+          _extensionContextStack.add(currentNamespace);
+          currentNamespace = target;
+        case OpCode.extensionDeclEnd:
+          stack.push(null);
+          currentNamespace = _extensionContextStack.removeLast();
         case OpCode.delete:
           final deletingType = _currentBytecodeModule.read();
           if (deletingType == HTDeletingTypeCode.local) {
@@ -2078,7 +2130,6 @@ class HTInterpreter {
             positionalArgs: posArgs,
             namedArgs: namedArgs,
           ));
-          break;
 
         case OpCode.makeList:
           final itemCount = _currentBytecodeModule.readUint16();

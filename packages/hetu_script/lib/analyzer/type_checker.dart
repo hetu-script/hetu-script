@@ -269,6 +269,11 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
   }
 
   @override
+  HTType visitExtensionDecl(ExtensionDecl node) {
+    return HTTypeAny(_lexicon.kAny);
+  }
+
+  @override
   HTType visitTypeAliasDecl(TypeAliasDecl node) {
     return HTTypeAny(_lexicon.kAny);
   }

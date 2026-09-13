@@ -92,6 +92,7 @@ base class InternalIdentifier {
   static const importStatement = 'importStatement';
 
   static const namespaceDeclaration = 'namespaceDeclaration';
+  static const extensionDeclaration = 'extensionDeclaration';
   static const typeAliasDeclaration = 'typeAliasDeclaration';
   static const constantDeclaration = 'constantDeclaration';
   static const variableDeclaration = 'variableDeclaration';

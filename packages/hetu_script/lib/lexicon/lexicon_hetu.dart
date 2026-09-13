@@ -161,6 +161,9 @@ class HTLexiconHetu extends HTLexicon {
   String get kNamespace => 'namespace';
 
   @override
+  String get kExtension => 'extension';
+
+  @override
   String get kClass => 'class';
 
   @override

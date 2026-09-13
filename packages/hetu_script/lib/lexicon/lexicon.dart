@@ -197,6 +197,7 @@ abstract class HTLexicon {
   String get kAssert;
   String get kAs;
   String get kNamespace;
+  String get kExtension;
   String get kClass;
   String get kEnum;
 

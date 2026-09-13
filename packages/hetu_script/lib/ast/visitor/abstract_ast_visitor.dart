@@ -108,6 +108,8 @@ abstract class AbstractASTVisitor<T> {
 
   T? visitNamespaceDecl(NamespaceDecl node) {}
 
+  T? visitExtensionDecl(ExtensionDecl node) {}
+
   T? visitTypeAliasDecl(TypeAliasDecl node) {}
 
   // T? visitConstDecl(ConstDecl node) {}

@@ -41,6 +41,8 @@ abstract class OpCode {
   static const namespaceDeclEnd = 42;
   static const classDecl = 43;
   static const classDeclEnd = 44;
+  static const extensionDecl = 45;
+  static const extensionDeclEnd = 46;
 
   static const delete = 49;
 
@@ -138,6 +140,14 @@ abstract class HTSwitchCaseTypeCode {
   static const equals = 0;
   static const multipleEquals = 1;
   static const elementIn = 2;
+}
+
+/// Following [OpCode.extensionDecl], tells the extension target kind,
+/// mirrors the order of `ExtensionTargetKind` in ast.dart.
+abstract class HTExtensionTargetKindCode {
+  static const namespace = 0;
+  static const classType = 1;
+  static const structType = 2;
 }
 
 abstract class HTListItemTypeCode {

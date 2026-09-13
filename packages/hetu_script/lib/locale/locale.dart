@@ -185,6 +185,7 @@ abstract class HTLocale {
   String get errorOutsideThis;
   String get errorNotMember;
   String get errorNotClass;
+  String get errorNotNamespace;
   String get errorAbstracted;
   String get errorAbstractFunction;
 

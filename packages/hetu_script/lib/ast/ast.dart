@@ -113,7 +113,7 @@ class ASTComment extends ASTAnnotation {
   final bool isTrailing;
 
   ASTComment({
-    required String content,
+    required super.content,
     required super.isDocumentation,
     required this.isMultiLine,
     required this.isTrailing,
@@ -122,7 +122,7 @@ class ASTComment extends ASTAnnotation {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(InternalIdentifier.comment, content: content);
+  }) : super(InternalIdentifier.comment);
 
   ASTComment.fromCommentToken(TokenComment token)
       : this(
@@ -1597,6 +1597,46 @@ class NamespaceDecl extends Statement {
     super.length = 0,
   }) : super(
           InternalIdentifier.namespaceDeclaration,
+          isBlock: true,
+        );
+}
+
+enum ExtensionTargetKind {
+  namespace,
+  classType,
+  structType,
+}
+
+class ExtensionDecl extends Statement {
+  @override
+  dynamic accept(AbstractASTVisitor visitor) =>
+      visitor.visitExtensionDecl(this);
+
+  @override
+  void subAccept(AbstractASTVisitor visitor) {
+    definition.accept(visitor);
+  }
+
+  final ExtensionTargetKind targetKind;
+
+  final IdentifierExpr id;
+
+  final BlockStmt definition;
+
+  final bool isTopLevel;
+
+  ExtensionDecl(
+    this.targetKind,
+    this.id,
+    this.definition, {
+    this.isTopLevel = false,
+    super.source,
+    super.line = 0,
+    super.column = 0,
+    super.offset = 0,
+    super.length = 0,
+  }) : super(
+          InternalIdentifier.extensionDeclaration,
           isBlock: true,
         );
 }

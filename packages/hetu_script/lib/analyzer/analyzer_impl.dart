@@ -274,6 +274,11 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   }
 
   @override
+  void visitExtensionDecl(ExtensionDecl node) {
+    node.subAccept(this);
+  }
+
+  @override
   void visitTypeAliasDecl(TypeAliasDecl node) {
     node.subAccept(this);
   }

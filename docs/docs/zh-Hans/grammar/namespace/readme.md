@@ -17,12 +17,12 @@ namespace MyNamespace {
   }
 }
 
-// 使用 :: 访问命名空间成员
-print(MyNamespace::value)       // 42
-MyNamespace::sayHello()          // Hello from MyNamespace!
+// 使用 . 访问命名空间成员
+print(MyNamespace.value)       // 42
+MyNamespace.sayHello()          // Hello from MyNamespace!
 ```
 
-使用 `::`（双冒号）运算符从外部访问命名空间成员。在命名空间内部，成员可以直接通过名称访问。
+使用 `.`（点）运算符从外部访问命名空间成员。在命名空间内部，成员可以直接通过名称访问。
 
 ## 私有成员
 
@@ -37,8 +37,8 @@ namespace Secret {
   }
 }
 
-print(Secret::increment)  // OK
-print(Secret::_internalCounter)  // Error: 私有成员
+print(Secret.increment)  // OK
+print(Secret._internalCounter)  // Error: 私有成员
 ```
 
 ## 嵌套命名空间
@@ -54,7 +54,7 @@ namespace Outer {
   }
 }
 
-print(Outer::Inner::deep())  // 42
+print(Outer.Inner.deep())  // 42
 ```
 
 ## 命名空间与类
@@ -67,8 +67,8 @@ class Math {
   static function square(x) { return x * x }
 }
 
-print(Math::PI)       // 3.14159
-print(Math::square(3)) // 9
+print(Math.PI)       // 3.14159
+print(Math.square(3)) // 9
 ```
 
 ## 导入中的命名空间
@@ -77,7 +77,7 @@ print(Math::square(3)) // 9
 
 ```dart
 import 'some_library.ht' as lib
-lib::someFunction()
+lib.someFunction()
 ```
 
 ## 命名空间中的外部函数
@@ -89,3 +89,37 @@ hetu.bindExternalFunction('MyNamespace::myFunc', (List<dynamic> args) {
   // ...
 });
 ```
+
+## 扩展命名空间
+
+使用 `extension namespace` 可以显式地为已有的命名空间添加方法——包括从其他文件导入的命名空间：
+
+```dart
+// math_utils.ht
+namespace MathUtils {
+  fun square(x) {
+    return x * x
+  }
+}
+
+// main.hts
+import 'math_utils.ht'
+
+extension namespace MathUtils {
+  fun cube(x) {
+    return x * x * x
+  }
+}
+
+print(MathUtils.square(3))  // 9
+print(MathUtils.cube(3))    // 27
+```
+
+规则：
+
+- extension 块内只允许函数声明。
+- 目标命名空间必须在扩展处可见（本地声明，或通过 `import` 引入）。
+- 扩展是对共享命名空间对象的原地修改：所有导入了同一模块的文件都能看到新增的方法。
+- 与目标命名空间中已有成员同名的扩展成员会报错；扩展不能覆盖已有成员。
+- 与 Dart 的静态扩展方法不同，Hetu 的扩展在运行时注入，会成为目标的真实成员。
+

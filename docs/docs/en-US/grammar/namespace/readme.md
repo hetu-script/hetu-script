@@ -17,12 +17,12 @@ namespace MyNamespace {
   }
 }
 
-// Access namespace members with ::
-print(MyNamespace::value)       // 42
-MyNamespace::sayHello()          // Hello from MyNamespace!
+// Access namespace members with .
+print(MyNamespace.value)       // 42
+MyNamespace.sayHello()          // Hello from MyNamespace!
 ```
 
-The `::` (double colon) operator is used to access namespace members from outside. Within the namespace, members are accessed directly by name.
+The `.` (dot) operator is used to access namespace members from outside. Within the namespace, members are accessed directly by name.
 
 ## Private members
 
@@ -37,8 +37,8 @@ namespace Secret {
   }
 }
 
-print(Secret::increment)  // OK
-print(Secret::_internalCounter)  // Error: private member
+print(Secret.increment)  // OK
+print(Secret._internalCounter)  // Error: private member
 ```
 
 ## Nested namespaces
@@ -54,7 +54,7 @@ namespace Outer {
   }
 }
 
-print(Outer::Inner::deep())  // 42
+print(Outer.Inner.deep())  // 42
 ```
 
 ## Namespaces and classes
@@ -67,8 +67,8 @@ class Math {
   static function square(x) { return x * x }
 }
 
-print(Math::PI)       // 3.14159
-print(Math::square(3)) // 9
+print(Math.PI)       // 3.14159
+print(Math.square(3)) // 9
 ```
 
 ## Namespaces in imports
@@ -77,7 +77,7 @@ When importing a module, you can alias it to a namespace prefix:
 
 ```dart
 import 'some_library.ht' as lib
-lib::someFunction()
+lib.someFunction()
 ```
 
 ## External functions in namespaces
@@ -89,3 +89,37 @@ hetu.bindExternalFunction('MyNamespace::myFunc', (List<dynamic> args) {
   // ...
 });
 ```
+
+## Extending a namespace
+
+Use `extension namespace` to explicitly add methods to an existing namespace — including one imported from another file:
+
+```dart
+// math_utils.ht
+namespace MathUtils {
+  fun square(x) {
+    return x * x
+  }
+}
+
+// main.hts
+import 'math_utils.ht'
+
+extension namespace MathUtils {
+  fun cube(x) {
+    return x * x * x
+  }
+}
+
+print(MathUtils.square(3))  // 9
+print(MathUtils.cube(3))    // 27
+```
+
+Rules:
+
+- Only function declarations are allowed inside an extension block.
+- The target namespace must be visible at the extension site (declared locally or brought in by an `import`).
+- The extension modifies the shared namespace object in place: every file that imports the same module sees the added methods.
+- Adding a member whose name already exists in the target namespace is an error; extensions cannot override existing members.
+- Unlike Dart's static extension methods, Hetu extensions are injected at runtime and become real members of the target.
+

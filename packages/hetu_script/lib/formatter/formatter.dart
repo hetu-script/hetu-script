@@ -698,6 +698,20 @@ class HTFormatter implements AbstractASTVisitor<String> {
   }
 
   @override
+  String visitExtensionDecl(ExtensionDecl stmt) {
+    final output = StringBuffer();
+    final kind = switch (stmt.targetKind) {
+      ExtensionTargetKind.namespace => _lexicon.kNamespace,
+      ExtensionTargetKind.classType => _lexicon.kClass,
+      ExtensionTargetKind.structType => _lexicon.kStruct,
+    };
+    output.write('${_lexicon.kExtension} $kind ${stmt.id.id} ');
+    final blockString = visitBlockStmt(stmt.definition);
+    output.write(blockString);
+    return output.toString();
+  }
+
+  @override
   String visitTypeAliasDecl(TypeAliasDecl stmt) {
     final output = StringBuffer();
     output.write('${_lexicon.kTypeDef} ${stmt.id.id} ${_lexicon.assign} ');

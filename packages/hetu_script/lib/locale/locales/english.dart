@@ -358,6 +358,8 @@ class HTLocaleEnglish implements HTLocale {
   @override
   String get errorNotClass => '[{0}] is not a class.';
   @override
+  String get errorNotNamespace => '[{0}] is not a namespace.';
+  @override
   String get errorAbstracted =>
       'Cannot create instance from abstract class [{0}].';
   @override
