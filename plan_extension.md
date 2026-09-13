@@ -187,10 +187,12 @@ Dart 的扩展方法是纯静态的（编译期解析，运行时不存在）。
     + 中英文 locale）。命中后把目标压为 currentNamespace，块内函数经现有 funcDecl 流程
     直接 define 进目标符号表，重名冲突由 `define()` 现有检查抛 `HTError.defined`。
   - **模块内扩展的 import 时机问题**：.ht 模块的 import 延迟到 endOfModule 才解析，
-    模块文件中的 extension 会执行得太早看不到 import 符号。解法：目标查找失败且
+    模块文件中的 extension 会执行得太早看不到 import 符号。~~解法：目标查找失败且
     当前命名空间有未决 import 时，对已在 `_currentBytecodeModule.namespaces`
-    注册的来源（bundler 保证依赖先于使用者执行）提前解析，并从 `imports` 移除避免
-    endOfModule 重复处理。
+    注册的来源提前解析，并从 `imports` 移除避免
+    endOfModule 重复处理。~~ **已被 import hoist 重构取代**（见
+    `plan_import_resolution.md`）：import 现已在文件执行开头统一解析，
+    该补丁代码已删除。
   - `_extensionContextStack` 保存/恢复定义现场（目标 namespace 的 closure 不是
     定义处，不能用 namespaceDeclEnd 的 closure 弹栈方式）；`loadBytecode` 入口清空，
     防止扩展块内报错后状态污染后续 eval。

@@ -19,6 +19,8 @@ You have to specify the extention part (.ht or .json) of the path.
 
 You can use relative key such as '../../filename.ht' in the path string (this also applies to export & require).
 
+Import statements are hoisted: they take effect before any other statement in the file executes, regardless of where they are written in the source. Circular imports are supported: symbols of the cyclic edge become visible to function bodies at call time.
+
 ## Export
 
 Use export in a source to specify the symbols you wish to let other source access when they import from you.

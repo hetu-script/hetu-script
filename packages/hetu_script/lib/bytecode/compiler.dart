@@ -376,9 +376,20 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(unit.resourceType.index);
     // final convertedNodes = _convertPossibleAwaitedBlockToCallBack(unit.nodes);
     // for (final node in convertedNodes) {
+    // Hoist import & export declarations to the start of the file,
+    // so that the file namespace's imports are resolved before any
+    // other statement executes, regardless of their positions in source.
     for (final node in unit.nodes) {
-      final bytes = compileAST(node);
-      bytesBuilder.add(bytes);
+      if (node is ImportExportDecl) {
+        final bytes = compileAST(node);
+        bytesBuilder.add(bytes);
+      }
+    }
+    for (final node in unit.nodes) {
+      if (node is! ImportExportDecl) {
+        final bytes = compileAST(node);
+        bytesBuilder.add(bytes);
+      }
     }
     bytesBuilder.addByte(OpCode.endOfFile);
 

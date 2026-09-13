@@ -896,20 +896,26 @@ class HTInterpreter {
     return struct;
   }
 
+  /// Resolve pending imports whose source files have been registered.
+  /// Imports stay pending only when their source file has not been
+  /// executed yet, which happens on truncated edges of circular imports.
+  void _flushPendingImports() {
+    for (final nsp in _currentBytecodeModule.namespaces.values) {
+      if (nsp.imports.isEmpty) continue;
+      for (final decl in nsp.imports.values.toList()) {
+        if (_currentBytecodeModule.namespaces.containsKey(decl.fromPath)) {
+          _handleNamespaceImport(nsp, decl);
+          nsp.imports.remove(decl.fromPath);
+        }
+      }
+    }
+  }
+
   void _handleNamespaceImport(HTNamespace nsp, UnresolvedImport importDecl) {
     final importedNamespace =
         _currentBytecodeModule.namespaces[importDecl.fromPath]!;
 
-    // for script and literal code, namespaces are resolved immediately.
-    if (_currentFileResourceType == HTResourceType.hetuScript ||
-        _currentFileResourceType == HTResourceType.hetuLiteralCode) {
-      for (final importDecl in importedNamespace.imports.values) {
-        _handleNamespaceImport(importedNamespace, importDecl);
-      }
-    }
-
-    if (importDecl.alias == null) {
-      if (importDecl.showList.isEmpty) {
+    if (importDecl.alias == null) {      if (importDecl.showList.isEmpty) {
         nsp.import(importedNamespace, export: importDecl.isExported);
       } else {
         for (final id in importDecl.showList) {
@@ -1323,15 +1329,15 @@ class HTInterpreter {
             _currentBytecodeModule.namespaces[currentNamespace.id!] =
                 currentNamespace;
           }
+          // A new file namespace has been registered, pending imports
+          // (truncated edges of circular imports) pointing to it
+          // can now be resolved.
+          _flushPendingImports();
         case OpCode.endOfModule:
-          if (!scriptMode) {
-            /// deal with import statement within every namespace of this module.
-            for (final nsp in _currentBytecodeModule.namespaces.values) {
-              for (final decl in nsp.imports.values) {
-                _handleNamespaceImport(nsp, decl);
-              }
-            }
-          }
+          /// Final flush of pending imports. Normally everything has been
+          /// resolved by the per-file flush at endOfFile; this is only
+          /// a safety net.
+          _flushPendingImports();
           if (config.printPerformanceStatistics) {
             var message =
                 'hetu: ${DateTime.now().millisecondsSinceEpoch - currentBytecodeModule.timestamp}ms\tto load module\t${_currentBytecodeModule.id}';
@@ -1557,32 +1563,13 @@ class HTInterpreter {
         case OpCode.extensionDecl:
           final targetKind = _currentBytecodeModule.read();
           final id = _currentBytecodeModule.getConstString();
-          var target = currentNamespace.memberGet(
+          final target = currentNamespace.memberGet(
             id,
             from: currentNamespace.fullName,
             isRecursive: true,
             ignoreUndefined: true,
             asDeclaration: true,
           );
-          if (target == null && currentNamespace.imports.isNotEmpty) {
-            // Imports of a module file are normally resolved at endOfModule.
-            // Eagerly resolve the already-loaded ones so that an extension
-            // block can see symbols from its import declarations.
-            for (final decl in currentNamespace.imports.values.toList()) {
-              if (_currentBytecodeModule.namespaces
-                  .containsKey(decl.fromPath)) {
-                _handleNamespaceImport(currentNamespace, decl);
-                currentNamespace.imports.remove(decl.fromPath);
-              }
-            }
-            target = currentNamespace.memberGet(
-              id,
-              from: currentNamespace.fullName,
-              isRecursive: true,
-              ignoreUndefined: true,
-              asDeclaration: true,
-            );
-          }
           if (target == null) {
             throw HTError.undefined(id,
                 filename: _currentFile,
@@ -2308,10 +2295,17 @@ class HTInterpreter {
         if (ext == HTResource.hetuModule || ext == HTResource.hetuScript) {
           final decl = UnresolvedImport(fromPath,
               alias: alias, showList: showList, isExported: isExported);
-          if (_currentFileResourceType == HTResourceType.hetuModule) {
-            currentNamespace.declareImport(decl);
-          } else {
+          if (_currentBytecodeModule.namespaces.containsKey(fromPath)) {
+            // Imports are hoisted to the start of each file by the compiler,
+            // and the bundler guarantees dependencies execute first,
+            // so normally the source file's namespace is already registered
+            // and the import can be resolved immediately.
             _handleNamespaceImport(currentNamespace, decl);
+          } else {
+            // The source file has not been executed yet. This only happens
+            // on a truncated edge of circular imports. Keep it pending
+            // and let endOfModule flush it after all files are executed.
+            currentNamespace.declareImport(decl);
           }
         } else {
           // TODO: import binary bytes
