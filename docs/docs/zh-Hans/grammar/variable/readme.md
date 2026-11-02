@@ -20,15 +20,13 @@ const isReady = true
 const answer = 42
 ```
 
-默认情况下，常量表达式运算不会启用。如果 `const` 声明的初始化值是一个表达式，则行为等同于 `final` 声明。
-
-可以通过在 Hetu 配置中设置 `computeConstantExpression: true` 来启用常量表达式计算（0.4.0 版本之后可用）：
+默认情况下会启用常量表达式运算（0.4.0 版本之后可用）。如果需要保留运行时求值，可以在 Hetu 配置中显式设置 `computeConstantExpression: false` 来关闭：
 
 ```dart
-// 启用 computeConstantExpression 时，编译时计算：
+// 启用 computeConstantExpression 时（默认），编译时计算：
 const pi2 = 3.1415926 * 2
 
-// 未启用时（默认），等价于：
+// 关闭时，等价于：
 // final pi2 = 3.1415926 * 2
 ```
 

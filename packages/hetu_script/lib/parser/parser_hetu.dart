@@ -174,7 +174,7 @@ class HTParserHetu extends HTParser {
             stmt = _parseDestructuringDecl(isTopLevel: true);
           } else {
             stmt = _parseVarDecl(
-              // isConst: true,
+              isConst: true,
               isTopLevel: true,
             );
           }
@@ -313,7 +313,7 @@ class HTParserHetu extends HTParser {
         } else if (curTok.lexeme == lexer.lexicon.kConst) {
           stmt = _parseVarDecl(
             lateInitialize: true,
-            // isConst: true,
+            isConst: true,
             isTopLevel: true,
           );
         } else if (curTok.lexeme == lexer.lexicon.kAsync) {
@@ -457,9 +457,10 @@ class HTParserHetu extends HTParser {
         } else if (curTok.lexeme == lexer.lexicon.kImmutable) {
           stmt = _parseVarDecl(lateInitialize: _isWithinModuleNamespace);
         } else if (curTok.lexeme == lexer.lexicon.kConst) {
-          stmt = _parseVarDecl(lateInitialize: _isWithinModuleNamespace
-              // isConst: true,
-              );
+          stmt = _parseVarDecl(
+            lateInitialize: _isWithinModuleNamespace,
+            isConst: true,
+          );
         } else if (curTok.lexeme == lexer.lexicon.kAsync) {
           advance();
           stmt = _parseFunction(isAsync: true);
@@ -544,7 +545,7 @@ class HTParserHetu extends HTParser {
         } else if (curTok.lexeme == lexer.lexicon.kConst) {
           if (isStatic) {
             stmt = _parseVarDecl(
-              // isConst: true,
+              isConst: true,
               classId: _currentClassDeclaration?.id,
             );
           } else {
@@ -890,8 +891,8 @@ class HTParserHetu extends HTParser {
             stmt = _parseDestructuringDecl();
           } else {
             stmt = _parseVarDecl(
-                // isConst: true,
-                );
+              isConst: true,
+            );
           }
         } else if (curTok.lexeme == lexer.lexicon.kLate) {
           stmt = _parseVarDecl(lateFinalize: true);
@@ -2838,9 +2839,8 @@ class HTParserHetu extends HTParser {
     if (kindTok.lexeme == lexer.lexicon.kNamespace) {
       targetKind = ExtensionTargetKind.namespace;
     } else {
-      final err = HTError.unexpected(
-          InternalIdentifier.extensionDeclaration, lexer.lexicon.kNamespace,
-          kindTok.lexeme,
+      final err = HTError.unexpected(InternalIdentifier.extensionDeclaration,
+          lexer.lexicon.kNamespace, kindTok.lexeme,
           filename: currrentFileName,
           line: kindTok.line,
           column: kindTok.column,
@@ -2862,10 +2862,8 @@ class HTParserHetu extends HTParser {
     // only function declarations are allowed in an extension block
     for (final stmt in definition.statements) {
       if (stmt is! FuncDecl && stmt is! ASTEmptyLine) {
-        final err = HTError.unexpected(
-            InternalIdentifier.extensionDeclaration,
-            HTLocale.current.functionDeclaration,
-            stmt.type,
+        final err = HTError.unexpected(InternalIdentifier.extensionDeclaration,
+            HTLocale.current.functionDeclaration, stmt.type,
             filename: currrentFileName,
             line: stmt.line,
             column: stmt.column,
@@ -2916,7 +2914,7 @@ class HTParserHetu extends HTParser {
     // bool isOverrided = false,
     bool isExternal = false,
     bool isStatic = false,
-    // bool isConst = false,
+    bool isConst = false,
     bool isMutable = false,
     bool isTopLevel = false,
     bool lateFinalize = false,
@@ -2993,7 +2991,7 @@ class HTParserHetu extends HTParser {
       isExternal: isExternal,
       isStatic: // isConst && classId != null ? true :
           isStatic,
-      // isConst: isConst,
+      isConst: isConst,
       isMutable: //!isConst &&
           isMutable,
       isTopLevel: isTopLevel,

@@ -36,7 +36,7 @@ class AnalyzerConfig {
   bool printPerformanceStatistics;
 
   AnalyzerConfig({
-    this.computeConstantExpression = false,
+    this.computeConstantExpression = true,
     this.doStaticAnalysis = false,
     this.allowVariableShadowing = true,
     this.allowImplicitVariableDeclaration = false,

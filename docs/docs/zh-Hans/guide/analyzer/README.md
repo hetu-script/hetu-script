@@ -1,6 +1,6 @@
 # 语法分析
 
-**注意: 河图的类型系统相关工具并不完整，并不建议在生产中使用 Analyzer 或者打开 HetuConfig 上的 doStaticAnalysis 和 computeConstantExpression 开关。**
+**注意: 河图的类型系统相关工具并不完整，并不建议在生产中使用 Analyzer 或者打开 HetuConfig 上的 doStaticAnalysis 开关。常量表达式折叠由 computeConstantExpression 独立控制，默认开启。**
 
 河图提供了一个单独的工具类 Analyzer，可以在不运行代码的前提下分析河图脚本的错误。下面是一个简单的例子：
 

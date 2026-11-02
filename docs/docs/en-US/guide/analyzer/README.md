@@ -1,6 +1,6 @@
 # Analyzer
 
-**WARNING: Type system related tools are not finished right now. It's not recommended to use Analyzer tools & turn on `doStaticAnalysis` & `computeConstantExpression` of HetuConfig.**
+**WARNING: Type system related tools are not finished right now. It's not recommended to use Analyzer tools & turn on `doStaticAnalysis` of HetuConfig. Constant folding is controlled independently by `computeConstantExpression` and is enabled by default.**
 
 Analyzer is a standalone utility class for analyze a Hetu source.
 

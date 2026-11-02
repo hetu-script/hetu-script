@@ -10,6 +10,7 @@ import '../lexicon/lexicon.dart';
 import '../lexicon/lexicon_hetu.dart';
 import 'op_code.dart';
 import '../constant/global_constant_table.dart';
+import '../constant/constant_folder.dart';
 // import '../parser/parser.dart';
 import '../common/function_category.dart';
 import '../common/internal_identifier.dart';
@@ -28,12 +29,15 @@ class CompilerConfig {
 
   bool checkTypeAnnotationAtRuntime;
 
+  bool computeConstantExpression;
+
   CompilerConfig({
     this.removeLineInfo = false,
     this.removeAssertion = false,
     this.removeDocumentation = false,
     this.printPerformanceStatistics = false,
     this.checkTypeAnnotationAtRuntime = false,
+    this.computeConstantExpression = true,
   });
 }
 
@@ -71,6 +75,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       Map<ASTNode, HTResolvedVariable>.identity();
 
   late HTOptimizationResult _optimization;
+  late HTConstantFolder _constantFolder;
   HTFunctionOptimization? _currentFunctionOptimization;
 
   // Stored all awaited values and those internal identifiers replaces them.
@@ -88,6 +93,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     ASTCompilation compilation, // {  bool printPerformanceStatistics = false,}
   ) {
     final sw = Stopwatch()..start();
+    _constantFolder = HTConstantFolder(lexicon: _lexicon);
     _optimization = HTOptimizationResolver(lexicon: _lexicon)
         .resolveCompilation(compilation);
     _markedSymbolsList.clear();
@@ -383,9 +389,16 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   Uint8List compileAST(ASTNode node, {bool endOfExec = false}) {
     final bytesBuilder = BytesBuilder();
-    Uint8List bytes;
-    bytes = node.accept(this);
-    bytesBuilder.add(bytes);
+    if (config.computeConstantExpression) {
+      final constant = _constantFolder.fold(node, _optimization);
+      if (constant != null) {
+        bytesBuilder.add(_compileResolvedConstant(constant.value));
+      } else {
+        bytesBuilder.add(node.accept(this));
+      }
+    } else {
+      bytesBuilder.add(node.accept(this));
+    }
     if (endOfExec) {
       bytesBuilder.addByte(OpCode.endOfExec);
     }

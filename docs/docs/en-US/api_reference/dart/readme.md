@@ -43,19 +43,17 @@ Wether analyze the code before compile to check for errors.
 
 The HTAnalyzer is still under development. So **DONOT** turn on this config unless you would like to contribute on this feature.
 
-#### computeConstantExpression (_experimental feature_)
+#### computeConstantExpression
 
-Defaults to `false`.
+Defaults to `true`.
 
-Wether to compute complex constant values expressions like:
+Wether to compute complex constant values expressions. Explicitly set it to `false` to preserve runtime evaluation. Unsupported expressions and expressions that cannot be evaluated safely are still evaluated at runtime.
 
 ```dart
 const b = 6
 const c = 7
-const a = b * c // to compute this value!
+const a = b * c // computed at compile time by default
 ```
-
-The Constant Interpreter is still under development. So **DONOT** turn on this config unless you would like to contribute on this feature.
 
 #### removeLineInfo
 

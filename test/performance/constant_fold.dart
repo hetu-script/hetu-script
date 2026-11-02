@@ -38,11 +38,18 @@ function run(n, a, b, c, d, e, f, flag, leftText, rightText) {
 }
 ''';
 
-final _scenarios = <String, (String, List<dynamic>)>{
-  'foldable': (_foldableSource, const []),
+final _scenarios = <String, (String, List<dynamic>, bool)>{
+  'foldable': (_foldableSource, const [], false),
   'dynamic': (
     _dynamicSource,
     const [6, 7, 8, 2, 9, 4, false, 'hetu', 'script'],
+    false,
+  ),
+  'foldable_folded': (_foldableSource, const [], true),
+  'dynamic_folded': (
+    _dynamicSource,
+    const [6, 7, 8, 2, 9, 4, false, 'hetu', 'script'],
+    true,
   ),
 };
 
@@ -53,7 +60,12 @@ void main(List<String> args) {
     if (scenario == null) {
       throw ArgumentError.value(name, 'scenario', 'Unknown scenario');
     }
-    _runScenario(name, source: scenario.$1, fixedArgs: scenario.$2);
+    _runScenario(
+      name,
+      source: scenario.$1,
+      fixedArgs: scenario.$2,
+      folded: scenario.$3,
+    );
   }
 }
 
@@ -61,8 +73,14 @@ void _runScenario(
   String name, {
   required String source,
   required List<dynamic> fixedArgs,
+  required bool folded,
 }) {
-  Hetu createCompiler() => Hetu(config: HetuConfig(normalizeImportPath: false));
+  Hetu createCompiler() => Hetu(
+        config: HetuConfig(
+          normalizeImportPath: false,
+          computeConstantExpression: folded,
+        ),
+      );
 
   final compileSamples = <int>[];
   var bytes = createCompiler().compile(source);
@@ -106,7 +124,7 @@ void _runScenario(
     'compile_median_us=${compileSamples[compileSamples.length ~/ 2]} '
     'run_samples_us=$runSamples '
     'run_median_us=${runSamples[runSamples.length ~/ 2]} '
-    'checksum=${iterations * 61}',
+    'checksum=${iterations * 61} folded=$folded',
   );
 }
 

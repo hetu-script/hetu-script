@@ -132,7 +132,7 @@ class HetuConfig
     this.normalizeImportPath = true,
     this.explicitEndOfStatement = false,
     this.doStaticAnalysis = false,
-    this.computeConstantExpression = false,
+    this.computeConstantExpression = true,
     this.removeLineInfo = false,
     this.removeAssertion = false,
     this.removeDocumentation = false,

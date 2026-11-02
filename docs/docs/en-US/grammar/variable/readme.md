@@ -20,15 +20,13 @@ const isReady = true
 const answer = 42
 ```
 
-Constant expression evaluation is not enabled by default. A `const` declaration whose initializer contains runtime expressions behaves like `final`.
-
-However, you can enable constant expression computation by setting `computeConstantExpression: true` in the Hetu config (available since version 0.4.0):
+Constant expression evaluation is enabled by default (available since version 0.4.0). To preserve runtime evaluation, explicitly set `computeConstantExpression: false` in the Hetu config:
 
 ```dart
-// With computeConstantExpression: true, this is computed at compile time:
+// With computeConstantExpression enabled (default), this is computed at compile time:
 const pi2 = 3.1415926 * 2
 
-// Without it (default), this behaves like:
+// When disabled, this behaves like:
 // final pi2 = 3.1415926 * 2
 ```
 

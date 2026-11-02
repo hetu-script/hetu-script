@@ -41,19 +41,17 @@ import '../main.ht'
 
 **注意！！！** 静态分析工具（HTAnalyzer）目前仍在开发中，因此除非你是想要为本项目贡献代码，否则 **不要** 打开这个选项。
 
-#### computeConstantExpression (_experimental feature_)
+#### computeConstantExpression
 
-默认值 `false`.
+默认值 `true`.
 
-是否要在编译为字节码之前为常量表达式求值。
+是否要在编译为字节码之前为常量表达式求值，可显式设置为 `false` 来关闭。不支持或无法安全求值的表达式仍会在运行时计算。
 
 ```dart
 const b = 6
 const c = 7
-const a = b * c // 如果打开选项，这里的 a 也将会是常量，并且提前计算出来。
+const a = b * c // 默认会提前计算为常量。
 ```
-
-**注意！！！** 常量计算功能目前仍在开发中，因此除非你是想要为本项目贡献代码，否则 **不要** 打开这个选项。
 
 #### removeLineInfo
 
