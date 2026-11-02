@@ -60,6 +60,7 @@ Key directories under `packages/hetu_script/lib/`:
 | `parser/`      | AST generation (`HTParser`)                                       |
 | `ast/`         | AST node definitions + visitor pattern                            |
 | `analyzer/`    | Static type checking (`HTAnalyzer`)                               |
+| `optimization/` | Compile-time lexical scopes, slots and capture metadata          |
 | `bytecode/`    | Bytecode compiler, opcodes, reader                                |
 | `interpreter/` | Bytecode/AST execution (`HTInterpreter`)                          |
 | `bundler/`     | Import resolution and module bundling                             |
