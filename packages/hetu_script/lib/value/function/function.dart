@@ -333,8 +333,12 @@ class HTFunction extends HTFunctionDeclaration
       }
 
       if (interpreter.config.showHetuStackTrace) {
-        interpreter.stackTraceList.add(
-            '$internalName (${interpreter.currentFile}:${interpreter.currentLine}:${interpreter.currentColumn})');
+        interpreter.stackTraceList.add(HTStackTraceInfo(
+          function: this,
+          file: interpreter.currentFile,
+          line: interpreter.currentLine,
+          column: interpreter.currentColumn,
+        ));
         stackPushed = true;
       }
 
@@ -592,9 +596,6 @@ class HTFunction extends HTFunctionDeclaration
         }
 
         if (ip == null) {
-          if (stackPushed && interpreter.stackTraceList.isNotEmpty) {
-            interpreter.stackTraceList.removeLast();
-          }
           return result;
         }
 
@@ -761,23 +762,20 @@ class HTFunction extends HTFunctionDeclaration
       //   }
       // }
 
-      if (stackPushed && interpreter.stackTraceList.isNotEmpty) {
-        interpreter.stackTraceList.removeLast();
-      }
-
       if (result is FutureExecution) {
         result = interpreter.waitFutureExucution(result);
       }
 
       return result;
     } catch (error, stackTrace) {
-      if (stackPushed && interpreter.stackTraceList.isNotEmpty) {
-        interpreter.stackTraceList.removeLast();
-      }
       if (interpreter.config.processError) {
         interpreter.processError(error, stackTrace);
       } else {
         rethrow;
+      }
+    } finally {
+      if (stackPushed && interpreter.stackTraceList.isNotEmpty) {
+        interpreter.stackTraceList.removeLast();
       }
     }
   }

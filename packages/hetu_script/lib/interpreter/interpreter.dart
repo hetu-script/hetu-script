@@ -176,6 +176,23 @@ class HTStackFrame {
   dynamic get top => operandStack.last;
 }
 
+class HTStackTraceInfo {
+  final HTFunction function;
+  final String file;
+  final int line;
+  final int column;
+
+  const HTStackTraceInfo({
+    required this.function,
+    required this.file,
+    required this.line,
+    required this.column,
+  });
+
+  @override
+  String toString() => '${function.internalName} ($file:$line:$column)';
+}
+
 /// A bytecode implementation of Hetu Script interpreter
 class HTInterpreter {
   static HTClass? classRoot;
@@ -196,7 +213,7 @@ class HTInterpreter {
   bool scriptMode = false;
   bool globallyImport = false;
   Version compilerVersion = Version.none;
-  List<String> stackTraceList = [];
+  List<HTStackTraceInfo> stackTraceList = [];
 
   late HTNamespace currentNamespace;
 
@@ -280,7 +297,7 @@ class HTInterpreter {
   void processError(Object error, [Object? externalStackTrace]) {
     final buffer = StringBuffer();
 
-    void handleStackTrace(List<String> stackTrace,
+    void handleStackTrace(List<Object> stackTrace,
         {bool withLineNumber = false}) {
       if (errorConfig.stackTraceDisplayCountLimit > 0) {
         if (stackTrace.length > errorConfig.stackTraceDisplayCountLimit) {
@@ -323,7 +340,9 @@ class HTInterpreter {
       handleStackTrace(externalStackTraceList);
     }
 
-    final stackTraceString = buffer.toString().trimRight();
+    final stackTraceString = error is HTError && error.extra?.isNotEmpty == true
+        ? error.extra!
+        : buffer.toString().trimRight();
     if (error is HTError) {
       final wrappedError = HTError(
         error.code,
