@@ -10,20 +10,21 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
   /// TODO: remove lexicon, save private symbols into separate maps when defined instead.
   final HTLexicon lexicon;
 
-  late String _fullName;
+  String? _fullName;
 
   /// The full closure path of this namespace
-  String get fullName => _fullName;
+  String get fullName => _fullName ??=
+      closure != null ? '${closure!.fullName}.$displayName' : displayName;
 
   final symbols = <String, T>{};
 
-  final importedSymbols = <String, T>{};
+  late final importedSymbols = <String, T>{};
 
-  final importedSymbolsPath = <String, String>{};
+  late final importedSymbolsPath = <String, String>{};
 
-  final imports = <String, UnresolvedImport>{};
+  late final imports = <String, UnresolvedImport>{};
 
-  final exports = <String>{};
+  late final exports = <String>{};
 
   bool willExportAll = true;
 
@@ -35,9 +36,7 @@ class HTDeclarationNamespace<T> extends HTDeclaration with HTObject {
     super.documentation,
     required this.lexicon,
     super.isPrivate,
-  }) {
-    _fullName = closure != null ? '${closure!.fullName}.$displayName' : displayName;
-  }
+  });
 
   @override
   bool contains(String id,

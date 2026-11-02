@@ -332,9 +332,11 @@ class HTFunction extends HTFunctionDeclaration
         );
       }
 
-      interpreter.stackTraceList.add(
-          '$internalName (${interpreter.currentFile}:${interpreter.currentLine}:${interpreter.currentColumn})');
-      stackPushed = true;
+      if (interpreter.config.showHetuStackTrace) {
+        interpreter.stackTraceList.add(
+            '$internalName (${interpreter.currentFile}:${interpreter.currentLine}:${interpreter.currentColumn})');
+        stackPushed = true;
+      }
 
       dynamic result;
       // 如果是脚本函数
@@ -415,9 +417,11 @@ class HTFunction extends HTFunctionDeclaration
 
         var variadicStart = -1;
         String? variadicParamId;
-        for (var i = 0; i < paramDecls.length; ++i) {
-          final paramDecl = paramDecls.values.elementAt(i);
-          final paramId = paramDecls.keys.elementAt(i);
+        var parameterIndex = 0;
+        for (final entry in paramDecls.entries) {
+          final i = parameterIndex++;
+          final paramId = entry.key;
+          final paramDecl = entry.value;
           // omit params with '_' as id
           if (!paramDecl.isNamed &&
               paramId == interpreter.lexicon.omittedMark) {
@@ -588,7 +592,7 @@ class HTFunction extends HTFunctionDeclaration
         }
 
         if (ip == null) {
-          if (interpreter.stackTraceList.isNotEmpty) {
+          if (stackPushed && interpreter.stackTraceList.isNotEmpty) {
             interpreter.stackTraceList.removeLast();
           }
           return result;
@@ -759,7 +763,7 @@ class HTFunction extends HTFunctionDeclaration
       //   }
       // }
 
-      if (interpreter.stackTraceList.isNotEmpty) {
+      if (stackPushed && interpreter.stackTraceList.isNotEmpty) {
         interpreter.stackTraceList.removeLast();
       }
 
@@ -800,8 +804,10 @@ class HTFunction extends HTFunctionDeclaration
         return Function.apply(
             func,
             [instance, ...posArgs],
-            namedArgs.map<Symbol, dynamic>(
-                (key, value) => MapEntry(Symbol(key), value)));
+            namedArgs.isEmpty
+                ? null
+                : namedArgs.map<Symbol, dynamic>(
+                    (key, value) => MapEntry(Symbol(key), value)));
       }
     } else {
       if (func is HTExternalFunction) {
@@ -813,8 +819,10 @@ class HTFunction extends HTFunctionDeclaration
         return Function.apply(
             func,
             posArgs,
-            namedArgs.map<Symbol, dynamic>(
-                (key, value) => MapEntry(Symbol(key), value)));
+            namedArgs.isEmpty
+                ? null
+                : namedArgs.map<Symbol, dynamic>(
+                    (key, value) => MapEntry(Symbol(key), value)));
       }
     }
   }

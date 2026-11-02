@@ -173,5 +173,19 @@ void main() {
       ''');
       expect(result, 'Alice');
     });
+
+    test('spread arguments preserve their order', () {
+      final result = hetu.eval(r'''
+        function subtract(a, b) {
+          return a - b
+        }
+        function run() {
+          final args = [42, 2]
+          return subtract(...args)
+        }
+        run()
+      ''');
+      expect(result, 40);
+    });
   });
 }

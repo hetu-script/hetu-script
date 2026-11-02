@@ -204,5 +204,20 @@ void main() {
         'external function called',
       );
     });
+
+    test('external functions receive mutable argument collections', () {
+      hetu.interpreter.bindExternalFunction('mutateArgs', (
+          {positionalArgs, namedArgs}) {
+        positionalArgs.add(1);
+        namedArgs['value'] = 2;
+        return positionalArgs.length + namedArgs.length;
+      });
+
+      final result = hetu.eval(r'''
+        external function mutateArgs
+        mutateArgs()
+      ''');
+      expect(result, 2);
+    });
   });
 }

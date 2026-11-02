@@ -168,8 +168,8 @@ class HTStackFrame {
   /// and remove it from this stack.
   /// Return statement will clear loop points by
   /// [loopCount] in current stack frame.
-  final List<HTInterpreterLoopInfo> loops = [];
-  final List<int> anchors = [];
+  late final List<HTInterpreterLoopInfo> loops = [];
+  late final List<int> anchors = [];
 
   void push(dynamic v) => operandStack.add(v);
   dynamic pop() => operandStack.removeLast();
@@ -426,8 +426,10 @@ class HTInterpreter {
             return Function.apply(
                 callee,
                 positionalArgs,
-                namedArgs.map<Symbol, dynamic>(
-                    (key, value) => MapEntry(Symbol(key), value)));
+                namedArgs.isEmpty
+                    ? null
+                    : namedArgs.map<Symbol, dynamic>(
+                        (key, value) => MapEntry(Symbol(key), value)));
           }
         } else if ((callee is HTClass) || (callee is HTType)) {
           return handleClassConstructor(callee);
@@ -2080,35 +2082,43 @@ class HTInterpreter {
           }
           // Named args
           final namedCount = _currentBytecodeModule.read();
-          final namedKeys = <String>[];
-          for (var i = 0; i < namedCount; i++) {
-            namedKeys.add(_currentBytecodeModule.getConstString());
-          }
-          final namedValues = <dynamic>[];
-          for (var i = 0; i < namedCount; i++) {
-            namedValues.insert(0, stack.pop());
-          }
           final namedArgs = <String, dynamic>{};
-          for (var i = 0; i < namedCount; i++) {
-            namedArgs[namedKeys[i]] = namedValues[i];
+          if (namedCount > 0) {
+            final namedKeys = List<String>.filled(namedCount, '');
+            for (var i = 0; i < namedCount; i++) {
+              namedKeys[i] = _currentBytecodeModule.getConstString();
+            }
+            final namedValues = List<dynamic>.filled(namedCount, null);
+            for (var i = namedCount - 1; i >= 0; --i) {
+              namedValues[i] = stack.pop();
+            }
+            for (var i = 0; i < namedCount; i++) {
+              namedArgs[namedKeys[i]] = namedValues[i];
+            }
           }
           // Positional args
           final posCount = _currentBytecodeModule.read();
-          final posFlags = <int>[];
+          final posFlags =
+              posCount == 0 ? const <int>[] : List<int>.filled(posCount, 0);
+          var hasSpread = false;
           for (var i = 0; i < posCount; i++) {
-            posFlags.add(_currentBytecodeModule.read());
+            posFlags[i] = _currentBytecodeModule.read();
+            if (posFlags[i] == 1) hasSpread = true;
           }
-          final posValues = <dynamic>[];
-          for (var i = 0; i < posCount; i++) {
-            posValues.insert(0, stack.pop());
+          var posArgs = List<dynamic>.filled(posCount, null, growable: true);
+          for (var i = posCount - 1; i >= 0; --i) {
+            posArgs[i] = stack.pop();
           }
-          final posArgs = <dynamic>[];
-          for (var i = 0; i < posCount; i++) {
-            if (posFlags[i] == 1) {
-              posArgs.addAll(posValues[i] as Iterable);
-            } else {
-              posArgs.add(posValues[i]);
+          if (hasSpread) {
+            final expandedArgs = <dynamic>[];
+            for (var i = 0; i < posCount; i++) {
+              if (posFlags[i] == 1) {
+                expandedArgs.addAll(posArgs[i] as Iterable);
+              } else {
+                expandedArgs.add(posArgs[i]);
+              }
             }
+            posArgs = expandedArgs;
           }
           // Callee
           final callee = stack.pop();
