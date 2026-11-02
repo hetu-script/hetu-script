@@ -1,4 +1,4 @@
-import '../../ast/ast.dart';
+import '../ast/ast.dart';
 
 enum HTResolvedStorage {
   localSlot,
@@ -63,6 +63,7 @@ class HTResolvedReference {
 
 class HTFunctionOptimization {
   final HTResolvedScope scope;
+  bool requiresDynamicScope = false;
   final Map<int, String> slotNames = {};
   final List<HTResolvedVariable> capturedVariables = [];
   final List<HTResolvedVariable> upvalues = [];

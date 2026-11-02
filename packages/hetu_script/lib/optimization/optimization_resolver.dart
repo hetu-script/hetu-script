@@ -1,8 +1,8 @@
-import '../../ast/ast.dart';
-import '../../ast/visitor/recursive_ast_visitor.dart';
-import '../../common/function_category.dart';
-import '../../lexicon/lexicon.dart';
-import '../../lexicon/lexicon_hetu.dart';
+import '../ast/ast.dart';
+import '../ast/visitor/recursive_ast_visitor.dart';
+import '../common/function_category.dart';
+import '../lexicon/lexicon.dart';
+import '../lexicon/lexicon_hetu.dart';
 import 'optimization_result.dart';
 
 class HTOptimizationResolver {
@@ -142,6 +142,13 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
     }
   }
 
+  void requireDynamicScope() {
+    final function = currentScope.function;
+    if (function != null) {
+      result.functions[function.declaration]!.requiresDynamicScope = true;
+    }
+  }
+
   HTResolvedVariable? lookup(String name) {
     HTResolvedScope? scope = currentScope;
     while (scope != null) {
@@ -165,6 +172,7 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
   void resolveSymbol(String name, ASTNode referenceNode) {
     var variable = lookup(name);
     if (variable == null) {
+      requireDynamicScope();
       variable = HTResolvedVariable(
         declaration: referenceNode,
         name: name,
@@ -379,6 +387,7 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
   void visitDeleteStmt(DeleteStmt node) {
     if (!building) {
       result.dynamicOperations.add(node);
+      requireDynamicScope();
       resolveSymbol(node.symbol, node);
     }
   }
@@ -394,6 +403,7 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
   void visitNamespaceDecl(NamespaceDecl node) {
     if (building) {
       declareVariable(node, node.id);
+      requireDynamicScope();
     }
     final savedScope = currentScope;
     enterScope(node, HTResolvedScopeKind.dynamic);
@@ -403,6 +413,9 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
 
   @override
   void visitExtensionDecl(ExtensionDecl node) {
+    if (building) {
+      requireDynamicScope();
+    }
     final savedScope = currentScope;
     enterScope(node, HTResolvedScopeKind.dynamic);
     node.definition.accept(this);
@@ -416,6 +429,9 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
   void visitVarDecl(VarDecl node) {
     if (building) {
       declareVariable(node, node.id);
+      if (node.lateInitialize || node.lateFinalize || node.isExternal) {
+        requireDynamicScope();
+      }
     }
     node.initializer?.accept(this);
   }
@@ -423,6 +439,7 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
   @override
   void visitDestructuringDecl(DestructuringDecl node) {
     if (building) {
+      requireDynamicScope();
       for (final id in node.ids.keys) {
         declareVariable(node, id);
       }
@@ -464,6 +481,7 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
   void visitClassDecl(ClassDecl node) {
     if (building) {
       declareVariable(node, node.id);
+      requireDynamicScope();
     }
     final savedScope = currentScope;
     enterScope(node, HTResolvedScopeKind.dynamic);
@@ -475,6 +493,7 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
   void visitEnumDecl(EnumDecl node) {
     if (building) {
       declareVariable(node, node.id);
+      requireDynamicScope();
     }
   }
 
@@ -482,6 +501,7 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
   void visitStructDecl(StructDecl node) {
     if (building) {
       declareVariable(node, node.id);
+      requireDynamicScope();
     }
     final savedScope = currentScope;
     enterScope(node, HTResolvedScopeKind.dynamic);

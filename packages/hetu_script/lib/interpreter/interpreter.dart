@@ -44,6 +44,7 @@ import '../locale/locale.dart';
 import '../common/internal_identifier.dart';
 import '../common/function_category.dart';
 import '../value/value_binding.dart';
+import '../value/call_scope/call_scope.dart';
 
 const kConsoleColorYellow = '\x1B[33m';
 
@@ -128,6 +129,7 @@ class HTContext {
   final String? file;
   final String? module;
   final HTNamespace? namespace;
+  final HTCallScope? callScope;
   final int? ip;
   final int? line;
   final int? column;
@@ -136,6 +138,7 @@ class HTContext {
     this.file,
     this.module,
     this.namespace,
+    this.callScope,
     this.ip,
     this.line,
     this.column,
@@ -216,6 +219,7 @@ class HTInterpreter {
   List<HTStackTraceInfo> stackTraceList = [];
 
   late HTNamespace currentNamespace;
+  HTCallScope? currentCallScope;
 
   /// Saved enclosing namespaces while executing extension blocks,
   /// so that [OpCode.extensionDeclEnd] can restore the definition context.
@@ -1161,6 +1165,7 @@ class HTInterpreter {
       file: currentFile,
       module: currentBytecodeModule.id,
       namespace: currentNamespace,
+      callScope: currentCallScope,
       ip: currentBytecodeModule.ip,
       line: currentLine,
       column: currentColumn,
@@ -1216,6 +1221,7 @@ class HTInterpreter {
     } else if (libChanged) {
       currentNamespace = _currentBytecodeModule.namespaces.values.last;
     }
+    currentCallScope = context.callScope;
     if (context.ip != null) {
       _currentBytecodeModule.ip = context.ip!;
     } else if (libChanged) {
@@ -1295,6 +1301,27 @@ class HTInterpreter {
         case OpCode.lineInfo:
           _currentLine = _currentBytecodeModule.readUint16();
           _currentColumn = _currentBytecodeModule.readUint16();
+        case OpCode.localSlotGet:
+          final slot = _currentBytecodeModule.readUint16();
+          stack.push(currentCallScope!.get(slot));
+        case OpCode.localSlotSet:
+          final slot = _currentBytecodeModule.readUint16();
+          final value = stack.pop();
+          currentCallScope!.set(slot, value);
+          stack.push(value);
+        case OpCode.localSlotDecl:
+          final slot = _currentBytecodeModule.readUint16();
+          final isMutable = _currentBytecodeModule.readBool();
+          final hasInitializer = _currentBytecodeModule.readBool();
+          final value = hasInitializer ? stack.pop() : null;
+          currentCallScope!.declare(
+            slot,
+            value,
+            isMutable: isMutable,
+            isInitialized: true,
+          );
+          stack.push(
+              config.allowInitializationExpresssionHaveValue ? value : null);
         case OpCode.local:
           // store a local value in interpreter stack, this value will be cleared when encounter endOfStmt or endOfExec.
           _pushStack();
@@ -1449,6 +1476,9 @@ class HTInterpreter {
           _handleImportExport();
         case OpCode.typeAliasDecl:
           _handleTypeAliasDecl();
+        case OpCode.localFunctionDecl:
+          final slot = _currentBytecodeModule.readUint16();
+          _handleFuncDecl(localSlot: slot);
         case OpCode.funcDecl:
           _handleFuncDecl();
         case OpCode.classDecl:
@@ -2535,6 +2565,14 @@ class HTInterpreter {
           definitionIp = _currentBytecodeModule.ip;
           _currentBytecodeModule.skip(length);
         }
+        int? callScopeSlotCount;
+        final callScopeSlotNames = <String>[];
+        if (_currentBytecodeModule.readBool()) {
+          callScopeSlotCount = _currentBytecodeModule.readUint16();
+          for (var i = 0; i < callScopeSlotCount; ++i) {
+            callScopeSlotNames.add(_currentBytecodeModule.getConstString());
+          }
+        }
         final func = HTFunction(
           internalName: internalName,
           _currentFile,
@@ -2555,6 +2593,8 @@ class HTInterpreter {
           line: line,
           column: column,
           namespace: currentNamespace,
+          callScopeSlotCount: callScopeSlotCount,
+          callScopeSlotNames: callScopeSlotNames,
         );
         if (!hasExternalTypedef) {
           stack.push(func);
@@ -2858,7 +2898,7 @@ class HTInterpreter {
     return paramDecls;
   }
 
-  void _handleFuncDecl() {
+  void _handleFuncDecl({int? localSlot}) {
     final hasDoc = _currentBytecodeModule.readBool();
     String? documentation;
     if (hasDoc) {
@@ -2958,6 +2998,14 @@ class HTInterpreter {
       definitionIp = _currentBytecodeModule.ip;
       _currentBytecodeModule.skip(length);
     }
+    int? callScopeSlotCount;
+    final callScopeSlotNames = <String>[];
+    if (_currentBytecodeModule.readBool()) {
+      callScopeSlotCount = _currentBytecodeModule.readUint16();
+      for (var i = 0; i < callScopeSlotCount; ++i) {
+        callScopeSlotNames.add(_currentBytecodeModule.getConstString());
+      }
+    }
     final func = HTFunction(
       _currentFile,
       _currentBytecodeModule.id,
@@ -2987,8 +3035,18 @@ class HTInterpreter {
       line: line,
       column: column,
       redirectingConstructor: redirCtor,
+      callScopeSlotCount: callScopeSlotCount,
+      callScopeSlotNames: callScopeSlotNames,
     );
-    if (!isField) {
+    if (localSlot != null) {
+      func.namespace = currentNamespace;
+      currentCallScope!.declare(
+        localSlot,
+        func,
+        isMutable: false,
+        isInitialized: true,
+      );
+    } else if (!isField) {
       if ((category != FunctionCategory.constructor) || isStatic) {
         func.namespace = currentNamespace;
       }

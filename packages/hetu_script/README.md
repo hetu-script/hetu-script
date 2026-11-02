@@ -94,7 +94,7 @@ If you are using VS Code, you can download [this extension](https://marketplace.
 We have a command line REPL tool for quick testing. You can activate by the following command:
 
 ```
-dart pub global activate hetu_script_dev_tools
+dart install https://github.com/hetu-script/hetu-script.git
 ```
 
 Then you can use command line tool 'hetu' in any directory on your computer.
@@ -121,7 +121,7 @@ meaning() -> any // repl print
 42 // repl print
 ```
 
-You can check this [official document](https://dart.dev/tools/pub/cmd/pub-global) for more information on 'pub global activate'.
+You can check this [official document](https://dart.dev/tools/dart-install) for more information on 'dart install'.
 
 ## Support
 

@@ -1,3 +1,4 @@
+export 'value/call_scope/call_scope.dart';
 export 'value/variable/variable.dart';
 export 'value/object.dart';
 export 'value/class/class.dart';

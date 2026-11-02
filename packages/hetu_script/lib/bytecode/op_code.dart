@@ -1,10 +1,14 @@
 /// Operation code used by compiler.
 abstract class OpCode {
   static const local = 0;
+  static const localSlotGet = 1;
+  static const localSlotSet = 2;
   static const skip = 3;
   static const anchor = 4;
   static const clearAnchor = 5;
   static const goto = 6;
+  static const localSlotDecl = 7;
+  static const localFunctionDecl = 8;
   static const assertion = 9;
   static const throws = 10;
   static const loopPoint = 11;

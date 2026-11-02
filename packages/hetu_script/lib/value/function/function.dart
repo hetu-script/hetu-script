@@ -13,6 +13,7 @@ import '../object.dart';
 import '../../common/function_category.dart';
 import '../../common/internal_identifier.dart';
 import '../value_binding.dart';
+import '../call_scope/call_scope.dart';
 
 class RedirectingConstructor {
   /// id of super class's constructor
@@ -46,6 +47,9 @@ class HTFunction extends HTFunctionDeclaration
 
   HTNamespace? namespace;
   dynamic instance;
+
+  final int? callScopeSlotCount;
+  final List<String> callScopeSlotNames;
 
   bool _functionResolved = false;
 
@@ -88,6 +92,8 @@ class HTFunction extends HTFunctionDeclaration
     this.redirectingConstructor,
     this.klass,
     this.namespace,
+    this.callScopeSlotCount,
+    this.callScopeSlotNames = const [],
   }) {
     this.interpreter = interpreter;
     this.file = file;
@@ -210,6 +216,8 @@ class HTFunction extends HTFunctionDeclaration
         namespace: namespace != null ? namespace as HTNamespace : null,
         redirectingConstructor: redirectingConstructor,
         klass: klass,
+        callScopeSlotCount: callScopeSlotCount,
+        callScopeSlotNames: callScopeSlotNames,
       );
 
   HTFunction bind(HTStruct struct) {
@@ -382,41 +390,53 @@ class HTFunction extends HTFunctionDeclaration
           }
         }
 
-        // callClosure is a temporary closure created everytime a function is called
-        final HTNamespace callClosure = HTNamespace(
-            lexicon: interpreter.lexicon,
-            id: internalName,
-            closure: useCallingNamespace ? namespace : closure as HTNamespace?);
+        final useCallScope = callScopeSlotCount != null &&
+            !interpreter.config.checkTypeAnnotationAtRuntime &&
+            (category == FunctionCategory.normal ||
+                category == FunctionCategory.literal);
+        final HTNamespace? executionNamespace =
+            useCallingNamespace ? namespace : closure as HTNamespace?;
+        final callScope = useCallScope
+            ? HTCallScope(callScopeSlotCount!, callScopeSlotNames)
+            : null;
+        final HTNamespace? callClosure = useCallScope
+            ? null
+            : HTNamespace(
+                lexicon: interpreter.lexicon,
+                id: internalName,
+                closure: executionNamespace);
 
-        // define this and super keyword
-        if (instance != null) {
-          if (namespace is HTInstanceNamespace) {
-            callClosure.define(
-              interpreter.lexicon.kSuper,
+        if (!useCallScope) {
+          // define this and super keyword
+          if (instance != null) {
+            if (namespace is HTInstanceNamespace) {
+              callClosure!.define(
+                interpreter.lexicon.kSuper,
+                HTValueBinding(
+                  id: interpreter.lexicon.kSuper,
+                  value: (namespace as HTInstanceNamespace).next,
+                  isMutable: false,
+                ),
+              );
+            }
+            callClosure!.define(
+              interpreter.lexicon.kThis,
               HTValueBinding(
-                id: interpreter.lexicon.kSuper,
-                value: (namespace as HTInstanceNamespace).next,
+                id: interpreter.lexicon.kThis,
+                value: instance,
+                isMutable: false,
+              ),
+            );
+          } else if (category != FunctionCategory.literal) {
+            callClosure!.define(
+              interpreter.lexicon.kThis,
+              HTValueBinding(
+                id: interpreter.lexicon.kThis,
+                value: null,
                 isMutable: false,
               ),
             );
           }
-          callClosure.define(
-            interpreter.lexicon.kThis,
-            HTValueBinding(
-              id: interpreter.lexicon.kThis,
-              value: instance,
-              isMutable: false,
-            ),
-          );
-        } else if (category != FunctionCategory.literal) {
-          callClosure.define(
-            interpreter.lexicon.kThis,
-            HTValueBinding(
-              id: interpreter.lexicon.kThis,
-              value: null,
-              isMutable: false,
-            ),
-          );
         }
 
         var variadicStart = -1;
@@ -455,7 +475,12 @@ class HTFunction extends HTFunctionDeclaration
             }
           }
 
-          callClosure.define(paramId, paramValue);
+          if (useCallScope) {
+            callScope!
+                .declare(i, paramValue, isMutable: true, isInitialized: true);
+          } else {
+            callClosure!.define(paramId, paramValue);
+          }
 
           if (paramDecl.isInitialization) {
             result.memberSet(paramDecl.id!, paramValue);
@@ -467,7 +492,12 @@ class HTFunction extends HTFunctionDeclaration
           for (var i = variadicStart; i < positionalArgs.length; ++i) {
             variadicArg.add(positionalArgs[i]);
           }
-          callClosure.define(variadicParamId!, variadicArg);
+          if (useCallScope) {
+            callScope!.declare(variadicStart, variadicArg,
+                isMutable: true, isInitialized: true);
+          } else {
+            callClosure!.define(variadicParamId!, variadicArg);
+          }
         }
 
         if (category == FunctionCategory.constructor) {
@@ -606,7 +636,8 @@ class HTFunction extends HTFunctionDeclaration
               file: file,
               module: module,
               ip: ip,
-              namespace: callClosure,
+              namespace: useCallScope ? executionNamespace : callClosure,
+              callScope: callScope,
               line: line,
               column: column,
             ),
@@ -618,7 +649,8 @@ class HTFunction extends HTFunctionDeclaration
               file: file,
               module: module,
               ip: ip,
-              namespace: callClosure,
+              namespace: useCallScope ? executionNamespace : callClosure,
+              callScope: callScope,
               line: line,
               column: column,
             ),

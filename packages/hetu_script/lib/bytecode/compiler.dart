@@ -13,6 +13,8 @@ import '../constant/global_constant_table.dart';
 // import '../parser/parser.dart';
 import '../common/function_category.dart';
 import '../common/internal_identifier.dart';
+import '../optimization/optimization_result.dart';
+import '../optimization/optimization_resolver.dart';
 
 /// Collection of config of a compiler.
 class CompilerConfig {
@@ -24,11 +26,14 @@ class CompilerConfig {
 
   bool printPerformanceStatistics;
 
+  bool checkTypeAnnotationAtRuntime;
+
   CompilerConfig({
     this.removeLineInfo = false,
     this.removeAssertion = false,
     this.removeDocumentation = false,
     this.printPerformanceStatistics = false,
+    this.checkTypeAnnotationAtRuntime = false,
   });
 }
 
@@ -59,6 +64,14 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   // Replace user defined identifiers with internal ones, used in for statement.
   final List<Map<String, String>> _markedSymbolsList = [];
+  final List<Map<String, HTResolvedVariable>> _markedVariablesList = [];
+  final Map<ASTNode, HTResolvedVariable> _syntheticDeclarations =
+      Map<ASTNode, HTResolvedVariable>.identity();
+  final Map<ASTNode, HTResolvedVariable> _syntheticReferences =
+      Map<ASTNode, HTResolvedVariable>.identity();
+
+  late HTOptimizationResult _optimization;
+  HTFunctionOptimization? _currentFunctionOptimization;
 
   // Stored all awaited values and those internal identifiers replaces them.
   // key is the stmt astnode itself
@@ -75,6 +88,13 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     ASTCompilation compilation, // {  bool printPerformanceStatistics = false,}
   ) {
     final sw = Stopwatch()..start();
+    _optimization = HTOptimizationResolver(lexicon: _lexicon)
+        .resolveCompilation(compilation);
+    _markedSymbolsList.clear();
+    _markedVariablesList.clear();
+    _syntheticDeclarations.clear();
+    _syntheticReferences.clear();
+    _currentFunctionOptimization = null;
     final bytes = visitCompilation(compilation);
     if (config.printPerformanceStatistics) {
       print(
@@ -82,6 +102,60 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     }
     sw.stop();
     return bytes;
+  }
+
+  HTFunctionOptimization? _eligibleFunction(FuncDecl node) {
+    final optimization = _optimization.functions[node];
+    if (optimization == null ||
+        config.checkTypeAnnotationAtRuntime ||
+        optimization.requiresDynamicScope ||
+        optimization.capturedVariables.isNotEmpty ||
+        optimization.upvalues.isNotEmpty ||
+        optimization.localSlotCount > 65535 ||
+        node.definition == null ||
+        node.isExternal ||
+        (node.category != FunctionCategory.normal &&
+            node.category != FunctionCategory.literal)) {
+      return null;
+    }
+    return optimization;
+  }
+
+  HTResolvedVariable? _localDeclaration(IdentifierExpr id) {
+    if (_currentFunctionOptimization == null) return null;
+    final variable =
+        _syntheticDeclarations[id] ?? _optimization.declarations[id];
+    if (variable?.storage == HTResolvedStorage.localSlot) {
+      return variable;
+    }
+    return null;
+  }
+
+  HTResolvedVariable? _localReference(ASTNode node) {
+    if (_currentFunctionOptimization == null || node is! IdentifierExpr) {
+      return null;
+    }
+    for (var i = _markedSymbolsList.length - 1; i >= 0; --i) {
+      final markedName = _markedSymbolsList[i][node.id];
+      if (markedName != null) {
+        final variable = _markedVariablesList[i][markedName]!;
+        return variable.storage == HTResolvedStorage.localSlot
+            ? variable
+            : null;
+      }
+    }
+    final variable =
+        _syntheticReferences[node] ?? _optimization.references[node]?.variable;
+    if (variable?.storage == HTResolvedStorage.localSlot) {
+      return variable;
+    }
+    return null;
+  }
+
+  IdentifierExpr _syntheticIdentifier(String id, HTResolvedVariable variable) {
+    final expression = IdentifierExpr(id);
+    _syntheticReferences[expression] = variable;
+    return expression;
   }
 
   /// -32768 to 32767
@@ -565,6 +639,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitIdentifierExpr(IdentifierExpr expr) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(expr.line, expr.column));
+    final localVariable = _localReference(expr);
+    if (localVariable != null) {
+      bytesBuilder.addByte(OpCode.localSlotGet);
+      bytesBuilder.add(_uint16(localVariable.slot!));
+      return bytesBuilder.toBytes();
+    }
     var symbolId = expr.id;
     if (_markedSymbolsList.isNotEmpty) {
       final map = _markedSymbolsList.last;
@@ -927,6 +1007,15 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitAssignExpr(AssignExpr expr) {
     final bytesBuilder = BytesBuilder();
     if (expr.op == _lexicon.assign) {
+      if (expr.left is IdentifierExpr) {
+        final localVariable = _localReference(expr.left);
+        if (localVariable != null) {
+          bytesBuilder.add(compileAST(expr.right));
+          bytesBuilder.addByte(OpCode.localSlotSet);
+          bytesBuilder.add(_uint16(localVariable.slot!));
+          return bytesBuilder.toBytes();
+        }
+      }
       if (expr.left is MemberExpr) {
         final value = compileAST(expr.right);
         bytesBuilder.add(value);
@@ -1170,7 +1259,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitBlockStmt(BlockStmt block) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(block.line, block.column));
-    if (block.isCodeBlock) {
+    if (block.isCodeBlock && _currentFunctionOptimization == null) {
       bytesBuilder.addByte(OpCode.codeBlock);
       if (block.id != null) {
         bytesBuilder.add(_identifier(block.id!));
@@ -1182,7 +1271,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final bytes = compileAST(stmt);
       bytesBuilder.add(bytes);
     }
-    if (block.isCodeBlock) {
+    if (block.isCodeBlock && _currentFunctionOptimization == null) {
       bytesBuilder.addByte(OpCode.endOfCodeBlock);
     }
     return bytesBuilder.toBytes();
@@ -1274,17 +1363,23 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitForStmt(ForExpr stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
-    bytesBuilder.addByte(OpCode.codeBlock);
-    bytesBuilder.add(_identifier(InternalIdentifier.forExpressionInit));
+    if (_currentFunctionOptimization == null) {
+      bytesBuilder.addByte(OpCode.codeBlock);
+      bytesBuilder.add(_identifier(InternalIdentifier.forExpressionInit));
+    }
     late Uint8List condition;
     Uint8List? increment;
     ASTNode? capturedDecl;
     final newSymbolMap = <String, String>{};
+    final newVariableMap = <String, HTResolvedVariable>{};
     _markedSymbolsList.add(newSymbolMap);
+    _markedVariablesList.add(newVariableMap);
     if (stmt.init != null) {
       final userDecl = stmt.init as VarDecl;
       final markedId = '${_lexicon.internalPrefix}${userDecl.id.id}';
+      final markedVariable = _optimization.loopBindings[stmt]!.first;
       newSymbolMap[userDecl.id.id] = markedId;
+      newVariableMap[markedId] = markedVariable;
       // Uint8List? initializer;
       // if (userDecl.initializer != null) {
       //   initializer = compileAST(!, endOfExec: true);
@@ -1296,9 +1391,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         line: userDecl.line,
         column: userDecl.column,
       );
+      _syntheticDeclarations[initDecl.id] = markedVariable;
       bytesBuilder.add(visitVarDecl(initDecl));
       // 这里是为了实现将变量声明移动到for循环语句块内部的效果
-      final capturedInit = IdentifierExpr(markedId);
+      final capturedInit = _syntheticIdentifier(markedId, markedVariable);
       capturedDecl = VarDecl(userDecl.id, initializer: capturedInit);
     }
     if (stmt.condition != null) {
@@ -1328,7 +1424,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.addByte(OpCode.skip);
     bytesBuilder.add(_int16(-breakLength));
     _markedSymbolsList.removeLast();
-    bytesBuilder.addByte(OpCode.endOfCodeBlock);
+    _markedVariablesList.removeLast();
+    if (_currentFunctionOptimization == null) {
+      bytesBuilder.addByte(OpCode.endOfCodeBlock);
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -1336,8 +1435,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitForRangeStmt(ForRangeExpr stmt) {
     final bytesBuilder = BytesBuilder();
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
-    bytesBuilder.addByte(OpCode.codeBlock);
-    bytesBuilder.add(_identifier(InternalIdentifier.forExpressionInit));
+    if (_currentFunctionOptimization == null) {
+      bytesBuilder.addByte(OpCode.codeBlock);
+      bytesBuilder.add(_identifier(InternalIdentifier.forExpressionInit));
+    }
 
     final collection = stmt.iterateValue
         ? MemberExpr(
@@ -1349,12 +1450,14 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         collection, IdentifierExpr(_lexicon.idIterator, isLocal: false));
     // final iterInitBytes = compileAST(iterInit, endOfExec: true);
     final iterId = '__iter${iterIndex++}';
+    final iterVariable = _optimization.loopBindings[stmt]!.first;
     final iterDecl = VarDecl(
       IdentifierExpr(iterId),
       initializer: iterInit,
       line: stmt.iterator.line,
       column: stmt.iterator.column,
     );
+    _syntheticDeclarations[iterDecl.id] = iterVariable;
     // final iterDecl = _assembleVarDeclStmt(
     //     iterId, stmt.iterator.line, stmt.iterator.column,
     //     initializer: iterInitBytes);
@@ -1362,13 +1465,15 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
     // update iter move result
     // calls iterator.moveNext()
-    final moveIter = CallExpr(MemberExpr(IdentifierExpr(iterId),
+    final moveIter = CallExpr(MemberExpr(
+        _syntheticIdentifier(iterId, iterVariable),
         IdentifierExpr(_lexicon.idMoveNext, isLocal: false)));
     final moveIterBytes = visitCallExpr(moveIter);
     final condition = moveIterBytes;
 
     // get current item value
-    stmt.iterator.initializer = MemberExpr(IdentifierExpr(iterId),
+    stmt.iterator.initializer = MemberExpr(
+        _syntheticIdentifier(iterId, iterVariable),
         IdentifierExpr(_lexicon.idCurrent, isLocal: false));
     stmt.loop.statements.insert(0, stmt.iterator);
     final loop = visitBlockStmt(stmt.loop);
@@ -1383,7 +1488,9 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.add(loop);
     bytesBuilder.addByte(OpCode.skip);
     bytesBuilder.add(_int16(-loopLength));
-    bytesBuilder.addByte(OpCode.endOfCodeBlock);
+    if (_currentFunctionOptimization == null) {
+      bytesBuilder.addByte(OpCode.endOfCodeBlock);
+    }
     return bytesBuilder.toBytes();
   }
 
@@ -1635,10 +1742,48 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     return bytesBuilder.toBytes();
   }
 
+  Uint8List _compileResolvedConstant(dynamic value) {
+    final bytesBuilder = BytesBuilder();
+    if (value is bool) {
+      bytesBuilder.addByte(OpCode.local);
+      bytesBuilder.addByte(HTValueTypeCode.boolean);
+      bytesBuilder.addByte(value ? 1 : 0);
+    } else if (value is int) {
+      final index = _currentConstantTable.addGlobalConstant<int>(value);
+      bytesBuilder.add(_localConst(HTValueTypeCode.constInt, index, 0, 0));
+    } else if (value is double) {
+      final index = _currentConstantTable.addGlobalConstant<double>(value);
+      bytesBuilder.add(_localConst(HTValueTypeCode.constFloat, index, 0, 0));
+    } else if (value is String) {
+      final index = _currentConstantTable.addGlobalConstant<String>(value);
+      bytesBuilder.add(_localConst(HTValueTypeCode.constString, index, 0, 0));
+    } else {
+      throw 'unsupported constant type: ${value.runtimeType}';
+    }
+    return bytesBuilder.toBytes();
+  }
+
   @override
   Uint8List visitVarDecl(VarDecl stmt) {
     final bytesBuilder = BytesBuilder();
     final docs = stmt.documentation;
+    final localVariable = _localDeclaration(stmt.id);
+    if (localVariable != null) {
+      final hasInitializer = stmt.isConstValue || stmt.initializer != null;
+      if (stmt.isConstValue) {
+        bytesBuilder.add(_compileResolvedConstant(stmt.value));
+      } else if (hasInitializer) {
+        bytesBuilder.add(compileAST(stmt.initializer!));
+      }
+      bytesBuilder.addByte(OpCode.localSlotDecl);
+      bytesBuilder.add(_uint16(localVariable.slot!));
+      bytesBuilder.addByte(stmt.isMutable ? 1 : 0);
+      bytesBuilder.addByte(hasInitializer ? 1 : 0);
+      if (stmt.hasEndOfStmtMark) {
+        bytesBuilder.addByte(OpCode.endOfStmt);
+      }
+      return bytesBuilder.toBytes();
+    }
     // Only const declaration with a const expression as initializer
     // can be compiled into a const declaration,
     // otherwise will be compiled as a normal variable declaration,
@@ -1808,9 +1953,19 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   Uint8List visitFuncDecl(FuncDecl stmt) {
     // final savedCurFunc = _curFunc;
     final bytesBuilder = BytesBuilder();
+    final functionOptimization = _eligibleFunction(stmt);
+    final localFunction =
+        stmt.category != FunctionCategory.literal && stmt.id != null
+            ? _localDeclaration(stmt.id!)
+            : null;
     // TODO: generic param
     if (stmt.category != FunctionCategory.literal) {
-      bytesBuilder.addByte(OpCode.funcDecl);
+      if (localFunction != null) {
+        bytesBuilder.addByte(OpCode.localFunctionDecl);
+        bytesBuilder.add(_uint16(localFunction.slot!));
+      } else {
+        bytesBuilder.addByte(OpCode.funcDecl);
+      }
       final docs = stmt.documentation;
       if (docs.isNotEmpty && !config.removeDocumentation) {
         bytesBuilder.addByte(1); // bool: has doc
@@ -1897,12 +2052,26 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.addByte(1); // bool: has definition / isAbstract
       bytesBuilder.add(_uint16(stmt.definition!.line));
       bytesBuilder.add(_uint16(stmt.definition!.column));
-      final body = compileAST(stmt.definition!);
+      final savedOptimization = _currentFunctionOptimization;
+      _currentFunctionOptimization = functionOptimization;
+      late final Uint8List body;
+      try {
+        body = compileAST(stmt.definition!);
+      } finally {
+        _currentFunctionOptimization = savedOptimization;
+      }
       bytesBuilder.add(_uint16(body.length + 1)); // definition bytes length
       bytesBuilder.add(body);
       bytesBuilder.addByte(OpCode.endOfFunc);
     } else {
       bytesBuilder.addByte(0); // bool: has no definition
+    }
+    bytesBuilder.addByte(functionOptimization != null ? 1 : 0);
+    if (functionOptimization != null) {
+      bytesBuilder.add(_uint16(functionOptimization.localSlotCount));
+      for (var i = 0; i < functionOptimization.localSlotCount; ++i) {
+        bytesBuilder.add(_identifier(functionOptimization.slotNames[i] ?? ''));
+      }
     }
     // if (stmt.category != FunctionCategory.literal && !stmt.isField) {
     //   bytesBuilder.addByte(HTOpCode.endOfStmt);
