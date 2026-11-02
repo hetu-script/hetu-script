@@ -4,7 +4,7 @@ version: 0.7.1
 homepage: https://github.com/hetu-script/hetu-script
 
 environment:
-  sdk: >=3.0.0
+  sdk: ">=3.0.0"
 
 dependencies:
   quiver: ^3.0.1
