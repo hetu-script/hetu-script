@@ -8,7 +8,6 @@
 
 当前执行范围：
 
-- 步骤四：逐项实施外部绑定边界优化，每项独立测量和验证，不一次性全部改造。
 - 步骤五：仅实施普通脚本函数快速路径、结构化调用栈及其出栈逻辑整理。
 - 步骤五的调用者上下文精简，以及步骤六至十三全部暂缓。
 
@@ -188,32 +187,45 @@ JIT 的 `utf8`、`closure` 和 `variadic` 收益处于噪声范围，不单独�
 
 只有 `dart_to_script` 的 JIT 样本改善 5.7%，其 AOT 则回退 1.4%，不足以抵消其他场景的整体回退。额外参数对象和间接访问没有换来可接受的稳定收益，因此完整撤回该实现，保留通用参数绑定回归测试，不再继续扩大同类元数据改造。
 
-## 步骤四（当前执行）：减少外部对象包装、方法解析和宿主边界成本
+## 步骤四（已完成）：减少外部对象包装、方法解析和宿主边界成本
 
-影响范围：外部绑定运行时和游戏绑定 API，暂不改脚本字节码。
+完成日期：2026-11-02。
 
-以下候选项应分别建立基线、回归测试和保留结论，不作为一次整体改造同时实施。真实游戏批量 API 可以独立于解释器核心优化实施。
+影响范围：外部绑定运行时，不改脚本字节码、函数参数绑定或执行模型。各候选项均独立实现和测量，未整体一次性改造。
 
-### 优化内容
+### 保留的实现
 
-- 缓存 Dart runtime `Type -> Hetu typeString`，减少重复 reflection、`runtimeType.toString()` 和基础类型名解析。
-- 缓存外部类与成员 ID 的声明解析结果，避免每次沿继承链重复查找。
-- 对普通 Dart/Flame 对象评估每个解释器持有的 `Expando<HTExternalInstance>`，避免重复包装，同时不阻止对象回收。
-- 为字符串、数字、列表等内建类型评估无状态适配器，访问时传入对象，而不是创建持有对象的包装器。
-- 缓存同一 `HTFunction` 到同一外部 typedef 的 Dart 回调包装。
-- 为常见固定参数数量提供类型化外部调用适配器，其他签名回退到 `Function.apply`。
-- 在游戏绑定 API 中提供批量操作，例如一次设置完整 transform 或批量更新组件，减少属性级查找、包装和参数分配。
+- 每个解释器持有一个 `Expando<HTExternalInstance>`，复用普通外部对象及 List、Set、Map 等集合的包装器，不阻止对象回收。
+- 普通对象命中缓存时直接跳过 reflection 和包装器初始化；数字、字符串、布尔、BigInt、record 和 `Expando` 自身继续使用独立包装器，不进入缓存。
+- 包装器记录创建时的 namespace，仅在当前 namespace 相同的情况下复用，避免跨模块或同名类声明误用。重绑 external class 或 reflection 时替换 `Expando`。
+- 缓存只保存包装器，不保存属性值或绑定动态返回的方法闭包；属性修改、继承和动态方法绑定继续走原路径。
+- raw Dart 函数在无命名参数时，对 0 至 4 个位置参数直接调用；实例方法直接前置 receiver。其他签名和命名参数继续使用 `Function.apply` 及原有定长列表。
+- 新增 `typedef_callback` 和 `list_property` 基准，以及继承、动态绑定、模块隔离、receiver 隔离、reflection 失效、集合与基本类型、raw 参数数量和命名参数回退测试。
 
-### 注意事项
+### 已撤回或未实施的候选
 
-- 属性值不能缓存，`memberSet` 后必须读取到最新值。
-- 动态返回不同函数对象的绑定不能默认缓存最终方法闭包。
-- 缓存需要区分解释器、模块和同名类声明，不同实例不能共享 receiver 状态。
-- 数字、字符串和布尔值不能直接套用普通对象的 `Expando` 方案。
+- `Type -> typeString` 缓存：独立收益处于噪声范围，并引入实例无关 reflection 的额外约束，已撤回；包装器命中路径现在会直接跳过 reflection。
+- 外部成员声明缓存：单层成员查找与 map 缓存成本接近，独立收益不足且增加声明生命周期复杂度，已撤回。
+- typedef 回调 map 缓存：`typedef_callback` JIT 从 171.751 ms 变为 174.068 ms，AOT 从 200.150 ms 变为 207.320 ms；直接保存在 `HTFunction` 上的版本进一步变为 JIT 186.690 ms、AOT 209.902 ms，两种方案均已撤回。
+- 内建类型无状态适配器：没有实施。集合使用同一 `Expando` 即可获得包装复用，基本类型也不需要引入共享 receiver 状态的适配器。
+- 真实游戏批量绑定 API：当前仓库没有对应游戏场景，未虚构 API 或收益，留待真实项目另行评估。
 
 ### 验证
 
-比较 `external_method`、`external_property`、`dart_to_script` 和 `nested_callback`。覆盖继承、动态绑定、对象释放、不同 receiver、属性修改和嵌套调用，并在真实游戏绑定场景中测量批量 API。
+全量 `dart test` 共 451 项通过；修改文件的 `dart analyze` 无问题；JIT/AOT 基准均实际执行且校验值正确。热点循环中的包装器命中、不同 receiver、模块切换、动态绑定和属性语义均有回归覆盖。未进行真实游戏帧耗时、分配/GC 或对象释放 profiling。
+
+### 实测结果
+
+分项初测用于判断方向；最终对照使用交付代码与原始 AOT 可执行文件交替运行。不同轮次存在明显机器状态漂移，因此外部方法和集合属性的收益不能视为已经确认。
+
+| 场景 | JIT 分项初测 | AOT 分项初测 | AOT 最终对照 |
+| --- | ---: | ---: | ---: |
+| raw_function | 146.334 -> 107.539 ms，下降 26.5% | 153.544 -> 130.611 ms，下降 14.9% | 156.101 -> 131.947 ms，下降 15.5% |
+| external_method | 148.365 -> 123.709 ms，下降 16.6% | 167.950 -> 136.641 ms，下降 18.6% | 160.771 -> 170.427 ms，回退 6.0% |
+| external_property | 134.712 -> 114.737 ms，下降 14.8% | 159.138 -> 133.210 ms，下降 16.3% | 163.913 -> 157.434 ms，下降 4.0%，噪声边界 |
+| list_property | 166.909 -> 139.464 ms，下降 16.5% | 196.270 -> 161.960 ms，下降 17.5% | 后续轮次未获得稳定收益 |
+
+raw 快速路径获得最稳定的收益。`Expando` 在外部属性场景仍有一定正向结果，但外部方法和列表属性的重复测量不一致；保留它是因为实现范围较小、包装复用明确且语义测试完整，而不是宣称所有外部成员访问都已提速。真实游戏中应重点复核外部方法，若回退稳定重现，应移除 `Expando` 并仅保留 raw 快速路径。
 
 ## 步骤五（当前执行）：普通函数快速路径和结构化调用栈
 
@@ -413,7 +425,7 @@ JIT 的 `utf8`、`closure` 和 `variadic` 收益处于噪声范围，不单独�
 
 - `test/performance/fib.dart`：递归、局部变量和整数运算。
 - `test/performance/function_call.dart`：`constant`、`utf8`、`empty`、`identity`、`closure`、`named`、`variadic`、`spread` 和 `stack_trace`。
-- `test/performance/binding_call.dart`：`external_function`、`raw_function`、`external_method`、`external_property`、`dart_to_script` 和 `nested_callback`。
+- `test/performance/binding_call.dart`：`external_function`、`raw_function`、`external_method`、`external_property`、`dart_to_script`、`nested_callback`、`typedef_callback` 和 `list_property`。
 - `test/performance/compilation_config.dart`：常量表达式、断言、行信息和文档配置的字节码大小、编译与执行对照。
 
 每个场景先预热，再至少测量 5 次，记录每次耗时、中位数、每次调用近似耗时和校验值。脚本只编译初始化一次，循环在脚本内部执行，Dart 侧只负责整体计时；配置基准独立测量编译阶段。

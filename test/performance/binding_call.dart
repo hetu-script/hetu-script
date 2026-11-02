@@ -65,6 +65,14 @@ class BenchmarkCounterBinding extends HTExternalClass {
 
 int _rawIdentity(int value) => value + 1;
 
+int _runTypedefCallback(int Function(int) callback, int count) {
+  var result = 0;
+  for (var i = 0; i < count; ++i) {
+    result = callback(result);
+  }
+  return result;
+}
+
 const _source = r'''
 external class BenchCounter {
   constructor()
@@ -75,10 +83,16 @@ external class BenchCounter {
 external function externalIdentity(value)
 external function rawIdentity(value)
 external function runScriptCallback(callback, n)
+external function runTypedefCallback(callback, n)
 
 final counter = BenchCounter()
+final numbers = [1]
 
 function scriptIdentity(value) {
+  return value + 1
+}
+
+function [DartIntFunction] typedefIdentity(value) {
   return value + 1
 }
 
@@ -133,6 +147,26 @@ function runDartToScript(n) {
 function runNestedCallback(n) {
   return runScriptCallback(nestedIdentity, n)
 }
+
+function runTypedef(n) {
+  var result = 0
+  var i = 0
+  while (i < n) {
+    result += runTypedefCallback(typedefIdentity, 1)
+    ++i
+  }
+  return result
+}
+
+function runListProperty(n) {
+  var result = 0
+  var i = 0
+  while (i < n) {
+    result += numbers.length
+    ++i
+  }
+  return result
+}
 ''';
 
 final _scenarios = <String, (String, int)>{
@@ -142,6 +176,8 @@ final _scenarios = <String, (String, int)>{
   'external_property': ('runExternalProperty', 100000),
   'dart_to_script': ('runDartToScript', 100000),
   'nested_callback': ('runNestedCallback', 100000),
+  'typedef_callback': ('runTypedef', 100000),
+  'list_property': ('runListProperty', 100000),
 };
 
 void main(List<String> args) {
@@ -179,6 +215,16 @@ void _runScenario(
           result = callback.call(positionalArgs: [result]) as int;
         }
         return result;
+      },
+      'runTypedefCallback': ({positionalArgs, namedArgs}) {
+        final callback = positionalArgs[0] as int Function(int);
+        final count = positionalArgs[1] as int;
+        return _runTypedefCallback(callback, count);
+      },
+    },
+    externalFunctionTypedef: {
+      'DartIntFunction': (HTFunction function) {
+        return (int value) => function.call(positionalArgs: [value]) as int;
       },
     },
     externalClasses: [BenchmarkCounterBinding()],

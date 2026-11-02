@@ -640,9 +640,18 @@ class HTInterpreter {
   final externalFunctionTypedefs = <String, HTExternalFunctionTypedef>{};
   final externalClasses = <String, HTExternalClass>{};
   final externalTypeReflection = <HTExternalTypeReflection>[];
+  Expando<HTExternalInstance> _externalInstances = Expando();
+  int externalInstanceCacheHits = 0;
+  int externalInstanceCacheMisses = 0;
 
   /// Wether the interpreter has a certain external class binding.
   bool containsExternalClass(String id) => externalClasses.containsKey(id);
+
+  void _resetExternalInstances() {
+    _externalInstances = Expando();
+    externalInstanceCacheHits = 0;
+    externalInstanceCacheMisses = 0;
+  }
 
   /// Register a external class into scrfipt.
   /// For acessing static members and constructors of this class,
@@ -653,6 +662,7 @@ class HTInterpreter {
       throw HTError.defined(externalClass.id, HTErrorType.runtimeError);
     }
     externalClasses[externalClass.id] = externalClass;
+    _resetExternalInstances();
   }
 
   /// Fetch a external class instance
@@ -667,6 +677,7 @@ class HTInterpreter {
   /// for interpreter getting dart class name by reflection
   void bindExternalReflection(HTExternalTypeReflection reflection) {
     externalTypeReflection.add(reflection);
+    _resetExternalInstances();
   }
 
   /// Register an external function in script
@@ -803,14 +814,19 @@ class HTInterpreter {
       return HTTypeObject(object);
     }
 
+    var canCache = true;
     late String typeString;
     if (object is bool) {
+      canCache = false;
       typeString = _lexicon.idBoolean;
     } else if (object is int) {
+      canCache = false;
       typeString = _lexicon.idInteger;
     } else if (object is double) {
+      canCache = false;
       typeString = _lexicon.idFloat;
     } else if (object is String) {
+      canCache = false;
       typeString = _lexicon.idString;
     } else if (object is List) {
       typeString = 'List';
@@ -860,6 +876,14 @@ class HTInterpreter {
     } else if (object is math.Random) {
       typeString = 'Random';
     } else {
+      canCache = object is! BigInt && object is! Record && object is! Expando;
+      if (canCache) {
+        final cached = _externalInstances[object];
+        if (cached != null && identical(cached.namespace, currentNamespace)) {
+          ++externalInstanceCacheHits;
+          return cached;
+        }
+      }
       var reflected = false;
       for (final reflect in externalTypeReflection) {
         final result = reflect(object);
@@ -875,7 +899,19 @@ class HTInterpreter {
       }
     }
 
-    return HTExternalInstance(object, this, typeString);
+    if (!canCache) {
+      return HTExternalInstance(object, this, typeString);
+    }
+
+    final cached = _externalInstances[object];
+    if (cached != null && identical(cached.namespace, currentNamespace)) {
+      ++externalInstanceCacheHits;
+      return cached;
+    }
+    ++externalInstanceCacheMisses;
+    final instance = HTExternalInstance(object, this, typeString);
+    _externalInstances[object] = instance;
+    return instance;
   }
 
   dynamic toStructValue(dynamic value) {

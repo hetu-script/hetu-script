@@ -783,7 +783,7 @@ class HTFunction extends HTFunctionDeclaration
   }
 
   /// Dispatch an external function call, handling both [HTExternalFunction]
-  /// and raw Dart [Function] via [Function.apply].
+  /// and raw Dart [Function] through positional fast paths or [Function.apply].
   dynamic _dispatchExternalCall(
     Function func,
     List<dynamic> posArgs,
@@ -799,6 +799,21 @@ class HTFunction extends HTFunctionDeclaration
           namedArgs: namedArgs,
         );
       } else {
+        if (namedArgs.isEmpty) {
+          switch (posArgs.length) {
+            case 0:
+              return func(instance);
+            case 1:
+              return func(instance, posArgs[0]);
+            case 2:
+              return func(instance, posArgs[0], posArgs[1]);
+            case 3:
+              return func(instance, posArgs[0], posArgs[1], posArgs[2]);
+            case 4:
+              return func(
+                  instance, posArgs[0], posArgs[1], posArgs[2], posArgs[3]);
+          }
+        }
         final finalPosArgs =
             List<dynamic>.filled(posArgs.length + 1, null, growable: true);
         finalPosArgs[0] = instance;
@@ -815,6 +830,20 @@ class HTFunction extends HTFunctionDeclaration
           namedArgs: namedArgs,
         );
       } else {
+        if (namedArgs.isEmpty) {
+          switch (posArgs.length) {
+            case 0:
+              return func();
+            case 1:
+              return func(posArgs[0]);
+            case 2:
+              return func(posArgs[0], posArgs[1]);
+            case 3:
+              return func(posArgs[0], posArgs[1], posArgs[2]);
+            case 4:
+              return func(posArgs[0], posArgs[1], posArgs[2], posArgs[3]);
+          }
+        }
         return Function.apply(func, posArgs,
             namedArgs.isEmpty ? null : interpreter.toDartNamedArgs(namedArgs));
       }

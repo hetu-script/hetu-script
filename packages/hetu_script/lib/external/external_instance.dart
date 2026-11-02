@@ -6,6 +6,7 @@ import '../type/external.dart';
 import '../error/error.dart';
 import '../value/function/function.dart';
 import '../value/class/class.dart';
+import '../value/namespace/namespace.dart';
 import 'external_class.dart';
 // import '../value/external_enum/external_enum.dart';
 import '../interpreter/interpreter.dart';
@@ -19,6 +20,7 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
   final T externalObject;
   final String typeString;
   late final HTExternalClass? externalClass;
+  late final HTNamespace namespace;
 
   HTClass? klass;
 
@@ -35,8 +37,8 @@ class HTExternalInstance<T> with HTObject, InterpreterRef {
       externalClass = null;
     }
 
-    klass = interpreter.currentNamespace
-        .memberGet(id, isRecursive: true, ignoreUndefined: true);
+    namespace = interpreter.currentNamespace;
+    klass = namespace.memberGet(id, isRecursive: true, ignoreUndefined: true);
     // else if (def is HTExternalEnum) {
     //   enumClass = def;
     // }
