@@ -677,11 +677,9 @@ class HTFunction extends HTFunctionDeclaration
           }
 
           if (variadicStart >= 0) {
-            final variadicArg = <dynamic>[];
             for (var j = variadicStart; j < positionalArgs.length; ++j) {
-              variadicArg.add(positionalArgs[j]);
+              finalPosArgs.add(positionalArgs[j]);
             }
-            finalPosArgs.addAll(variadicArg);
           }
         } else {
           finalPosArgs = positionalArgs;
@@ -801,13 +799,14 @@ class HTFunction extends HTFunctionDeclaration
           namedArgs: namedArgs,
         );
       } else {
-        return Function.apply(
-            func,
-            [instance, ...posArgs],
-            namedArgs.isEmpty
-                ? null
-                : namedArgs.map<Symbol, dynamic>(
-                    (key, value) => MapEntry(Symbol(key), value)));
+        final finalPosArgs =
+            List<dynamic>.filled(posArgs.length + 1, null, growable: true);
+        finalPosArgs[0] = instance;
+        for (var i = 0; i < posArgs.length; ++i) {
+          finalPosArgs[i + 1] = posArgs[i];
+        }
+        return Function.apply(func, finalPosArgs,
+            namedArgs.isEmpty ? null : interpreter.toDartNamedArgs(namedArgs));
       }
     } else {
       if (func is HTExternalFunction) {
@@ -816,13 +815,8 @@ class HTFunction extends HTFunctionDeclaration
           namedArgs: namedArgs,
         );
       } else {
-        return Function.apply(
-            func,
-            posArgs,
-            namedArgs.isEmpty
-                ? null
-                : namedArgs.map<Symbol, dynamic>(
-                    (key, value) => MapEntry(Symbol(key), value)));
+        return Function.apply(func, posArgs,
+            namedArgs.isEmpty ? null : interpreter.toDartNamedArgs(namedArgs));
       }
     }
   }

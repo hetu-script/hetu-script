@@ -219,5 +219,19 @@ void main() {
       ''');
       expect(result, 2);
     });
+
+    test('external variadic arguments preserve all values', () {
+      hetu.interpreter.bindExternalFunction('sum', (
+          {positionalArgs, namedArgs}) {
+        return positionalArgs.fold<int>(
+            0, (total, value) => total + value as int);
+      });
+
+      final result = hetu.eval(r'''
+        external function sum(...values)
+        sum(1, 2, 3, 4)
+      ''');
+      expect(result, 10);
+    });
   });
 }

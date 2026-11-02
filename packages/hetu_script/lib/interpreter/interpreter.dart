@@ -229,6 +229,8 @@ class HTInterpreter {
   /// invoke(ignoreUndefined: true) 时已告警过的函数名（去重，避免每次调用都刷告警）
   final Set<String> _undefinedInvokeWarnings = {};
 
+  final Map<String, Symbol> _dartNamedArgSymbols = {};
+
   /// A bytecode interpreter.
   HTInterpreter(
       {InterpreterConfig? config,
@@ -345,6 +347,16 @@ class HTInterpreter {
     }
   }
 
+  Map<Symbol, dynamic> toDartNamedArgs(Map<String, dynamic> namedArgs) {
+    final result = <Symbol, dynamic>{};
+    for (final entry in namedArgs.entries) {
+      final symbol =
+          _dartNamedArgSymbols.putIfAbsent(entry.key, () => Symbol(entry.key));
+      result[symbol] = entry.value;
+    }
+    return result;
+  }
+
   /// handler for various kinds of invocations.
   dynamic _call(
     dynamic callee, {
@@ -423,13 +435,8 @@ class HTInterpreter {
               // typeArgs: typeArgs,
             );
           } else {
-            return Function.apply(
-                callee,
-                positionalArgs,
-                namedArgs.isEmpty
-                    ? null
-                    : namedArgs.map<Symbol, dynamic>(
-                        (key, value) => MapEntry(Symbol(key), value)));
+            return Function.apply(callee, positionalArgs,
+                namedArgs.isEmpty ? null : toDartNamedArgs(namedArgs));
           }
         } else if ((callee is HTClass) || (callee is HTType)) {
           return handleClassConstructor(callee);
@@ -930,7 +937,8 @@ class HTInterpreter {
     final importedNamespace =
         _currentBytecodeModule.namespaces[importDecl.fromPath]!;
 
-    if (importDecl.alias == null) {      if (importDecl.showList.isEmpty) {
+    if (importDecl.alias == null) {
+      if (importDecl.showList.isEmpty) {
         nsp.import(importedNamespace, export: importDecl.isExported);
       } else {
         for (final id in importDecl.showList) {
@@ -1349,6 +1357,7 @@ class HTInterpreter {
           // can now be resolved.
           _flushPendingImports();
         case OpCode.endOfModule:
+
           /// Final flush of pending imports. Normally everything has been
           /// resolved by the per-file flush at endOfFile; this is only
           /// a safety net.
@@ -2072,22 +2081,53 @@ class HTInterpreter {
             }
           }
         case OpCode.call:
-          final flags = _currentBytecodeModule.read();
-          final isNullable = (flags & 1) != 0;
-          final hasNewOperator = (flags & 2) != 0;
-          final hasObjectId = (flags & 4) != 0;
-          String? objectId;
-          if (hasObjectId) {
-            objectId = _currentBytecodeModule.readUtf8String();
-          }
-          // Named args
-          final namedCount = _currentBytecodeModule.read();
-          final namedArgs = <String, dynamic>{};
-          if (namedCount > 0) {
-            final namedKeys = List<String>.filled(namedCount, '');
-            for (var i = 0; i < namedCount; i++) {
-              namedKeys[i] = _currentBytecodeModule.getConstString();
+          final module = _currentBytecodeModule;
+          final instructionIp = module.ip - 1;
+          var callSite = module.getCallSiteInfo(instructionIp);
+          if (callSite == null) {
+            final flags = module.read();
+            final isNullable = (flags & 1) != 0;
+            final isConstructorCall = (flags & 2) != 0;
+            final hasObjectId = (flags & 4) != 0;
+            String? objectId;
+            if (hasObjectId) {
+              objectId = module.readUtf8String();
             }
+            final namedCount = module.read();
+            final namedKeys = namedCount == 0
+                ? const <String>[]
+                : List<String>.filled(namedCount, '');
+            for (var i = 0; i < namedCount; i++) {
+              namedKeys[i] = module.getConstString();
+            }
+            final positionalArgCount = module.read();
+            final positionalArgFlags = positionalArgCount == 0
+                ? const <int>[]
+                : List<int>.filled(positionalArgCount, 0);
+            var hasSpread = false;
+            for (var i = 0; i < positionalArgCount; i++) {
+              positionalArgFlags[i] = module.read();
+              if (positionalArgFlags[i] == 1) hasSpread = true;
+            }
+            callSite = HTCallSiteInfo(
+              nextIp: module.ip,
+              isNullable: isNullable,
+              isConstructorCall: isConstructorCall,
+              objectId: objectId,
+              namedKeys: namedKeys,
+              positionalArgCount: positionalArgCount,
+              positionalArgFlags: positionalArgFlags,
+              hasSpread: hasSpread,
+            );
+            module.cacheCallSiteInfo(instructionIp, callSite);
+          } else {
+            module.ip = callSite.nextIp;
+          }
+
+          final namedArgs = <String, dynamic>{};
+          final namedKeys = callSite.namedKeys;
+          final namedCount = namedKeys.length;
+          if (namedCount > 0) {
             final namedValues = List<dynamic>.filled(namedCount, null);
             for (var i = namedCount - 1; i >= 0; --i) {
               namedValues[i] = stack.pop();
@@ -2096,20 +2136,13 @@ class HTInterpreter {
               namedArgs[namedKeys[i]] = namedValues[i];
             }
           }
-          // Positional args
-          final posCount = _currentBytecodeModule.read();
-          final posFlags =
-              posCount == 0 ? const <int>[] : List<int>.filled(posCount, 0);
-          var hasSpread = false;
-          for (var i = 0; i < posCount; i++) {
-            posFlags[i] = _currentBytecodeModule.read();
-            if (posFlags[i] == 1) hasSpread = true;
-          }
+          final posCount = callSite.positionalArgCount;
+          final posFlags = callSite.positionalArgFlags;
           var posArgs = List<dynamic>.filled(posCount, null, growable: true);
           for (var i = posCount - 1; i >= 0; --i) {
             posArgs[i] = stack.pop();
           }
-          if (hasSpread) {
+          if (callSite.hasSpread) {
             final expandedArgs = <dynamic>[];
             for (var i = 0; i < posCount; i++) {
               if (posFlags[i] == 1) {
@@ -2120,23 +2153,22 @@ class HTInterpreter {
             }
             posArgs = expandedArgs;
           }
-          // Callee
           final callee = stack.pop();
           if (callee == null) {
-            if (isNullable) {
+            if (callSite.isNullable) {
               stack.push(null);
               break;
             }
             throw HTError.callNullObject(
-                objectId ?? stack.localSymbol ?? _lexicon.kNull,
+                callSite.objectId ?? stack.localSymbol ?? _lexicon.kNull,
                 filename: _currentFile,
                 line: _currentLine,
                 column: _currentColumn);
           }
           stack.push(_call(
             callee,
-            calleeId: objectId,
-            isConstructorCall: hasNewOperator,
+            calleeId: callSite.objectId,
+            isConstructorCall: callSite.isConstructorCall,
             positionalArgs: posArgs,
             namedArgs: namedArgs,
           ));
@@ -2373,13 +2405,13 @@ class HTInterpreter {
             : stack.push(true);
       case HTValueTypeCode.constInt:
         final index = _currentBytecodeModule.readUint16();
-        stack.push(_currentBytecodeModule.getGlobalConstant(int, index));
+        stack.push(_currentBytecodeModule.getConstInt(index));
       case HTValueTypeCode.constFloat:
         final index = _currentBytecodeModule.readUint16();
-        stack.push(_currentBytecodeModule.getGlobalConstant(double, index));
+        stack.push(_currentBytecodeModule.getConstFloat(index));
       case HTValueTypeCode.constString:
         final index = _currentBytecodeModule.readUint16();
-        stack.push(_currentBytecodeModule.getGlobalConstant(String, index));
+        stack.push(_currentBytecodeModule.getConstString(index));
       case HTValueTypeCode.string:
         stack.push(_currentBytecodeModule.readUtf8String());
       case HTValueTypeCode.identifier:

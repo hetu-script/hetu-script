@@ -31,6 +31,30 @@ function add(a, b) {
   return a + b
 }
 
+function runConstant(n) {
+  var intValue = 0
+  var floatValue = 0.0
+  var stringValue = ''
+  var i = 0
+  while (i < n) {
+    intValue = 123456789
+    floatValue = 3.1415926
+    stringValue = 'constant, 常量'
+    ++i
+  }
+  return i
+}
+
+function runUtf8(n) {
+  var value = ''
+  var i = 0
+  while (i < n) {
+    value = 'prefix-${i}-世界'
+    ++i
+  }
+  return i
+}
+
 function runEmpty(n) {
   var i = 0
   while (i < n) {
@@ -91,6 +115,8 @@ function runSpread(n) {
 ''';
 
 final _scenarios = <String, (String, int, bool)>{
+  'constant': ('runConstant', 100000, false),
+  'utf8': ('runUtf8', 100000, false),
   'empty': ('runEmpty', 200000, false),
   'identity': ('runIdentity', 200000, false),
   'closure': ('runClosure', 100000, false),

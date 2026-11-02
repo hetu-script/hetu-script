@@ -6,6 +6,8 @@ mixin BytecodeReader {
   /// The bytecode, stores as uint8 list
   late Uint8List bytes;
 
+  late final ByteData _byteData = ByteData.sublistView(bytes);
+
   /// Instruction pointer
   var ip = 0;
 
@@ -18,7 +20,8 @@ mixin BytecodeReader {
 
   /// Fetch a single byte at the current instruction pointer
   int read() {
-    assert(ip < bytes.length, 'Bytecode IP $ip out of bounds (length: ${bytes.length})');
+    assert(ip < bytes.length,
+        'Bytecode IP $ip out of bounds (length: ${bytes.length})');
     return bytes[ip++];
   }
 
@@ -31,57 +34,57 @@ mixin BytecodeReader {
   int readUint8() {
     final start = ip;
     ip += 1;
-    return bytes.buffer.asByteData().getUint8(start);
+    return _byteData.getUint8(start);
   }
 
   /// Fetch a uint16 from the bytes list
   int readUint16() {
     final start = ip;
     ip += 2;
-    return bytes.buffer.asByteData().getUint16(start);
+    return _byteData.getUint16(start);
   }
 
   /// Fetch a uint32 from the bytes list
   int readUint32() {
     final start = ip;
     ip += 4;
-    return bytes.buffer.asByteData().getUint32(start);
+    return _byteData.getUint32(start);
   }
 
   /// Fetch a int64 from the bytes list
   int readInt16() {
     final start = ip;
     ip += 2;
-    return bytes.buffer.asByteData().getInt16(start);
+    return _byteData.getInt16(start);
   }
 
   /// Fetch a int32 from the bytes list
   // int readInt32() {
   //   final start = ip;
   //   ip += 4;
-  //   return bytes.buffer.asByteData().getInt32(start);
+  //   return _byteData.getInt32(start);
   // }
 
   /// Fetch a int64 from the bytes list
   // int readInt64() {
   //   final start = ip;
   //   ip += 8;
-  //   return bytes.buffer.asByteData().getInt64(start);
+  //   return _byteData.getInt64(start);
   // }
 
   /// Fetch a float64 from the bytes list
   // double readFloat64() {
   //   final start = ip;
   //   ip += 8;
-  //   return bytes.buffer.asByteData().getFloat64(start);
+  //   return _byteData.getFloat64(start);
   // }
 
   /// Fetch a int64 from the bytes list
   // int readInt64() {
   //   final signMask = 1 << 31;
-  //   final highBits = bytes.buffer.asByteData().getUint32(ip, Endian.big);
+  //   final highBits = _byteData.getUint32(ip, Endian.big);
   //   final isNegative = (highBits & signMask) >> 31 == 1 ? -1 : 1;
-  //   final littleEnd = bytes.buffer.asByteData().getUint32(ip + 4, Endian.big);
+  //   final littleEnd = _byteData.getUint32(ip + 4, Endian.big);
   //   ip += 8;
   //   var bigEnd = highBits;
   //   if (isNegative < 0) {
@@ -111,7 +114,7 @@ mixin BytecodeReader {
     final length = readUint32();
     final start = ip;
     ip += length;
-    final codeUnits = bytes.sublist(start, ip);
+    final codeUnits = Uint8List.sublistView(bytes, start, ip);
     return utf8.decoder.convert(codeUnits);
   }
 }
