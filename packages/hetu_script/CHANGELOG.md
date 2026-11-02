@@ -1,3 +1,7 @@
+## 0.7.1
+
+- Optimize function call performance.
+
 ## 0.6.0
 
 - Add bitwise operators and bitwise shifts operators.

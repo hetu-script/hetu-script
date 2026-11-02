@@ -94,7 +94,7 @@ If you are using VS Code, you can download [this extension](https://marketplace.
 We have a command line REPL tool for quick testing. You can activate by the following command:
 
 ```
-dart install https://github.com/hetu-script/hetu-script.git
+dart install https://github.com/hetu-script/hetu-script.git --git-path packages/hetu_script_dev_tools
 ```
 
 Then you can use command line tool 'hetu' in any directory on your computer.

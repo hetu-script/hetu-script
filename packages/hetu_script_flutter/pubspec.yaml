@@ -1,21 +1,21 @@
 name: hetu_script_flutter
 description: Extension for Hetu Script. Makes it easier to use Hetu Script in Flutter apps.
-version: 0.1.2+1
+version: 0.2.0
 homepage: https://github.com/hetu-script/hetu-script
-publish_to: none
+# publish_to: none
 
 environment:
-  sdk: ^3.0.0
-  flutter: ^3.0.0
+  sdk: >=3.0.0
+  flutter: >=3.0.0
 
 dependencies:
   flutter:
     sdk: flutter
 
   path: ^1.8.0
-  # hetu_script: ^0.6.4
-  hetu_script:
-    path: ../hetu_script
+  hetu_script: ^0.7.1
+  # hetu_script:
+  #   path: ../hetu_script
 
 dev_dependencies:
   flutter_test:
