@@ -44,7 +44,8 @@ void main() {
     expect(optimized.callScopeSlotCount, 3);
     expect(optimized.callScopeSlotNames, ['value', 'result', 'shadow']);
     expect(uncaptured.callScopeSlotCount, 1);
-    expect(captured.callScopeSlotCount, isNull);
+    expect(captured.callScopeSlotCount, 1);
+    expect(captured.callScopeCapturedSlots, [0]);
     expect(hetu.invoke('optimized', positionalArgs: [40]), 42);
     expect(hetu.invoke('uncaptured'), 3);
   });
@@ -143,7 +144,8 @@ void main() {
     expect(hetu.invoke('sum', positionalArgs: [4]), 12);
   });
 
-  test('captured, deleted and late locals retain the generic path', () {
+  test('captured locals use cells while deleted and late locals stay generic',
+      () {
     final hetu = _createHetu();
     hetu.eval(r'''
       function captured(value) {
@@ -161,7 +163,7 @@ void main() {
       }
     ''');
 
-    expect(_function(hetu, 'captured').callScopeSlotCount, isNull);
+    expect(_function(hetu, 'captured').callScopeSlotCount, 1);
     expect(_function(hetu, 'deleted').callScopeSlotCount, isNull);
     expect(_function(hetu, 'lateValue').callScopeSlotCount, isNull);
     expect(() => hetu.invoke('deleted'), throwsA(isA<HTError>()));
@@ -236,6 +238,6 @@ void main() {
 
     expect(clone.callScopeSlotCount, function.callScopeSlotCount);
     expect(clone.callScopeSlotNames, function.callScopeSlotNames);
-    expect(kHetuVersion.toString(), '0.7.0');
+    expect(kHetuVersion.toString(), '0.7.1');
   });
 }

@@ -109,8 +109,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (optimization == null ||
         config.checkTypeAnnotationAtRuntime ||
         optimization.requiresDynamicScope ||
-        optimization.capturedVariables.isNotEmpty ||
-        optimization.upvalues.isNotEmpty ||
         optimization.localSlotCount > 65535 ||
         node.definition == null ||
         node.isExternal ||
@@ -125,7 +123,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (_currentFunctionOptimization == null) return null;
     final variable =
         _syntheticDeclarations[id] ?? _optimization.declarations[id];
-    if (variable?.storage == HTResolvedStorage.localSlot) {
+    if (variable?.storage == HTResolvedStorage.localSlot ||
+        variable?.storage == HTResolvedStorage.capturedCell) {
       return variable;
     }
     return null;
@@ -139,17 +138,45 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final markedName = _markedSymbolsList[i][node.id];
       if (markedName != null) {
         final variable = _markedVariablesList[i][markedName]!;
-        return variable.storage == HTResolvedStorage.localSlot
+        return variable.storage == HTResolvedStorage.localSlot ||
+                variable.storage == HTResolvedStorage.capturedCell
             ? variable
             : null;
       }
     }
     final variable =
         _syntheticReferences[node] ?? _optimization.references[node]?.variable;
-    if (variable?.storage == HTResolvedStorage.localSlot) {
+    if (variable?.storage == HTResolvedStorage.localSlot ||
+        variable?.storage == HTResolvedStorage.capturedCell) {
       return variable;
     }
     return null;
+  }
+
+  bool _isCurrentFunctionVariable(HTResolvedVariable variable) {
+    return identical(
+      variable.scope.function,
+      _currentFunctionOptimization!.scope.function,
+    );
+  }
+
+  int _upvalueIndex(HTResolvedVariable variable) {
+    return _currentFunctionOptimization!.upvalues
+        .indexWhere((candidate) => identical(candidate, variable));
+  }
+
+  int _captureDepth(
+    HTFunctionOptimization optimization,
+    HTResolvedVariable variable,
+  ) {
+    var depth = 0;
+    var scope = optimization.scope.function!.parent?.function;
+    while (scope != null && !identical(scope, variable.scope.function)) {
+      depth++;
+      scope = scope.parent?.function;
+    }
+    assert(scope != null);
+    return depth;
   }
 
   IdentifierExpr _syntheticIdentifier(String id, HTResolvedVariable variable) {
@@ -641,8 +668,19 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     bytesBuilder.add(_lineInfo(expr.line, expr.column));
     final localVariable = _localReference(expr);
     if (localVariable != null) {
-      bytesBuilder.addByte(OpCode.localSlotGet);
-      bytesBuilder.add(_uint16(localVariable.slot!));
+      if (_isCurrentFunctionVariable(localVariable)) {
+        bytesBuilder.addByte(
+          localVariable.storage == HTResolvedStorage.capturedCell
+              ? OpCode.localCellGet
+              : OpCode.localSlotGet,
+        );
+        bytesBuilder.add(_uint16(localVariable.slot!));
+      } else {
+        final upvalueIndex = _upvalueIndex(localVariable);
+        assert(upvalueIndex >= 0);
+        bytesBuilder.addByte(OpCode.upvalueGet);
+        bytesBuilder.add(_uint16(upvalueIndex));
+      }
       return bytesBuilder.toBytes();
     }
     var symbolId = expr.id;
@@ -1011,8 +1049,19 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         final localVariable = _localReference(expr.left);
         if (localVariable != null) {
           bytesBuilder.add(compileAST(expr.right));
-          bytesBuilder.addByte(OpCode.localSlotSet);
-          bytesBuilder.add(_uint16(localVariable.slot!));
+          if (_isCurrentFunctionVariable(localVariable)) {
+            bytesBuilder.addByte(
+              localVariable.storage == HTResolvedStorage.capturedCell
+                  ? OpCode.localCellSet
+                  : OpCode.localSlotSet,
+            );
+            bytesBuilder.add(_uint16(localVariable.slot!));
+          } else {
+            final upvalueIndex = _upvalueIndex(localVariable);
+            assert(upvalueIndex >= 0);
+            bytesBuilder.addByte(OpCode.upvalueSet);
+            bytesBuilder.add(_uint16(upvalueIndex));
+          }
           return bytesBuilder.toBytes();
         }
       }
@@ -2071,6 +2120,20 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       bytesBuilder.add(_uint16(functionOptimization.localSlotCount));
       for (var i = 0; i < functionOptimization.localSlotCount; ++i) {
         bytesBuilder.add(_identifier(functionOptimization.slotNames[i] ?? ''));
+      }
+      final capturedSlots = functionOptimization.capturedVariables
+          .map((variable) => variable.slot!)
+          .toList()
+        ..sort();
+      bytesBuilder.add(_uint16(capturedSlots.length));
+      for (final slot in capturedSlots) {
+        bytesBuilder.add(_uint16(slot));
+      }
+      bytesBuilder.add(_uint16(functionOptimization.upvalues.length));
+      for (final upvalue in functionOptimization.upvalues) {
+        bytesBuilder.add(_uint16(_captureDepth(functionOptimization, upvalue)));
+        bytesBuilder.add(_uint16(upvalue.slot!));
+        bytesBuilder.add(_identifier(upvalue.name));
       }
     }
     // if (stmt.category != FunctionCategory.literal && !stmt.isField) {

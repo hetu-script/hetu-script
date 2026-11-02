@@ -1301,13 +1301,29 @@ class HTInterpreter {
         case OpCode.lineInfo:
           _currentLine = _currentBytecodeModule.readUint16();
           _currentColumn = _currentBytecodeModule.readUint16();
-        case OpCode.localSlotGet:
+        case OpCode.upvalueGet:
+          final index = _currentBytecodeModule.readUint16();
+          stack.push(currentCallScope!.getUpvalue(index));
+        case OpCode.upvalueSet:
+          final index = _currentBytecodeModule.readUint16();
+          final value = stack.pop();
+          currentCallScope!.setUpvalue(index, value);
+          stack.push(value);
+        case OpCode.localCellGet:
           final slot = _currentBytecodeModule.readUint16();
           stack.push(currentCallScope!.get(slot));
-        case OpCode.localSlotSet:
+        case OpCode.localCellSet:
           final slot = _currentBytecodeModule.readUint16();
           final value = stack.pop();
           currentCallScope!.set(slot, value);
+          stack.push(value);
+        case OpCode.localSlotGet:
+          final slot = _currentBytecodeModule.readUint16();
+          stack.push(currentCallScope!.getUncaptured(slot));
+        case OpCode.localSlotSet:
+          final slot = _currentBytecodeModule.readUint16();
+          final value = stack.pop();
+          currentCallScope!.setUncaptured(slot, value);
           stack.push(value);
         case OpCode.localSlotDecl:
           final slot = _currentBytecodeModule.readUint16();
@@ -2567,10 +2583,23 @@ class HTInterpreter {
         }
         int? callScopeSlotCount;
         final callScopeSlotNames = <String>[];
+        final callScopeCapturedSlots = <int>[];
+        final callScopeUpvalues = <HTCallScopeUpvalue>[];
         if (_currentBytecodeModule.readBool()) {
           callScopeSlotCount = _currentBytecodeModule.readUint16();
           for (var i = 0; i < callScopeSlotCount; ++i) {
             callScopeSlotNames.add(_currentBytecodeModule.getConstString());
+          }
+          final capturedSlotCount = _currentBytecodeModule.readUint16();
+          for (var i = 0; i < capturedSlotCount; ++i) {
+            callScopeCapturedSlots.add(_currentBytecodeModule.readUint16());
+          }
+          final upvalueCount = _currentBytecodeModule.readUint16();
+          for (var i = 0; i < upvalueCount; ++i) {
+            final depth = _currentBytecodeModule.readUint16();
+            final slot = _currentBytecodeModule.readUint16();
+            final name = _currentBytecodeModule.getConstString();
+            callScopeUpvalues.add(HTCallScopeUpvalue(depth, slot, name));
           }
         }
         final func = HTFunction(
@@ -2595,7 +2624,10 @@ class HTInterpreter {
           namespace: currentNamespace,
           callScopeSlotCount: callScopeSlotCount,
           callScopeSlotNames: callScopeSlotNames,
+          callScopeCapturedSlots: callScopeCapturedSlots,
+          callScopeUpvalues: callScopeUpvalues,
         );
+        func.captureCallScope(currentCallScope);
         if (!hasExternalTypedef) {
           stack.push(func);
         } else {
@@ -3000,10 +3032,23 @@ class HTInterpreter {
     }
     int? callScopeSlotCount;
     final callScopeSlotNames = <String>[];
+    final callScopeCapturedSlots = <int>[];
+    final callScopeUpvalues = <HTCallScopeUpvalue>[];
     if (_currentBytecodeModule.readBool()) {
       callScopeSlotCount = _currentBytecodeModule.readUint16();
       for (var i = 0; i < callScopeSlotCount; ++i) {
         callScopeSlotNames.add(_currentBytecodeModule.getConstString());
+      }
+      final capturedSlotCount = _currentBytecodeModule.readUint16();
+      for (var i = 0; i < capturedSlotCount; ++i) {
+        callScopeCapturedSlots.add(_currentBytecodeModule.readUint16());
+      }
+      final upvalueCount = _currentBytecodeModule.readUint16();
+      for (var i = 0; i < upvalueCount; ++i) {
+        final depth = _currentBytecodeModule.readUint16();
+        final slot = _currentBytecodeModule.readUint16();
+        final name = _currentBytecodeModule.getConstString();
+        callScopeUpvalues.add(HTCallScopeUpvalue(depth, slot, name));
       }
     }
     final func = HTFunction(
@@ -3037,7 +3082,10 @@ class HTInterpreter {
       redirectingConstructor: redirCtor,
       callScopeSlotCount: callScopeSlotCount,
       callScopeSlotNames: callScopeSlotNames,
+      callScopeCapturedSlots: callScopeCapturedSlots,
+      callScopeUpvalues: callScopeUpvalues,
     );
+    func.captureCallScope(currentCallScope);
     if (localSlot != null) {
       func.namespace = currentNamespace;
       currentCallScope!.declare(
@@ -3045,6 +3093,7 @@ class HTInterpreter {
         func,
         isMutable: false,
         isInitialized: true,
+        reuseCell: true,
       );
     } else if (!isField) {
       if ((category != FunctionCategory.constructor) || isStatic) {

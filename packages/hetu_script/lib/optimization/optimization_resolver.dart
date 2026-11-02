@@ -16,6 +16,7 @@ class HTOptimizationResolver {
     final visitor = _OptimizationVisitor(result, _lexicon);
     visitor.build(compilation);
     visitor.resolve(compilation);
+    propagateDynamicScopes(result);
     return result;
   }
 
@@ -24,7 +25,32 @@ class HTOptimizationResolver {
     final visitor = _OptimizationVisitor(result, _lexicon);
     visitor.buildSource(source);
     visitor.resolveSource(source);
+    propagateDynamicScopes(result);
     return result;
+  }
+
+  void propagateDynamicScopes(HTOptimizationResult result) {
+    var changed = true;
+    while (changed) {
+      changed = false;
+      for (final optimization in result.functions.values) {
+        if (optimization.localSlotCount > 65535 &&
+            !optimization.requiresDynamicScope) {
+          optimization.requiresDynamicScope = true;
+          changed = true;
+        }
+        if (!optimization.requiresDynamicScope) continue;
+        for (final upvalue in optimization.upvalues) {
+          final owner = upvalue.scope.function;
+          if (owner == null) continue;
+          final ownerOptimization = result.functions[owner.declaration]!;
+          if (!ownerOptimization.requiresDynamicScope) {
+            ownerOptimization.requiresDynamicScope = true;
+            changed = true;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -150,19 +176,17 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
   }
 
   HTResolvedVariable? lookup(String name) {
+    if (markedLoopSymbols.isNotEmpty) {
+      final markedVariable = markedLoopSymbols.last.variables[name];
+      if (markedVariable != null) {
+        return markedVariable;
+      }
+    }
     HTResolvedScope? scope = currentScope;
     while (scope != null) {
       final variable = scope.lookup(name);
       if (variable != null) {
         return variable;
-      }
-      for (final marked in markedLoopSymbols.reversed) {
-        if (identical(marked.scope, scope)) {
-          final markedVariable = marked.variables[name];
-          if (markedVariable != null) {
-            return markedVariable;
-          }
-        }
       }
       scope = scope.parent;
     }
@@ -180,13 +204,16 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
         storage: HTResolvedStorage.dynamic,
         slot: null,
       );
-    } else if (variable.storage == HTResolvedStorage.localSlot) {
+    } else if (variable.storage == HTResolvedStorage.localSlot ||
+        variable.storage == HTResolvedStorage.capturedCell) {
       final currentFunction = currentScope.function;
       final ownerFunction = variable.scope.function;
       if (currentFunction != null &&
           ownerFunction != null &&
           !identical(currentFunction, ownerFunction)) {
-        variable.storage = HTResolvedStorage.capturedCell;
+        if (variable.storage == HTResolvedStorage.localSlot) {
+          variable.storage = HTResolvedStorage.capturedCell;
+        }
         final ownerOptimization = result.functions[ownerFunction.declaration]!;
         addIdentity(ownerOptimization.capturedVariables, variable);
         HTResolvedScope? nestedFunction = currentFunction;
@@ -467,6 +494,12 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
     }
     final savedScope = currentScope;
     enterScope(node, HTResolvedScopeKind.function);
+    if (building &&
+        (node.isExternal ||
+            (node.category != FunctionCategory.normal &&
+                node.category != FunctionCategory.literal))) {
+      requireDynamicScope();
+    }
     if (building) {
       for (final param in node.paramDecls) {
         declareVariable(param, param.id);

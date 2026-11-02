@@ -208,8 +208,9 @@ void main() {
     expect(iReferences, hasLength(3));
     expect(identical(iReferences[0].variable, forBindings[0]), isTrue);
     expect(identical(iReferences[1].variable, forBindings[0]), isTrue);
-    expect(identical(iReferences[2].variable, forBindings[1]), isTrue);
-    expect(forBindings[1].storage, HTResolvedStorage.capturedCell);
+    expect(identical(iReferences[2].variable, forBindings[0]), isTrue);
+    expect(forBindings[0].storage, HTResolvedStorage.capturedCell);
+    expect(forBindings[1].storage, HTResolvedStorage.localSlot);
     expect(rangeBindings[1].storage, HTResolvedStorage.capturedCell);
     expect(_function(result, 'loops').localSlotCount, 6);
   });

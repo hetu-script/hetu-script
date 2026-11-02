@@ -29,6 +29,7 @@ abstract class OpCode {
   static const endOfModule = 26;
   static const createStackFrame = 27;
   static const retractStackFrame = 28;
+  static const upvalueGet = 29;
 
   static const constIntTable = 30;
   static const constFloatTable = 31;
@@ -47,12 +48,15 @@ abstract class OpCode {
   static const classDeclEnd = 44;
   static const extensionDecl = 45;
   static const extensionDeclEnd = 46;
+  static const upvalueSet = 47;
+  static const localCellGet = 48;
 
   static const delete = 49;
 
   static const assign = 50;
   static const memberSet = 51;
   static const subSet = 52;
+  static const localCellSet = 53;
 
   static const ifNull = 54;
   static const truthyValue = 55;

@@ -14,6 +14,7 @@ import '../../common/function_category.dart';
 import '../../common/internal_identifier.dart';
 import '../value_binding.dart';
 import '../call_scope/call_scope.dart';
+import '../call_scope/variable_cell.dart';
 
 class RedirectingConstructor {
   /// id of super class's constructor
@@ -50,6 +51,10 @@ class HTFunction extends HTFunctionDeclaration
 
   final int? callScopeSlotCount;
   final List<String> callScopeSlotNames;
+  final List<int> callScopeCapturedSlots;
+  final List<HTCallScopeUpvalue> callScopeUpvalues;
+  HTCallScope? definingScope;
+  final List<HTVariableCell> capturedCells;
 
   bool _functionResolved = false;
 
@@ -94,13 +99,28 @@ class HTFunction extends HTFunctionDeclaration
     this.namespace,
     this.callScopeSlotCount,
     this.callScopeSlotNames = const [],
-  }) {
+    this.callScopeCapturedSlots = const [],
+    this.callScopeUpvalues = const [],
+    this.definingScope,
+    List<HTVariableCell>? capturedCells,
+  }) : capturedCells = capturedCells ?? [] {
     this.interpreter = interpreter;
     this.file = file;
     this.module = module;
     this.ip = ip;
     this.line = line;
     this.column = column;
+  }
+
+  void captureCallScope(HTCallScope? scope) {
+    definingScope = scope;
+    for (final upvalue in callScopeUpvalues) {
+      var owner = scope;
+      for (var i = 0; i < upvalue.depth; ++i) {
+        owner = owner?.closure;
+      }
+      capturedCells.add(owner!.capture(upvalue.slot));
+    }
   }
 
   @override
@@ -218,6 +238,10 @@ class HTFunction extends HTFunctionDeclaration
         klass: klass,
         callScopeSlotCount: callScopeSlotCount,
         callScopeSlotNames: callScopeSlotNames,
+        callScopeCapturedSlots: callScopeCapturedSlots,
+        callScopeUpvalues: callScopeUpvalues,
+        definingScope: definingScope,
+        capturedCells: capturedCells,
       );
 
   HTFunction bind(HTStruct struct) {
@@ -397,7 +421,13 @@ class HTFunction extends HTFunctionDeclaration
         final HTNamespace? executionNamespace =
             useCallingNamespace ? namespace : closure as HTNamespace?;
         final callScope = useCallScope
-            ? HTCallScope(callScopeSlotCount!, callScopeSlotNames)
+            ? HTCallScope(
+                callScopeSlotCount!,
+                callScopeSlotNames,
+                capturedSlots: callScopeCapturedSlots,
+                upvalues: capturedCells,
+                closure: definingScope,
+              )
             : null;
         final HTNamespace? callClosure = useCallScope
             ? null
