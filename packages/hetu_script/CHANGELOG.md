@@ -1,3 +1,9 @@
+## 0.7.1+1
+
+- Harden execution state restoration and per-call compiler configuration.
+- Clarify module reload semantics and isolate compilation lowering state.
+- Clarify identifier roles, constant null handling and AST traversal.
+
 ## 0.7.1
 
 - Optimize function call performance.

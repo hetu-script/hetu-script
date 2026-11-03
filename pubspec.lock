@@ -135,14 +135,14 @@ packages:
       path: "packages/hetu_script"
       relative: true
     source: path
-    version: "0.6.2"
+    version: "0.7.1+1"
   hetu_script_dev_tools:
     dependency: "direct main"
     description:
       path: "packages/hetu_script_dev_tools"
       relative: true
     source: path
-    version: "0.1.1"
+    version: "0.2.0+1"
   http:
     dependency: transitive
     description:
