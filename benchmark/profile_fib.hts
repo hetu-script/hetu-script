@@ -1,0 +1,16 @@
+function fib(n) {
+  if (n <= 1) {
+    return n
+  }
+  return fib(n - 1) + fib(n - 2)
+}
+
+var round = 0
+var result = 0
+console.time()
+while (round < 5) {
+  result = fib(30)
+  ++round
+}
+final elapsed = console.timeEnd()
+console.log('5 rounds: ${elapsed} ms; average: ${elapsed / 5} ms; result=${result}')

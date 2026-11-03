@@ -1,0 +1,163 @@
+var globalValue = 0
+
+function emptyTarget() {}
+
+function identity(value) {
+  return value
+}
+
+final addOne = (value) => value + 1
+
+class Box {
+  var value = 0
+
+  constructor(initialValue) {
+    value = initialValue
+  }
+
+  function add(increment) {
+    value += increment
+    return value
+  }
+}
+
+function runLoop(n) {
+  var i = 0
+  while (i < n) {
+    ++i
+  }
+  return i
+}
+
+function runArithmetic(n) {
+  var result = 0
+  var i = 0
+  while (i < n) {
+    result += 3
+    ++i
+  }
+  return result
+}
+
+function runLocal(n) {
+  var result = 0
+  var left = 1
+  var right = 2
+  var i = 0
+  while (i < n) {
+    result += left + right
+    final temporary = left
+    left = right
+    right = temporary
+    ++i
+  }
+  return result + left + right
+}
+
+function runGlobal(n) {
+  globalValue = 0
+  var i = 0
+  while (i < n) {
+    globalValue = globalValue + 1
+    ++i
+  }
+  return globalValue
+}
+
+function runEmptyCall(n) {
+  var i = 0
+  while (i < n) {
+    emptyTarget()
+    ++i
+  }
+  return i
+}
+
+function runIdentityCall(n) {
+  var i = 0
+  while (i < n) {
+    i = identity(i + 1)
+  }
+  return i
+}
+
+function runClosureCall(n) {
+  var result = 0
+  var i = 0
+  while (i < n) {
+    result = addOne(result)
+    ++i
+  }
+  return result
+}
+
+function runList(n) {
+  final values = [0, 1, 2, 3]
+  var i = 0
+  while (i < n) {
+    values[0] = values[0] + 1
+    ++i
+  }
+  return values[0]
+}
+
+function runDynamicMember(n) {
+  final box = {value: 0}
+  var i = 0
+  while (i < n) {
+    box.value = box.value + 1
+    ++i
+  }
+  return box.value
+}
+
+function runMethodCall(n) {
+  final box = Box(0)
+  var i = 0
+  while (i < n) {
+    box.add(1)
+    ++i
+  }
+  return box.value
+}
+
+function runObjectConstruction(n) {
+  var result = 0
+  var i = 0
+  while (i < n) {
+    final box = Box(i)
+    result = box.value
+    ++i
+  }
+  return result
+}
+
+function runString(n) {
+  var value = ''
+  var i = 0
+  while (i < n) {
+    value = 'prefix-${i}-世界'
+    ++i
+  }
+  return value
+}
+
+function measure(name, iterations, callback) {
+  console.time()
+  final result = callback()
+  final elapsed = console.timeEnd()
+  console.log('${name}: ${elapsed} ms; ${elapsed * 1000 / iterations} us/iteration; result=${result}')
+}
+
+measure('loop', 200000, () => runLoop(200000))
+measure('arithmetic', 200000, () => runArithmetic(200000))
+measure('local', 100000, () => runLocal(100000))
+measure('global', 100000, () => runGlobal(100000))
+measure('empty_call', 200000, () => runEmptyCall(200000))
+measure('identity_call', 200000, () => runIdentityCall(200000))
+measure('closure_call', 100000, () => runClosureCall(100000))
+measure('list', 100000, () => runList(100000))
+measure('dynamic_member', 100000, () => runDynamicMember(100000))
+measure('method_call', 100000, () => runMethodCall(100000))
+measure('object_construction', 50000, () => runObjectConstruction(50000))
+measure('string', 50000, () => runString(50000))

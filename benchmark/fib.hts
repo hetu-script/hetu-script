@@ -1,0 +1,13 @@
+function fib(n) {
+  if (n <= 1) {
+    return n;
+  }
+  return fib(n - 1) + fib(n - 2);
+}
+
+console.time();
+const result = fib(30);
+const elapsed = console.timeEnd()
+
+console.log('fib(30) = ${result}');
+console.log('hetu script 运行时间: ${elapsed} ms');
