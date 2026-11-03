@@ -339,7 +339,34 @@ lowering 新增一次 AST 遍历，编译成本需单独保留记录，不能用
 - 阶段零语义矩阵、闭包、循环、异步和现有字节码测试全部通过。
 - 新增 lowering 单元测试直接验证合成节点、origin 和绑定身份。
 
-## 阶段三：标识符与常量语义基础（待执行）
+## 阶段三：标识符与常量语义基础（已完成）
+
+完成日期：2026-11-03。本阶段分别完成标识符角色、常量结果和 AST 遍历收敛，没有删除旧常量解释器，没有扩大到集合常量，也没有改变字节码版本或预编译标准库。
+
+新增 `HTIdentifierRole` 的 read、write、declaration、member、type 和 synthetic 角色。声明、赋值、成员、类型和合成节点在 AST 构造或 lowering 时确定角色，synthetic 不会被后续声明/赋值构造覆盖。旧 `isLocal` 作为独立兼容字段保留，字节码编码和外部 AST 使用者的行为不变；新代码通过 `resolvesSymbol` 判断是否解析符号，不再以 `isLocal == false` 同时排除成员、类型和其他角色。优化解析器、旧分析器、常量解释器和常量 folder 已迁移到该判断。
+
+`HTConstantValue.value` 现在允许为 null：非空的 `HTConstantValue(null)` 表示常量 null，folder 返回 null 仍表示无法折叠。常量 null、`??` 和相等比较可以正常编译，动态表达式继续走运行时路径。旧 `ASTNode.value` 和旧常量解释器保留，const 声明及诊断的统一仍由阶段五处理。
+
+AST 自身现在完整遍历 return、throw、assert 描述、解构初始化器、struct 字段值和 intrinsic/nominal 类型子节点。lowering 与优化解析器中针对同一问题的重复覆盖已删除。新增 `test/parser/identifier_role_test.dart` 和 `test/parser/ast_traversal_test.dart`，直接验证角色、旧字段兼容及普通递归 visitor 与优化解析器的节点覆盖一致性；常量 folder 测试同时区分常量 null 和不可折叠表达式。
+
+全量 `dart test` 为 **543 项全部通过，零跳过**；相关文件的 `dart analyze`、格式检查和 diff 检查通过。所有固定 JIT/AOT 基准实际执行，校验值、错误行号和字节码大小保持基线，未出现一致性运行回退。关键中位数如下，单位微秒：
+
+| 场景 | JIT 阶段二 | JIT 阶段三 | AOT 阶段二 | AOT 阶段三 |
+| --- | ---: | ---: | ---: | ---: |
+| fib | 3001979 | 2833172 | 3899623 | 3731610 |
+| constant | 104184 | 72042 | 80476 | 78288 |
+| empty | 212580 | 188759 | 244174 | 242146 |
+| identity | 226977 | 211041 | 261049 | 270375 |
+| closure | 132415 | 127699 | 157373 | 155122 |
+| local | 130708 | 123741 | 111709 | 114455 |
+| captured_variable | 142409 | 129541 | 164985 | 164948 |
+| dynamic_fallback | 178669 | 180196 | 212601 | 217380 |
+| foldable | 469921 | 454052 | 453341 | 455558 |
+| dynamic | 498967 | 474013 | 480795 | 480736 |
+| foldable_folded | 189282 | 179977 | 181343 | 181084 |
+| dynamic_folded | 481959 | 468832 | 483541 | 492424 |
+
+阶段二的 JIT 高波动没有在本轮复现，不作为性能收益承诺。JIT `foldable` 编译中位数从复测的 6022 降为 5320，`foldable_folded` 从 5637 降为 3392；AOT 编译和运行整体保持稳定。阶段三按正确性和可维护性目标保留，不继续扩大常量或类型系统改造。
 
 ### 标识符角色
 

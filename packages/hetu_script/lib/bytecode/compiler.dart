@@ -1636,7 +1636,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   Uint8List _compileResolvedConstant(dynamic value) {
     final bytesBuilder = BytesBuilder();
-    if (value is bool) {
+    if (value == null) {
+      bytesBuilder.addByte(OpCode.local);
+      bytesBuilder.addByte(HTValueTypeCode.nullValue);
+    } else if (value is bool) {
       bytesBuilder.addByte(OpCode.local);
       bytesBuilder.addByte(HTValueTypeCode.boolean);
       bytesBuilder.addByte(value ? 1 : 0);

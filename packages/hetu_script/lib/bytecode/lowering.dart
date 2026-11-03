@@ -282,39 +282,6 @@ class HTLowering extends RecursiveASTVisitor<void> {
   }
 
   @override
-  void visitAssertStmt(AssertStmt node) {
-    node.expr.accept(this);
-    node.description?.accept(this);
-  }
-
-  @override
-  void visitThrowStmt(ThrowStmt node) {
-    node.message.accept(this);
-  }
-
-  @override
-  void visitReturnStmt(ReturnStmt node) {
-    node.returnValue?.accept(this);
-  }
-
-  @override
-  void visitDestructuringDecl(DestructuringDecl node) {
-    node.initializer.accept(this);
-  }
-
-  @override
-  void visitStructObjExpr(StructObjExpr node) {
-    for (final field in node.fields) {
-      field.accept(this);
-    }
-  }
-
-  @override
-  void visitStructObjField(StructObjField node) {
-    node.fieldValue.accept(this);
-  }
-
-  @override
   void visitUnaryPrefixExpr(UnaryPrefixExpr node) {
     final op = node.op == _lexicon.preIncrement
         ? _lexicon.add

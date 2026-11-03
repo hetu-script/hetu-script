@@ -396,6 +396,15 @@ class ASTStringInterpolation extends ASTNode {
   }
 }
 
+enum HTIdentifierRole {
+  read,
+  write,
+  declaration,
+  member,
+  type,
+  synthetic,
+}
+
 class IdentifierExpr extends ASTNode {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
@@ -407,6 +416,13 @@ class IdentifierExpr extends ASTNode {
 
   final bool isLocal;
 
+  HTIdentifierRole role;
+
+  bool get resolvesSymbol =>
+      role == HTIdentifierRole.read ||
+      role == HTIdentifierRole.write ||
+      role == HTIdentifierRole.synthetic;
+
   /// This value is null untill assigned by analyzer
   HTDeclarationNamespace<ASTNode?>? analysisNamespace;
 
@@ -417,20 +433,25 @@ class IdentifierExpr extends ASTNode {
     this.id, {
     this.isMarked = false,
     this.isLocal = true,
+    HTIdentifierRole? role,
     super.source,
     super.line = 0,
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(InternalIdentifier.identifierExpression);
+  })  : role =
+            role ?? (isLocal ? HTIdentifierRole.read : HTIdentifierRole.member),
+        super(InternalIdentifier.identifierExpression);
 
   IdentifierExpr.fromToken(
     Token idTok, {
     bool isMarked = false,
     bool isLocal = true,
+    HTIdentifierRole? role,
     HTSource? source,
   }) : this(idTok.literal.toString(),
             isLocal: isLocal,
+            role: role,
             source: source,
             line: idTok.line,
             column: idTok.column,
@@ -586,6 +607,11 @@ class IntrinsicTypeExpr extends TypeExpr {
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitIntrinsicTypeExpr(this);
 
+  @override
+  void subAccept(AbstractASTVisitor visitor) {
+    id.accept(visitor);
+  }
+
   final IdentifierExpr id;
 
   final bool isTop;
@@ -605,13 +631,26 @@ class IntrinsicTypeExpr extends TypeExpr {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(InternalIdentifier.intrinsicTypeExpression);
+  }) : super(InternalIdentifier.intrinsicTypeExpression) {
+    id.role = HTIdentifierRole.type;
+  }
 }
 
 class NominalTypeExpr extends TypeExpr {
   @override
   dynamic accept(AbstractASTVisitor visitor) =>
       visitor.visitNominalTypeExpr(this);
+
+  @override
+  void subAccept(AbstractASTVisitor visitor) {
+    id.accept(visitor);
+    for (final namespace in namespacesWithin) {
+      namespace.accept(visitor);
+    }
+    for (final argument in arguments) {
+      argument.accept(visitor);
+    }
+  }
 
   final IdentifierExpr id;
 
@@ -635,7 +674,12 @@ class NominalTypeExpr extends TypeExpr {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(InternalIdentifier.nominalTypeExpression);
+  }) : super(InternalIdentifier.nominalTypeExpression) {
+    id.role = HTIdentifierRole.type;
+    for (final namespace in namespacesWithin) {
+      namespace.role = HTIdentifierRole.type;
+    }
+  }
 }
 
 class ParamTypeExpr extends ASTNode {
@@ -790,7 +834,9 @@ class GenericTypeParameterExpr extends ASTNode {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(InternalIdentifier.genericTypeParamExpression);
+  }) : super(InternalIdentifier.genericTypeParamExpression) {
+    id.role = HTIdentifierRole.declaration;
+  }
 }
 
 /// -e, !e，++e, --e
@@ -938,7 +984,12 @@ class AssignExpr extends ASTNode {
   }) : super(
           InternalIdentifier.assignExpression,
           isAwait: right.isAwait,
-        );
+        ) {
+    if (left is IdentifierExpr &&
+        (left as IdentifierExpr).role != HTIdentifierRole.synthetic) {
+      (left as IdentifierExpr).role = HTIdentifierRole.write;
+    }
+  }
 }
 
 class MemberExpr extends ASTNode {
@@ -969,7 +1020,9 @@ class MemberExpr extends ASTNode {
   }) : super(
           InternalIdentifier.memberGetExpression,
           isAwait: object.isAwait,
-        );
+        ) {
+    key.role = HTIdentifierRole.member;
+  }
 }
 
 class SubExpr extends ASTNode {
@@ -1195,6 +1248,7 @@ class AssertStmt extends Statement {
   @override
   void subAccept(AbstractASTVisitor visitor) {
     expr.accept(visitor);
+    description?.accept(visitor);
   }
 
   final ASTNode expr;
@@ -1219,6 +1273,11 @@ class AssertStmt extends Statement {
 class ThrowStmt extends Statement {
   @override
   dynamic accept(AbstractASTVisitor visitor) => visitor.visitThrowStmt(this);
+
+  @override
+  void subAccept(AbstractASTVisitor visitor) {
+    message.accept(visitor);
+  }
 
   final ASTNode message;
 
@@ -1302,7 +1361,7 @@ class ReturnStmt extends Statement {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    value?.accept(visitor);
+    returnValue?.accept(visitor);
   }
 
   final Token keyword;
@@ -1559,7 +1618,9 @@ class ImportExportDecl extends Statement {
     super.length = 0,
   }) : super(isExport
             ? InternalIdentifier.exportStatement
-            : InternalIdentifier.importStatement);
+            : InternalIdentifier.importStatement) {
+    alias?.role = HTIdentifierRole.declaration;
+  }
 }
 
 class NamespaceDecl extends Statement {
@@ -1598,7 +1659,9 @@ class NamespaceDecl extends Statement {
   }) : super(
           InternalIdentifier.namespaceDeclaration,
           isBlock: true,
-        );
+        ) {
+    id.role = HTIdentifierRole.declaration;
+  }
 }
 
 enum ExtensionTargetKind {
@@ -1638,7 +1701,9 @@ class ExtensionDecl extends Statement {
   }) : super(
           InternalIdentifier.extensionDeclaration,
           isBlock: true,
-        );
+        ) {
+    id.role = HTIdentifierRole.type;
+  }
 }
 
 class TypeAliasDecl extends Statement {
@@ -1678,7 +1743,9 @@ class TypeAliasDecl extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(InternalIdentifier.typeAliasDeclaration);
+  }) : super(InternalIdentifier.typeAliasDeclaration) {
+    id.role = HTIdentifierRole.declaration;
+  }
 }
 
 // class ConstDecl extends AstNode {
@@ -1796,7 +1863,11 @@ class VarDecl extends ASTNode {
     super.offset = 0,
     super.length = 0,
   })  : _internalName = internalName,
-        super(InternalIdentifier.variableDeclaration);
+        super(InternalIdentifier.variableDeclaration) {
+    if (id.role == HTIdentifierRole.read) {
+      id.role = HTIdentifierRole.declaration;
+    }
+  }
 }
 
 class DestructuringDecl extends Statement {
@@ -1806,7 +1877,7 @@ class DestructuringDecl extends Statement {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    initializer.subAccept(visitor);
+    initializer.accept(visitor);
   }
 
   final Map<IdentifierExpr, TypeExpr?> ids;
@@ -1831,7 +1902,11 @@ class DestructuringDecl extends Statement {
     super.column = 0,
     super.offset = 0,
     super.length = 0,
-  }) : super(InternalIdentifier.destructuringDeclaration);
+  }) : super(InternalIdentifier.destructuringDeclaration) {
+    for (final id in ids.keys) {
+      id.role = HTIdentifierRole.declaration;
+    }
+  }
 }
 
 class ParamDecl extends VarDecl {
@@ -2005,7 +2080,9 @@ class FuncDecl extends Statement {
   }) : super(
           InternalIdentifier.functionDeclaration,
           isBlock: (!isExpressionBody && definition != null),
-        );
+        ) {
+    id?.role = HTIdentifierRole.declaration;
+  }
 }
 
 class ClassDecl extends Statement {
@@ -2078,7 +2155,9 @@ class ClassDecl extends Statement {
           InternalIdentifier.classDeclaration,
           isStatement: true,
           isBlock: true,
-        );
+        ) {
+    id.role = HTIdentifierRole.declaration;
+  }
 }
 
 class EnumDecl extends Statement {
@@ -2119,7 +2198,12 @@ class EnumDecl extends Statement {
           InternalIdentifier.enumDeclaration,
           isStatement: true,
           isBlock: true,
-        );
+        ) {
+    id.role = HTIdentifierRole.declaration;
+    for (final enumeration in enumerations) {
+      enumeration.role = HTIdentifierRole.declaration;
+    }
+  }
 }
 
 class StructDecl extends ASTNode {
@@ -2164,7 +2248,9 @@ class StructDecl extends ASTNode {
   }) : super(
           InternalIdentifier.structDeclaration,
           isBlock: true,
-        );
+        ) {
+    id.role = HTIdentifierRole.declaration;
+  }
 }
 
 class StructObjField extends ASTNode {
@@ -2174,7 +2260,7 @@ class StructObjField extends ASTNode {
 
   @override
   void subAccept(AbstractASTVisitor visitor) {
-    value?.accept(visitor);
+    fieldValue.accept(visitor);
   }
 
   // if key is omitted, the value must be a identifier expr.
@@ -2206,7 +2292,7 @@ class StructObjExpr extends ASTNode {
   @override
   void subAccept(AbstractASTVisitor visitor) {
     for (final field in fields) {
-      field.subAccept(visitor);
+      field.accept(visitor);
     }
   }
 

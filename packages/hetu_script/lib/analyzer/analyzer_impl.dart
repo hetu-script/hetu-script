@@ -59,7 +59,7 @@ class HTAnalyzerImpl implements AbstractASTVisitor<void> {
   @override
   void visitIdentifierExpr(IdentifierExpr node) {
     try {
-      if (node.isLocal) {
+      if (node.resolvesSymbol) {
         // Symbol of current namespace.
         node.analysisNamespace!.memberGet(node.id,
             isPrivate: _lexicon.isPrivate(node.id),

@@ -1,6 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:hetu_script/ast/ast.dart';
+import 'package:hetu_script/constant/constant_folder.dart';
 import 'package:hetu_script/hetu_script.dart';
+import 'package:hetu_script/optimization/optimization_result.dart';
 import 'package:test/test.dart';
 
 HetuConfig _config({bool folded = false, bool staticAnalysis = false}) {
@@ -181,6 +184,36 @@ void main() {
     expect(config.computeConstantExpression, isTrue);
     expect(enabled.length, lessThan(disabled.length));
     expect(_invoke(enabled, 'default_enabled', 'answer'), 42);
+  });
+
+  test('constant null is distinct from an unfodable expression', () {
+    final optimization = HTOptimizationResult();
+    final folder = HTConstantFolder();
+    final constantNull = folder.fold(ASTLiteralNull(), optimization);
+
+    expect(constantNull, isA<HTConstantValue>());
+    expect(constantNull!.value, isNull);
+    expect(folder.fold(IdentifierExpr('dynamic'), optimization), isNull);
+
+    const source = r'''
+      const nil = null
+      function readNull() {
+        return nil
+      }
+      function coalesce() {
+        return nil ?? 42
+      }
+      function equal() {
+        return nil == null
+      }
+    ''';
+    final disabled = _compile(source);
+    final enabled = _compile(source, folded: true);
+
+    expect(enabled.length, lessThan(disabled.length));
+    expect(_invoke(enabled, 'constant_null', 'readNull'), isNull);
+    expect(_invoke(enabled, 'constant_null', 'coalesce'), 42);
+    expect(_invoke(enabled, 'constant_null', 'equal'), isTrue);
   });
 
   test('member access is not folded even when its object is const', () {

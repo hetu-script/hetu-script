@@ -82,6 +82,7 @@ class HTCompilationContext {
   ) {
     final expression = IdentifierExpr(
       id,
+      role: HTIdentifierRole.synthetic,
       source: origin.source,
       line: origin.line,
       column: origin.column,
@@ -99,6 +100,7 @@ class HTCompilationContext {
   ) {
     final expression = IdentifierExpr(
       id,
+      role: HTIdentifierRole.synthetic,
       source: origin.source,
       line: origin.line,
       column: origin.column,

@@ -4,7 +4,7 @@ import '../lexicon/lexicon_hetu.dart';
 import '../optimization/optimization_result.dart';
 
 class HTConstantValue {
-  final Object value;
+  final Object? value;
 
   const HTConstantValue(this.value);
 }
@@ -17,6 +17,9 @@ class HTConstantFolder {
       : _lexicon = lexicon ?? HTLexiconHetu();
 
   HTConstantValue? fold(ASTNode node, HTOptimizationResult optimization) {
+    if (node is ASTLiteralNull) {
+      return const HTConstantValue(null);
+    }
     if (node is ASTLiteralBoolean ||
         node is ASTLiteralInteger ||
         node is ASTLiteralFloat) {
@@ -54,6 +57,7 @@ class HTConstantFolder {
     IdentifierExpr node,
     HTOptimizationResult optimization,
   ) {
+    if (!node.resolvesSymbol) return null;
     final reference = optimization.references[node];
     if (reference == null || reference.storage == HTResolvedStorage.dynamic) {
       return null;
@@ -115,8 +119,9 @@ class HTConstantFolder {
     }
     if (node.op == _lexicon.ifNull) {
       final left = fold(node.left, optimization);
-      if (left != null) return left;
-      return null;
+      if (left == null) return null;
+      if (left.value != null) return left;
+      return fold(node.right, optimization);
     }
 
     final left = fold(node.left, optimization);

@@ -257,7 +257,7 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
 
   @override
   void visitIdentifierExpr(IdentifierExpr node) {
-    if (!building && node.isLocal) {
+    if (!building && node.resolvesSymbol) {
       resolveSymbol(node.id, node);
     }
   }
@@ -292,22 +292,6 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
       node.left.accept(this);
     }
     node.right.accept(this);
-  }
-
-  @override
-  void visitAssertStmt(AssertStmt node) {
-    node.expr.accept(this);
-    node.description?.accept(this);
-  }
-
-  @override
-  void visitThrowStmt(ThrowStmt node) {
-    node.message.accept(this);
-  }
-
-  @override
-  void visitReturnStmt(ReturnStmt node) {
-    node.returnValue?.accept(this);
   }
 
   @override
@@ -542,17 +526,5 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
       definition.accept(this);
     }
     currentScope = savedScope;
-  }
-
-  @override
-  void visitStructObjExpr(StructObjExpr node) {
-    for (final field in node.fields) {
-      field.accept(this);
-    }
-  }
-
-  @override
-  void visitStructObjField(StructObjField node) {
-    node.fieldValue.accept(this);
   }
 }
