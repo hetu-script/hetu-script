@@ -1079,7 +1079,19 @@ class HTInterpreter {
     return Version(major, minor, patch, pre: preRelease, build: build);
   }
 
+  bool _hasSameBytecode(HTBytecodeModule module, Uint8List bytes) {
+    final currentBytes = module.bytes;
+    if (identical(currentBytes, bytes)) return true;
+    if (currentBytes.length != bytes.length) return false;
+    for (var i = 0; i < currentBytes.length; ++i) {
+      if (currentBytes[i] != bytes[i]) return false;
+    }
+    return true;
+  }
+
   /// Load a pre-compiled bytecode module.
+  /// Modules with identical bytecode retain their identity and call-site caches.
+  /// Different bytecode replaces the module with the same name.
   /// If [invoke] is true, run the bytecode immediately.
   dynamic loadBytecode({
     required Uint8List bytes,
@@ -1094,11 +1106,12 @@ class HTInterpreter {
       this.globallyImport = globallyImport;
       _extensionContextStack.clear();
 
-      if (cachedModules.containsKey(module)) {
-        _currentBytecodeModule = cachedModules[module]!;
+      final cachedModule = cachedModules[module];
+      if (cachedModule != null && _hasSameBytecode(cachedModule, bytes)) {
+        _currentBytecodeModule = cachedModule;
       } else {
         _currentBytecodeModule = HTBytecodeModule(id: module, bytes: bytes);
-        cachedModules[_currentBytecodeModule.id] = _currentBytecodeModule;
+        cachedModules[module] = _currentBytecodeModule;
       }
       _currentBytecodeModule.init(
         invoke: invoke,

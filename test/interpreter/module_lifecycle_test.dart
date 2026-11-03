@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:hetu_script/hetu_script.dart';
 import 'package:test/test.dart';
 
@@ -32,7 +34,7 @@ void main() {
       expect(hetu.invoke('run', module: 'shared'), 42);
       expect(module.callSiteCacheMisses, 1);
 
-      hetu.loadBytecode(bytes: bytes, module: 'shared');
+      hetu.loadBytecode(bytes: Uint8List.fromList(bytes), module: 'shared');
 
       expect(identical(hetu.interpreter.getBytecode('shared'), module), isTrue);
       expect(hetu.invoke('run', module: 'shared'), 42);
@@ -119,46 +121,103 @@ void main() {
     });
   });
 
-  group('current behavior awaiting a reload semantics decision', () {
-    test('same-name different bytecode currently executes the old module', () {
-      final hetu = _createHetu();
-      final oldBytes = hetu.compile(
-        'function read() { return 1 }',
-        filename: 'shared.ht',
-      );
-      final newBytes = hetu.compile(
-        'function read() { return 2 }',
-        filename: 'shared.ht',
-      );
-
-      hetu.loadBytecode(bytes: oldBytes, module: 'shared');
-      final module = hetu.interpreter.getBytecode('shared')!;
-      hetu.loadBytecode(bytes: newBytes, module: 'shared');
-
-      expect(identical(hetu.interpreter.getBytecode('shared'), module), isTrue);
-      expect(module.bytes, orderedEquals(oldBytes));
-      expect(hetu.invoke('read', module: 'shared'), 1);
-    });
-
-    test(
-        'different bytecode reload uses new declarations and module generation',
+  group('module reload semantics', () {
+    test('different bytecode replaces declarations and starts a fresh cache',
         () {
       final hetu = _createHetu();
-      final oldBytes = hetu.compile(
-        'function read() { return 1 }',
-        filename: 'shared.ht',
-      );
-      final newBytes = hetu.compile(
-        'function read() { return 2 }',
-        filename: 'shared.ht',
+      final oldBytes = hetu.compile(r'''
+        function target({value = 1}) {
+          return value
+        }
+        function run() {
+          return target()
+        }
+      ''', filename: 'shared.ht');
+      final newBytes = hetu.compile(r'''
+        function target({value = 2}) {
+          return value
+        }
+        function run() {
+          return target()
+        }
+      ''', filename: 'shared.ht');
+
+      hetu.loadBytecode(bytes: oldBytes, module: 'shared');
+      final oldModule = hetu.interpreter.getBytecode('shared')!;
+      expect(hetu.invoke('run', module: 'shared'), 1);
+      expect(oldModule.callSiteCacheMisses, 1);
+
+      hetu.loadBytecode(bytes: newBytes, module: 'shared');
+      final newModule = hetu.interpreter.getBytecode('shared')!;
+
+      expect(identical(newModule, oldModule), isFalse);
+      expect(newModule.bytes, orderedEquals(newBytes));
+      expect(newModule.callSiteCacheSize, 0);
+      expect(newModule.callSiteCacheMisses, 0);
+      expect(hetu.invoke('run', module: 'shared'), 2);
+      expect(newModule.callSiteCacheMisses, 1);
+      expect(oldModule.callSiteCacheMisses, 1);
+    });
+
+    test('reload uses fresh state without disturbing other modules', () {
+      final hetu = _createHetu();
+      final oldBytes = hetu.compile(r'''
+        var state = 1
+        function read() {
+          return state
+        }
+        function update(value) {
+          state = value
+        }
+      ''', filename: 'shared.ht');
+      final newBytes = hetu.compile(r'''
+        var state = 2
+        function read() {
+          return state
+        }
+      ''', filename: 'shared.ht');
+      final otherBytes = hetu.compile(
+        'function answer() { return 42 }',
+        filename: 'other.ht',
       );
 
       hetu.loadBytecode(bytes: oldBytes, module: 'shared');
+      hetu.invoke('update', module: 'shared', positionalArgs: [99]);
+      hetu.loadBytecode(bytes: otherBytes, module: 'other');
       hetu.loadBytecode(bytes: newBytes, module: 'shared');
 
       expect(hetu.invoke('read', module: 'shared'), 2);
-    },
-        skip:
-            'Stage 4 decision required: replacement, rejection or explicit reload');
+      expect(hetu.invoke('answer', module: 'other'), 42);
+      hetu.interpreter.switchModule('other');
+      expect(hetu.invoke('answer'), 42);
+      hetu.interpreter.switchModule('shared');
+      expect(hetu.invoke('read'), 2);
+    });
+
+    test('recompiling an imported source reloads the same module name', () {
+      final sources = HTOverlayContext();
+      sources.addResource('dep.ht', HTSource('var answer = 42'));
+      sources.addResource(
+        'entry.ht',
+        HTSource(r'''
+          import 'dep.ht'
+          function read() {
+            return answer
+          }
+        '''),
+      );
+      final hetu = _createHetu(sourceContext: sources);
+
+      hetu.evalFile('entry.ht', module: 'shared');
+      final oldModule = hetu.interpreter.getBytecode('shared')!;
+      expect(hetu.invoke('read', module: 'shared'), 42);
+
+      sources.updateResource('dep.ht', HTSource('var answer = 100'));
+      hetu.evalFile('entry.ht', module: 'shared');
+
+      expect(identical(hetu.interpreter.getBytecode('shared'), oldModule),
+          isFalse);
+      expect(hetu.invoke('read', module: 'shared'), 100);
+    });
   });
 }
