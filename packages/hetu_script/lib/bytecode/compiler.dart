@@ -16,6 +16,8 @@ import '../common/function_category.dart';
 import '../common/internal_identifier.dart';
 import '../optimization/optimization_result.dart';
 import '../optimization/optimization_resolver.dart';
+import 'compilation_context.dart';
+import 'lowering.dart';
 
 /// Collection of config of a compiler.
 class CompilerConfig {
@@ -52,9 +54,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   static const hetuSignatureData = [8, 5, 20, 21];
   static const hetuSignature = 134550549;
 
-  static var iterIndex = 0;
-  static var awaitedValueIndex = 0;
-
   CompilerConfig config;
 
   final HTLexicon _lexicon;
@@ -66,22 +65,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   int get curLine => _curLine;
   int get curColumn => _curColumn;
 
-  // Replace user defined identifiers with internal ones, used in for statement.
   final List<Map<String, String>> _markedSymbolsList = [];
-  final List<Map<String, HTResolvedVariable>> _markedVariablesList = [];
-  final Map<ASTNode, HTResolvedVariable> _syntheticDeclarations =
-      Map<ASTNode, HTResolvedVariable>.identity();
-  final Map<ASTNode, HTResolvedVariable> _syntheticReferences =
-      Map<ASTNode, HTResolvedVariable>.identity();
 
   late HTOptimizationResult _optimization;
+  late HTCompilationContext _compilation;
   late HTConstantFolder _constantFolder;
   HTFunctionOptimization? _currentFunctionOptimization;
-
-  // Stored all awaited values and those internal identifiers replaces them.
-  // key is the stmt astnode itself
-  // Map<String, ASTNode> _curStmtAwaitedExprs = {};
-  // Map<ASTNode, Map<String, ASTNode>> _awaitedExprsInStmts = {};
 
   HTCompiler({
     CompilerConfig? config,
@@ -96,10 +85,12 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     _constantFolder = HTConstantFolder(lexicon: _lexicon);
     _optimization = HTOptimizationResolver(lexicon: _lexicon)
         .resolveCompilation(compilation);
+    _compilation = HTLowering.lowerCompilation(
+      compilation,
+      _optimization,
+      lexicon: _lexicon,
+    );
     _markedSymbolsList.clear();
-    _markedVariablesList.clear();
-    _syntheticDeclarations.clear();
-    _syntheticReferences.clear();
     _currentFunctionOptimization = null;
     final bytes = visitCompilation(compilation);
     if (config.printPerformanceStatistics) {
@@ -127,8 +118,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   HTResolvedVariable? _localDeclaration(IdentifierExpr id) {
     if (_currentFunctionOptimization == null) return null;
-    final variable =
-        _syntheticDeclarations[id] ?? _optimization.declarations[id];
+    final variable = _compilation.syntheticDeclarations[id] ??
+        _optimization.declarations[id];
     if (variable?.storage == HTResolvedStorage.localSlot ||
         variable?.storage == HTResolvedStorage.capturedCell) {
       return variable;
@@ -140,18 +131,8 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     if (_currentFunctionOptimization == null || node is! IdentifierExpr) {
       return null;
     }
-    for (var i = _markedSymbolsList.length - 1; i >= 0; --i) {
-      final markedName = _markedSymbolsList[i][node.id];
-      if (markedName != null) {
-        final variable = _markedVariablesList[i][markedName]!;
-        return variable.storage == HTResolvedStorage.localSlot ||
-                variable.storage == HTResolvedStorage.capturedCell
-            ? variable
-            : null;
-      }
-    }
-    final variable =
-        _syntheticReferences[node] ?? _optimization.references[node]?.variable;
+    final variable = _compilation.syntheticReferences[node] ??
+        _optimization.references[node]?.variable;
     if (variable?.storage == HTResolvedStorage.localSlot ||
         variable?.storage == HTResolvedStorage.capturedCell) {
       return variable;
@@ -183,12 +164,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     }
     assert(scope != null);
     return depth;
-  }
-
-  IdentifierExpr _syntheticIdentifier(String id, HTResolvedVariable variable) {
-    final expression = IdentifierExpr(id);
-    _syntheticReferences[expression] = variable;
-    return expression;
   }
 
   /// -32768 to 32767
@@ -388,6 +363,10 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   // }
 
   Uint8List compileAST(ASTNode node, {bool endOfExec = false}) {
+    final lowered = _compilation.loweredExpression(node);
+    if (lowered != null) {
+      return compileAST(lowered, endOfExec: endOfExec);
+    }
     final bytesBuilder = BytesBuilder();
     if (config.computeConstantExpression) {
       final constant = _constantFolder.fold(node, _optimization);
@@ -852,22 +831,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
     } else if (expr.op == _lexicon.bitwiseNot) {
       bytesBuilder.add(value);
       bytesBuilder.addByte(OpCode.bitwiseNot);
-    } else if (expr.op == _lexicon.preIncrement) {
-      final constOne = ASTLiteralInteger(1);
-      late final ASTNode value;
-      final add = BinaryExpr(expr.object, _lexicon.add, constOne);
-      value = AssignExpr(expr.object, _lexicon.assign, add);
-      final group = GroupExpr(value);
-      final bytes = compileAST(group);
-      bytesBuilder.add(bytes);
-    } else if (expr.op == _lexicon.preDecrement) {
-      final constOne = ASTLiteralInteger(1);
-      late final ASTNode value;
-      final subtract = BinaryExpr(expr.object, _lexicon.subtract, constOne);
-      value = AssignExpr(expr.object, _lexicon.assign, subtract);
-      final group = GroupExpr(value);
-      final bytes = compileAST(group);
-      bytesBuilder.add(bytes);
     } else if (expr.op == _lexicon.kTypeValueOf) {
       bytesBuilder.add(value);
       bytesBuilder.addByte(OpCode.typeValueOf);
@@ -925,21 +888,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
       final right = compileAST(expr.right);
       bytesBuilder.add(right);
       bytesBuilder.addByte(OpCode.typeIsNot);
-    } else if (expr.op == _lexicon.kIn) {
-      final containsCallExpr = CallExpr(
-          MemberExpr(
-              expr.right, IdentifierExpr(_lexicon.idContains, isLocal: false)),
-          positionalArgs: [expr.left]);
-      final containsCallExprBytes = visitCallExpr(containsCallExpr);
-      bytesBuilder.add(containsCallExprBytes);
-    } else if (expr.op == _lexicon.kNotIn) {
-      final containsCallExpr = CallExpr(
-          MemberExpr(
-              expr.right, IdentifierExpr(_lexicon.idContains, isLocal: false)),
-          positionalArgs: [expr.left]);
-      final containsCallExprBytes = visitCallExpr(containsCallExpr);
-      bytesBuilder.add(containsCallExprBytes);
-      bytesBuilder.addByte(OpCode.logicalNot);
     } else if (expr.op == _lexicon.ifNull) {
       bytesBuilder.add(left);
       bytesBuilder.addByte(OpCode.ifNull);
@@ -1027,31 +975,7 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
 
   @override
   Uint8List visitUnaryPostfixExpr(UnaryPostfixExpr expr) {
-    final bytesBuilder = BytesBuilder();
-    final value = compileAST(expr.object);
-    bytesBuilder.add(value);
-    if (expr.op == _lexicon.postIncrement) {
-      final constOne = ASTLiteralInteger(1);
-      late final ASTNode value;
-      final add = BinaryExpr(expr.object, _lexicon.add, constOne);
-      value = AssignExpr(expr.object, _lexicon.assign, add);
-      final group = GroupExpr(value);
-      final subtract = BinaryExpr(group, _lexicon.subtract, constOne);
-      final group2 = GroupExpr(subtract);
-      final bytes = compileAST(group2);
-      bytesBuilder.add(bytes);
-    } else if (expr.op == _lexicon.postDecrement) {
-      final constOne = ASTLiteralInteger(1);
-      late final ASTNode value;
-      final subtract = BinaryExpr(expr.object, _lexicon.subtract, constOne);
-      value = AssignExpr(expr.object, _lexicon.assign, subtract);
-      final group = GroupExpr(value);
-      final add = BinaryExpr(group, _lexicon.add, constOne);
-      final group2 = GroupExpr(add);
-      final bytes = compileAST(group2);
-      bytesBuilder.add(bytes);
-    }
-    return bytesBuilder.toBytes();
+    return compileAST(expr.object);
   }
 
   @override
@@ -1127,35 +1051,6 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
         bytesBuilder.add(left);
         bytesBuilder.addByte(OpCode.assign);
       }
-    } else if (expr.op == _lexicon.assignIfNull) {
-      final ifStmt = IfExpr(
-        BinaryExpr(
-          expr.left,
-          _lexicon.equal,
-          ASTLiteralNull(),
-        ),
-        AssignExpr(
-          expr.left,
-          _lexicon.assign,
-          expr.right,
-          source: expr.source,
-          line: expr.line,
-          column: expr.column,
-        ),
-      );
-      final bytes = visitIf(ifStmt);
-      bytesBuilder.add(bytes);
-    } else {
-      final expanded = AssignExpr(
-          expr.left,
-          _lexicon.assign,
-          BinaryExpr(expr.left, expr.op.substring(0, expr.op.length - 1),
-              GroupExpr(expr.right)),
-          source: expr.source,
-          line: expr.line,
-          column: expr.column);
-      final bytes = visitAssignExpr(expanded);
-      bytesBuilder.add(bytes);
     }
     return bytesBuilder.toBytes();
   }
@@ -1424,69 +1319,38 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitForStmt(ForExpr stmt) {
     final bytesBuilder = BytesBuilder();
+    final lowered = _compilation.forLoop(stmt)!;
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     if (_currentFunctionOptimization == null) {
       bytesBuilder.addByte(OpCode.codeBlock);
       bytesBuilder.add(_identifier(InternalIdentifier.forExpressionInit));
     }
-    late Uint8List condition;
-    Uint8List? increment;
-    ASTNode? capturedDecl;
-    final newSymbolMap = <String, String>{};
-    final newVariableMap = <String, HTResolvedVariable>{};
-    _markedSymbolsList.add(newSymbolMap);
-    _markedVariablesList.add(newVariableMap);
-    if (stmt.init != null) {
-      final userDecl = stmt.init as VarDecl;
-      final markedId = '${_lexicon.internalPrefix}${userDecl.id.id}';
-      final markedVariable = _optimization.loopBindings[stmt]!.first;
-      newSymbolMap[userDecl.id.id] = markedId;
-      newVariableMap[markedId] = markedVariable;
-      // Uint8List? initializer;
-      // if (userDecl.initializer != null) {
-      //   initializer = compileAST(!, endOfExec: true);
-      // }
-      final initDecl = VarDecl(
-        IdentifierExpr(markedId),
-        initializer: userDecl.initializer,
-        isMutable: userDecl.isMutable,
-        line: userDecl.line,
-        column: userDecl.column,
-      );
-      _syntheticDeclarations[initDecl.id] = markedVariable;
-      bytesBuilder.add(visitVarDecl(initDecl));
-      // 这里是为了实现将变量声明移动到for循环语句块内部的效果
-      final capturedInit = _syntheticIdentifier(markedId, markedVariable);
-      capturedDecl = VarDecl(userDecl.id, initializer: capturedInit);
+    _markedSymbolsList.add(lowered.markedSymbols);
+    try {
+      final initializer = lowered.initializer;
+      if (initializer != null) {
+        bytesBuilder.add(visitVarDecl(initializer));
+      }
+      final condition = compileAST(lowered.condition);
+      final increment =
+          lowered.increment == null ? null : compileAST(lowered.increment!);
+      final loop = visitBlockStmt(lowered.loop);
+      final continueLength = condition.length + loop.length + 1;
+      final breakLength = continueLength + (increment?.length ?? 0) + 3;
+      bytesBuilder.addByte(OpCode.loopPoint);
+      bytesBuilder.add(_uint16(continueLength));
+      bytesBuilder.add(_uint16(breakLength));
+      bytesBuilder.add(condition);
+      bytesBuilder.addByte(OpCode.whileStmt);
+      bytesBuilder.add(loop);
+      if (increment != null) {
+        bytesBuilder.add(increment);
+      }
+      bytesBuilder.addByte(OpCode.skip);
+      bytesBuilder.add(_int16(-breakLength));
+    } finally {
+      _markedSymbolsList.removeLast();
     }
-    if (stmt.condition != null) {
-      condition = compileAST(stmt.condition!);
-    } else {
-      final boolExpr = ASTLiteralBoolean(true);
-      condition = visitBooleanExpr(boolExpr);
-    }
-    if (stmt.increment != null) {
-      increment = compileAST(stmt.increment!);
-    }
-    if (capturedDecl != null) {
-      stmt.loop.statements.insert(0, capturedDecl);
-    }
-    final loop = visitBlockStmt(stmt.loop);
-    final continueLength = condition.length + loop.length + 1;
-    final breakLength = continueLength + (increment?.length ?? 0) + 3;
-    bytesBuilder.addByte(OpCode.loopPoint);
-    bytesBuilder.add(_uint16(continueLength));
-    bytesBuilder.add(_uint16(breakLength));
-    bytesBuilder.add(condition);
-    bytesBuilder.addByte(OpCode.whileStmt);
-    bytesBuilder.add(loop);
-    if (increment != null) {
-      bytesBuilder.add(increment);
-    }
-    bytesBuilder.addByte(OpCode.skip);
-    bytesBuilder.add(_int16(-breakLength));
-    _markedSymbolsList.removeLast();
-    _markedVariablesList.removeLast();
     if (_currentFunctionOptimization == null) {
       bytesBuilder.addByte(OpCode.endOfCodeBlock);
     }
@@ -1496,49 +1360,15 @@ class HTCompiler implements AbstractASTVisitor<Uint8List> {
   @override
   Uint8List visitForRangeStmt(ForRangeExpr stmt) {
     final bytesBuilder = BytesBuilder();
+    final lowered = _compilation.forRangeLoop(stmt)!;
     bytesBuilder.add(_lineInfo(stmt.line, stmt.column));
     if (_currentFunctionOptimization == null) {
       bytesBuilder.addByte(OpCode.codeBlock);
       bytesBuilder.add(_identifier(InternalIdentifier.forExpressionInit));
     }
-
-    final collection = stmt.iterateValue
-        ? MemberExpr(
-            stmt.collection, IdentifierExpr(_lexicon.idValues, isLocal: false))
-        : stmt.collection;
-
-    // declare the iterator
-    final iterInit = MemberExpr(
-        collection, IdentifierExpr(_lexicon.idIterator, isLocal: false));
-    // final iterInitBytes = compileAST(iterInit, endOfExec: true);
-    final iterId = '__iter${iterIndex++}';
-    final iterVariable = _optimization.loopBindings[stmt]!.first;
-    final iterDecl = VarDecl(
-      IdentifierExpr(iterId),
-      initializer: iterInit,
-      line: stmt.iterator.line,
-      column: stmt.iterator.column,
-    );
-    _syntheticDeclarations[iterDecl.id] = iterVariable;
-    // final iterDecl = _assembleVarDeclStmt(
-    //     iterId, stmt.iterator.line, stmt.iterator.column,
-    //     initializer: iterInitBytes);
-    bytesBuilder.add(visitVarDecl(iterDecl));
-
-    // update iter move result
-    // calls iterator.moveNext()
-    final moveIter = CallExpr(MemberExpr(
-        _syntheticIdentifier(iterId, iterVariable),
-        IdentifierExpr(_lexicon.idMoveNext, isLocal: false)));
-    final moveIterBytes = visitCallExpr(moveIter);
-    final condition = moveIterBytes;
-
-    // get current item value
-    stmt.iterator.initializer = MemberExpr(
-        _syntheticIdentifier(iterId, iterVariable),
-        IdentifierExpr(_lexicon.idCurrent, isLocal: false));
-    stmt.loop.statements.insert(0, stmt.iterator);
-    final loop = visitBlockStmt(stmt.loop);
+    bytesBuilder.add(visitVarDecl(lowered.iterator));
+    final condition = compileAST(lowered.condition);
+    final loop = visitBlockStmt(lowered.loop);
 
     bytesBuilder.addByte(OpCode.loopPoint);
     final continueLength = condition.length + 1 + loop.length;

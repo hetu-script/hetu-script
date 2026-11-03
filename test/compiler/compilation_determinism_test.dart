@@ -87,7 +87,7 @@ void main() {
     expect(_invoke(second, 'increment_second', 'run'), [1, 4]);
   });
 
-  group('known defect: loop lowering must be compilation-local', () {
+  group('loop lowering is compilation-local', () {
     test('for and for-in compilation leaves original AST nodes unchanged', () {
       final hetu = _createHetu();
       final compilation = _bundle(hetu, _loopSource);
@@ -114,9 +114,7 @@ void main() {
       }
       expect(identical(forRangeLoop.iterator.initializer, iteratorInitializer),
           isTrue);
-    },
-        skip:
-            'Known stage 2 defect: compiler inserts declarations into the AST');
+    });
 
     test('the same loop AST can be compiled repeatedly with stable behavior',
         () {
@@ -128,9 +126,7 @@ void main() {
 
       expect(_invoke(first, 'loop_first', 'run'), 9);
       expect(_invoke(second, 'loop_second', 'run'), 9);
-    },
-        skip:
-            'Known stage 2 defect: repeated compilation changes loop bindings');
+    });
 
     test('independent compilations do not inherit static synthetic counters',
         () {
@@ -145,8 +141,6 @@ void main() {
       expect(_invoke(second, 'independent_second', 'run'), 9);
       expect(_stringConstants(second, 'constants_second'),
           _stringConstants(first, 'constants_first'));
-    },
-        skip:
-            'Known stage 2 defect: static iterIndex affects independent output');
+    });
   });
 }

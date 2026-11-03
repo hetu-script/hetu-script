@@ -264,7 +264,55 @@
 
 阶段零留下的 1 项待决策重载语义已转为正式测试。全量 `dart test` 为 532 项通过、3 项跳过，剩余仅为阶段二 lowering 缺陷。修改文件的 `dart analyze`、格式检查通过，AOT default/release 配置实际执行的字节码大小、校验值和错误行为保持基线。
 
-## 阶段二：编译期 lowering 与状态隔离（待执行）
+## 阶段二：编译期 lowering 与状态隔离（已完成）
+
+完成日期：2026-11-03。本阶段没有修改脚本语法、公开 AST 字段、字节码版本或预编译标准库。
+
+新增 `bytecode/compilation_context.dart`、`bytecode/lowering.dart` 和 `bytecode/synthetic_node.dart`。优化解析器继续提供唯一的循环绑定身份；compilation 私有上下文保存循环计划、表达式替换、合成声明/引用、origin 和迭代器计数器。for/for-in 使用复制后的循环体，不再向原 `stmt.loop.statements` 插入声明，也不改写原 `stmt.iterator.initializer`。前后自增、复合赋值、`??=`、`in/in!` 统一在 lowering 生成表达式，编译器中的旧合成分支已删除。未使用的静态 `awaitedValueIndex` 已移除，静态 `iterIndex` 已由 compilation 私有计数器替代。
+
+`structLiteralIndex` 属于执行期状态，已移到 `HTInterpreter` 实例，不同解释器的匿名 struct 编号互不影响。lowering 显式覆盖 return、throw、assert 描述、解构初始化器和 struct 字段值，避免旧 AST `subAccept()` 遗漏导致函数字面体内的表达式未 lowering；通用 visitor 约束仍由阶段三继续处理。
+
+新增 `test/compiler/lowering_test.dart`，直接断言合成节点 origin、源码位置、声明和引用的规范身份、独立计数器、函数字面体闭包行为及 struct 实例隔离。阶段零的 3 个 lowering 缺陷复现全部转为正式测试。全量 `dart test` 为 **539 项全部通过，零跳过**；修改文件的 `dart analyze`、格式检查和 diff 检查通过。
+
+所有固定 JIT/AOT 基准均实际执行，校验值、默认错误行 16、移除行信息后的 15 以及各配置字节码大小保持基线。下表为阶段一/阶段二执行中位数，单位微秒。JIT 波动较大，AOT 未出现一致性回退；这些结果不用于宣称性能收益。
+
+| 场景 | JIT 阶段一 | JIT 阶段二 | AOT 阶段一 | AOT 阶段二 |
+| --- | ---: | ---: | ---: | ---: |
+| fib | 2804969 | 3001979 | 3781239 | 3899623 |
+| constant | 71703 | 104184 | 79678 | 80476 |
+| utf8 | 158908 | 156048 | 176482 | 172891 |
+| empty | 195015 | 212580 | 236962 | 244174 |
+| identity | 208454 | 226977 | 264166 | 261049 |
+| closure | 128261 | 132415 | 156941 | 157373 |
+| named | 165054 | 162263 | 184010 | 183152 |
+| variadic | 1004110 | 1027505 | 1069101 | 1073021 |
+| spread | 192023 | 196784 | 219590 | 218872 |
+| stack_trace | 226781 | 219979 | 264051 | 268730 |
+| external_function | 89562 | 92111 | 104983 | 105104 |
+| raw_function | 93124 | 100209 | 112669 | 108867 |
+| external_method | 172886 | 185178 | 217399 | 212520 |
+| external_property | 125841 | 136061 | 151582 | 150646 |
+| dart_to_script | 51242 | 51688 | 60283 | 61845 |
+| nested_callback | 80195 | 93831 | 104329 | 101595 |
+| typedef_callback | 184697 | 199693 | 208235 | 209485 |
+| list_property | 116220 | 116123 | 130020 | 135913 |
+| local | 118859 | 130708 | 109985 | 111709 |
+| uncaptured_closure | 124375 | 134950 | 158199 | 158584 |
+| captured_variable | 141452 | 142409 | 167987 | 164985 |
+| dynamic_fallback | 173637 | 178669 | 217822 | 212601 |
+| foldable | 450169 | 469921 | 466970 | 453341 |
+| dynamic | 482202 | 498967 | 474952 | 480795 |
+| foldable_folded | 189439 | 189282 | 180737 | 181343 |
+| dynamic_folded | 483060 | 481959 | 469032 | 483541 |
+
+| 编译场景 | 字节数 | JIT 阶段一 | JIT 阶段二（全量/复测） | AOT 阶段一 | AOT 阶段二 |
+| --- | ---: | ---: | --- | ---: | ---: |
+| foldable | 744 | 5394 | 11249 / 6022 | 1864 | 2062 |
+| dynamic | 917 | 4892 | 5048 | 2172 | 2150 |
+| foldable_folded | 497 | 2987 | 3117 / 5637 | 1731 | 1743 |
+| dynamic_folded | 917 | 3529 | 3407 | 2251 | 2413 |
+
+lowering 新增一次 AST 遍历，编译成本需单独保留记录，不能用执行耗时掩盖。JIT `constant` 复测中位数为 92350，显示首轮极端波动；运行期实现没有对应热点改造，AOT 同场景基本稳定。当前保留简单实现，不继续为性能扩大 lowering 架构。
 
 ### 工作内容
 

@@ -25,8 +25,6 @@ import '../../declaration/declaration.dart';
 /// you can access and modify its member via '[]' operator
 /// and it has several same apis like Map, e.g. contains, remove, etc.
 class HTStruct with HTObject {
-  static var structLiteralIndex = 0;
-
   final HTInterpreter interpreter;
 
   final String? id;
@@ -60,8 +58,7 @@ class HTStruct with HTObject {
       this.isPrototypeRoot = false,
       Map<String, dynamic>? fields,
       this.closure})
-      : id = id ??
-            '${InternalIdentifier.anonymousStruct}${structLiteralIndex++}',
+      : id = id ?? interpreter.nextStructLiteralId(),
         _fields = fields ?? {} {
     namespace = HTNamespace(
         lexicon: interpreter.lexicon, id: this.id, closure: closure);

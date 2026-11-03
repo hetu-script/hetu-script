@@ -201,6 +201,11 @@ class HTInterpreter {
   static HTClass? classRoot;
   static HTStruct? structRoot;
 
+  var _structLiteralIndex = 0;
+
+  String nextStructLiteralId() =>
+      '${InternalIdentifier.anonymousStruct}${_structLiteralIndex++}';
+
   final cachedModules = <String, HTBytecodeModule>{};
   InterpreterConfig config;
 
