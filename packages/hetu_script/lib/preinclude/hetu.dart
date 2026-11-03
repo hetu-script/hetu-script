@@ -567,17 +567,19 @@ class Hetu {
     }
     final bytes = _compileSource(source);
     final savedContext = interpreter.getContext();
-    final result = interpreter.loadBytecode(
-      bytes: bytes,
-      module: module ?? source.fullName,
-      globallyImport: globallyImport,
-      invoke: invoke,
-      positionalArgs: positionalArgs,
-      namedArgs: namedArgs,
-      // typeArgs: typeArgs,
-    );
-    interpreter.setContext(savedContext);
-    return result;
+    try {
+      return interpreter.loadBytecode(
+        bytes: bytes,
+        module: module ?? source.fullName,
+        globallyImport: globallyImport,
+        invoke: invoke,
+        positionalArgs: positionalArgs,
+        namedArgs: namedArgs,
+        // typeArgs: typeArgs,
+      );
+    } finally {
+      interpreter.setContext(savedContext);
+    }
   }
 
   /// Process the import declaration within several sources,
@@ -603,6 +605,8 @@ class Hetu {
 
   /// Compile a string into bytecode.
   /// This won't execute the code, so runtime errors will not be reported.
+  /// If [config] is provided, it replaces the initialization compiler config
+  /// for this compilation only.
   Uint8List compile(
     String content, {
     String? filename,
@@ -618,11 +622,14 @@ class Hetu {
     return _compileSource(
       source,
       version: version,
+      config: config,
     );
   }
 
   /// Compile a source within current [sourceContext].
   /// This won't execute the code, so runtime errors will not be reported.
+  /// If [config] is provided, it replaces the initialization compiler config
+  /// for this compilation only.
   Uint8List compileFile(
     String key, {
     CompilerConfig? config,
@@ -632,6 +639,7 @@ class Hetu {
     return _compileSource(
       source,
       version: version,
+      config: config,
     );
   }
 
@@ -640,6 +648,7 @@ class Hetu {
     HTSource source, {
     Version? version,
     bool errorHandled = false,
+    CompilerConfig? config,
   }) {
     try {
       final compilation = bundle(
@@ -648,7 +657,7 @@ class Hetu {
         errorHandled: true,
       );
       Uint8List bytes;
-      if (config.doStaticAnalysis) {
+      if (this.config.doStaticAnalysis) {
         final result = analyzer.analyzeCompilation(compilation);
         if (result.errors.isNotEmpty) {
           for (final error in result.errors) {
@@ -664,7 +673,10 @@ class Hetu {
           }
         }
       }
-      bytes = compiler.compile(compilation);
+      final activeCompiler = config == null
+          ? compiler
+          : HTCompiler(config: config, lexicon: lexicon);
+      bytes = activeCompiler.compile(compilation);
       return bytes;
     } catch (error, stackTrace) {
       if (errorHandled) {
@@ -731,11 +743,12 @@ class Hetu {
     final bytes = _compileSource(source);
     final HTContext savedContext = interpreter.getContext();
 
-    interpreter.loadBytecode(bytes: bytes, module: key);
-
-    final nsp = interpreter.currentBytecodeModule.namespaces.values.last;
-    interpreter.setContext(savedContext);
-    return nsp;
+    try {
+      interpreter.loadBytecode(bytes: bytes, module: key);
+      return interpreter.currentBytecodeModule.namespaces.values.last;
+    } finally {
+      interpreter.setContext(savedContext);
+    }
   }
 
   /// Get the documentational comment of an identifier within the soruce code.

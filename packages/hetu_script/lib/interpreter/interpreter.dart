@@ -601,9 +601,9 @@ class HTInterpreter {
     Map<String, dynamic> namedArgs = const {},
     // List<HTType> typeArgs = const [],
   }) {
+    final savedModuleName = _currentBytecodeModule.id;
     try {
       stackTraceList.clear();
-      final savedModuleName = _currentBytecodeModule.id;
       HTNamespace nsp;
       if (module != null) {
         nsp = globalNamespace;
@@ -644,9 +644,6 @@ class HTInterpreter {
           namedArgs: namedArgs,
           // typeArgs: typeArgs,
         );
-        if (_currentBytecodeModule.id != savedModuleName) {
-          _currentBytecodeModule = cachedModules[savedModuleName]!;
-        }
         return result;
       }
     } catch (error, stackTrace) {
@@ -654,6 +651,10 @@ class HTInterpreter {
         processError(error, stackTrace);
       } else {
         rethrow;
+      }
+    } finally {
+      if (_currentBytecodeModule.id != savedModuleName) {
+        _currentBytecodeModule = cachedModules[savedModuleName]!;
       }
     }
   }
@@ -1242,6 +1243,35 @@ class HTInterpreter {
     // }
   }
 
+  Object _errorWithExecutionLocation(Object error) {
+    if (error is HTError) {
+      if (error.filename != null &&
+          error.line != null &&
+          error.column != null) {
+        return error;
+      }
+      return HTError(
+        error.code,
+        error.type,
+        message: error.message,
+        extra: error.extra,
+        correction: error.correction,
+        filename: error.filename ?? _currentFile,
+        line: error.line ?? _currentLine,
+        column: error.column ?? _currentColumn,
+        offset: error.offset,
+        length: error.length,
+      );
+    }
+    if (!config.processError) return error;
+    return HTError.extern(
+      error.toString(),
+      filename: _currentFile,
+      line: _currentLine,
+      column: _currentColumn,
+    );
+  }
+
   /// Interpret a loaded module with the key of [module]
   /// Starting from the instruction pointer of [ip]
   /// This function will return current expression value
@@ -1269,20 +1299,27 @@ class HTInterpreter {
     } else if (createStackFrame) {
       _createStackFrame();
     }
-    if (localValue != null) stack.push(localValue);
-    final result = _execute();
-    if (context != null) {
-      setContext(savedContext);
-    }
-    // Always remove frames we created (prevent leaks), but only propagate when requested.
-    if (createStackFrame || stackFrame != null) {
-      if (propagateValue) {
-        _retractStackFrameAndPropagate();
-      } else {
-        _retractStackFrame();
+    dynamic result;
+    var completed = false;
+    try {
+      if (localValue != null) stack.push(localValue);
+      result = _execute();
+      completed = true;
+      return result;
+    } catch (error) {
+      throw _errorWithExecutionLocation(error);
+    } finally {
+      if (context != null) {
+        setContext(savedContext);
+      }
+      if (createStackFrame || stackFrame != null) {
+        if (propagateValue && completed && result is! FutureExecution) {
+          _retractStackFrameAndPropagate();
+        } else {
+          _retractStackFrame();
+        }
       }
     }
-    return result;
   }
 
   void _clearLocals() {
