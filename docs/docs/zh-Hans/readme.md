@@ -11,7 +11,7 @@ actions:
     link: https://hetu.dev/codepad/
     type: secondary
   - text: Github
-    link: https://github.com/hetu-script/hetu-script/
+    link: https://hetu-script.github.io/codepad/
     type: secondary
 footerHtml: true
 footer: <div>

@@ -404,6 +404,12 @@ class _OptimizationVisitor extends RecursiveASTVisitor<void> {
   }
 
   @override
+  void visitDeleteSubStmt(DeleteSubStmt node) {
+    node.object.accept(this);
+    node.key.accept(this);
+  }
+
+  @override
   void visitImportExportDecl(ImportExportDecl node) {
     if (building && node.alias != null) {
       declareVariable(node, node.alias!);

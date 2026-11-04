@@ -8,7 +8,7 @@ actions:
     link: /en-US/guide/
     type: primary
   - text: Playground
-    link: https://hetu.dev/codepad/
+    link: https://hetu-script.github.io/codepad/
     type: secondary
   - text: Github
     link: https://github.com/hetu-script/hetu-script/
