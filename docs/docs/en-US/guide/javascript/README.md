@@ -48,6 +48,8 @@ There is no `undefined` and no `arguments` object. Use `null`, and use variadic 
 
 Already available with the same names: `map`, `reduce`, `every`, `join`, `indexOf`, `lastIndexOf`, `sort` (in-place; the default order is Dart's natural ordering, not JavaScript's string ordering).
 
+`Array` is available as a type alias of `List`: you can write `Array()` to construct a list and `var l: Array` in type annotations.
+
 Deliberately not provided: `at` (negative indexing), `concat` (use spread: `[...a, ...b]`), `splice`, `reverse` (JavaScript mutates in place, Dart's `reversed` is a lazy view), `toSorted`/`toReversed`/`with`, and `Array.isArray` (use `x is List`).
 
 ## String methods

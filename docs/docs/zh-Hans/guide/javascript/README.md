@@ -48,6 +48,8 @@ Promise.resolve(42).then((value) => print(value))
 
 已同名提供：`map`、`reduce`、`every`、`join`、`indexOf`、`lastIndexOf`、`sort`（原地排序；默认顺序为 Dart 的自然排序，不是 JS 的字符串字典序）。
 
+`Array` 已作为 `List` 的类型别名提供：可以用 `Array()` 构造列表，也可以在类型注解中写 `var l: Array`。
+
 明确不提供：`at`（负索引）、`concat`（请用 spread：`[...a, ...b]`）、`splice`、`reverse`（JS 是原地反转，Dart 的 `reversed` 是惰性视图，同名会误导）、`toSorted`/`toReversed`/`with`、`Array.isArray`（请用 `x is List`）。
 
 ## 字符串方法

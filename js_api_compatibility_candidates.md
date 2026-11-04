@@ -75,7 +75,7 @@ Hetu 现状：实例方法 `map/where/expand/reduce/fold/every/any/join/contains
 | `fill / copyWithin` | 不做 | `fillRange/setRange` 组合 | 无单一直接对应 |
 | `toSorted / toReversed / toSpliced / with`（ES2023） | 不做 | — | Dart 无对应的非变异方法 |
 | `Array.isArray(x)` | 不做 | `x is List` | 类型判断已够用 |
-| `Array.from / of` | 不做 | `List(...)` / 字面量 | 不新增 `Array` 顶层类名，避免与 `List` 两套概念 |
+| `Array.from / of` | 不做 | `List(...)` / 字面量 | `type Array = List` 别名已提供（构造与类型注解可用），静态工厂方法不再另加 |
 
 ## 四、String
 

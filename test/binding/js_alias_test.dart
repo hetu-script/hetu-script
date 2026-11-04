@@ -281,6 +281,16 @@ void main() {
       ''');
       expect(result, true);
     });
+
+    test('Array alias constructs lists and works in type annotations', () {
+      final result = hetu.eval(r'''
+        var l = Array()
+        l.push(1)
+        var l2: Array = [1, 2]
+        [l.length, l is List, l2.length, l2 is List]
+      ''');
+      expect(result, [1, true, 2, true]);
+    });
   });
 
   group('Promise aliases -', () {

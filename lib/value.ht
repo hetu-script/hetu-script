@@ -569,6 +569,9 @@ external class List extends Iterable {
   function findLastIndex(test: (any) -> bool, [start: integer?]) -> integer
 }
 
+/// Alias of [List], for JavaScript users.
+type Array = List
+
 external class Set extends Iterable {
 
   constructor ([value: Iterable])
