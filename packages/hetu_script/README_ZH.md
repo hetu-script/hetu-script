@@ -62,6 +62,24 @@ void main() {
 - 既可以使用类似 Java 的 class 的继承，也可以使用 Javascript 的对象字面量的原型链，也可以使用函数式的写法。
 - 类型注解和 typescript 一样写在关键字后面。（目前静态分析尚未开发完毕，因此类型目前只是纯粹的注解，所有变量实际上都是 dynamic 类型。）
 
+## JavaScript 风格的标准库 API
+
+如果你熟悉 JavaScript 或 TypeScript，河图的许多标准库 API 可以直接用你习惯的名字调用。这些名字是 Dart 实现的别名，因此脚本值与 Dart 宿主之间保持完全互操作：
+
+```typescript
+var list = [1, 2, 3]
+list.push(4)
+var evens = list.filter((n) => n % 2 == 0).toList()
+
+var text = '7'.padStart(3, '0') // '007'
+var max = Math.max(3, 1, 4, 1, 5) // 5
+
+Promise.resolve(42).then((value) => print(value))
+console.warn('done')
+```
+
+注意这些 API 的行为一律以 Dart SDK 为准（例如 `filter` 返回惰性 `Iterable`）。完整的别名对照表和语义差异，请参阅 [JavaScript 开发者指南](https://hetu-script.github.io/docs/zh-Hans/guide/javascript/)。
+
 ## 绑定
 
 [河图和 Dart 交换数据和调用函数](https://hetu-script.github.io/docs/zh-Hans/guide/binding/)简单到令人发指。下面是一个脚本调用 Dart 函数，并且直接操作 Dart 的 Map 对象的例子。

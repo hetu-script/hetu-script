@@ -7,6 +7,8 @@ external abstract class console {
 
 	static function info(... args: any)
 
+	static function warn(... args: any)
+
 	static function warning(... args: any)
 
 	static function error(... args: any)

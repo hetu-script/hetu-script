@@ -71,6 +71,10 @@ export default defineUserConfig({
               link: '/en-US/guide/',
             },
             {
+              text: 'JavaScript Developers',
+              link: '/en-US/guide/javascript/',
+            },
+            {
               text: 'Installation',
               link: '/en-US/guide/installation/',
             },
@@ -214,6 +218,10 @@ export default defineUserConfig({
             {
               text: '简介',
               link: '/zh-Hans/guide/',
+            },
+            {
+              text: 'JavaScript 开发者指南',
+              link: '/zh-Hans/guide/javascript/',
             },
             {
               text: '安装',

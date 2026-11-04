@@ -300,6 +300,7 @@ class Hetu {
       interpreter
           .bindExternalClass(HTSetClassBinding(superClass: iterableBinding));
       interpreter.bindExternalClass(HTMapClassBinding());
+      interpreter.bindExternalClass(HTMapEntryBinding());
       interpreter.bindExternalClass(HTRandomClassBinding());
       interpreter.bindExternalClass(HTFutureClassBinding());
       interpreter.bindExternalClass(HTCryptoClassBinding());
@@ -447,6 +448,15 @@ class Hetu {
         lexicon.idGlobal,
         HTValueBinding(
           id: lexicon.idGlobal,
+          value: interpreter.globalNamespace,
+          isMutable: false,
+        ),
+      );
+
+      interpreter.define(
+        'globalThis',
+        HTValueBinding(
+          id: 'globalThis',
           value: interpreter.globalNamespace,
           isMutable: false,
         ),

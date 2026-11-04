@@ -35,6 +35,7 @@ Hetu is a lightweight scripting language purely written in Dart for embedding in
 
 - Modern programming language syntax likes typescript/kotlin/swift, need very little time to get familiar with.
 - Full scripting language abilities: class OOP, prototype OOP, FP, module, errors, etc.
+- JavaScript-friendly APIs: use familiar names like `push`, `filter`, `padStart`, `Math.PI`, `Promise.resolve` and `console.warn`, as aliases of the Dart-backed implementations.
 - Runs on all platforms that flutter supports, including web browsers and desktop.
 - Extremely easy on binding, call Dart functions in script or call script functions in Dart with just one line.
 
@@ -84,6 +85,24 @@ void main() {
 ```
 
 You can check the [documentation](https://hetu-script.github.io/docs/en-US/) for more information on the [grammar](https://hetu-script.github.io/docs/en-US/grammar/) and [binding](https://hetu-script.github.io/docs/en-US/guide/binding/).
+
+## JavaScript-friendly standard library
+
+If you come from JavaScript or TypeScript, many standard library APIs can be used with the names you already know. These are aliases of the Dart-backed implementations, so script values stay fully interoperable with the Dart host:
+
+```typescript
+var list = [1, 2, 3]
+list.push(4)
+var evens = list.filter((n) => n % 2 == 0).toList()
+
+var text = '7'.padStart(3, '0') // '007'
+var max = Math.max(3, 1, 4, 1, 5) // 5
+
+Promise.resolve(42).then((value) => print(value))
+console.warn('done')
+```
+
+Note that the behavior always follows the Dart SDK (for example, `filter` returns a lazy `Iterable`). Check the [JavaScript developers guide](https://hetu-script.github.io/docs/en-US/guide/javascript/) for the full alias table and the differences to watch out for.
 
 ## IDE extension
 

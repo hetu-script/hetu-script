@@ -1,6 +1,20 @@
 /// Stringify and print one or several objects to standard output stream.
 external function print(... args: any)
 
+/// Not-a-number value, alias of `float.nan` for JavaScript users.
+final NaN = float.nan
+
+/// Positive infinity value, alias of `float.infinity` for JavaScript users.
+final Infinity = float.infinity
+
+/// Alias of the instance getter `isNaN`, for JavaScript users.
+/// Unlike JavaScript, no implicit conversion is performed on the input.
+function isNaN(value: number) => value.isNaN
+
+/// Alias of the instance getter `isFinite`, for JavaScript users.
+/// Unlike JavaScript, no implicit conversion is performed on the input.
+function isFinite(value: number) => value.isFinite
+
 external function range(startOrStop: number, [stop: number, step: number]) -> Iterable
 
 /// dynamically eval a string content of hetu script code.

@@ -26,6 +26,10 @@ class HTNumberClassBinding extends HTExternalClass {
       case 'number.parse':
         return ({positionalArgs, namedArgs}) =>
             num.tryParse(positionalArgs.first);
+      case 'number.isNaN':
+        return ({positionalArgs, namedArgs}) => positionalArgs.first.isNaN;
+      case 'number.isFinite':
+        return ({positionalArgs, namedArgs}) => positionalArgs.first.isFinite;
       default:
         if (!ignoreUndefined) throw HTError.undefined(id);
     }
@@ -90,6 +94,12 @@ class HTNumberClassBinding extends HTExternalClass {
         return ({object, positionalArgs, namedArgs}) =>
             object.toStringAsExponential(positionalArgs[0]);
       case 'toStringAsPrecision':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.toStringAsPrecision(positionalArgs[0]);
+      case 'toExponential':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.toStringAsExponential(positionalArgs[0]);
+      case 'toPrecision':
         return ({object, positionalArgs, namedArgs}) =>
             object.toStringAsPrecision(positionalArgs[0]);
       case 'toString':
@@ -293,6 +303,9 @@ class HTStringClassBinding extends HTExternalClass {
     switch (id) {
       case 'string.parse':
         return ({positionalArgs, namedArgs}) => positionalArgs.first.toString();
+      case 'string.fromCharCode':
+        return ({positionalArgs, namedArgs}) =>
+            String.fromCharCode(positionalArgs.first);
       default:
         if (!ignoreUndefined) throw HTError.undefined(id);
     }
@@ -306,6 +319,31 @@ class HTStringClassBinding extends HTExternalClass {
         return ({object, positionalArgs, namedArgs}) => Characters(object);
       case 'toString':
         return ({object, positionalArgs, namedArgs}) => object.toString();
+      case 'padStart':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.padLeft(positionalArgs[0], positionalArgs[1]);
+      case 'padEnd':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.padRight(positionalArgs[0], positionalArgs[1]);
+      case 'trimStart':
+        return ({object, positionalArgs, namedArgs}) => object.trimLeft();
+      case 'trimEnd':
+        return ({object, positionalArgs, namedArgs}) => object.trimRight();
+      case 'charCodeAt':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.codeUnitAt(positionalArgs[0]);
+      case 'includes':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.contains(positionalArgs[0], positionalArgs[1]);
+      case 'replace':
+        return ({object, positionalArgs, namedArgs}) => object.replaceFirst(
+            positionalArgs[0], positionalArgs[1], positionalArgs[2]);
+      case 'charAt':
+        return ({object, positionalArgs, namedArgs}) =>
+            object[positionalArgs[0]];
+      case 'repeat':
+        return ({object, positionalArgs, namedArgs}) =>
+            object * positionalArgs.first;
       case 'compareTo':
         return ({object, positionalArgs, namedArgs}) =>
             object.compareTo(positionalArgs[0]);
@@ -421,6 +459,13 @@ class HTIterableClassBinding extends HTExternalClass {
             return func.call(positionalArgs: [element]) as bool;
           });
         };
+      case 'filter':
+        return ({object, positionalArgs, namedArgs}) {
+          HTFunction func = positionalArgs.first;
+          return object.where((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          });
+        };
       case 'expand':
         return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
@@ -428,7 +473,22 @@ class HTIterableClassBinding extends HTExternalClass {
             return func.call(positionalArgs: [element]) as Iterable;
           });
         };
+      case 'flatMap':
+        return ({object, positionalArgs, namedArgs}) {
+          HTFunction func = positionalArgs.first;
+          return instance.expand((element) {
+            return func.call(positionalArgs: [element]) as Iterable;
+          });
+        };
+      case 'forEach':
+        return ({object, positionalArgs, namedArgs}) {
+          HTFunction func = positionalArgs.first;
+          object.forEach((element) {
+            func.call(positionalArgs: [element]);
+          });
+        };
       case 'contains':
+      case 'includes':
         return ({object, positionalArgs, namedArgs}) =>
             object.contains(positionalArgs.first);
       case 'reduce':
@@ -457,6 +517,7 @@ class HTIterableClassBinding extends HTExternalClass {
         return ({object, positionalArgs, namedArgs}) =>
             object.join(positionalArgs.first);
       case 'any':
+      case 'some':
         return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.any((element) {
@@ -500,6 +561,7 @@ class HTIterableClassBinding extends HTExternalClass {
       case 'single':
         return instance.single;
       case 'firstWhere':
+      case 'find':
         return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           HTFunction? orElse = namedArgs['orElse'];
@@ -510,6 +572,7 @@ class HTIterableClassBinding extends HTExternalClass {
           });
         };
       case 'lastWhere':
+      case 'findLast':
         return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           HTFunction? orElse = namedArgs['orElse'];
@@ -570,6 +633,36 @@ class HTListClassBinding extends HTExternalClass {
   dynamic instanceMemberGet(dynamic instance, String id,
       {bool ignoreUndefined = false}) {
     switch (id) {
+      case 'push':
+        return ({object, positionalArgs, namedArgs}) {
+          object.add(positionalArgs.first);
+        };
+      case 'pop':
+        return ({object, positionalArgs, namedArgs}) => object.removeLast();
+      case 'shift':
+        return ({object, positionalArgs, namedArgs}) => object.removeAt(0);
+      case 'unshift':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.insert(0, positionalArgs.first);
+      case 'slice':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.sublist(positionalArgs[0], positionalArgs[1]);
+      case 'findIndex':
+        return ({object, positionalArgs, namedArgs}) {
+          HTFunction func = positionalArgs.first;
+          int start = positionalArgs[1];
+          return object.indexWhere((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          }, start);
+        };
+      case 'findLastIndex':
+        return ({object, positionalArgs, namedArgs}) {
+          HTFunction func = positionalArgs.first;
+          int? start = positionalArgs[1];
+          return object.lastIndexWhere((element) {
+            return func.call(positionalArgs: [element]) as bool;
+          }, start);
+        };
       case 'addIfAbsent':
         return ({object, positionalArgs, namedArgs}) {
           if (!object.contains(positionalArgs.first)) {
@@ -765,6 +858,14 @@ class HTSetClassBinding extends HTExternalClass {
         return ({object, positionalArgs, namedArgs}) => object.clear();
       case 'toSet':
         return ({object, positionalArgs, namedArgs}) => object.toSet();
+      case 'has':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.contains(positionalArgs.first);
+      case 'delete':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.remove(positionalArgs.first);
+      case 'size':
+        return instance.length;
       default:
         return superClass!.instanceMemberGet(instance, id);
     }
@@ -857,6 +958,30 @@ class HTMapClassBinding extends HTExternalClass {
       case 'containsKey':
         return ({object, positionalArgs, namedArgs}) =>
             object.containsKey(positionalArgs.first);
+      case 'has':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.containsKey(positionalArgs.first);
+      case 'size':
+        return instance.length;
+      case 'get':
+        return ({object, positionalArgs, namedArgs}) =>
+            object[positionalArgs.first];
+      case 'set':
+        return ({object, positionalArgs, namedArgs}) {
+          object[positionalArgs[0]] = positionalArgs[1];
+        };
+      case 'delete':
+        return ({object, positionalArgs, namedArgs}) =>
+            object.remove(positionalArgs.first);
+      case 'entries':
+        return instance.entries;
+      case 'forEach':
+        return ({object, positionalArgs, namedArgs}) {
+          HTFunction func = positionalArgs.first;
+          object.forEach((key, value) {
+            func.call(positionalArgs: [key, value]);
+          });
+        };
       case 'containsValue':
         return ({object, positionalArgs, namedArgs}) =>
             object.containsValue(positionalArgs.first);
@@ -983,6 +1108,20 @@ class HTFutureClassBinding extends HTExternalClass {
         return ({object, positionalArgs, namedArgs}) {
           return Future.value(positionalArgs.first);
         };
+      case 'Future.resolve':
+        return ({object, positionalArgs, namedArgs}) {
+          return Future.value(positionalArgs.first);
+        };
+      case 'Future.all':
+        return ({positionalArgs, namedArgs}) {
+          final futures = List<Future<dynamic>>.from(positionalArgs.first);
+          return Future.wait(futures);
+        };
+      case 'Future.error':
+      case 'Future.reject':
+        return ({positionalArgs, namedArgs}) {
+          return Future.error(positionalArgs.first);
+        };
       case 'Future.delayed':
         return ({object, positionalArgs, namedArgs}) {
           return Future.delayed(
@@ -1002,6 +1141,18 @@ class HTFutureClassBinding extends HTExternalClass {
         return ({object, positionalArgs, namedArgs}) {
           HTFunction func = positionalArgs.first;
           return object.then((value) => func.call(positionalArgs: [value]));
+        };
+      case 'catch':
+      case 'catchError':
+        return ({object, positionalArgs, namedArgs}) {
+          HTFunction func = positionalArgs.first;
+          return object.catchError((error) => func.call(positionalArgs: [error]));
+        };
+      case 'finally':
+      case 'whenComplete':
+        return ({object, positionalArgs, namedArgs}) {
+          HTFunction func = positionalArgs.first;
+          return object.whenComplete(() => func.call());
         };
       default:
         throw HTError.undefined(id);
@@ -1068,6 +1219,8 @@ class HTConsoleClassBinding extends HTExternalClass {
       case 'console.info':
         return ({positionalArgs, namedArgs}) => console.info(positionalArgs);
       case 'console.warning':
+        return ({positionalArgs, namedArgs}) => console.warning(positionalArgs);
+      case 'console.warn':
         return ({positionalArgs, namedArgs}) => console.warning(positionalArgs);
       case 'console.error':
         return ({positionalArgs, namedArgs}) => console.error(positionalArgs);

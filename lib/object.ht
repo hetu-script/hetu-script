@@ -21,11 +21,11 @@ struct Object {
   /// Check if this struct has the key in its own fields
   external function containsKey(key: string) -> bool
 
-	external get isEmpty -> bool
+  external get isEmpty -> bool
 
-	external get isNotEmpty -> bool
+  external get isNotEmpty -> bool
 
-	external get length -> integer
+  external get length -> integer
 
   external function remove(key: string) -> any
 
@@ -33,6 +33,27 @@ struct Object {
   external function clone() -> {}
 
   function hasOwnProperty(key: string) => this.containsKey(key)
+
+  /// Alias of calling [containsKey] on the object, for JavaScript users.
+  static function hasOwn(object, key: string) => object.containsKey(key)
+
+  /// Create a list of [MapEntry] from the struct's own fields, for JavaScript users.
+  static function entries(object) {
+    return object.keys.map((key) => MapEntry(key, object[key])).toList()
+  }
+
+  /// Create a struct from key/value entries ([MapEntry] or two-element lists), for JavaScript users.
+  static function fromEntries(entries) {
+    var result = {}
+    for (var entry in entries) {
+      if (entry is MapEntry) {
+        result[entry.key] = entry.value
+      } else {
+        result[entry[0]] = entry[1]
+      }
+    }
+    return result
+  }
 
   function toJSON() -> Map => JSON.jsonify(this)
 

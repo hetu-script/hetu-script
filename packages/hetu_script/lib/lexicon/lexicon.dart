@@ -269,7 +269,7 @@ abstract class HTLexicon {
         kImmutable,
         kLate,
         kConst,
-        kDelete,
+        // kDelete,
         kTypeValue,
         kTypeValueOf,
         // kDeclTypeof,

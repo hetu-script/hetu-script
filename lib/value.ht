@@ -64,11 +64,20 @@ external abstract class number {
   function toStringAsExponential([fractionDigits: integer]) -> string
 
   function toStringAsPrecision(precision: integer) -> string
+
+  /// Alias of [toStringAsExponential], for JavaScript users.
+  function toExponential([fractionDigits: integer]) -> string
+
+  /// Alias of [toStringAsPrecision], for JavaScript users.
+  function toPrecision(precision: integer) -> string
   
   function toString() -> string
 }
 
 type num = number
+
+/// Alias of [number], for JavaScript users.
+type Number = number
 
 external class integer extends number {
   
@@ -76,7 +85,7 @@ external class integer extends number {
   static function parse(source: string, {radix: integer?}) -> integer
 
   function clamp(lowerLimit: number, upperLimit: number) -> number
-	
+  
   /// Returns this integer to the power of [exponent] modulo [modulus].
   function modPow(exponent: integer, modulus: integer) -> integer
 
@@ -94,12 +103,12 @@ external class integer extends number {
 
   /// Returns the minimum number of bits required to store this integer.
   get bitLength -> integer
-	
+  
   /// Returns the least significant [width] bits of this integer as a
   /// non-negative number (i.e. unsigned representation).  The returned value has
   /// zeros in all bit positions higher than [width].
   function toUnsigned(width: integer) -> integer
-	
+  
   /// Returns the least significant [width] bits of this integer, extending the
   /// highest retained bit to the sign.  This is the same as truncating the value
   /// to fit in [width] bits using an signed 2-s complement representation.  The
@@ -251,8 +260,8 @@ external class float extends number {
   static get negativeInfinity -> float;
   static get minPositive -> float;
   static get maxFinite -> float;
-	
-	static function parse(value: string) -> float
+  
+  static function parse(value: string) -> float
   
   /// Returns the absolute value of this number.
   function abs() -> float
@@ -267,7 +276,7 @@ external class bool {
 
   function toString() -> string
 
-	static function parse(value: string) -> bool
+  static function parse(value: string) -> bool
 }
 
 external class string {
@@ -276,7 +285,7 @@ external class string {
 
   function toString() -> string
 
-	static function parse(value) -> string
+  static function parse(value) -> string
 
   function compareTo(index: string) -> integer
 
@@ -284,46 +293,79 @@ external class string {
 
   get length -> integer
 
-	function endsWith(other: string) -> bool
+  function endsWith(other: string) -> bool
 
-	function startsWith(pattern: string, [index: number = 0]) -> bool
+  function startsWith(pattern: string, [index: number = 0]) -> bool
 
-	function indexOf(pattern: string, [start: number = 0]) -> number
+  function indexOf(pattern: string, [start: number = 0]) -> number
 
-	function lastIndexOf(pattern, [start: number?]) -> number
+  function lastIndexOf(pattern, [start: number?]) -> number
 
-	get isEmpty -> bool
+  get isEmpty -> bool
 
-	get isNotEmpty -> bool
+  get isNotEmpty -> bool
 
-	function substring(startIndex: number, [endIndex: number?]) -> string
+  function substring(startIndex: number, [endIndex: number?]) -> string
 
-	function trim() -> string
+  function trim() -> string
 
-	function trimLeft() -> string
+  function trimLeft() -> string
 
-	function trimRight() -> string
+  function trimRight() -> string
 
-	function padLeft(width: number, [padding: string = ' ']) -> string
+  function padLeft(width: number, [padding: string = ' ']) -> string
 
-	function padRight(width: number, [padding: string = ' ']) -> string
+  function padRight(width: number, [padding: string = ' ']) -> string
 
-	function contains(other: string, [startIndex: number = 0]) -> bool
+  function contains(other: string, [startIndex: number = 0]) -> bool
 
-	function replaceFirst(from: string, to: string, [startIndex: number = 0]) -> string
+  function replaceFirst(from: string, to: string, [startIndex: number = 0]) -> string
 
-	function replaceAll(from: string, replace: string) -> string
+  function replaceAll(from: string, replace: string) -> string
 
-	function replaceRange(start: number, end: number, replacement: string) -> string
+  function replaceRange(start: number, end: number, replacement: string) -> string
 
-	function split(pattern) -> List
+  function split(pattern) -> List
 
-	function toLowerCase() -> string
+  function toLowerCase() -> string
 
-	function toUpperCase() -> string
+  function toUpperCase() -> string
+
+  /// Alias of [padLeft], for JavaScript users.
+  function padStart(width: number, [padding: string = ' ']) -> string
+
+  /// Alias of [padRight], for JavaScript users.
+  function padEnd(width: number, [padding: string = ' ']) -> string
+
+  /// Alias of [trimLeft], for JavaScript users.
+  function trimStart() -> string
+
+  /// Alias of [trimRight], for JavaScript users.
+  function trimEnd() -> string
+
+  /// Alias of [codeUnitAt], for JavaScript users.
+  function charCodeAt(index: integer) -> integer
+
+  /// Alias of [contains], for JavaScript users.
+  function includes(other: string, [startIndex: number = 0]) -> bool
+
+  /// Alias of [replaceFirst] with a string pattern, for JavaScript users.
+  function replace(from: string, to: string, [startIndex: number = 0]) -> string
+
+  /// Method form of the `[]` operator, for JavaScript users.
+  function charAt(index: integer) -> string
+
+  /// Repeat this string the given number of times, for JavaScript users.
+  function repeat(count: integer) -> string
+
+  /// Create a string from a UTF-16 code unit, for JavaScript users.
+  static function fromCharCode(charCode: integer) -> string
 }
 
 type str = string
+
+/// Alias of [string], for JavaScript users.
+type String = string
 
 external class Iterator {
   /// Advances the iterator to the next element of the iteration.
@@ -351,7 +393,7 @@ external class Iterable {
   /// Expands each element of this [Iterable] into zero or more elements.
   function expand(toElements: (any) -> Iterable) -> Iterable
 
-	function contains(value) -> bool
+  function contains(value) -> bool
   
   /// Reduces a collection to a single value by iteratively combining elements
   /// of the collection using the provided function.
@@ -364,7 +406,7 @@ external class Iterable {
   /// Checks whether every element of this iterable satisfies [test].
   function every(test: (any) -> bool) -> bool
 
-	function join(separator: string) -> string
+  function join(separator: string) -> string
 
   /// Checks whether any element of this iterable satisfies [test].
   function any(test: (any) -> bool) -> bool
@@ -373,11 +415,11 @@ external class Iterable {
 
   function toSet() -> Set
 
-	get length -> integer
+  get length -> integer
 
-	get isEmpty -> bool
+  get isEmpty -> bool
 
-	get isNotEmpty -> bool
+  get isNotEmpty -> bool
 
   function take(count: integer) -> Iterable
 
@@ -387,11 +429,11 @@ external class Iterable {
 
   function skipWhile(test: (any) -> bool) -> Iterable
 
-	get first -> any
+  get first -> any
 
-	get last -> any
+  get last -> any
 
-	get single -> any
+  get single -> any
 
   /// Returns the first element that satisfies the given predicate [test].
   function firstWhere(test: (any) -> bool, {orElse: () -> any}) -> any
@@ -402,7 +444,29 @@ external class Iterable {
   /// Returns the single element that satisfies [test].
   function singleWhere(test: (any) -> bool, {orElse: () -> any}) -> any
 
-	function elementAt(index: integer) -> any
+  function elementAt(index: integer) -> any
+
+  /// Alias of [where], for JavaScript users. Returns a lazy Iterable.
+  function filter(test: (any) -> bool) -> Iterable
+
+  /// Alias of [any], for JavaScript users.
+  function some(test: (any) -> bool) -> bool
+
+  /// Alias of [contains], for JavaScript users.
+  function includes(value) -> bool
+
+  /// Alias of [firstWhere], for JavaScript users. Returns null when no element matches.
+  function find(test: (any) -> bool, {orElse: () -> any}) -> any
+
+  /// Alias of [lastWhere], for JavaScript users. Returns null when no element matches.
+  function findLast(test: (any) -> bool, {orElse: () -> any}) -> any
+
+  /// Alias of [expand], for JavaScript users. Returns a lazy Iterable.
+  function flatMap(toElements: (any) -> Iterable) -> Iterable
+
+  /// Iterate over each element. The callback receives the element only,
+  /// unlike JavaScript's `(element, index, array)` signature.
+  function forEach(fn: (any) -> any)
 
   function toString() -> string
 }
@@ -419,29 +483,29 @@ external class List extends Iterable {
 
   function addIfAbsent(value: any)
   
-	function add(value: any)
+  function add(value: any)
 
   function addAll(iterable: Iterable)
 
   get reversed -> Iterable
 
-	function indexOf(value: any, [start: integer = 0]) -> integer
+  function indexOf(value: any, [start: integer = 0]) -> integer
 
-	function lastIndexOf(value: any, [start: integer?]) -> integer
+  function lastIndexOf(value: any, [start: integer?]) -> integer
 
-	function insert(index: integer, value)
+  function insert(index: integer, value)
 
-	function insertAll(index: integer, iterable)
+  function insertAll(index: integer, iterable)
 
-	function clear()
+  function clear()
 
-	function remove(value: any)
+  function remove(value: any)
 
-	function removeAt(index: integer)
+  function removeAt(index: integer)
 
-	function removeLast()
+  function removeLast()
 
-	function removeFirst()
+  function removeFirst()
 
   function sublist(start: integer, [end: integer?]) -> List
 
@@ -482,6 +546,27 @@ external class List extends Iterable {
 
   /// Return a deep copy of this List.
   function clone()
+
+  /// Alias of [add], for JavaScript users. Returns void instead of the new length.
+  function push(value: any)
+
+  /// Alias of [removeLast], for JavaScript users.
+  function pop() -> any
+
+  /// Alias of [removeFirst], for JavaScript users.
+  function shift() -> any
+
+  /// Alias of `insert(0, value)`, for JavaScript users. Returns void instead of the new length.
+  function unshift(value: any)
+
+  /// Alias of [sublist], for JavaScript users. Negative indexes are not supported.
+  function slice(start: integer, [end: integer?]) -> List
+
+  /// Alias of [indexWhere], for JavaScript users.
+  function findIndex(test: (any) -> bool, [start: integer = 0]) -> integer
+
+  /// Alias of [lastIndexWhere], for JavaScript users.
+  function findLastIndex(test: (any) -> bool, [start: integer?]) -> integer
 }
 
 external class Set extends Iterable {
@@ -515,6 +600,15 @@ external class Set extends Iterable {
   function clear()
 
   function toSet() -> Set
+
+  /// Alias of [contains], for JavaScript users.
+  function has(value: any) -> bool
+
+  /// Alias of [remove], for JavaScript users. Returns whether the value was present.
+  function delete(value: any) -> bool
+
+  /// Alias of [length], for JavaScript users.
+  get size -> integer
 }
 
 external class MapEntry {
@@ -545,11 +639,11 @@ external class Map {
 
   function toString() -> string
 
-	get length -> number
+  get length -> number
 
-	get isEmpty -> bool
+  get isEmpty -> bool
 
-	get isNotEmpty -> bool
+  get isNotEmpty -> bool
 
   get iterator -> Iterator
 
@@ -557,15 +651,39 @@ external class Map {
 
   get values -> Iterable
 
-	function containsKey(value: any) -> bool
+  function containsKey(value: any) -> bool
 
-	function containsValue(value: any) -> bool
+  function containsValue(value: any) -> bool
 
-	function addAll(other: Map)
+  function addAll(other: Map)
 
-	function clear()
+  function clear()
 
-	function remove(key: any)
+  function remove(key: any)
 
   function putIfAbsent(key: any, value: any) -> any
+
+  /// Alias of [containsKey], for JavaScript users.
+  function has(value: any) -> bool
+
+  /// Alias of [length], for JavaScript users.
+  get size -> integer
+
+  /// Method form of the `[]` operator, for JavaScript users.
+  function get(key: any) -> any
+
+  /// Method form of the `[]=` operator, for JavaScript users.
+  /// Returns void instead of the map itself.
+  function set(key: any, value: any)
+
+  /// Alias of [remove], for JavaScript users.
+  /// Returns the removed value instead of a boolean.
+  function delete(key: any) -> any
+
+  /// The key/value entries of this map, as an Iterable of [MapEntry].
+  get entries -> Iterable
+
+  /// Iterate over each entry. The callback receives `(key, value)`,
+  /// unlike JavaScript's `(value, key, map)` signature.
+  function forEach(fn: (any, any) -> any)
 }

@@ -2842,13 +2842,34 @@ class HTInterpreter {
       currentNamespace.declareExport(id);
     }
     final value = _handleTypeExpr();
+    dynamic aliasValue = value;
+    if (value is HTNominalType && value.typeArgs.isEmpty && !value.isNullable) {
+      HTNamespace? nsp = currentNamespace;
+      for (final id in value.namespacesWithin) {
+        final next = nsp?.memberGet(id,
+            from: currentNamespace.fullName,
+            isRecursive: true,
+            ignoreUndefined: true);
+        nsp = next is HTNamespace ? next : null;
+        if (nsp == null) break;
+      }
+      if (nsp != null) {
+        final target = nsp.memberGet(value.id!,
+            from: currentNamespace.fullName,
+            isRecursive: true,
+            ignoreUndefined: true);
+        if (target is HTClass) {
+          aliasValue = target;
+        }
+      }
+    }
     final decl = HTVariable(
       id: id,
       interpreter: this,
       classId: classId,
       closure: currentNamespace,
       documentation: documentation,
-      value: value,
+      value: aliasValue,
       isPrivate: isPrivate,
     );
     currentNamespace.define(id, decl);

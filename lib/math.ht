@@ -64,16 +64,25 @@ abstract class Math {
   /// Square root of 2.
   static const sqrt2 = 1.4142135623730951;
 
+  static const PI = pi;
+  static const E = e;
+  static const LN2 = ln2;
+  static const LN10 = ln10;
+  static const LOG2E = log2e;
+  static const LOG10E = log10e;
+  static const SQRT2 = sqrt2;
+  static const SQRT1_2 = sqrt1_2;
+
   /// Returns a random float value between 0.0 and 1.0.
   external static function random()
 
-  /// Return the smaller value between a & b.
-  /// If one of them is null, return the other value.
-  external static function min(a, b)
+  /// Return the smallest value among the arguments.
+  /// Null values are ignored. Returns Infinity when no values are given.
+  external static function min(... values: number) -> number
 
-  /// Return the greater value between a & b.
-  /// If one of them is null, return the other value.
-  external static function max(a, b)
+  /// Return the largest value among the arguments.
+  /// Null values are ignored. Returns -Infinity when no values are given.
+  external static function max(... values: number) -> number
 
   external static function pow(x: number, exponent: number) -> number
 
@@ -89,6 +98,8 @@ abstract class Math {
 
   external static function atan(x: number) -> number
 
+  external static function atan2(y: number, x: number) -> number
+
   external static function sqrt(x: number) -> number
 
   external static function exp(x: number) -> number
@@ -102,6 +113,24 @@ abstract class Math {
   external static function radians(degrees)
 
   external static function radiusToSigma(radius: float) -> float
+
+  /// Alias of the instance method `abs`, for JavaScript users.
+  static function abs(x: number) => x.abs()
+
+  /// Alias of the instance method `floor`, for JavaScript users.
+  static function floor(x: number) => x.floor()
+
+  /// Alias of the instance method `ceil`, for JavaScript users.
+  static function ceil(x: number) => x.ceil()
+
+  /// Alias of the instance method `round`, for JavaScript users.
+  static function round(x: number) => x.round()
+
+  /// Alias of the instance method `truncate`, for JavaScript users.
+  static function trunc(x: number) => x.truncate()
+
+  /// Alias of the instance getter `sign`, for JavaScript users.
+  static function sign(x: number) => x.sign
   
   /// Box–Muller transform for generating normally distributed random numbers between [min : max].
   external static function gaussianNoise(mean: float, standardDeviation: float, {min: float, max: float, randomGenerator}) -> float

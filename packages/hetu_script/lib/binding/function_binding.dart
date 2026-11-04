@@ -20,22 +20,20 @@ final Map<String, Function> preincludeFunctions = {
       double.tryParse(positionalArgs.first),
   'Math.random': ({positionalArgs, namedArgs}) => math.Random().nextDouble(),
   'Math.min': ({positionalArgs, namedArgs}) {
-    if (positionalArgs[0] == null) {
-      return positionalArgs[1];
+    num? result;
+    for (final value in positionalArgs) {
+      if (value == null) continue;
+      result = result == null ? value as num : math.min(result, value as num);
     }
-    if (positionalArgs[1] == null) {
-      return positionalArgs[0];
-    }
-    return math.min(positionalArgs[0] as num, positionalArgs[1] as num);
+    return result ?? double.infinity;
   },
   'Math.max': ({positionalArgs, namedArgs}) {
-    if (positionalArgs[0] == null) {
-      return positionalArgs[1];
+    num? result;
+    for (final value in positionalArgs) {
+      if (value == null) continue;
+      result = result == null ? value as num : math.max(result, value as num);
     }
-    if (positionalArgs[1] == null) {
-      return positionalArgs[0];
-    }
-    return math.max(positionalArgs[0] as num, positionalArgs[1] as num);
+    return result ?? double.negativeInfinity;
   },
   'Math.pow': ({positionalArgs, namedArgs}) =>
       math.pow(positionalArgs[0] as num, positionalArgs[1] as num),
@@ -51,6 +49,8 @@ final Map<String, Function> preincludeFunctions = {
       math.acos(positionalArgs.first as num),
   'Math.atan': ({positionalArgs, namedArgs}) =>
       math.atan(positionalArgs.first as num),
+  'Math.atan2': ({positionalArgs, namedArgs}) =>
+      math.atan2(positionalArgs[0] as num, positionalArgs[1] as num),
   'Math.sqrt': ({positionalArgs, namedArgs}) =>
       math.sqrt(positionalArgs.first as num),
   'Math.exp': ({positionalArgs, namedArgs}) =>

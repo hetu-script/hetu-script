@@ -2,13 +2,37 @@ external class Future {
 
   static function wait(futures: List) -> Future //, { cleanUp: (successValue) -> void })
 
+  /// Alias of [Future.wait], for JavaScript users (`Promise.all`).
+  static function all(futures: List) -> Future
+
   static function value(possibleFuture) -> Future
+
+  /// Alias of [Future.value], for JavaScript users (`Promise.resolve`).
+  static function resolve(possibleFuture) -> Future
+
+  /// Create a future that completes with an error.
+  static function error(error) -> Future
+
+  /// Alias of [Future.error], for JavaScript users (`Promise.reject`).
+  static function reject(error) -> Future
 
   static function delayed(seconds: float, [computation: function]) -> Future
 
   constructor (func: function)
 
   function then(func: (value) -> any) -> Future
+
+  /// Alias of [catchError], for JavaScript users (`Promise.catch`).
+  function catch(func: (error) -> any) -> Future
+
+  /// Register a callback for errors. The callback receives the error object.
+  function catchError(func: (error) -> any) -> Future
+
+  /// Alias of [whenComplete], for JavaScript users (`Promise.finally`).
+  function finally(func: () -> any) -> Future
+
+  /// Register a callback that runs when the future completes, regardless of outcome.
+  function whenComplete(func: () -> any) -> Future
 }
 
 type Promise = Future
