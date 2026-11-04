@@ -1,6 +1,6 @@
 # API for use in Hetu script
 
-The preincluded value types are backed by real Dart objects, and most of their Dart SDK methods are bound in the script: **number**, **integer**, **float**, **bool**, **string**, **List**, **Set**, **Map**, **Iterable**, **BigInt**.
+The preincluded value types are backed by real Dart objects, and most of their Dart SDK methods are bound in the script: **Number**, **Integer**, **Float**, **Bool**, **String**, **List**, **Set**, **Map**, **Iterable**, **BigInt**.
 
 For instance, we can use the `map` API just like in Dart on an Iterable:
 
@@ -10,7 +10,7 @@ final result = range(10).map((value) => 'row: ${value}')
 
 Many of these APIs also have **JavaScript-style aliases** (`push`, `filter`, `padStart`, `Math.PI`, `Promise.resolve`, ...). See the [JavaScript Developers guide](/en-US/guide/javascript/) for the full alias table and the semantic differences to watch out for.
 
-Type aliases provided for convenience: `num` (= `number`), `int` (= `integer`), `double` (= `float`), `str` / `String` (= `string`), `Number` (= `number`), `Promise` (= `Future`).
+Type names use capitalized class names (`Number`, `Integer`, `Float`, `Bool`, `String`), with lowercase aliases kept for Dart-style code: `number`, `integer`, `float`, `bool`, `string`, plus `num` (= `Number`), `int` (= `Integer`), `double` (= `Float`), `str` (= `String`), `Array` (= `List`) and `Promise` (= `Future`).
 
 ## Global functions and values
 

@@ -68,19 +68,19 @@ class HTLexiconHetu extends HTLexicon {
   String get idGlobalPrototype => 'Object';
 
   @override
-  String get idBoolean => 'bool';
+  String get idBoolean => 'Bool';
 
   @override
-  String get idNumber => 'number';
+  String get idNumber => 'Number';
 
   @override
-  String get idInteger => 'integer';
+  String get idInteger => 'Integer';
 
   @override
-  String get idFloat => 'float';
+  String get idFloat => 'Float';
 
   @override
-  String get idString => 'string';
+  String get idString => 'String';
 
   @override
   String get kNull => 'null';

@@ -92,7 +92,7 @@ Hetu 现状：`length/substring/trim/trimLeft/trimRight/padLeft/padRight/contain
 | `toExponential / toPrecision` 见 Number 节 | — | — | — |
 | `charAt(index)` | 补充暴露（已完成） | Dart `String.operator[]` | 返回单字符字符串 |
 | `repeat(n)` | 补充暴露（已完成） | Dart `String.operator*` | 方法形式包装已有运算符能力 |
-| `String.fromCharCode(n)` | 补充暴露（已完成） | Dart `String.fromCharCode` | 新增 `type String = string` 别名支持 JS 用法 |
+| `String.fromCharCode(n)` | 补充暴露（已完成） | Dart `String.fromCharCode` | 主名 `String`，小写 `string/str` 为别名 |
 | `at / slice / substr` | 不做 | `substring` | 负索引差异，`substr` 在 JS 已废弃 |
 | `match / matchAll / search / replaceAll(正则)` | 不做 | 随 RegExp 评估 | 依赖正则能力，见第十二节 |
 | `localeCompare` | 不做 | `compareTo` | Dart 为码元序，用 JS 名字会暗示 locale 感知，误导 |
@@ -108,7 +108,7 @@ Hetu 现状：实例 `abs/round/floor/ceil/truncate/sign/clamp/compareTo/remaind
 | `toExponential([digits])` | 别名 P0 | `toStringAsExponential` | 返回 string，与 JS 一致 |
 | `toPrecision(digits)` | 别名 P0 | `toStringAsPrecision` | 返回 string，与 JS 一致 |
 | `toFixed(digits)` | 已存在（偏差） | `double.parse(toStringAsFixed(...))` | **Hetu 返回 `float`，JS 返回 string**；文档标注，需要字符串时用 `toStringAsFixed` |
-| `Number.isNaN(x) / isFinite(x)` | 别名（已完成） | `x.isNaN / x.isFinite` | `type Number = number` 加静态绑定；与全局 `isNaN/isFinite` 一致，不做隐式转换 |
+| `Number.isNaN(x) / isFinite(x)` | 别名（已完成） | `x.isNaN / x.isFinite` | `Number` 为主名并带静态绑定，`number` 为小写别名；与全局 `isNaN/isFinite` 一致，不做隐式转换 |
 | `Number.MAX_VALUE / MIN_VALUE` | 别名 P1 | `float.maxFinite / float.minPositive` | 值一致，但属 JS 历史命名，收益低 |
 | `Number.isInteger(x)` | 不做 | `x is integer` | 类型判断替代 |
 | `Number.EPSILON` | 不做 | — | Dart 无对应常量 |
@@ -193,7 +193,7 @@ Hetu 的 `crypto.randomUUID()` 与 JS `crypto.randomUUID()` 已同名同用途�
 ## 汇总
 
 - **P0（纯别名，已完成）**：顶层 `globalThis/NaN/Infinity/isNaN/isFinite`；List 的 `push/pop/shift/unshift/filter/some/includes/find/findIndex/findLast/findLastIndex/flatMap/slice`；String 的 `padStart/padEnd/trimStart/trimEnd/charCodeAt/includes/replace`；Number 的 `toExponential/toPrecision/Number.isNaN/isFinite`；Math 的常量与 `abs/floor/ceil/round/trunc/sign`，以及 `min/max` 的 variadic 扩展；`Object.hasOwn`；Map/Set 的 `has/size`；`Promise.resolve/all`；`console.warn`（主名，`warning` 保留别名）。实现见 `plan_js_api_compatibility.md` 执行记录。
-- **P1（少量新绑定，已完成）**：`forEach`（Iterable/Map）、`Map.get/set/delete/entries`、`Set.delete`、`Promise.catch/finally/reject`、`Math.atan2`、`String.charAt/repeat/fromCharCode`（新增 `type String = string`）、`Object.entries/fromEntries`；并补注册了漏掉的 `HTMapEntryBinding`。`delete` 已通过移出保留字集合改为上下文关键字，`Map/Set.delete` 均可用。
+- **P1（少量新绑定，已完成）**：`forEach`（Iterable/Map）、`Map.get/set/delete/entries`、`Set.delete`、`Promise.catch/finally/reject`、`Math.atan2`、`String.charAt/repeat/fromCharCode`、`Object.entries/fromEntries`；并补注册了漏掉的 `HTMapEntryBinding`。`delete` 已通过移出保留字集合改为上下文关键字，`Map/Set.delete` 均可用。基础类型主名已统一为大写（`Number/Integer/Float/Bool/String`），小写 `number/integer/float/bool/string` 与 `num/int/double/str` 均保留为别名。
 - **P2 / 不做**：`structuredClone`、`Number.MAX_VALUE`；Date、RegExp、Timer、正则字符串方法、负索引相关、JS 语义怪癖等，理由见各表。
 
 执行时按 `plan_js_api_compatibility.md` 的阶段划分推进；每完成一项，在兼容矩阵文档中登记其状态与语义说明。

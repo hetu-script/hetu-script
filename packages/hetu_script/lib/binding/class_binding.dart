@@ -17,18 +17,18 @@ import '../locale/locale.dart';
 import '../utils/collection.dart';
 
 class HTNumberClassBinding extends HTExternalClass {
-  HTNumberClassBinding() : super('number');
+  HTNumberClassBinding() : super('Number');
 
   @override
   dynamic memberGet(String id,
       {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
-      case 'number.parse':
+      case 'Number.parse':
         return ({positionalArgs, namedArgs}) =>
             num.tryParse(positionalArgs.first);
-      case 'number.isNaN':
+      case 'Number.isNaN':
         return ({positionalArgs, namedArgs}) => positionalArgs.first.isNaN;
-      case 'number.isFinite':
+      case 'Number.isFinite':
         return ({positionalArgs, namedArgs}) => positionalArgs.first.isFinite;
       default:
         if (!ignoreUndefined) throw HTError.undefined(id);
@@ -111,17 +111,17 @@ class HTNumberClassBinding extends HTExternalClass {
 }
 
 class HTIntegerClassBinding extends HTExternalClass {
-  HTIntegerClassBinding({required super.superClass}) : super('integer');
+  HTIntegerClassBinding({required super.superClass}) : super('Integer');
 
   @override
   dynamic memberGet(String id,
       {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
-      case 'integer.fromEnvironment':
+      case 'Integer.fromEnvironment':
         return ({positionalArgs, namedArgs}) => int.fromEnvironment(
             positionalArgs[0],
             defaultValue: namedArgs['defaultValue']);
-      case 'integer.parse':
+      case 'Integer.parse':
         return ({positionalArgs, namedArgs}) =>
             int.tryParse(positionalArgs[0], radix: namedArgs['radix']);
       default:
@@ -240,23 +240,23 @@ class HTBigIntClassBinding extends HTExternalClass {
 }
 
 class HTFloatClassBinding extends HTExternalClass {
-  HTFloatClassBinding({required super.superClass}) : super('float');
+  HTFloatClassBinding({required super.superClass}) : super('Float');
 
   @override
   dynamic memberGet(String id,
       {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
-      case 'float.nan':
+      case 'Float.nan':
         return double.nan;
-      case 'float.infinity':
+      case 'Float.infinity':
         return double.infinity;
-      case 'float.negativeInfinity':
+      case 'Float.negativeInfinity':
         return double.negativeInfinity;
-      case 'float.minPositive':
+      case 'Float.minPositive':
         return double.minPositive;
-      case 'float.maxFinite':
+      case 'Float.maxFinite':
         return double.maxFinite;
-      case 'float.parse':
+      case 'Float.parse':
         return ({positionalArgs, namedArgs}) =>
             double.tryParse(positionalArgs[0]);
       default:
@@ -278,13 +278,13 @@ class HTFloatClassBinding extends HTExternalClass {
 }
 
 class HTBooleanClassBinding extends HTExternalClass {
-  HTBooleanClassBinding() : super('bool');
+  HTBooleanClassBinding() : super('Bool');
 
   @override
   dynamic memberGet(String id,
       {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
-      case 'bool.parse':
+      case 'Bool.parse':
         return ({positionalArgs, namedArgs}) {
           return (positionalArgs.first.toLowerCase() == 'true') ? true : false;
         };
@@ -295,15 +295,15 @@ class HTBooleanClassBinding extends HTExternalClass {
 }
 
 class HTStringClassBinding extends HTExternalClass {
-  HTStringClassBinding() : super('string');
+  HTStringClassBinding() : super('String');
 
   @override
   dynamic memberGet(String id,
       {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
-      case 'string.parse':
+      case 'String.parse':
         return ({positionalArgs, namedArgs}) => positionalArgs.first.toString();
-      case 'string.fromCharCode':
+      case 'String.fromCharCode':
         return ({positionalArgs, namedArgs}) =>
             String.fromCharCode(positionalArgs.first);
       default:

@@ -1,6 +1,6 @@
 # 河图中提供的 API
 
-河图中的基础类型本身就是 Dart 对象，同时也默认绑定了大多数 Dart SDK 中的方法：**number**、**integer**、**float**、**bool**、**string**、**List**、**Set**、**Map**、**Iterable**、**BigInt**。
+河图中的基础类型本身就是 Dart 对象，同时也默认绑定了大多数 Dart SDK 中的方法：**Number**、**Integer**、**Float**、**Bool**、**String**、**List**、**Set**、**Map**、**Iterable**、**BigInt**。
 
 例如，我们可以在脚本中对 Iterable 使用 Dart 的 `map` 接口：
 
@@ -10,7 +10,7 @@ final result = range(10).map((value) => 'row: ${value}')
 
 这些 API 中的许多还提供了 **JavaScript 风格的别名**（`push`、`filter`、`padStart`、`Math.PI`、`Promise.resolve` 等）。完整的别名对照表和需要注意的语义差异，请参阅 [JavaScript 开发者指南](/zh-Hans/guide/javascript/)。
 
-为方便使用提供的类型别名：`num`（= `number`）、`int`（= `integer`）、`double`（= `float`）、`str` / `String`（= `string`）、`Number`（= `number`）、`Promise`（= `Future`）。
+类型名使用大写类名（`Number`、`Integer`、`Float`、`Bool`、`String`），同时保留小写别名以符合 Dart 习惯：`number`、`integer`、`float`、`bool`、`string`，另有 `num`（= `Number`）、`int`（= `Integer`）、`double`（= `Float`）、`str`（= `String`）、`Array`（= `List`）、`Promise`（= `Future`）。
 
 ## 全局函数和值
 

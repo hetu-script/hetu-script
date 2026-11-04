@@ -7,7 +7,10 @@ external function parseInt(source: string, [radix: integer?]) -> number
 
 external function parseFloat(source: string) -> number
 
-external abstract class number {
+external abstract class Number {
+
+  /// Parse [source] as a number.
+  static function parse(source: string) -> number
 
   function toPercentageString([fractionDigits: integer = 0]) -> string
 
@@ -74,12 +77,12 @@ external abstract class number {
   function toString() -> string
 }
 
-type num = number
+type num = Number
 
-/// Alias of [number], for JavaScript users.
-type Number = number
+/// Alias of [Number], for JavaScript users.
+type number = Number
 
-external class integer extends number {
+external class Integer extends Number {
   
   /// Parse [source] as a, possibly signed, integer literal.
   static function parse(source: string, {radix: integer?}) -> integer
@@ -119,7 +122,10 @@ external class integer extends number {
   function toRadixString(radix: integer) -> string
 }
 
-type int = integer
+type int = Integer
+
+/// Alias of [Integer].
+type integer = Integer
 
 /// An arbitrarily large integer.
 external class BigInt {
@@ -203,7 +209,7 @@ external class BigInt {
   function toRadixString(radix: integer) -> String
 }
 
-external class float extends number {
+external class Float extends Number {
   
   function toFixed(digits: integer) -> float
 
@@ -270,16 +276,22 @@ external class float extends number {
   get sign -> float
 }
 
-type double = float
+type double = Float
 
-external class bool {
+/// Alias of [Float].
+type float = Float
+
+external class Bool {
 
   function toString() -> string
 
   static function parse(value: string) -> bool
 }
 
-external class string {
+/// Alias of [Bool].
+type bool = Bool
+
+external class String {
 
   get characters -> Iterable
 
@@ -362,10 +374,10 @@ external class string {
   static function fromCharCode(charCode: integer) -> string
 }
 
-type str = string
+type str = String
 
-/// Alias of [string], for JavaScript users.
-type String = string
+/// Alias of [String], for JavaScript users.
+type string = String
 
 external class Iterator {
   /// Advances the iterator to the next element of the iteration.

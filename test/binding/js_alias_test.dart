@@ -291,6 +291,28 @@ void main() {
       ''');
       expect(result, [1, true, 2, true]);
     });
+
+    test('capitalized type names and lowercase aliases are interchangeable', () {
+      final result = hetu.eval(r'''
+        var s: string = 'hello'
+        var s2: String = s
+        var i: int = 42
+        var i2: integer = i
+        var f: float = 1.5
+        var f2: Float = f
+        var b: bool = true
+        var n: num = 3.14
+        [
+          s2.length, i2, f2, b, n,
+          String.fromCharCode(65), string.parse(42),
+          Number.isNaN(NaN), number.parse('2.5'),
+          Integer.parse('7'), integer.parse('8'),
+          Bool.parse('true')
+        ]
+      ''');
+      expect(result,
+          [5, 42, 1.5, true, 3.14, 'A', '42', true, 2.5, 7, 8, true]);
+    });
   });
 
   group('Promise aliases -', () {

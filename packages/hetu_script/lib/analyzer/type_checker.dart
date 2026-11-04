@@ -47,7 +47,7 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
 
   @override
   HTType visitBooleanExpr(ASTLiteralBoolean node) {
-    return HTNominalType(id: 'bool');
+    return HTNominalType(id: 'Bool');
   }
 
   @override
@@ -57,17 +57,17 @@ class HTTypeChecker implements AbstractASTVisitor<HTType> {
 
   @override
   HTType visitFloatLiteralExpr(ASTLiteralFloat node) {
-    return HTNominalType(id: 'float');
+    return HTNominalType(id: 'Float');
   }
 
   @override
   HTType visitStringLiteralExpr(ASTLiteralString node) {
-    return HTNominalType(id: 'string');
+    return HTNominalType(id: 'String');
   }
 
   @override
   HTType visitStringInterpolationExpr(ASTStringInterpolation node) {
-    return HTNominalType(id: 'string');
+    return HTNominalType(id: 'String');
   }
 
   @override

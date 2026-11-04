@@ -64,7 +64,7 @@ Promise.resolve(42).then((value) => print(value))
 | `includes(str, [pos])` | `contains(str, [startIndex])` | |
 | `replace(from, to)` | `replaceFirst(from, to)` | 仅支持字符串模式，不支持正则和 `$` 替换模式。 |
 | `repeat(n)` | Dart `String operator*` | |
-| `String.fromCharCode(n)` | Dart `String.fromCharCode` | `String` 是 `string` 的类型别名。 |
+| `String.fromCharCode(n)` | Dart `String.fromCharCode` | `String` 为类名，`string` / `str` 为小写别名。 |
 
 已同名提供：`substring`、`split`、`trim`、`startsWith`、`endsWith`、`indexOf`、`lastIndexOf`、`toLowerCase`、`toUpperCase`、`replaceAll`。
 
@@ -74,7 +74,7 @@ Promise.resolve(42).then((value) => print(value))
 | --- | --- | --- |
 | `toExponential([digits])` | `toStringAsExponential` | 返回字符串。 |
 | `toPrecision(digits)` | `toStringAsPrecision` | 返回字符串。 |
-| `Number.isNaN(x)` / `Number.isFinite(x)` | `x.isNaN` / `x.isFinite` | 通过 `type Number = number` 提供静态形式。 |
+| `Number.isNaN(x)` / `Number.isFinite(x)` | `x.isNaN` / `x.isFinite` | `Number` 为类名，`number` 为小写别名。 |
 
 **`toFixed` 有差异：** 河图的 `float.toFixed(digits)` 返回 `float`（舍入后的数值），而 JavaScript 返回字符串。需要字符串形式时请使用 `toStringAsFixed(digits)`。
 

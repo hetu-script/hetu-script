@@ -64,7 +64,7 @@ Deliberately not provided: `at` (negative indexing), `concat` (use spread: `[...
 | `includes(str, [pos])` | `contains(str, [startIndex])` | |
 | `replace(from, to)` | `replaceFirst(from, to)` | String patterns only; no regex or `$` substitution patterns. |
 | `repeat(n)` | Dart `String operator*` | |
-| `String.fromCharCode(n)` | Dart `String.fromCharCode` | `String` is a type alias of `string`. |
+| `String.fromCharCode(n)` | Dart `String.fromCharCode` | `String` is the class name; `string` / `str` are aliases. |
 
 Already available with the same names: `substring`, `split`, `trim`, `startsWith`, `endsWith`, `indexOf`, `lastIndexOf`, `toLowerCase`, `toUpperCase`, `replaceAll`.
 
@@ -74,7 +74,7 @@ Already available with the same names: `substring`, `split`, `trim`, `startsWith
 | --- | --- | --- |
 | `toExponential([digits])` | `toStringAsExponential` | Returns a string. |
 | `toPrecision(digits)` | `toStringAsPrecision` | Returns a string. |
-| `Number.isNaN(x)` / `Number.isFinite(x)` | `x.isNaN` / `x.isFinite` | Static forms via `type Number = number`. |
+| `Number.isNaN(x)` / `Number.isFinite(x)` | `x.isNaN` / `x.isFinite` | `Number` is the class name; `number` is a lowercase alias. |
 
 **`toFixed` differs:** Hetu's `float.toFixed(digits)` returns a `float` (rounded value), while JavaScript returns a string. Use `toStringAsFixed(digits)` when you need the string form.
 
