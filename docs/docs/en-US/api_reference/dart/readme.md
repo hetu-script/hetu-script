@@ -261,7 +261,7 @@ dynamic eval(String content,
 
 These methods is useful if you want a more efficient runtime for the script. You can compile a source into bytecode. And run it at another time so that the interpreter will skip the parsing, analyzing and compiling process.
 
-If you would like to compile and store the result as physical files. You can check [**command line tool**](../../guide/command_line_tool/readme.md#compile) in the hetu_script_dev_tools package.
+If you would like to compile and store the result as physical files. You can check [**command line tool**](../../guide/command_line_tool/README.md#compile) in the hetu_script_dev_tools package.
 
 ## Interact with the script, fetch(), assign(), invoke()
 
