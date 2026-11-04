@@ -54,7 +54,7 @@ function hello {
 }
 ```
 
-This package also provided a [REPL tool](../command_line_tool/README.md#repl) for quick testing.
+This package also provided a [REPL tool](../command_line_tool/readme.md#repl) for quick testing.
 
 ## hetu_script_flutter
 

@@ -50,7 +50,7 @@ function main {
 }
 ```
 
-另外，这个包还提供了一个 [**REPL**](../command_line_tool/README.md#repl) 工具用来辅助测试。
+另外，这个包还提供了一个 [**REPL**](../command_line_tool/readme.md#repl) 工具用来辅助测试。
 
 ## hetu_script_flutter
 

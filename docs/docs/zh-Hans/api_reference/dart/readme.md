@@ -248,7 +248,7 @@ dynamic eval(String content,
 
 这一对方法可以用于需要更高运行效率的场合。**compile()** 将一个代码文件编码为字节码。随后可以在另外的场合获取这段字节码然后调用 **loadBytecode()** 执行。在执行时，将无需再进行 parse, analyze, compile 的过程。
 
-可以参考 hetu_script_dev_tools 包提供的[**命令行工具**](../../guide/command_line_tool/README.md#compile)中附带的编译功能。
+可以参考 hetu_script_dev_tools 包提供的[**命令行工具**](../../guide/command_line_tool/readme.md#compile)中附带的编译功能。
 
 ## Interact with the script, fetch(), assign(), invoke()
 
