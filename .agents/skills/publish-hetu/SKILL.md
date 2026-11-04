@@ -39,7 +39,8 @@ Publishing is irreversible. Treat explicit invocation with confirmed versions as
 - Set `hetu_script_flutter` to depend on `hetu_script: ^<main_version>`.
 - Temporarily set `packages/hetu_script_flutter/example/pubspec.yaml` to use the same hosted main package version. The example itself remains `publish_to: none`.
 - Remove `publish_to: none` only from packages being published. Do not remove it from examples or other local-only packages.
-- Do not permanently modify environment variables. Prefix each hosted command with `PUB_HOSTED_URL=https://pub.dev/`.
+- Do not permanently modify environment variables. Before running hosted commands, configure the local proxy for the current shell. In PowerShell, run `$env:https_proxy="http://127.0.0.1:10080"`. In Bash, run `export https_proxy="http://127.0.0.1:10080"`.
+- Prefix each hosted command with `PUB_HOSTED_URL=https://pub.dev/`. When running Bash commands without exporting the proxy, also prefix them with `https_proxy=http://127.0.0.1:10080`.
 
 ## 3. Validate and publish the main package
 

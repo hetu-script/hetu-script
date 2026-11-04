@@ -1,3 +1,8 @@
+## 0.8.0
+
+- Add JavaScript-compatible APIs.
+- Add new lexer functionality.
+
 ## 0.7.1+1
 
 - Harden execution state restoration and per-call compiler configuration.
