@@ -198,6 +198,26 @@ void main() {
     expect(() => inner.call(), throwsA(isA<HTError>()));
   });
 
+  test('dynamic owners disable call scope captures in nested functions', () {
+    final hetu = _createHetu();
+    hetu.eval('var game');
+    hetu.assign('game', {});
+    hetu.eval(r'''
+      function makeReader(kind) {
+        final current = game
+        return () => kind
+      }
+    ''');
+
+    final outer = hetu.fetch('makeReader') as HTFunction;
+    final inner = hetu.invoke('makeReader', positionalArgs: ['attack'])
+        as HTFunction;
+
+    expect(outer.callScopeSlotCount, isNull);
+    expect(inner.callScopeSlotCount, isNull);
+    expect(inner.call(), 'attack');
+  });
+
   test('function clones retain captured cells and their mutation', () {
     final hetu = _createHetu();
     hetu.eval(r'''

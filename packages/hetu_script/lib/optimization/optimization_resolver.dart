@@ -39,13 +39,18 @@ class HTOptimizationResolver {
           optimization.requiresDynamicScope = true;
           changed = true;
         }
-        if (!optimization.requiresDynamicScope) continue;
         for (final upvalue in optimization.upvalues) {
           final owner = upvalue.scope.function;
           if (owner == null) continue;
           final ownerOptimization = result.functions[owner.declaration]!;
-          if (!ownerOptimization.requiresDynamicScope) {
+          if (optimization.requiresDynamicScope &&
+              !ownerOptimization.requiresDynamicScope) {
             ownerOptimization.requiresDynamicScope = true;
+            changed = true;
+          }
+          if (ownerOptimization.requiresDynamicScope &&
+              !optimization.requiresDynamicScope) {
+            optimization.requiresDynamicScope = true;
             changed = true;
           }
         }
