@@ -17,6 +17,7 @@ class HTLexerHetu extends HTLexer {
   late final RegExp _identifierRegExp;
   late final RegExp _digitRegExp;
   late final RegExp _hexDigitRegExp;
+  late final RegExp _binaryDigitRegExp;
 
   HTLexerHetu({super.lexicon}) {
     _identifierStartRegExp =
@@ -24,6 +25,7 @@ class HTLexerHetu extends HTLexer {
     _identifierRegExp = RegExp(lexicon.identifierPattern, unicode: true);
     _digitRegExp = RegExp(lexicon.digitPattern, unicode: true);
     _hexDigitRegExp = RegExp(lexicon.hexDigitPattern, unicode: true);
+    _binaryDigitRegExp = RegExp(lexicon.binaryDigitPattern, unicode: true);
   }
 
   @override
@@ -224,6 +226,8 @@ class HTLexerHetu extends HTLexer {
           return _digitRegExp.hasMatch(char3rd);
         } else if (concat23 == lexicon.hexNumberStart) {
           return _hexDigitRegExp.hasMatch(char4th);
+        } else if (concat23 == lexicon.binaryNumberStart) {
+          return _binaryDigitRegExp.hasMatch(char4th);
         } else {
           return _digitRegExp.hasMatch(char2nd);
         }
@@ -231,6 +235,8 @@ class HTLexerHetu extends HTLexer {
         return _digitRegExp.hasMatch(char2nd);
       } else if (concat12 == lexicon.hexNumberStart) {
         return _hexDigitRegExp.hasMatch(char3rd);
+      } else if (concat12 == lexicon.binaryNumberStart) {
+        return _binaryDigitRegExp.hasMatch(char3rd);
       } else {
         return _digitRegExp.hasMatch(current);
       }
@@ -344,6 +350,7 @@ class HTLexerHetu extends HTLexer {
         // number literal
         else if (isNumber(character, char2nd, char3rd, char4th)) {
           bool isHex = false;
+          bool isBinary = false;
           if (character == lexicon.negative) {
             buffer.write(character);
             ++iter;
@@ -358,18 +365,52 @@ class HTLexerHetu extends HTLexer {
             ++iter;
             ++iter;
             character = currentCharacter();
+          } else if (concat == lexicon.binaryNumberStart) {
+            isBinary = true;
+            buffer.write(concat);
+            ++iter;
+            ++iter;
+            character = currentCharacter();
           }
-          if (!isHex) {
+          if (!isHex && !isBinary) {
             bool hasDecimalPoint = character == lexicon.decimalPoint;
+            bool hasExponent = false;
             buffer.write(character);
             while (hasAfterString()) {
               final char2nd =
                   (iter + 1 < characters.length) ? characters[iter + 1] : '';
               final char3rd =
                   (iter + 2 < characters.length) ? characters[iter + 2] : '';
+              final char4th =
+                  (iter + 3 < characters.length) ? characters[iter + 3] : '';
               if (char2nd == lexicon.decimalPoint) {
-                if (!hasDecimalPoint && _digitRegExp.hasMatch(char3rd)) {
+                if (!hasDecimalPoint &&
+                    !hasExponent &&
+                    _digitRegExp.hasMatch(char3rd)) {
                   hasDecimalPoint = true;
+                  buffer.write(char2nd);
+                  ++iter;
+                } else {
+                  break;
+                }
+              } else if ((char2nd == 'e' || char2nd == 'E') && !hasExponent) {
+                if (_digitRegExp.hasMatch(char3rd)) {
+                  hasExponent = true;
+                  buffer.write(char2nd);
+                  ++iter;
+                } else if ((char3rd == '+' || char3rd == lexicon.negative) &&
+                    _digitRegExp.hasMatch(char4th)) {
+                  hasExponent = true;
+                  buffer.write(char2nd);
+                  buffer.write(char3rd);
+                  iter += 2;
+                } else {
+                  break;
+                }
+              } else if (char2nd == '_') {
+                final lastChar = buffer.toString()[buffer.length - 1];
+                if (_digitRegExp.hasMatch(lastChar) &&
+                    _digitRegExp.hasMatch(char3rd)) {
                   buffer.write(char2nd);
                   ++iter;
                 } else {
@@ -384,8 +425,8 @@ class HTLexerHetu extends HTLexer {
             }
             final lexeme = buffer.toString();
             Token token;
-            if (hasDecimalPoint) {
-              final n = double.parse(lexeme);
+            if (hasDecimalPoint || hasExponent) {
+              final n = double.parse(lexeme.replaceAll('_', ''));
               token = TokenFloatLiteral(
                   lexeme: lexeme,
                   line: line,
@@ -393,7 +434,7 @@ class HTLexerHetu extends HTLexer {
                   offset: offset,
                   literal: n);
             } else {
-              final n = int.parse(lexeme);
+              final n = int.parse(lexeme.replaceAll('_', ''));
               token = TokenIntegerLiteral(
                   lexeme: lexeme,
                   line: line,
@@ -403,12 +444,23 @@ class HTLexerHetu extends HTLexer {
             }
             handleLineInfo(lexeme);
             addToken(token);
-          } else {
+          } else if (isHex) {
             buffer.write(character);
             while (hasAfterString()) {
               final char2nd =
                   (iter + 1 < characters.length) ? characters[iter + 1] : '';
-              if (_hexDigitRegExp.hasMatch(char2nd)) {
+              final char3rd =
+                  (iter + 2 < characters.length) ? characters[iter + 2] : '';
+              if (char2nd == '_') {
+                final lastChar = buffer.toString()[buffer.length - 1];
+                if (_hexDigitRegExp.hasMatch(lastChar) &&
+                    _hexDigitRegExp.hasMatch(char3rd)) {
+                  buffer.write(char2nd);
+                  ++iter;
+                } else {
+                  break;
+                }
+              } else if (_hexDigitRegExp.hasMatch(char2nd)) {
                 buffer.write(char2nd);
                 ++iter;
               } else {
@@ -416,7 +468,44 @@ class HTLexerHetu extends HTLexer {
               }
             }
             final lexeme = buffer.toString();
-            final n = int.parse(lexeme);
+            final n = int.parse(lexeme.replaceAll('_', ''));
+            final token = TokenIntegerLiteral(
+                lexeme: lexeme,
+                line: line,
+                column: column,
+                offset: offset,
+                literal: n);
+            handleLineInfo(lexeme);
+            addToken(token);
+          } else {
+            buffer.write(character);
+            while (hasAfterString()) {
+              final char2nd =
+                  (iter + 1 < characters.length) ? characters[iter + 1] : '';
+              final char3rd =
+                  (iter + 2 < characters.length) ? characters[iter + 2] : '';
+              if (char2nd == '_') {
+                final lastChar = buffer.toString()[buffer.length - 1];
+                if (_binaryDigitRegExp.hasMatch(lastChar) &&
+                    _binaryDigitRegExp.hasMatch(char3rd)) {
+                  buffer.write(char2nd);
+                  ++iter;
+                } else {
+                  break;
+                }
+              } else if (_binaryDigitRegExp.hasMatch(char2nd)) {
+                buffer.write(char2nd);
+                ++iter;
+              } else {
+                break;
+              }
+            }
+            final lexeme = buffer.toString();
+            final n = int.parse(
+                lexeme
+                    .replaceAll('_', '')
+                    .replaceFirst(lexicon.binaryNumberStart, ''),
+                radix: 2);
             final token = TokenIntegerLiteral(
                 lexeme: lexeme,
                 line: line,

@@ -148,6 +148,74 @@ void main() {
       expect(nums.single.literal, 3.14);
     });
 
+    test('scientific notation', () {
+      final nums = lexAll('1e5').whereType<TokenFloatLiteral>();
+      expect(nums.single.literal, 100000.0);
+    });
+
+    test('scientific notation with negative exponent', () {
+      final nums = lexAll('1.5e-10').whereType<TokenFloatLiteral>();
+      expect(nums.single.literal, 1.5e-10);
+    });
+
+    test('scientific notation with uppercase E and explicit sign', () {
+      final nums = lexAll('2E+3').whereType<TokenFloatLiteral>();
+      expect(nums.single.literal, 2000.0);
+    });
+
+    test('scientific notation with leading dot', () {
+      final nums = lexAll('.5e2').whereType<TokenFloatLiteral>();
+      expect(nums.single.literal, 50.0);
+    });
+
+    test('negative scientific notation', () {
+      final nums = lexAll('-1e2').whereType<TokenFloatLiteral>();
+      expect(nums.single.literal, -100.0);
+    });
+
+    test('digit separators in decimal integer', () {
+      final nums = lexAll('1_000_000').whereType<TokenIntegerLiteral>();
+      expect(nums.single.literal, 1000000);
+      expect(nums.single.lexeme, '1_000_000');
+    });
+
+    test('digit separators in float and exponent', () {
+      final nums = lexAll('1_000.5').whereType<TokenFloatLiteral>();
+      expect(nums.single.literal, 1000.5);
+      final exp = lexAll('1e1_0').whereType<TokenFloatLiteral>();
+      expect(exp.single.literal, 1e10);
+    });
+
+    test('digit separators in hex integer', () {
+      final nums = lexAll('0xFF_FF').whereType<TokenIntegerLiteral>();
+      expect(nums.single.literal, 65535);
+    });
+
+    test('binary integer', () {
+      final nums = lexAll('0b1010').whereType<TokenIntegerLiteral>();
+      expect(nums.single.literal, 10);
+    });
+
+    test('binary zero and negative binary', () {
+      expect(lexAll('0b0').whereType<TokenIntegerLiteral>().single.literal, 0);
+      expect(lexAll('-0b11').whereType<TokenIntegerLiteral>().single.literal,
+          -3);
+    });
+
+    test('binary with digit separators', () {
+      final nums = lexAll('0b1111_0000').whereType<TokenIntegerLiteral>();
+      expect(nums.single.literal, 240);
+    });
+
+    test('consecutive or trailing separators are not part of the number', () {
+      final tokens = meaningfulTokens('1__000');
+      expect(tokens.whereType<TokenIntegerLiteral>().single.literal, 1);
+      expect(tokens.whereType<TokenIdentifier>().single.lexeme, '__000');
+      final trailing = meaningfulTokens('1_');
+      expect(trailing.whereType<TokenIntegerLiteral>().single.literal, 1);
+      expect(trailing.whereType<TokenIdentifier>().single.lexeme, '_');
+    });
+
     test('number is not lexed as identifier', () {
       final tokens = lexAll('42');
       final ids = tokens.whereType<TokenIdentifier>();
@@ -448,6 +516,18 @@ void main() {
     test('float with leading zero', () {
       final result = hetu.eval(r''' 0.5 ''');
       expect(result, 0.5);
+    });
+    test('scientific notation in expression', () {
+      final result = hetu.eval(r''' 1e3 + 0.5 ''');
+      expect(result, 1000.5);
+    });
+    test('binary and hex in expression', () {
+      final result = hetu.eval(r''' 0b1010 + 0xFF ''');
+      expect(result, 265);
+    });
+    test('digit separators in expression', () {
+      final result = hetu.eval(r''' 1_000 + 1 ''');
+      expect(result, 1001);
     });
   });
 

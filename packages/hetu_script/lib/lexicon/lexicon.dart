@@ -15,6 +15,10 @@ abstract class HTLexicon {
 
   String get hexNumberStart;
 
+  String get binaryDigitPattern;
+
+  String get binaryNumberStart;
+
   String get identifierStartPattern;
 
   String get identifierPattern;

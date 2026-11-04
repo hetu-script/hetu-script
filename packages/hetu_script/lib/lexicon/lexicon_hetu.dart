@@ -16,6 +16,12 @@ class HTLexiconHetu extends HTLexicon {
   String get hexNumberStart => r'0x';
 
   @override
+  String get binaryDigitPattern => r'[01]';
+
+  @override
+  String get binaryNumberStart => r'0b';
+
+  @override
   String get identifierStartPattern => r'[_#\$\p{L}]';
 
   @override
