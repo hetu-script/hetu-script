@@ -1,4 +1,4 @@
-import '../struct/named_struct.dart';
+import '../../declaration/struct/named_struct.dart';
 import '../variable/variable.dart';
 import '../object.dart';
 import '../function/function.dart';
@@ -118,6 +118,8 @@ class HTStruct with HTObject {
   void removeWhere(bool Function(String key, dynamic value) test) {
     _fields.removeWhere(test);
   }
+
+  Iterable<MapEntry<String, dynamic>> get entries => _fields.entries;
 
   void import(HTStruct other, {bool clone = false}) {
     for (final key in other._fields.keys) {

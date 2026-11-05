@@ -1,11 +1,11 @@
 // import '../../source/source.dart';
-import '../../declaration/declaration.dart';
+import '../declaration.dart';
 import '../../value/namespace/namespace.dart';
-import 'struct.dart';
+import '../../value/struct/struct.dart';
 import '../../error/error.dart';
 import '../../interpreter/interpreter.dart';
 import '../../bytecode/goto_info.dart';
-import '../function/function.dart';
+import '../../value/function/function.dart';
 // import '../../type/type.dart';
 import '../../common/internal_identifier.dart';
 

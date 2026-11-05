@@ -10,7 +10,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../value/class/class_namespace.dart';
 import '../value/namespace/namespace.dart';
-import '../value/struct/named_struct.dart';
+import '../declaration/struct/named_struct.dart';
 import '../value/object.dart';
 import '../value/class/class.dart';
 import '../value/instance/cast.dart';
