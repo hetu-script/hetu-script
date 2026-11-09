@@ -18,7 +18,7 @@ print(obj.`name-#42🍎`) // 'aleph'
 
 河图的保留关键字不能用作普通的标识符。下面是完整的关键字列表：
 
-**null, true, false, void<sup>1</sup>, type<sup>1</sup>, import<sup>1</sup>, export<sup>1</sup>, from<sup>1</sup>, any<sup>1</sup>, unknown<sup>12</sup>, never<sup>12</sup>, var, final, const, def<sup>2</sup>, delete<sup>2</sup>, type<sup>1</sup>, typeval, typeof, decltypeof, namespace, class, enum, function, struct, this, super, abstract, override<sup>2</sup>, external, static, extends<sup>1</sup>, implements<sup>12</sup>, with<sup>12</sup>, new, constructor, factory, get, set, async<sup>2</sup>, await<sup>2</sup>, break, continue, return, for, in, of<sup>1</sup>, if, else, while, do, when, is, as**
+**null, true, false, void<sup>1</sup>, type<sup>1</sup>, import<sup>1</sup>, export<sup>1</sup>, from<sup>1</sup>, any<sup>1</sup>, unknown<sup>12</sup>, never<sup>12</sup>, var, final, const, def<sup>2</sup>, delete<sup>2</sup>, type<sup>1</sup>, typeval, typeof, decltypeof, namespace, class, enum, function, struct, this, super, abstract, override<sup>2</sup>, external, static, extends<sup>1</sup>, implements<sup>12</sup>, with<sup>12</sup>, new, constructor, factory, get, set, async<sup>2</sup>, await<sup>2</sup>, break, continue, return, for, in, of<sup>1</sup>, if, else, while, do, switch, is, as**
 
 1: 这些关键字是 “上下文” 关键字，只有在特定场合使用。因此可以用作普通的标识符。
 

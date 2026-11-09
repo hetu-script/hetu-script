@@ -4,17 +4,21 @@
 
 ## 安装
 
-只需要使用下面的命令，在你的机器上安装一个全局 Dart 脚本，即可使用这个命令行工具：
+使用 `dart install` 命令即可在你的机器上全局安装这个命令行工具：
 
 ```
-dart pub global activate hetu_script_dev_tools
-// or you can use a git url or local path:
-// dart pub global activate --source path G:\_dev\hetu-script\dev-tools
+dart install https://github.com/hetu-script/hetu-script.git --git-path packages/hetu_script_dev_tools
+```
+
+也可以从本地路径安装：
+
+```
+dart install --source path /path/to/hetu-script/packages/hetu_script_dev_tools
 ```
 
 安装之后，你就可以在任意目录下使用 **hetu** 命令。
 
-(关于 Dart 这个全局脚本的用法，可以参考 [dart pub global activate](https://dart.dev/tools/pub/cmd/pub-global))。
+(关于 `dart install` 的用法，可以参考 [官方文档](https://dart.dev/tools/dart-install))。
 
 ## REPL
 

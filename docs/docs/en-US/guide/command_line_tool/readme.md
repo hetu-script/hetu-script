@@ -4,17 +4,21 @@ A command line REPL tool for testing.
 
 ## Installation
 
-You can activate this tool globally, by the following command:
+You can install this tool globally with `dart install`:
 
 ```
-dart pub global activate hetu_script_dev_tools
-// or you can use a git url or local path:
-// dart pub global activate --source path G:\_dev\hetu-script\dev-tools
+dart install https://github.com/hetu-script/hetu-script.git --git-path packages/hetu_script_dev_tools
+```
+
+Or install from a local path:
+
+```
+dart install --source path /path/to/hetu-script/packages/hetu_script_dev_tools
 ```
 
 Then you can use command line tool 'hetu' in any directory on your computer.
 
-(If you are facing any problems, please check this official document about [pub global activate](https://dart.dev/tools/pub/cmd/pub-global))
+(If you are facing any problems, please check this official document about [dart install](https://dart.dev/tools/dart-install))
 
 ## REPL
 

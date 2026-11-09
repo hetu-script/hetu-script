@@ -24,7 +24,7 @@ void main() {
       }
     }
     ht.greeting()
-  ''', isModule: true);
+  ''', type: HTResourceType.hetuModule);
 }
 ```
 

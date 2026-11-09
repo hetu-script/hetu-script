@@ -110,10 +110,16 @@ If you are using VS Code, you can download [this extension](https://marketplace.
 
 ## Command line tool
 
-We have a command line REPL tool for quick testing. You can activate by the following command:
+We have a command line REPL tool for quick testing. You can install it globally with `dart install`:
 
 ```
 dart install https://github.com/hetu-script/hetu-script.git --git-path packages/hetu_script_dev_tools
+```
+
+Or install from a local path:
+
+```
+dart install --source path /path/to/hetu-script/packages/hetu_script_dev_tools
 ```
 
 Then you can use command line tool 'hetu' in any directory on your computer.

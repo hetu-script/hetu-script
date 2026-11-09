@@ -89,7 +89,7 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   final hetu = Hetu();
-  await hetu.init(externalFunctions: {
+  hetu.init(externalFunctions: {
     'hello': () => {'greeting': 'Hello from Dart!'},
   });
   final hetuValue = hetu.eval(r'''
@@ -109,13 +109,19 @@ void main() async {
 
 ## 命令行工具
 
-河图提供了基本的命令行操作方式，以便快速测试脚本功能。可以使用下面的命令在你的电脑上打开全局的 'hetu' 命令。
+河图提供了基本的命令行操作方式，以便快速测试脚本功能。可以使用 `dart install` 在你的电脑上全局安装 'hetu' 命令。
 
 ```
-dart pub global activate hetu_script_dev_tools
+dart install https://github.com/hetu-script/hetu-script.git --git-path packages/hetu_script_dev_tools
 ```
 
-你可以在任何目录下打开命令行工具，然后输入 'hetu -h' 查看可用命令。
+也可以从本地路径安装：
+
+```
+dart install --source path /path/to/hetu-script/packages/hetu_script_dev_tools
+```
+
+安装后，你可以在任何目录下使用命令行工具，然后输入 'hetu -h' 查看可用命令。
 
 直接输入 'hetu' 会进入类似 Python 命令行的 REPL 模式。在这个模式下，可以直接输入脚本语句，并看到解释的结果。如果需要输入多行，可以在句末输入 '\\'。
 
@@ -133,7 +139,7 @@ meaning() -> any // repl print
 42 // repl print
 ```
 
-可以在这里查看关于 Dart 的 [pub global activate](https://dart.dev/tools/pub/cmd/pub-global) 功能的更多信息。
+可以在这里查看关于 Dart 的 [dart install](https://dart.dev/tools/dart-install) 功能的更多信息。
 
 ## 支持我的工作
 

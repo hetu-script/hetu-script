@@ -1,6 +1,6 @@
 # 流程控制
 
-河图中包含大多数常见的流程控制语句。需要注意的是河图用 when 取代了 switch。
+河图中包含大多数常见的流程控制语句，包括 while、do、for 循环和 switch 语句。
 
 ```dart
 function main {

@@ -4,7 +4,7 @@
 
 ```dart
 final hetu = Hetu(
-  config: InterpreterConfig(
+  config: HetuConfig(
     allowVariableShadowing: true,
     allowImplicitVariableDeclaration: true,
     allowImplicitNullToZeroConversion: true,

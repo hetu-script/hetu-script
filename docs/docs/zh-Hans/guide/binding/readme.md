@@ -69,7 +69,7 @@ hetu.invoke('main', positionalArgs: [data]);
 你可以直接将任意 Dart 函数绑定到脚本中：
 
 ```dart
-await hetu.init(externalFunctions: {
+hetu.init(externalFunctions: {
   'hello': () => {'greeting': 'hello'},
 });
 ```
@@ -77,7 +77,7 @@ await hetu.init(externalFunctions: {
 这样写比较简明易懂，但通过这种方式定义的外部函数绑定，将会使用 Dart 中的 **Function.apply** 功能调用，相比直接调用，这个功能的运行效率通常比较低下（大约慢 10 倍左右）。因此，建议以如下形式定义一个外部函数：
 
 ```dart
-await hetu.init(externalFunctions: {
+hetu.init(externalFunctions: {
   'hello': ({positionalArgs, namedArgs}) => {'greeting': 'hello'},
 });
 ```
@@ -86,11 +86,10 @@ await hetu.init(externalFunctions: {
 
 ```dart
 /// typedef of external function for binding.
-typedef HTExternalFunction = dynamic Function(
-    {HTObject? instance,
-    required HTNamespace namespace,
-    List<dynamic> positionalArgs,
-    Map<String, dynamic> namedArgs});
+typedef HTExternalFunction = dynamic Function({
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
+});
 ```
 
 要使用你刚才定义的外部函数，需要在脚本中使用 **external** 关键字声明这个函数。
@@ -102,7 +101,7 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   final hetu = Hetu();
-  await hetu.init(externalFunctions: {
+  hetu.init(externalFunctions: {
     'hello': ({positionalArgs, namedArgs}) => {'greeting': 'Hello from Dart!'},
   });
   final hetuValue = hetu.eval(r'''
@@ -185,13 +184,11 @@ hetu.bindExternalFunction('namespaceName::calculate', ({positionalArgs, namedArg
 
 你可以在脚本中定义一个外部类，然后通过绑定的方式来访问它的静态成员或者实例成员。
 
-外部类的绑定包含下面四部分的代码：
+外部类的绑定包含下面三部分的代码：
 
 - 一个 Dart class 的声明。这部分是纯粹的 Dart。通常你已经写好了这部分代码，而且也无须作任何修改。
 
-- 你需要写一个针对这个 Dart class 的 [extension](https://dart.dev/guides/language/extension-methods)，提供两个方法：**htFetch 和 htAssign**。 这是为了让解释器可以以某种类似反射的方法获取 Dart 对象的成员。
-
-- 你需要通过继承 **HTExternalClass** 类定义一个外部类，包含 **memberGet, memberSet, instanceMemberGet, instanceMemberSet** 等函数。这个外部类需要使用解释器的 [**bindExternalClass()**](../../api_reference/dart/readme.md) 方法进行绑定，从而让解释器可以访问这个类的静态成员，以及其构造函数。
+- 你需要通过继承 **HTExternalClass** 类定义一个外部类绑定，实现 **memberGet, memberSet, instanceMemberGet, instanceMemberSet** 等函数。这个绑定类可以通过解释器的 [**bindExternalClass()**](../../api_reference/dart/readme.md) 方法注册，也可以直接传入 `Hetu.init(externalClasses: [...])`。
 
 - 你还需要在脚本中使用 **external** 关键字声明这个类和其成员。这可以让脚本本身进行语法检查、函数参数赋初值等。
 
@@ -220,50 +217,20 @@ class Person {
   }
 }
 
-extension PersonBinding on Person {
-  dynamic htFetch(String id) {
-    switch (id) {
-      case 'name':
-        return name;
-      case 'race':
-        return race;
-      case 'greeting':
-        return ({positionalArgs, namedArgs}) =>
-            greeting(positionalArgs.first);
-      case 'child':
-        return child;
-      default:
-        throw HTError.undefined(id);
-    }
-  }
-
-  void htAssign(String id, dynamic value) {
-    switch (id) {
-      case 'name':
-        name = value;
-        break;
-      case 'race':
-        race = value;
-        break;
-      default:
-        throw HTError.undefined(id);
-    }
-  }
-}
-
 class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String id) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Person':
         return ({positionalArgs, namedArgs}) =>
             Person(positionalArgs[0], positionalArgs[1]);
       case 'Person.withName':
-        return ({positionalArgs, namedArgs}) =>
-            Person.withName(positionalArgs[0],
-                (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
+        return ({positionalArgs, namedArgs}) => Person.withName(
+            positionalArgs[0],
+            (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasian'));
       case 'Person.meaning':
         return ({positionalArgs, namedArgs}) =>
             Person.meaning(positionalArgs[0]);
@@ -275,27 +242,49 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  void memberSet(String id, dynamic value) {
+  void memberSet(String id, dynamic value,
+      {String? from, bool defineIfAbsent = false}) {
     switch (id) {
       case 'Person.race':
         throw HTError.immutable(id);
       case 'Person.level':
-        return Person.level = value;
+        Person.level = value;
       default:
         throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic instance, String id) {
-    var i = instance as Person;
-    return i.htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Person;
+    switch (id) {
+      case 'name':
+        return object.name;
+      case 'race':
+        return object.race;
+      case 'greeting':
+        return ({positionalArgs, namedArgs}) =>
+            object.greeting(positionalArgs.first);
+      case 'child':
+        return object.child;
+      default:
+        if (!ignoreUndefined) throw HTError.undefined(id);
+    }
   }
 
   @override
-  void instanceMemberSet(dynamic instance, String id, dynamic value) {
-    var i = instance as Person;
-    i.htAssign(id, value);
+  void instanceMemberSet(dynamic instance, String id, dynamic value,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Person;
+    switch (id) {
+      case 'name':
+        object.name = value;
+      case 'race':
+        object.race = value;
+      default:
+        if (!ignoreUndefined) throw HTError.undefined(id);
+    }
   }
 }
 
@@ -307,7 +296,7 @@ void main() {
         var race: string
         constructor([name: string = 'Jimmy', race: string = 'Caucasian']);
         get child
-        static function meaning(n: number)
+        static function meaning(n: num)
         static get level
         static set level (value: string)
         constructor withName(name: string, [race: string = 'Caucasian'])
@@ -337,29 +326,32 @@ void main() {
 
 #### 外部 Getter
 
-Getter 是用来访问对象属性的特殊函数。对于此种函数，你无须在 **external class binding** 或者 **extension on instance** 上定义完整的函数，而只需直接返回其对应的值即可。
+Getter 是用来访问对象属性的特殊函数。对于此种函数，你无须在 **external class binding** 上定义完整的函数形式，只需直接返回其对应的值即可。
 
 ```dart
 class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String id) {
-    case 'Person.level':
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
+    switch (id) {
+      case 'Person.level':
         return Person.level;
-    default:
-      throw HTError.undefined(id);
+      default:
+        throw HTError.undefined(id);
+    }
   }
 }
 ```
 
 #### 部分绑定
 
-你无需让每个绑定定义都完全包含上述的四个部分。
+你无需让每个绑定定义都完全包含上述的所有部分。
 
-- 如果你只定义了外部类（external class binding），并没有定义对象扩展方法（extension on instance），这意味着你可以在脚本中**以 className.memberName 的形式访问类静态成员**。
+- 如果你只定义了外部类绑定（external class binding）的 `memberGet`/`memberSet`，而没有实现 `instanceMemberGet`/`instanceMemberSet`，这意味着你可以在脚本中**以 className.memberName 的形式访问类静态成员和构造函数**，但不能访问实例成员。
 
-- 如果你在外部类中不定义 memberGet 和 memberSet，而只定义 instanceMemberGet 和 instanceMemberSet，这样你可以在脚本中直接使用这个 Dart 对象，只是**不能通过构造函数创建这个对象，或者访问静态成员**。
+- 如果你在外部类绑定中不定义 `memberGet` 和 `memberSet`，而只实现 `instanceMemberGet` 和 `instanceMemberSet`，这样你可以在脚本中直接使用这个 Dart 对象的实例成员，只是**不能通过构造函数创建这个对象，或者访问静态成员**。
 
 ### Dart 函数解包装定义
 
@@ -382,12 +374,11 @@ function getFunc {
 下面的例子展示了如何定义 **DartFunction** 这个解包装函数：
 
 ```dart
-await hetu.init(externalFunctions: {
-  externalFunctionTypedef: {
+hetu.init(externalFunctionTypedef: {
   'DartFunction': (HTFunction function) {
     return (int a, int b) {
       // must convert the return type here to let dart know its return value type.
-      return function.call([a, b]) as int;
+      return function.call(positionalArgs: [a, b]) as int;
     };
   },
 });

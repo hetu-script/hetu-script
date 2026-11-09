@@ -69,7 +69,7 @@ Primitives and Json are a quick way to pass around values without any binding. H
 You can directy bind a Dart function as it is:
 
 ```dart
-await hetu.init(externalFunctions: {
+hetu.init(externalFunctions: {
   'hello': () => {'greeting': 'hello'},
 });
 ```
@@ -92,7 +92,7 @@ import 'package:hetu_script/hetu_script.dart';
 
 void main() async {
   final hetu = Hetu();
-  await hetu.init(externalFunctions: {
+  hetu.init(externalFunctions: {
     'hello': ({positionalArgs, namedArgs}) => {'greeting': 'Hello from Dart!'},
   });
   final hetuValue = hetu.eval(r'''
@@ -177,13 +177,11 @@ hetu.bindExternalFunction('MyNamespace::calculate', ({positionalArgs, namedArgs}
 
 You can use a Dart object with full class definition in Hetu.
 
-To achieve this, you have to write a full definition of that class in Hetu, which includes 4 parts of code:
+To achieve this, you need three parts of code:
 
 - Original class definition of the class you intended to use in Hetu. For Dart & Flutter, this is the part where you already have when you import a library.
 
-- An [extension](https://dart.dev/guides/language/extension-methods) on that class which providing **htFetch & htAssign** methods. This part is used for dynamic reflection in Hetu and should return members of this class.
-
-- A binding definition of that class, which extends **HTExternalClass** interface provided by Hetu's dart lib, and provides **memberGet, memberSet, instanceMemberGet, instanceMemberSet** methods. You have to bind a instance of this class with method [**bindExternalClass()**](../../api_reference/dart/readme.md) on the interpreter. This part is used for access to the constructor and static members of that class.
+- A binding definition of that class, which extends **HTExternalClass** provided by Hetu's dart lib, and implements **memberGet, memberSet, instanceMemberGet, instanceMemberSet** methods. You have to bind an instance of this class with method [**bindExternalClass()**](../../api_reference/dart/readme.md) on the interpreter, or pass it to `Hetu.init(externalClasses: [...])`.
 
 - Declare that class with keyword **external** in Hetu script (includes its members' declaration). This part is used for Hetu to understand the structure and type of this class, and is used for syntax check and argument default values, etc.
 
@@ -212,50 +210,20 @@ class Person {
   }
 }
 
-extension PersonBinding on Person {
-  dynamic htFetch(String id) {
-    switch (id) {
-      case 'name':
-        return name;
-      case 'race':
-        return race;
-      case 'greeting':
-        return ({positionalArgs, namedArgs}) =>
-            greeting(positionalArgs.first);
-      case 'child':
-        return child;
-      default:
-        throw HTError.undefined(id);
-    }
-  }
-
-  void htAssign(String id, dynamic value) {
-    switch (id) {
-      case 'name':
-        name = value;
-        break;
-      case 'race':
-        race = value;
-        break;
-      default:
-        throw HTError.undefined(id);
-    }
-  }
-}
-
 class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String id) {
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
     switch (id) {
       case 'Person':
         return ({positionalArgs, namedArgs}) =>
             Person(positionalArgs[0], positionalArgs[1]);
       case 'Person.withName':
-        return ({positionalArgs, namedArgs}) =>
-            Person.withName(positionalArgs[0],
-                (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasion'));
+        return ({positionalArgs, namedArgs}) => Person.withName(
+            positionalArgs[0],
+            (positionalArgs.length > 1 ? positionalArgs[1] : 'Caucasian'));
       case 'Person.meaning':
         return ({positionalArgs, namedArgs}) =>
             Person.meaning(positionalArgs[0]);
@@ -267,27 +235,49 @@ class PersonClassBinding extends HTExternalClass {
   }
 
   @override
-  void memberSet(String id, dynamic value) {
+  void memberSet(String id, dynamic value,
+      {String? from, bool defineIfAbsent = false}) {
     switch (id) {
       case 'Person.race':
         throw HTError.immutable(id);
       case 'Person.level':
-        return Person.level = value;
+        Person.level = value;
       default:
         throw HTError.undefined(id);
     }
   }
 
   @override
-  dynamic instanceMemberGet(dynamic object, String id) {
-    var i = object as Person;
-    return i.htFetch(id);
+  dynamic instanceMemberGet(dynamic instance, String id,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Person;
+    switch (id) {
+      case 'name':
+        return object.name;
+      case 'race':
+        return object.race;
+      case 'greeting':
+        return ({positionalArgs, namedArgs}) =>
+            object.greeting(positionalArgs.first);
+      case 'child':
+        return object.child;
+      default:
+        if (!ignoreUndefined) throw HTError.undefined(id);
+    }
   }
 
   @override
-  void instanceMemberSet(dynamic object, String id, dynamic value) {
-    var i = object as Person;
-    i.htAssign(id, value);
+  void instanceMemberSet(dynamic instance, String id, dynamic value,
+      {bool ignoreUndefined = false}) {
+    final object = instance as Person;
+    switch (id) {
+      case 'name':
+        object.name = value;
+      case 'race':
+        object.race = value;
+      default:
+        if (!ignoreUndefined) throw HTError.undefined(id);
+    }
   }
 }
 
@@ -299,7 +289,7 @@ void main() {
         var race: string
         constructor([name: string = 'Jimmy', race: string = 'Caucasian']);
         get child
-        static function meaning(n: number)
+        static function meaning(n: num)
         static get level
         static set level (value: string)
         constructor withName(name: string, [race: string = 'Caucasian'])
@@ -333,7 +323,7 @@ external class:
 
 ```
       case 'Person.meaning':
-        return ({object, positionalArgs, namedArgs}) =>
+        return ({positionalArgs, namedArgs}) =>
             Person.meaning(positionalArgs[0]);
 ```
 
@@ -345,18 +335,21 @@ hetu.bindExternalMethod('Person::meaning', meaning);
 
 #### External getter
 
-For external getter, you don't need a full external function definition on **external class binding** or **extension on instance**. You can directly return the value in the dart code.
+For external getter, you don't need a full external function definition on **external class binding**. You can directly return the value in the dart code.
 
 ```dart
 class PersonClassBinding extends HTExternalClass {
   PersonClassBinding() : super('Person');
 
   @override
-  dynamic memberGet(String id) {
-    case 'Person.level':
-      return Person.level;
-    default:
-      throw HTError.undefined(id);
+  dynamic memberGet(String id,
+      {String? from, bool isRecursive = false, bool ignoreUndefined = false}) {
+    switch (id) {
+      case 'Person.level':
+        return Person.level;
+      default:
+        throw HTError.undefined(id);
+    }
   }
 }
 ```
@@ -365,9 +358,9 @@ class PersonClassBinding extends HTExternalClass {
 
 You don't always need all of the definitions and declarations as the example above.
 
-If you defined an external class binding without instanceMemberGet, instanceMemberSet and the extension on instance, you **are limited to access this class's static members and constructors with 'className.memberName'**.
+If you defined an external class binding without instanceMemberGet and instanceMemberSet, you **are limited to access this class's static members and constructors with 'className.memberName'**.
 
-If you omit the memberGet & memberSet on external class binding, and just define instanceMemberGet, instanceMemberSet and the extension on instance, you can access the instance member of this Dart instance, but **cannot access to its static class member & constructors**.
+If you omit the memberGet & memberSet on external class binding, and just define instanceMemberGet and instanceMemberSet, you can access the instance member of this Dart instance, but **cannot access to its static class member & constructors**.
 
 ### Typedef of Dart function
 
@@ -399,12 +392,11 @@ int hetuAdd(DartFunction func) {
 You have to bind the Dart typedef in **init** method of the interpreter before you can use it.
 
 ```dart
-await hetu.init(externalFunctions: {
-  externalFunctionTypedef: {
+hetu.init(externalFunctionTypedef: {
   'DartFunction': (HTFunction function) {
     return (int a, int b) {
       // must convert the return type here to let dart know its return value type.
-      return function.call([a, b]) as int;
+      return function.call(positionalArgs: [a, b]) as int;
     };
   },
 });

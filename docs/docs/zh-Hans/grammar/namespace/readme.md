@@ -85,7 +85,7 @@ lib.someFunction()
 绑定到特定命名空间的外部函数可以使用 `Namespace::functionName` 命名约定注册：
 
 ```dart
-hetu.bindExternalFunction('MyNamespace::myFunc', (List<dynamic> args) {
+hetu.bindExternalFunction('MyNamespace::myFunc', ({positionalArgs, namedArgs}) {
   // ...
 });
 ```
@@ -97,7 +97,7 @@ hetu.bindExternalFunction('MyNamespace::myFunc', (List<dynamic> args) {
 ```dart
 // math_utils.ht
 namespace MathUtils {
-  fun square(x) {
+  function square(x) {
     return x * x
   }
 }
@@ -106,7 +106,7 @@ namespace MathUtils {
 import 'math_utils.ht'
 
 extension namespace MathUtils {
-  fun cube(x) {
+  function cube(x) {
     return x * x * x
   }
 }

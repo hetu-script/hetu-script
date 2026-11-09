@@ -31,10 +31,10 @@ class Calculator {
   }
 
   // instance member
-  let x: number
-  let y: number
+  var x: number
+  var y: number
 
-  let birthDate
+  var birthDate
   // constructor with parameters
   // you can use `this` syntax in the parameter to
   // quick initialize the member on instance

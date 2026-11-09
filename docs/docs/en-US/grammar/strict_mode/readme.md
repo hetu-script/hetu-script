@@ -4,7 +4,7 @@ You can set some flag on Hetu's config, to change some behavior regarding strict
 
 ```dart
 final hetu = Hetu(
-  config: InterpreterConfig(
+  config: HetuConfig(
     allowVariableShadowing: true,
     allowImplicitVariableDeclaration: true,
     allowImplicitNullToZeroConversion: true,

@@ -206,8 +206,8 @@ void updateResource(String fullName, HTSource resource)
 ```dart
 void init({
   bool useDefaultModuleAndBinding = true,
-  HTLocale? locale,
   Map<String, Function> externalFunctions = const {},
+  Map<String, HTExternalMethod> externalMethods = const {},
   Map<String, HTExternalFunctionTypedef> externalFunctionTypedef = const {},
   List<HTExternalClass> externalClasses = const [],
   List<HTExternalTypeReflection> externalTypeReflections = const [],

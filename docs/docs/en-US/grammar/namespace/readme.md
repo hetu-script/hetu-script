@@ -85,7 +85,7 @@ lib.someFunction()
 External functions bound to a namespace can be registered with the `Namespace::functionName` naming convention:
 
 ```dart
-hetu.bindExternalFunction('MyNamespace::myFunc', (List<dynamic> args) {
+hetu.bindExternalFunction('MyNamespace::myFunc', ({positionalArgs, namedArgs}) {
   // ...
 });
 ```
@@ -97,7 +97,7 @@ Use `extension namespace` to explicitly add methods to an existing namespace —
 ```dart
 // math_utils.ht
 namespace MathUtils {
-  fun square(x) {
+  function square(x) {
     return x * x
   }
 }
@@ -106,7 +106,7 @@ namespace MathUtils {
 import 'math_utils.ht'
 
 extension namespace MathUtils {
-  fun cube(x) {
+  function cube(x) {
     return x * x * x
   }
 }
