@@ -214,7 +214,7 @@ class HTClass extends HTClassDeclaration with HTObject, InterpreterRef {
     final setter = '${InternalIdentifier.setter}$id';
 
     if (isExternal) {
-      externalClass!.memberSet('$id.$id', value);
+      externalClass!.memberSet('${this.id}.$id', value);
       return;
     } else {
       if (namespace.symbols.containsKey(id)) {

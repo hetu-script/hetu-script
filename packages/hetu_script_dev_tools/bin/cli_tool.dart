@@ -7,6 +7,8 @@ import 'package:hetu_script/hetu_script.dart';
 import 'package:args/args.dart';
 
 import 'common.dart';
+import 'package:hetu_script_dev_tools/src/binding/binding_emitter.dart';
+import 'package:hetu_script_dev_tools/src/binding/binding_generator.dart';
 // import 'command.dart';
 
 enum ConsoleColor {
@@ -24,7 +26,7 @@ const kConsoleColorBlue = '\x1B[34m';
 const kConsoleColorReset = '\x1B[0m';
 
 final argParser = ArgParser();
-late final ArgParser runCmd, formatCmd, analyzeCmd, compileCmd;
+late final ArgParser runCmd, formatCmd, analyzeCmd, compileCmd, bindCmd;
 
 void initargParser() {
   argParser.addFlag('help',
@@ -53,6 +55,29 @@ void initargParser() {
   compileCmd.addOption('array', abbr: 'a', help: 'Compile to dart array.');
   compileCmd.addOption('version',
       abbr: 'v', help: 'Set the version string for this module.');
+  bindCmd = argParser.addCommand('bind');
+  bindCmd.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Show bind command help.');
+  bindCmd.addMultiOption('user-lib-paths',
+      abbr: 'u',
+      valueHelp: 'path1, path2, ...',
+      help: 'Will iterate over all the folders recursively.');
+  bindCmd.addOption('output',
+      abbr: 'o',
+      defaultsTo: 'gen/dart',
+      help: 'The output path for .dart code generation.');
+  bindCmd.addOption('script-output',
+      abbr: 's',
+      defaultsTo: 'gen/ht',
+      help: 'The output path for .ht code generation.');
+  bindCmd.addMultiOption('ignores',
+      abbr: 'i',
+      valueHelp: 'ignored-file-name, ignored-file-name:ignored-class-name, ...',
+      help: 'The files/classes from this list will be ignored during the code generation.');
+  bindCmd.addMultiOption('whitelist',
+      abbr: 'w',
+      valueHelp: 'whitelist-file-name, whitelist-file-name2, ...',
+      help: 'Only the files from the list will be parsed, working with \'ignores\' too.');
 }
 
 void info(String message, {ConsoleColor color = ConsoleColor.green}) {
@@ -129,6 +154,13 @@ Interpret a Hetu script file and print its result to terminal.
                 compileToIntArrayWithName: cmd['array'],
                 versionString: cmd['version'],
               );
+            }
+          case 'bind':
+            if (cmd['help']) {
+              info('hetu bind [option]\nGenerate external class bindings from Dart source.');
+              info(bindCmd.usage);
+            } else {
+              bind(cmd);
             }
         }
       } else {
@@ -282,6 +314,62 @@ void analyze(List<String> args) {
     }
   } else {
     info('Analyzer found 0 problem.', color: ConsoleColor.blue);
+  }
+}
+
+void bind(ArgResults cmd) async {
+  final userPaths = (cmd['user-lib-paths'] as List<String>)
+      .where((p) => p.trim().isNotEmpty)
+      .toList();
+  if (userPaths.isEmpty) {
+    info('At least one user lib path is required for \'bind\' command.',
+        color: ConsoleColor.red);
+    return;
+  }
+
+  final output = cmd['output'] as String;
+  final scriptOutput = cmd['script-output'] as String;
+  final ignores = cmd['ignores'] as List<String>;
+  final whitelist = cmd['whitelist'] as List<String>;
+
+  final generator = BindingGenerator(
+    BindingGeneratorOptions(
+      userLibPaths: userPaths,
+      outputPath: output,
+      scriptOutputPath: scriptOutput,
+      ignores: ignores,
+      whitelist: whitelist,
+    ),
+  );
+
+  try {
+    final files = await generator.generate();
+    if (files.isEmpty) {
+      info('No @HTBinding declarations found.', color: ConsoleColor.yellow);
+      return;
+    }
+
+    final emitter = BindingEmitter();
+    for (final file in files) {
+      final relativePath = path.basenameWithoutExtension(file.filePath);
+      final dartOutPath = path.join(output, '$relativePath.g.dart');
+      final htOutPath = path.join(scriptOutput, '$relativePath.ht');
+
+      final dartFile = File(dartOutPath);
+      dartFile.createSync(recursive: true);
+      dartFile.writeAsStringSync(
+          emitter.emitDart(file, outputPath: path.dirname(dartOutPath)));
+
+      final htFile = File(htOutPath);
+      htFile.createSync(recursive: true);
+      htFile.writeAsStringSync(emitter.emitHetu(file));
+
+      info('Generated binding for [${file.filePath}]');
+      info('  Dart: $dartOutPath', color: ConsoleColor.blue);
+      info('  Hetu: $htOutPath', color: ConsoleColor.blue);
+    }
+  } catch (e) {
+    info('Binding generation failed: $e', color: ConsoleColor.red);
   }
 }
 

@@ -4,7 +4,7 @@
 
 本计划用于将平行项目 `hetu-script-autobinding` 的核心能力迁移到 `hetu_script_dev_tools` 中，形成统一的自动绑定代码生成方案。
 
-状态：待执行。本阶段只输出计划，不修改实现代码。
+状态：已完成。核心生成库、build_runner 集成和 CLI 均已实现并通过测试。
 
 迁移原则：以 autobinding 的“解析 Dart 代码 → 生成绑定”思路为参考，按当前 Hetu API、Dart 3 语言特性和 Dart 生态主流代码生成方式重写，不直接搬运旧实现。
 

@@ -41,6 +41,30 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.2"
+  build:
+    dependency: transitive
+    description:
+      name: build
+      sha256: "50df3d1558953a0d936401c1687cc41dbc039f9132f538c7bcb2aac2a580ae7f"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "5.0.0"
+  built_collection:
+    dependency: transitive
+    description:
+      name: built_collection
+      sha256: "44922ecebd8e3d0cef743dadd3b54df4e87e2a4c52a29465a1872aa9e192caa8"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "5.1.2"
+  built_value:
+    dependency: transitive
+    description:
+      name: built_value
+      sha256: f87ea98192116f7093cb214551ce1929caae0681fdba282b3d8b4462adee7bb7
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "8.13.0"
   characters:
     dependency: transitive
     description:
@@ -65,6 +89,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.6.0"
+  code_builder:
+    dependency: transitive
+    description:
+      name: code_builder
+      sha256: "811709c1badd02fc054039a13f66e0db1961865f9a314175f68c3eaeebec786f"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "4.13.0"
   collection:
     dependency: transitive
     description:
@@ -97,6 +129,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.8"
+  dart_style:
+    dependency: transitive
+    description:
+      name: dart_style
+      sha256: a0e4f65339b31eb6a9e6a12e14b4682a48d46fbc54a82f4a702396fbdbac63a7
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "3.1.14"
   fast_noise:
     dependency: transitive
     description:
@@ -319,6 +359,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.0"
+  source_gen:
+    dependency: transitive
+    description:
+      name: source_gen
+      sha256: "833ea7d15b5be79949d3d6c077da0267a0bd93c16897b36a771395a91e63086e"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "4.3.1"
   source_map_stack_trace:
     dependency: transitive
     description:

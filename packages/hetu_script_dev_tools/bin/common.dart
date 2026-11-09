@@ -14,6 +14,7 @@ commands:
   analyze [path] [option]
   format [path] [output_path] [option]
   compile [path] [output_path] [option]
+  bind [option]
 ''';
 
 var replInfo = r'''

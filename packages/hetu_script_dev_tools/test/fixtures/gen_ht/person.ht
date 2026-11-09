@@ -1,0 +1,25 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// Binding declarations for D:\_dev\hetu-script\packages\hetu_script_dev_tools\test\fixtures\person.dart
+
+external class Ingredients {
+  static get values
+  static get Apple
+  static get Banana
+  static get Cinnamon
+  get index
+  get name
+  function toString()
+}
+
+external class Person {
+  constructor([name: string = 'Jimmy', race: string = 'Caucasian'])
+  constructor withName(name: string, [race: string = 'Caucasian'])
+  static function meaning(n: integer)
+  static get level
+  static set level(value)
+  var name
+  var race
+  function greeting(tag: string)
+  get child
+}
+

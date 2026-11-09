@@ -67,7 +67,7 @@ class PersonClassBinding extends HTExternalClass {
       case 'race':
         return object.race;
       case 'greeting':
-        return ({positionalArgs, namedArgs}) =>
+        return ({object, positionalArgs, namedArgs}) =>
             object.greeting(positionalArgs.first);
       case 'child':
         return object.child;

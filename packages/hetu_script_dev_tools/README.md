@@ -56,6 +56,63 @@ function hello() -> any // repl print
 >>>
 ```
 
+## Auto-binding generator
+
+This package includes an automatic binding generator for Dart classes, enums, and function typedefs marked with `@HTBinding()`.
+
+### Using build_runner (recommended)
+
+Add the dependencies to your project:
+
+```yaml
+dependencies:
+  hetu_script: ^x.x.x
+
+dev_dependencies:
+  hetu_script_dev_tools: ^x.x.x
+  build_runner: ^x.x.x
+```
+
+Annotate your Dart declarations:
+
+```dart
+import 'package:hetu_script/binding.dart';
+
+@HTBinding()
+class Person {
+  String name;
+  Person(this.name);
+
+  void greeting(String tag) {
+    print('Hi! $tag');
+  }
+}
+```
+
+Then run:
+
+```bash
+dart run build_runner build
+```
+
+The generator produces `.g.dart` binding files that can be registered with `Hetu.init(externalClasses: [...])`.
+
+### Using the CLI
+
+You can also generate bindings directly with the `hetu bind` command:
+
+```bash
+hetu bind -u lib/src -o gen/dart -s gen/ht
+```
+
+Options:
+
+- `-u, --user-lib-paths`: Directories containing Dart source files to scan.
+- `-o, --output`: Output directory for generated `.g.dart` files (default: `gen/dart`).
+- `-s, --script-output`: Output directory for generated `.ht` files (default: `gen/ht`).
+- `-i, --ignores`: File or class patterns to ignore.
+- `-w, --whitelist`: Only process files matching these patterns.
+
 ## Console extension on Hetu api
 
 This packages also added a console extension to Hetu's internal api, for writing console apps.
