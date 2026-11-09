@@ -104,6 +104,25 @@ console.warn('done')
 
 Note that the behavior always follows the Dart SDK (for example, `filter` returns a lazy `Iterable`). Check the [JavaScript developers guide](https://hetu-script.github.io/docs/en-US/guide/javascript/) for the full alias table and the differences to watch out for.
 
+## Auto-binding generator
+
+The `hetu_script_dev_tools` package includes an automatic binding generator for Dart classes, enums, and function typedefs marked with `@HTBinding()`. It generates both Dart-side `HTExternalClass` bindings and Hetu-side `external class` declarations.
+
+You can use it with build_runner:
+
+```bash
+dart pub add --dev hetu_script_dev_tools build_runner
+dart run build_runner build
+```
+
+Or generate bindings directly with the CLI:
+
+```bash
+hetu bind -u lib/src -o gen/dart -s gen/ht
+```
+
+See the [binding guide](https://hetu-script.github.io/docs/en-US/guide/binding/#auto-binding-tools) for details.
+
 ## IDE extension
 
 If you are using VS Code, you can download [this extension](https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript) to get basic highlight and dart snippets on bindings.

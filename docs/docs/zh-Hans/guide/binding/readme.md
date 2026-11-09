@@ -405,6 +405,55 @@ typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
 ### 自动绑定工具
 
-感谢[rockingdice](https://github.com/rockingdice)和[CJChen98](https://github.com/CJChen98)的贡献，我们现在有一个自动化工具 [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding) 用来生成一个 Dart 类的完整外部类绑定定义。
+河图在 `hetu_script_dev_tools` 包中内置了自动绑定生成器。它可以为标记了 `@HTBinding()` 的 Dart 类、枚举和函数 typedef 自动生成 Dart 侧的 `HTExternalClass` 绑定和河图侧的 `external class` 声明。
 
-_这个工具由第三方开发者贡献和更新。我们不能保证它一定适用于最新版本的 Hetu，有关问题请在对应的 repository [发起 issue](https://github.com/hetu-script/hetu-script-autobinding/issues) 。_
+#### 使用 build_runner
+
+在项目中添加生成器依赖：
+
+```yaml
+dev_dependencies:
+  hetu_script_dev_tools: ^x.x.x
+  build_runner: ^x.x.x
+```
+
+为 Dart 声明添加注解：
+
+```dart
+import 'package:hetu_script/binding.dart';
+
+@HTBinding()
+class Person {
+  String name;
+  Person(this.name);
+
+  void greeting(String tag) {
+    print('Hi! $tag');
+  }
+}
+```
+
+然后运行：
+
+```bash
+dart run build_runner build
+```
+
+生成的 `.g.dart` 文件可以直接注册使用：
+
+```dart
+import 'person.g.dart';
+
+final hetu = Hetu();
+hetu.init(externalClasses: [PersonClassBinding()]);
+```
+
+#### 使用命令行工具
+
+你也可以不通过 build_runner，直接使用 `hetu bind` 命令生成绑定：
+
+```bash
+hetu bind -u lib/src -o gen/dart -s gen/ht
+```
+
+所有选项请参考[命令行工具指南](../command_line_tool/readme.md#bind)。

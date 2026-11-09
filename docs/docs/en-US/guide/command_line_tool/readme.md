@@ -73,3 +73,25 @@ Analyze a Hetu source file on your disk. List all warnings and errors.
 ```
 hetu analyze [path]
 ```
+
+## Bind
+
+Generate external class bindings from Dart source files annotated with `@HTBinding()`.
+
+```
+hetu bind -u [path1,path2,...] [option]
+```
+
+Options:
+
+- `-u, --user-lib-paths`: Directories containing Dart source files to scan recursively.
+- `-o, --output`: Output directory for generated `.g.dart` files (default: `gen/dart`).
+- `-s, --script-output`: Output directory for generated `.ht` declaration files (default: `gen/ht`).
+- `-i, --ignores`: File or class patterns to ignore.
+- `-w, --whitelist`: Only process files matching these patterns.
+
+Example:
+
+```bash
+hetu bind -u lib/src -o gen/dart -s gen/ht
+```

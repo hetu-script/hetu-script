@@ -21,6 +21,12 @@ flutter pub add hetu_script_flutter
 dart pub add hetu_script_dev_tools
 ```
 
+如果你还想通过 build_runner 使用自动绑定生成器，可以将其添加为开发依赖：
+
+```
+dart pub add --dev hetu_script_dev_tools build_runner
+```
+
 然后你需要使用 **HTFileSystemResourceContext** 辅助类, 在创建解释器时作为参数传入，替换掉默认的 sourceContext。
 
 **HTFileSystemResourceContext** 的 root 参数是代码文件存放的根目录，如果不指定，会使用当前项目的根目录。

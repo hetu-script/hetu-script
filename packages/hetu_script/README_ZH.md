@@ -103,6 +103,25 @@ void main() async {
 }
 ```
 
+## 自动绑定生成器
+
+`hetu_script_dev_tools` 包内置了自动绑定生成器，可以为标记了 `@HTBinding()` 的 Dart 类、枚举和函数 typedef 自动生成 Dart 侧的 `HTExternalClass` 绑定和河图侧的 `external class` 声明。
+
+你可以通过 build_runner 使用：
+
+```bash
+dart pub add --dev hetu_script_dev_tools build_runner
+dart run build_runner build
+```
+
+也可以直接使用命令行工具生成：
+
+```bash
+hetu bind -u lib/src -o gen/dart -s gen/ht
+```
+
+详见[绑定指南](https://hetu-script.github.io/docs/zh-Hans/guide/binding/#自动绑定工具)。
+
 ## VS Code 插件
 
 如果你使用 VS Code 进行开发，可以下载[这个插件](https://marketplace.visualstudio.com/items?itemName=hetu-script.hetuscript)来获得脚本的高亮显示等功能。

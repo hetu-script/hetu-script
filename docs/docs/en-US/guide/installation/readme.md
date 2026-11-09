@@ -21,6 +21,12 @@ To import from another source file on your physical disk. Install the package 'h
 dart pub add hetu_script_dev_tools
 ```
 
+If you also want to use the automatic binding generator with build_runner, add it as a dev dependency:
+
+```
+dart pub add --dev hetu_script_dev_tools build_runner
+```
+
 Then use the helper class **HTFileSystemResourceContext** provided by this package, to replace the default one:
 
 ```dart

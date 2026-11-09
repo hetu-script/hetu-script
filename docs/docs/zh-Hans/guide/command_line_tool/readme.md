@@ -73,3 +73,25 @@ hetu compile [path] [output_path] [option]
 ```
 hetu analyze [path]
 ```
+
+## bind
+
+为标记了 `@HTBinding()` 的 Dart 类、枚举和函数 typedef 生成外部绑定代码。
+
+```
+hetu bind -u [path1,path2,...] [option]
+```
+
+选项：
+
+- `-u, --user-lib-paths`：包含 Dart 源代码的目录，会递归扫描。
+- `-o, --output`：生成的 `.g.dart` 文件的输出目录（默认：`gen/dart`）。
+- `-s, --script-output`：生成的 `.ht` 声明文件的输出目录（默认：`gen/ht`）。
+- `-i, --ignores`：要忽略的文件或类名模式。
+- `-w, --whitelist`：只处理匹配这些模式的文件。
+
+示例：
+
+```bash
+hetu bind -u lib/src -o gen/dart -s gen/ht
+```

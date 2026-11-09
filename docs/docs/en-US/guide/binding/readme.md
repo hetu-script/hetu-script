@@ -410,8 +410,55 @@ typedef HTExternalFunctionTypedef = Function Function(HTFunction hetuFunction);
 
 ### Auto-Binding tools
 
-Thanks to [rockingdice](https://github.com/rockingdice) & [CJChen98](https://github.com/CJChen98) we now have an automated tool for auto-generate both Dart-side and Hetu-side binding declarations for any Dart classes.
+Hetu includes an automatic binding generator in the `hetu_script_dev_tools` package. It generates both Dart-side `HTExternalClass` bindings and Hetu-side `external class` declarations for classes, enums, and function typedefs marked with `@HTBinding()`.
 
-Please check out this repository: [hetu-script-autobinding](https://github.com/hetu-script/hetu-script-autobinding)
+#### Using build_runner
 
-_This tool is maintained by third party, thus we cannot guarantee it is updated to the latest version of Hetu. If you have any questions, you can [create an issue](https://github.com/hetu-script/hetu-script-autobinding/issues)._
+Add the generator to your project:
+
+```yaml
+dev_dependencies:
+  hetu_script_dev_tools: ^x.x.x
+  build_runner: ^x.x.x
+```
+
+Annotate your Dart declarations:
+
+```dart
+import 'package:hetu_script/binding.dart';
+
+@HTBinding()
+class Person {
+  String name;
+  Person(this.name);
+
+  void greeting(String tag) {
+    print('Hi! $tag');
+  }
+}
+```
+
+Then run:
+
+```bash
+dart run build_runner build
+```
+
+The generated `.g.dart` files can be registered directly:
+
+```dart
+import 'person.g.dart';
+
+final hetu = Hetu();
+hetu.init(externalClasses: [PersonClassBinding()]);
+```
+
+#### Using the CLI
+
+You can also generate bindings without build_runner:
+
+```bash
+hetu bind -u lib/src -o gen/dart -s gen/ht
+```
+
+See the [command line tool guide](../command_line_tool/readme.md#bind) for all options.
